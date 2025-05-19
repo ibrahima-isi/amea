@@ -1,0 +1,159 @@
+:root {
+  --dark-blue: #213448;
+  --medium-blue: #547792;
+  --light-blue: #94b4c1;
+  --pale-yellow: #ecefca;
+}
+
+body {
+  background-color: #f8f8fa;
+  color: var(--dark-blue);
+}
+
+/* Sidebar styling */
+#sidebar-wrapper {
+  background-color: var(--dark-blue);
+}
+
+#sidebar-wrapper .list-group-item {
+  background-color: transparent;
+  color: white;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+#sidebar-wrapper .list-group-item.active,
+#sidebar-wrapper .list-group-item:hover {
+  background-color: var(--medium-blue);
+}
+
+/* Navbar styling */
+.navbar {
+  background-color: white !important;
+  border-bottom: 1px solid var(--light-blue) !important;
+}
+
+/* Custom button styles */
+.btn-primary {
+  background-color: var(--medium-blue) !important;
+  border-color: var(--medium-blue) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--dark-blue) !important;
+  border-color: var(--dark-blue) !important;
+}
+
+.btn-outline-light:hover {
+  color: var(--dark-blue) !important;
+}
+
+.btn-outline-secondary {
+  color: var(--medium-blue) !important;
+  border-color: var(--medium-blue) !important;
+}
+
+.btn-outline-secondary:hover {
+  background-color: var(--medium-blue) !important;
+  color: white !important;
+}
+
+.btn-outline-primary {
+  color: var(--medium-blue) !important;
+  border-color: var(--medium-blue) !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--medium-blue) !important;
+  color: white !important;
+}
+
+/* Card styling */
+.card {
+  border: none;
+  box-shadow: 0 0.15rem 1.75rem 0 rgba(33, 52, 72, 0.1);
+}
+
+.card-header {
+  background-color: var(--dark-blue) !important;
+  color: white !important;
+}
+
+.card-body {
+  background-color: white;
+}
+
+/* Custom card borders */
+.border-left-primary {
+  border-left: 0.25rem solid var(--medium-blue) !important;
+}
+
+.border-left-success {
+  border-left: 0.25rem solid var(--light-blue) !important;
+}
+
+.border-left-info {
+  border-left: 0.25rem solid var(--pale-yellow) !important;
+}
+
+.border-left-warning {
+  border-left: 0.25rem solid var(--dark-blue) !important;
+}
+
+/* Text colors */
+.text-primary {
+  color: var(--medium-blue) !important;
+}
+
+.text-success {
+  color: var(--light-blue) !important;
+}
+
+.text-info {
+  color: var(--dark-blue) !important;
+}
+
+/* Badge colors */
+.bg-primary {
+  background-color: var(--medium-blue) !important;
+}
+
+.bg-info {
+  background-color: var(--light-blue) !important;
+}
+
+.bg-warning {
+  background-color: var(--pale-yellow) !important;
+  color: var(--dark-blue) !important;
+}
+
+/* Pagination */
+.page-item.active .page-link {
+  background-color: var(--medium-blue) !important;
+  border-color: var(--medium-blue) !important;
+}
+
+.page-link {
+  color: var(--medium-blue) !important;
+}
+
+.page-link:hover {
+  color: var(--dark-blue) !important;
+}
+
+/* Form controls */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--light-blue) !important;
+  box-shadow: 0 0 0 0.25rem rgba(148, 180, 193, 0.25) !important;
+}
+
+/* Table styling */
+.table-light,
+.table-hover tbody tr:hover {
+  color: var(--dark-blue) !important;
+}
+
+.table-bordered {
+  border-color: rgba(148, 180, 193, 0.2) !important;
+}
