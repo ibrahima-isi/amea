@@ -1,4 +1,5 @@
 <?php
+// TODO: implementer une reinitialisation de mot de passe oublier
 /**
  * Page de connexion administrateur
  * Fichier: login.php

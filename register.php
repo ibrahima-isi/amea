@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Formulaire d'enregistrement des étudiants
  * Fichier: register.php
@@ -33,24 +34,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'precision_logement' => trim($_POST['precision_logement'] ?? ''),
         'projet_apres_formation' => trim($_POST['projet_apres_formation'] ?? '')
     ];
-    
+
     // Valider les données
-    $requiredFields = ['nom', 'prenom', 'sexe', 'date_naissance', 'lieu_residence', 
-                       'etablissement', 'statut', 'domaine_etudes', 'niveau_etudes', 
-                       'telephone', 'email', 'type_logement'];
-    
+    $requiredFields = [
+        'nom',
+        'prenom',
+        'sexe',
+        'date_naissance',
+        'lieu_residence',
+        'etablissement',
+        'statut',
+        'domaine_etudes',
+        'niveau_etudes',
+        'telephone',
+        'email',
+        'type_logement'
+    ];
+
     foreach ($requiredFields as $field) {
         if (empty($formData[$field])) {
             $error = "Tous les champs obligatoires doivent être remplis.";
             break;
         }
     }
-    
+
     // Valider l'email
     if (empty($error) && !filter_var($formData['email'], FILTER_VALIDATE_EMAIL)) {
         $error = "L'adresse email n'est pas valide.";
     }
-    
+
     // Calculer l'âge à partir de la date de naissance
     if (empty($error) && !empty($formData['date_naissance'])) {
         $dateNaissance = new DateTime($formData['date_naissance']);
@@ -58,7 +70,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $age = $dateNaissance->diff($today)->y;
         $formData['age'] = $age;
     }
-    
+
     // Si aucune erreur, enregistrer les données dans la base de données
     if (empty($error)) {
         try {
@@ -68,7 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     VALUES (:nom, :prenom, :sexe, :age, :date_naissance, :lieu_residence, 
                     :etablissement, :statut, :domaine_etudes, :niveau_etudes, :telephone, :email, 
                     :annee_arrivee, :type_logement, :precision_logement, :projet_apres_formation)";
-            
+
             $stmt = $conn->prepare($sql);
             $stmt->bindParam(':nom', $formData['nom']);
             $stmt->bindParam(':prenom', $formData['prenom']);
@@ -86,18 +98,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->bindParam(':type_logement', $formData['type_logement']);
             $stmt->bindParam(':precision_logement', $formData['precision_logement']);
             $stmt->bindParam(':projet_apres_formation', $formData['projet_apres_formation']);
-            
+
             $stmt->execute();
             $success = true;
-            
+
             // Réinitialiser les données du formulaire après succès
             $formData = [];
-            
-        } catch(PDOException $e) {
+        } catch (PDOException $e) {
             $error = "Erreur lors de l'enregistrement: " . $e->getMessage();
         }
     }
 }
+// TODO: INCLURE LA BAR DE NAVIGATION
+// FIXME : METTRE LE CSS DANS UN FICHIER SEPARÉ
 
 // Titre de la page
 $pageTitle = "Enregistrement - AMEA";
@@ -105,6 +118,7 @@ $pageTitle = "Enregistrement - AMEA";
 
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -115,7 +129,6 @@ $pageTitle = "Enregistrement - AMEA";
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Styles personnalisés -->
     <link rel="stylesheet" href="assets/css/style.css">
-    
     <!-- Custom Color Palette CSS -->
     <style>
         :root {
@@ -124,48 +137,53 @@ $pageTitle = "Enregistrement - AMEA";
             --light-blue: #94B4C1;
             --pale-yellow: #ECEFCA;
         }
-        
+
         body {
             background-color: #f8f8fa;
             color: var(--dark-blue);
         }
-        
+
         /* Main content styling */
         main {
             background-color: #f8f8fa;
         }
-        
-        h2, h3, h4, h5, h6 {
+
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
             color: var(--dark-blue);
         }
-        
+
         /* Card styling */
         .card {
             border: none;
             box-shadow: 0 0.15rem 1.75rem 0 rgba(33, 52, 72, 0.1);
         }
-        
+
         .card-header {
             background-color: var(--dark-blue) !important;
             color: white !important;
             padding: 1rem 1.5rem;
         }
-        
+
         .card-body {
             background-color: white;
         }
-        
+
         /* Form controls */
-        .form-control:focus, .form-select:focus {
+        .form-control:focus,
+        .form-select:focus {
             border-color: var(--light-blue) !important;
             box-shadow: 0 0 0 0.25rem rgba(148, 180, 193, 0.25) !important;
         }
-        
+
         .form-label {
             color: var(--dark-blue);
             font-weight: 500;
         }
-        
+
         /* Section headers */
         .h5 {
             color: var(--medium-blue);
@@ -173,76 +191,78 @@ $pageTitle = "Enregistrement - AMEA";
             border-bottom: 1px solid rgba(148, 180, 193, 0.2);
             margin-top: 1rem;
         }
-        
+
         /* Button styling */
         .btn-primary {
             background-color: var(--medium-blue) !important;
             border-color: var(--medium-blue) !important;
         }
-        
-        .btn-primary:hover, .btn-primary:focus {
+
+        .btn-primary:hover,
+        .btn-primary:focus {
             background-color: var(--dark-blue) !important;
             border-color: var(--dark-blue) !important;
         }
-        
+
         .btn-secondary {
             background-color: var(--dark-blue) !important;
             border-color: var(--dark-blue) !important;
         }
-        
-        .btn-secondary:hover, .btn-secondary:focus {
+
+        .btn-secondary:hover,
+        .btn-secondary:focus {
             background-color: rgba(33, 52, 72, 0.9) !important;
             border-color: rgba(33, 52, 72, 0.9) !important;
         }
-        
+
         .btn-outline-secondary {
             color: var(--medium-blue) !important;
             border-color: var(--medium-blue) !important;
         }
-        
+
         .btn-outline-secondary:hover {
             background-color: var(--medium-blue) !important;
             color: white !important;
         }
-        
+
         /* Alert styling */
         .alert-success {
             background-color: rgba(236, 239, 202, 0.2);
             border-color: var(--pale-yellow);
             color: var(--dark-blue);
         }
-        
+
         .alert-danger {
             background-color: rgba(220, 53, 69, 0.1);
             border-color: #dc3545;
             color: var(--dark-blue);
         }
-        
+
         /* Footer styling */
         footer.bg-dark {
             background-color: var(--dark-blue) !important;
         }
-        
+
         footer a.text-white:hover {
             color: var(--pale-yellow) !important;
             text-decoration: none;
         }
-        
+
         /* Text colors */
         .text-primary {
             color: var(--medium-blue) !important;
         }
-        
+
         .text-secondary {
             color: var(--dark-blue) !important;
             opacity: 0.7;
         }
-        
+
         .text-muted {
             color: var(--dark-blue) !important;
             opacity: 0.6;
         }
-        
+
         /* Required fields */
         .text-danger {
             color: #dc3545 !important;
@@ -250,7 +270,6 @@ $pageTitle = "Enregistrement - AMEA";
     </style>
 </head>
 <body>
-  <? include 'header.php'; ?>
     <!-- Contenu principal -->
     <main class="py-5">
         <div class="container">
@@ -281,7 +300,7 @@ $pageTitle = "Enregistrement - AMEA";
                                 <?php endif; ?>
 
                                 <p class="text-muted mb-4">Veuillez remplir ce formulaire pour vous enregistrer dans la base de données des étudiants guinéens au Sénégal.</p>
-                                
+
                                 <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" id="registrationForm">
                                     <!-- Informations personnelles -->
                                     <h3 class="h5 mb-3">Informations personnelles</h3>
@@ -431,4 +450,5 @@ $pageTitle = "Enregistrement - AMEA";
     <script src="assets/js/main.js"></script>
     <script src="assets/js/validation.js"></script>
 </body>
+
 </html>
