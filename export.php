@@ -1,7 +1,8 @@
 <?php
 /**
+ * AMEA - Application de Gestion des Étudiants
  * Page d'exportation des données
- * Fichier: export.php
+ * Fichier : export.php
  */
 
 // Démarrer la session
