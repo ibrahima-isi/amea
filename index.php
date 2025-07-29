@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Image Slider CSS -->
+    <link rel="stylesheet" href="assets/css/image-slider.css">
     <!-- Styles personnalisés -->
     <style>
         /* Custom color palette */
@@ -17,87 +20,88 @@
             --light-blue: #94B4C1;
             --light-beige: #ECEFCA;
         }
-        
+
         /* Override Bootstrap colors */
         .bg-primary {
             background-color: var(--medium-blue) !important;
         }
-        
+
         .bg-dark {
             background-color: var(--dark-blue) !important;
         }
-        
+
         .text-primary {
             color: var(--medium-blue) !important;
         }
-        
+
         .btn-primary {
             background-color: var(--medium-blue);
             border-color: var(--medium-blue);
         }
-        
+
         .btn-primary:hover {
             background-color: #456781;
             border-color: #456781;
         }
-        
+
         .btn-light {
             background-color: var(--light-beige);
             border-color: var(--light-beige);
             color: var(--dark-blue);
         }
-        
+
         .btn-light:hover {
             background-color: #dfe1b9;
             border-color: #dfe1b9;
             color: var(--dark-blue);
         }
-        
+
         .card {
             border-color: var(--light-blue);
         }
-        
+
         .bg-light {
             background-color: var(--light-beige) !important;
         }
-        
+
         /* Custom elements */
         .hero {
             background: linear-gradient(135deg, var(--medium-blue) 0%, var(--dark-blue) 100%);
         }
-        
+
         footer {
             background-color: var(--dark-blue) !important;
         }
-        
+
         .navbar-dark .navbar-nav .nav-link {
             color: rgba(255, 255, 255, 0.8);
         }
-        
+
         .navbar-dark .navbar-nav .nav-link:hover,
         .navbar-dark .navbar-nav .nav-link.active {
             color: var(--light-beige);
         }
-        
+
         .feature-icon {
             color: var(--medium-blue);
         }
-        
+
         a {
             color: var(--medium-blue);
             text-decoration: none;
         }
-        
+
         a:hover {
             color: var(--dark-blue);
         }
-        
+
         footer a.text-white:hover {
             color: var(--light-beige) !important;
             text-decoration: underline;
         }
     </style>
 </head>
+
 <body>
     <!-- En-tête -->
     <header>
@@ -139,7 +143,9 @@
                     </a>
                 </div>
                 <div class="col-lg-6 d-none d-lg-block">
-                    <img src="https://goblackcentral.com/wp-content/uploads/2013/03/Depositphotos_20131119_s1.jpg" alt="Étudiants" class="img-fluid">
+                    <div id="imageSlider" class="image-slider">
+                        <img id="sliderImage" src="assets/img/presidents.jpg" alt="Présidents" class="slider-image">
+                    </div>
                 </div>
             </div>
         </div>
@@ -227,5 +233,9 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Image Slider JS -->
+    <script src="assets/js/image-slider.js"></script>
 </body>
+
 </html>
