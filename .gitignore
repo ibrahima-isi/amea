@@ -4,3 +4,6 @@
 .vscode/
 *.log
 data.sql
+.bash_history
+.ssh/
+.viminfo
