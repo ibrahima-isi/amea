@@ -220,7 +220,7 @@
                     <h5>Contact</h5>
                     <ul class="list-unstyled">
                         <li><i class="fas fa-envelope me-2"></i>ceo@gui-connect.com</li>
-                        <li><i class="fas fa-phone me-2"></i>(+221) 76 214 17 15</li>
+                        <li><i class="fas fa-phone me-2"></i>(+221) 76 000 00 00</li>
                     </ul>
                 </div>
             </div>
