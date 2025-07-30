@@ -109,11 +109,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 }
-// TODO: INCLURE LA BAR DE NAVIGATION
-// FIXME : METTRE LE CSS DANS UN FICHIER SEPARÉ
 
 // Titre de la page
-$pageTitle = "Enregistrement - AMEA";
+$pageTitle = "AEESGS - Enregistrement";
 ?>
 
 <!DOCTYPE html>
@@ -136,6 +134,7 @@ $pageTitle = "Enregistrement - AMEA";
             --medium-blue: #547792;
             --light-blue: #94B4C1;
             --pale-yellow: #ECEFCA;
+            --light-beige: #ECEFCA;
         }
 
         body {
@@ -244,8 +243,22 @@ $pageTitle = "Enregistrement - AMEA";
         }
 
         footer a.text-white:hover {
-            color: var(--pale-yellow) !important;
-            text-decoration: none;
+            color: var(--light-beige) !important;
+            text-decoration: underline;
+        }
+
+        /* Navbar styling */
+        .navbar-dark .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .navbar-dark .navbar-nav .nav-link:hover,
+        .navbar-dark .navbar-nav .nav-link.active {
+            color: var(--light-beige);
+        }
+
+        .bg-dark {
+            background-color: var(--dark-blue) !important;
         }
 
         /* Text colors */
@@ -269,12 +282,13 @@ $pageTitle = "Enregistrement - AMEA";
         }
     </style>
 </head>
+
 <body>
-      <header>
+    <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container">
                 <a class="navbar-brand" href="index.php">
-                    <i class="fas fa-graduation-cap"></i> AMEA
+                    <i class="fas fa-graduation-cap"></i> <strong style="color: var(--light-beige);">AEESGS</strong>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -441,12 +455,12 @@ $pageTitle = "Enregistrement - AMEA";
     <!-- Pied de page -->
     <footer class="bg-dark text-white py-4 mt-5">
         <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>AMEA - Association des Étudiants Guinéens au Sénégal</h5>
-                    <p>Une plateforme de recensement et de mise en réseau pour tous les étudiants guinéens au Sénégal.</p>
+            <div class="row align-items-start">
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
+                    <h5><strong style="color: var(--light-beige);">AEESGS</strong></h5>
+                    <p>Plateforme de recensement des étudiants guinéens au Sénégal.</p>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
                     <h5>Liens rapides</h5>
                     <ul class="list-unstyled">
                         <li><a href="index.php" class="text-white">Accueil</a></li>
@@ -454,7 +468,7 @@ $pageTitle = "Enregistrement - AMEA";
                         <li><a href="login.php" class="text-white">Administration</a></li>
                     </ul>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
                     <h5>Contact</h5>
                     <ul class="list-unstyled">
                         <li><i class="fas fa-envelope me-2"></i> contact@amea.org</li>
@@ -464,11 +478,10 @@ $pageTitle = "Enregistrement - AMEA";
             </div>
             <hr>
             <div class="text-center">
-                <p>&copy; <?php echo date('Y'); ?> AMEA. Tous droits réservés.</p>
+                <p>&copy; 2025 <strong style="color: var(--light-beige);">GUI CONNECT</strong>. Tous droits réservés. | Développé par <a href="https://gui-connect.com/" target="_blank" style="color: var(--light-beige); text-decoration: none;"><strong>GUI CONNECT</strong></a></p>
             </div>
         </div>
     </footer>
-
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Scripts personnalisés -->

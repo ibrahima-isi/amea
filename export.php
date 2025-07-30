@@ -1,6 +1,7 @@
 <?php
+
 /**
- * AMEA - Application de Gestion des Étudiants
+ * Amicale des Eleves, Etudiants et Stagiaires Guineens au Senegal - Application de Gestion des Étudiants
  * Page d'exportation des données
  * Fichier : export.php
  */
@@ -41,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
         'niveau_etudes' => $_POST['niveau_etudes'] ?? '',
         'type_logement' => $_POST['type_logement'] ?? ''
     ];
-    
+
     // Si aucun champ n'est sélectionné, afficher une erreur
     if (empty($selectedFields)) {
         $error = "Veuillez sélectionner au moins un champ à exporter.";
@@ -50,22 +51,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
             // Construire la requête SQL avec les champs sélectionnés
             $fields = implode(', ', $selectedFields);
             $sql = "SELECT $fields FROM personne";
-            
+
             // Ajouter les filtres à la requête SQL
             $whereClauses = [];
             $params = [];
-            
+
             foreach ($filters as $key => $value) {
                 if (!empty($value)) {
                     $whereClauses[] = "$key = :$key";
                     $params[":$key"] = $value;
                 }
             }
-            
+
             if (count($whereClauses) > 0) {
                 $sql .= " WHERE " . implode(' AND ', $whereClauses);
             }
-            
+
             // Exécuter la requête
             $stmt = $conn->prepare($sql);
             foreach ($params as $key => $value) {
@@ -73,34 +74,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
             }
             $stmt->execute();
             $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
+
             // Si aucune donnée n'est trouvée, afficher un message
             if (count($data) === 0) {
                 $error = "Aucune donnée ne correspond aux critères sélectionnés.";
             } else {
                 // Préparer les en-têtes pour l'exportation
                 $headers = array_keys($data[0]);
-                
+
                 // Effectuer l'exportation selon le format choisi
                 if ($exportFormat === 'csv') {
                     // Exporter au format CSV
                     $filename = 'export_etudiants_' . date('Y-m-d_H-i-s') . '.csv';
                     header('Content-Type: text/csv; charset=utf-8');
                     header('Content-Disposition: attachment; filename="' . $filename . '"');
-                    
+
                     $output = fopen('php://output', 'w');
-                    
+
                     // Ajouter le BOM UTF-8 pour Excel
-                    fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-                    
+                    fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
                     // Écrire les en-têtes
                     fputcsv($output, $headers, ';');
-                    
+
                     // Écrire les données
                     foreach ($data as $row) {
                         fputcsv($output, $row, ';');
                     }
-                    
+
                     fclose($output);
                     exit();
                 } elseif ($exportFormat === 'excel') {
@@ -110,20 +111,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
                     $filename = 'export_etudiants_' . date('Y-m-d_H-i-s') . '.csv';
                     header('Content-Type: application/vnd.ms-excel; charset=utf-8');
                     header('Content-Disposition: attachment; filename="' . $filename . '"');
-                    
+
                     $output = fopen('php://output', 'w');
-                    
+
                     // Ajouter le BOM UTF-8 pour Excel
-                    fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-                    
+                    fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
                     // Écrire les en-têtes
                     fputcsv($output, $headers, ';');
-                    
+
                     // Écrire les données
                     foreach ($data as $row) {
                         fputcsv($output, $row, ';');
                     }
-                    
+
                     fclose($output);
                     exit();
                 } elseif ($exportFormat === 'json') {
@@ -131,12 +132,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
                     $filename = 'export_etudiants_' . date('Y-m-d_H-i-s') . '.json';
                     header('Content-Type: application/json; charset=utf-8');
                     header('Content-Disposition: attachment; filename="' . $filename . '"');
-                    
+
                     echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
                     exit();
                 }
             }
-        } catch(PDOException $e) {
+        } catch (PDOException $e) {
             $error = "Erreur lors de l'exportation des données : " . $e->getMessage();
         }
     }
@@ -149,21 +150,22 @@ try {
     $etablissementStmt = $conn->prepare($etablissementSql);
     $etablissementStmt->execute();
     $etablissements = $etablissementStmt->fetchAll(PDO::FETCH_COLUMN);
-    
+
     // Niveaux d'études
     $niveauEtudesSql = "SELECT DISTINCT niveau_etudes FROM personne ORDER BY niveau_etudes";
     $niveauEtudesStmt = $conn->prepare($niveauEtudesSql);
     $niveauEtudesStmt->execute();
     $niveauxEtudes = $niveauEtudesStmt->fetchAll(PDO::FETCH_COLUMN);
-} catch(PDOException $e) {
+} catch (PDOException $e) {
     $error = "Erreur lors de la récupération des options de filtrage : " . $e->getMessage();
 }
 
 // Titre de la page
-$pageTitle = "Exporter les données - AMEA";
+$pageTitle = "AEESGS - Exporter les données";
 ?>
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -175,14 +177,15 @@ $pageTitle = "Exporter les données - AMEA";
     <!-- Styles personnalisés -->
     <link rel="stylesheet" href="assets/css/export.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
-    
+
     <!-- Custom Color Palette CSS -->
-   
+
 </head>
+
 <body>
     <div class="d-flex" id="wrapper">
-       <?php include 'includes/sidebar.php'; ?>
-        
+        <?php include 'includes/sidebar.php'; ?>
+
         <!-- Page content wrapper -->
         <div id="page-content-wrapper">
             <!-- Top navigation -->
@@ -257,7 +260,7 @@ $pageTitle = "Exporter les données - AMEA";
                                                     </label>
                                                 </div>
                                             </div>
-                                            
+
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="mb-3">
@@ -287,7 +290,7 @@ $pageTitle = "Exporter les données - AMEA";
                                                             <label class="form-check-label" for="field_date_naissance">Date de naissance</label>
                                                         </div>
                                                     </div>
-                                                    
+
                                                     <div class="mb-3">
                                                         <label class="form-label fw-bold">Contact</label>
                                                         <div class="form-check">
@@ -300,7 +303,7 @@ $pageTitle = "Exporter les données - AMEA";
                                                         </div>
                                                     </div>
                                                 </div>
-                                                
+
                                                 <div class="col-md-6">
                                                     <div class="mb-3">
                                                         <label class="form-label fw-bold">Académique</label>
@@ -321,7 +324,7 @@ $pageTitle = "Exporter les données - AMEA";
                                                             <label class="form-check-label" for="field_niveau_etudes">Niveau d'études</label>
                                                         </div>
                                                     </div>
-                                                    
+
                                                     <div class="mb-3">
                                                         <label class="form-label fw-bold">Logement</label>
                                                         <div class="form-check">
@@ -337,7 +340,7 @@ $pageTitle = "Exporter les données - AMEA";
                                                             <label class="form-check-label" for="field_precision_logement">Précisions sur le logement</label>
                                                         </div>
                                                     </div>
-                                                    
+
                                                     <div class="mb-3">
                                                         <label class="form-label fw-bold">Autres</label>
                                                         <div class="form-check">
@@ -358,7 +361,7 @@ $pageTitle = "Exporter les données - AMEA";
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="col-lg-6">
                                     <div class="card h-100">
                                         <div class="card-header bg-light">
@@ -419,7 +422,7 @@ $pageTitle = "Exporter les données - AMEA";
                                                     </div>
                                                 </div>
                                             </div>
-                                            
+
                                             <div class="mb-4">
                                                 <label class="form-label fw-bold">Format d'exportation</label>
                                                 <div class="form-check">
@@ -441,7 +444,7 @@ $pageTitle = "Exporter les données - AMEA";
                                                     </label>
                                                 </div>
                                             </div>
-                                            
+
                                             <div class="alert alert-info">
                                                 <i class="fas fa-info-circle me-2"></i> L'exportation inclura uniquement les champs sélectionnés et respectera les filtres définis ci-dessus.
                                             </div>
@@ -449,7 +452,7 @@ $pageTitle = "Exporter les données - AMEA";
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="d-flex justify-content-between">
                                 <a href="dashboard.php" class="btn btn-outline-secondary">
                                     <i class="fas fa-arrow-left"></i> Retour au tableau de bord
@@ -469,34 +472,66 @@ $pageTitle = "Exporter les données - AMEA";
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Scripts personnalisés -->
     <script src="assets/js/dashboard.js"></script>
-    
+
     <script>
         // Toggle sidebar
         document.getElementById('sidebarToggle').addEventListener('click', function(e) {
             e.preventDefault();
             document.getElementById('wrapper').classList.toggle('toggled');
         });
-        
+
         // Fonction pour sélectionner/désélectionner tous les champs
         function toggleAllFields() {
             const selectAllCheckbox = document.getElementById('select_all');
             const fieldCheckboxes = document.querySelectorAll('.field-checkbox');
-            
+
             fieldCheckboxes.forEach(checkbox => {
                 checkbox.checked = selectAllCheckbox.checked;
             });
         }
-        
+
         // Mettre à jour l'état du checkbox "Sélectionner tous" en fonction des sélections individuelles
         document.querySelectorAll('.field-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', function() {
                 const allCheckboxes = document.querySelectorAll('.field-checkbox');
                 const checkedCheckboxes = document.querySelectorAll('.field-checkbox:checked');
-                
+
                 document.getElementById('select_all').checked = allCheckboxes.length === checkedCheckboxes.length;
                 document.getElementById('select_all').indeterminate = checkedCheckboxes.length > 0 && checkedCheckboxes.length < allCheckboxes.length;
             });
         });
     </script>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row align-items-start">
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
+                    <h5><strong style="color: var(--light-beige);">AEESGS</strong> - Administration</h5>
+                    <p>Plateforme de gestion des étudiants guinéens au Sénégal.</p>
+                </div>
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
+                    <h5>Liens rapides</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="dashboard.php" class="text-white">Tableau de bord</a></li>
+                        <li><a href="users.php" class="text-white">Gestion des utilisateurs</a></li>
+                        <li><a href="export.php" class="text-white">Exporter</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
+                    <h5>Contact</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> admin@aeesgs.org</li>
+                        <li><i class="fas fa-phone me-2"></i> +221 XX XXX XX XX</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p>&copy; <?php echo date('Y'); ?> <strong style="color: var(--light-beige);">GUI CONNECT</strong>. Tous droits réservés. | Développé par <a href="https://gui-connect.com/" target="_blank" style="color: var(--light-beige); text-decoration: none;"><strong>GUI CONNECT</strong></a></p>
+            </div>
+        </div>
+    </footer>
 </body>
+
 </html>
