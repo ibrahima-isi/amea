@@ -1,7 +1,7 @@
 <!-- Sidebar -->
 <div class="border-end" id="sidebar-wrapper" style="background-color: #213448; color: white;">
     <div class="sidebar-heading border-bottom text-white" style="background-color: #547792;">
-        <i class="fas fa-graduation-cap"></i> AMEA Admin
+        <i class="fas fa-graduation-cap"></i> AEESGS Admin
     </div>
     <div class="list-group list-group-flush">
         <a href="dashboard.php" class="list-group-item list-group-item-action text-white active" 
