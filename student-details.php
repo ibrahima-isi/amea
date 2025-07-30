@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Page de détails d'un étudiant
  * Fichier: student-details.php
@@ -39,17 +40,16 @@ try {
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(':id', $student_id, PDO::PARAM_INT);
     $stmt->execute();
-    
+
     if ($stmt->rowCount() == 0) {
         // L'étudiant n'existe pas, rediriger vers le tableau de bord
         setFlashMessage('error', 'L\'étudiant demandé n\'existe pas.');
         header("Location: dashboard.php");
         exit();
     }
-    
+
     $student = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-} catch(PDOException $e) {
+} catch (PDOException $e) {
     // En cas d'erreur, afficher un message d'erreur
     setFlashMessage('error', 'Erreur lors de la récupération des détails de l\'étudiant: ' . $e->getMessage());
     header("Location: dashboard.php");
@@ -57,10 +57,11 @@ try {
 }
 
 // Titre de la page
-$pageTitle = "Détails de l'étudiant - " . $student['prenom'] . ' ' . $student['nom'];
+$pageTitle = "AEESGS - Détails de " . $student['prenom'] . ' ' . $student['nom'];
 ?>
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -72,7 +73,7 @@ $pageTitle = "Détails de l'étudiant - " . $student['prenom'] . ' ' . $student[
     <!-- Styles personnalisés -->
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
-    
+
     <!-- Custom Color Palette CSS -->
     <style>
         :root {
@@ -81,185 +82,191 @@ $pageTitle = "Détails de l'étudiant - " . $student['prenom'] . ' ' . $student[
             --light-blue: #94B4C1;
             --pale-yellow: #ECEFCA;
         }
-        
+
         body {
             background-color: #f8f8fa;
             color: var(--dark-blue);
         }
-        
+
         /* Sidebar styling */
         #sidebar-wrapper {
             background-color: var(--dark-blue);
         }
-        
+
         #sidebar-wrapper .list-group-item {
             background-color: transparent;
             color: white;
-            border-color: rgba(255,255,255,0.1);
+            border-color: rgba(255, 255, 255, 0.1);
         }
-        
-        #sidebar-wrapper .list-group-item.active, 
+
+        #sidebar-wrapper .list-group-item.active,
         #sidebar-wrapper .list-group-item:hover {
             background-color: var(--medium-blue);
         }
-        
+
         /* Navbar styling */
         .navbar {
             background-color: white !important;
             border-bottom: 1px solid var(--light-blue) !important;
         }
-        
+
         /* Breadcrumb styling */
         .breadcrumb-item a {
             color: var(--medium-blue);
         }
-        
+
         .breadcrumb-item.active {
             color: var(--dark-blue);
         }
-        
+
         /* Card styling */
         .card {
             border: none;
             box-shadow: 0 0.15rem 1.75rem 0 rgba(33, 52, 72, 0.1);
         }
-        
+
         .card-header {
             background-color: var(--dark-blue) !important;
             color: white !important;
         }
-        
+
         .card-body {
             background-color: white;
         }
-        
+
         /* Alert styling */
         .alert-success {
             background-color: rgba(236, 239, 202, 0.2);
             border-color: var(--pale-yellow);
             color: var(--dark-blue);
         }
-        
+
         .alert-danger {
             background-color: rgba(220, 53, 69, 0.1);
             border-color: #dc3545;
             color: var(--dark-blue);
         }
-        
+
         /* Button styling */
         .btn-primary {
             background-color: var(--medium-blue) !important;
             border-color: var(--medium-blue) !important;
         }
-        
-        .btn-primary:hover, .btn-primary:focus {
+
+        .btn-primary:hover,
+        .btn-primary:focus {
             background-color: var(--dark-blue) !important;
             border-color: var(--dark-blue) !important;
         }
-        
+
         .btn-outline-primary {
             color: var(--medium-blue) !important;
             border-color: var(--medium-blue) !important;
         }
-        
+
         .btn-outline-primary:hover {
             background-color: var(--medium-blue) !important;
             color: white !important;
         }
-        
+
         .btn-outline-secondary {
             color: var(--dark-blue) !important;
             border-color: var(--dark-blue) !important;
         }
-        
+
         .btn-outline-secondary:hover {
             background-color: var(--dark-blue) !important;
             color: white !important;
         }
-        
+
         /* Keep the danger button for delete actions */
         .btn-danger {
             background-color: #dc3545;
             border-color: #dc3545;
         }
-        
+
         .btn-danger:hover {
             background-color: #c82333;
             border-color: #bd2130;
         }
-        
+
         /* Badge colors */
         .bg-primary {
             background-color: var(--medium-blue) !important;
         }
-        
+
         .bg-info {
             background-color: var(--light-blue) !important;
         }
-        
+
         .bg-warning {
             background-color: var(--pale-yellow) !important;
             color: var(--dark-blue) !important;
         }
-        
+
         .bg-danger {
             background-color: #dc3545 !important;
         }
-        
+
         /* Avatar placeholder */
         .avatar-placeholder {
             background-color: var(--medium-blue) !important;
         }
-        
+
         /* Text colors */
         .text-primary {
             color: var(--medium-blue) !important;
         }
-        
+
         .text-secondary {
             color: var(--dark-blue) !important;
             opacity: 0.7;
         }
-        
+
         .text-muted {
             color: var(--dark-blue) !important;
             opacity: 0.6;
         }
-        
+
         /* Background colors */
         .bg-light {
             background-color: rgba(148, 180, 193, 0.1) !important;
         }
-        
+
         /* Modal styling */
         .modal-header.bg-danger {
             background-color: #dc3545 !important;
         }
-        
+
         /* Print styling - will only affect when printing */
         @media print {
-            .navbar, .btn, #sidebarToggle, .modal, footer {
+
+            .navbar,
+            .btn,
+            #sidebarToggle,
+            .modal,
+            footer {
                 display: none !important;
             }
-            
+
             .card {
                 border: 1px solid #dee2e6 !important;
                 box-shadow: none !important;
             }
-            
+
             .card-header {
                 background-color: #f8f9fa !important;
                 color: #212529 !important;
                 border-bottom: 1px solid #dee2e6 !important;
             }
-            
+
             .container-fluid {
                 width: 100% !important;
                 max-width: 100% !important;
                 padding: 0 !important;
                 margin: 0 !important;
             }
-            
+
             body {
                 background-color: white !important;
                 -webkit-print-color-adjust: exact !important;
@@ -268,10 +275,11 @@ $pageTitle = "Détails de l'étudiant - " . $student['prenom'] . ' ' . $student[
         }
     </style>
 </head>
+
 <body>
     <div class="d-flex" id="wrapper">
         <?php include 'includes/sidebar.php'; ?>
-        
+
         <!-- Page content wrapper -->
         <div id="page-content-wrapper">
             <!-- Top navigation -->
@@ -342,10 +350,10 @@ $pageTitle = "Détails de l'étudiant - " . $student['prenom'] . ' ' . $student[
                                     </div>
                                     <h4 class="font-weight-bold"><?php echo htmlspecialchars($student['prenom'] . ' ' . $student['nom']); ?></h4>
                                     <p class="mb-1 text-muted"><?php echo $student['statut']; ?></p>
-                                    <p class="badge bg-<?php 
-                                        if ($student['sexe'] == 'Masculin') echo 'primary';
-                                        else echo 'danger';
-                                    ?>">
+                                    <p class="badge bg-<?php
+                                                        if ($student['sexe'] == 'Masculin') echo 'primary';
+                                                        else echo 'danger';
+                                                        ?>">
                                         <?php echo $student['sexe']; ?>
                                     </p>
                                 </div>
@@ -407,10 +415,10 @@ $pageTitle = "Détails de l'étudiant - " . $student['prenom'] . ' ' . $student[
                                     <div class="col-7"><?php echo $student['type_logement']; ?></div>
                                 </div>
                                 <?php if (!empty($student['precision_logement'])): ?>
-                                <div class="row mb-2">
-                                    <div class="col-5 text-secondary">Précisions:</div>
-                                    <div class="col-7"><?php echo htmlspecialchars($student['precision_logement']); ?></div>
-                                </div>
+                                    <div class="row mb-2">
+                                        <div class="col-5 text-secondary">Précisions:</div>
+                                        <div class="col-7"><?php echo htmlspecialchars($student['precision_logement']); ?></div>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -430,11 +438,11 @@ $pageTitle = "Détails de l'étudiant - " . $student['prenom'] . ' ' . $student[
                                 <div class="row mb-2">
                                     <div class="col-4 text-secondary">Statut:</div>
                                     <div class="col-8">
-                                        <span class="badge bg-<?php 
-                                            if ($student['statut'] == 'Étudiant') echo 'primary';
-                                            elseif ($student['statut'] == 'Élève') echo 'info';
-                                            else echo 'warning';
-                                        ?>">
+                                        <span class="badge bg-<?php
+                                                                if ($student['statut'] == 'Étudiant') echo 'primary';
+                                                                elseif ($student['statut'] == 'Élève') echo 'info';
+                                                                else echo 'warning';
+                                                                ?>">
                                             <?php echo $student['statut']; ?>
                                         </span>
                                     </div>
@@ -510,7 +518,7 @@ $pageTitle = "Détails de l'étudiant - " . $student['prenom'] . ' ' . $student[
                 <div class="modal-body">
                     <p>Êtes-vous sûr de vouloir supprimer définitivement cet étudiant ? Cette action est irréversible.</p>
                     <p class="fw-bold">
-                        <?php echo htmlspecialchars($student['prenom'] . ' ' . $student['nom']); ?> 
+                        <?php echo htmlspecialchars($student['prenom'] . ' ' . $student['nom']); ?>
                         (<?php echo $student['email']; ?>)
                     </p>
                 </div>
@@ -532,18 +540,50 @@ $pageTitle = "Détails de l'étudiant - " . $student['prenom'] . ' ' . $student[
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Scripts personnalisés -->
     <script src="assets/js/dashboard.js"></script>
-    
+
     <script>
         // Toggle sidebar
         document.getElementById('sidebarToggle').addEventListener('click', function(e) {
             e.preventDefault();
             document.getElementById('wrapper').classList.toggle('toggled');
         });
-        
+
         // Fonction pour imprimer la fiche étudiant
         function printStudentDetails() {
             window.print();
         }
     </script>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row align-items-start">
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
+                    <h5><strong style="color: var(--light-beige);">AEESGS</strong> - Administration</h5>
+                    <p>Plateforme de gestion des étudiants guinéens au Sénégal.</p>
+                </div>
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
+                    <h5>Liens rapides</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="dashboard.php" class="text-white">Tableau de bord</a></li>
+                        <li><a href="users.php" class="text-white">Gestion des utilisateurs</a></li>
+                        <li><a href="student-details.php" class="text-white">Détails étudiant</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
+                    <h5>Contact</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> admin@aeesgs.org</li>
+                        <li><i class="fas fa-phone me-2"></i> +221 XX XXX XX XX</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p>&copy; <?php echo date('Y'); ?> <strong style="color: var(--light-beige);">GUI CONNECT</strong>. Tous droits réservés. | Développé par <a href="https://gui-connect.com/" target="_blank" style="color: var(--light-beige); text-decoration: none;"><strong>GUI CONNECT</strong></a></p>
+            </div>
+        </div>
+    </footer>
 </body>
+
 </html>

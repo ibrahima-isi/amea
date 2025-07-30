@@ -288,15 +288,15 @@ document.addEventListener("DOMContentLoaded", function () {
   const alts = [
     "Présidents",
     "Président HECM",
-    "Événement AMEA - Avril 2025",
-    "Activité AMEA - Mai 2025",
-    "Réunion AMEA - Juin 2025",
-    "Événement AMEA - Mi-juin 2025",
-    "Cérémonie AMEA - Mi-juin 2025",
+    "Événement Amicale - Avril 2025",
+    "Activité Amicale - Mai 2025",
+    "Réunion Amicale - Juin 2025",
+    "Événement Amicale - Mi-juin 2025",
+    "Cérémonie Amicale - Mi-juin 2025",
     "Activité communautaire - Juin 2025",
     "Rencontre étudiants - Juin 2025",
     "Événement associatif - Juin 2025",
-    "Assemblée AMEA - Juin 2025",
+    "Assemblée Amicale - Juin 2025",
     "Activité récente - Juillet 2025",
   ];
 

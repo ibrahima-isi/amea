@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Tableau de bord administrateur
  * Fichier: dashboard.php
@@ -116,10 +117,11 @@ $etablissementStatsStmt->execute();
 $etablissementStats = $etablissementStatsStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Titre de la page
-$pageTitle = "Tableau de Bord - AMEA";
+$pageTitle = "AEESGS - Tableau de Bord";
 ?>
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -133,14 +135,15 @@ $pageTitle = "Tableau de Bord - AMEA";
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom Color Palette CSS -->
-    
+
     <!-- Styles personnalisés -->
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
 </head>
+
 <body>
     <div class="d-flex" id="wrapper">
-    <?php include 'includes/sidebar.php'; ?>
+        <?php include 'includes/sidebar.php'; ?>
         <!-- Page content wrapper -->
         <div id="page-content-wrapper">
             <!-- Top navigation -->
@@ -232,12 +235,12 @@ $pageTitle = "Tableau de Bord - AMEA";
                                     <div class="col mr-2">
                                         <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Derniers ajouts</div>
                                         <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                            <?php 
+                                            <?php
                                             // Obtenir le nombre d'ajouts dans les 7 derniers jours
                                             $recentSql = "SELECT COUNT(*) FROM personne WHERE date_enregistrement >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
                                             $recentStmt = $conn->prepare($recentSql);
                                             $recentStmt->execute();
-                                            echo $recentStmt->fetchColumn(); 
+                                            echo $recentStmt->fetchColumn();
                                             ?>
                                         </div>
                                         <div class="text-xs text-muted">(7 derniers jours)</div>
@@ -365,11 +368,11 @@ $pageTitle = "Tableau de Bord - AMEA";
                                                 <td><?php echo $student['age']; ?></td>
                                                 <td><?php echo htmlspecialchars($student['etablissement']); ?></td>
                                                 <td>
-                                                    <span class="badge bg-<?php 
-                                                        if ($student['statut'] == 'Étudiant') echo 'primary';
-                                                        elseif ($student['statut'] == 'Élève') echo 'info';
-                                                        else echo 'warning';
-                                                    ?>">
+                                                    <span class="badge bg-<?php
+                                                                            if ($student['statut'] == 'Étudiant') echo 'primary';
+                                                                            elseif ($student['statut'] == 'Élève') echo 'info';
+                                                                            else echo 'warning';
+                                                                            ?>">
                                                         <?php echo $student['statut']; ?>
                                                     </span>
                                                 </td>
@@ -405,13 +408,13 @@ $pageTitle = "Tableau de Bord - AMEA";
                             <nav aria-label="Page navigation">
                                 <ul class="pagination justify-content-center">
                                     <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
-                                        <a class="page-link" href="?page=<?php echo $page-1; ?>&perPage=<?php echo $perPage; ?>&search=<?php echo urlencode($search); ?>&sexe=<?php echo urlencode($sexeFilter); ?>&statut=<?php echo urlencode($statutFilter); ?>&etablissement=<?php echo urlencode($etablissementFilter); ?>">
+                                        <a class="page-link" href="?page=<?php echo $page - 1; ?>&perPage=<?php echo $perPage; ?>&search=<?php echo urlencode($search); ?>&sexe=<?php echo urlencode($sexeFilter); ?>&statut=<?php echo urlencode($statutFilter); ?>&etablissement=<?php echo urlencode($etablissementFilter); ?>">
                                             Précédent
                                         </a>
                                     </li>
-                                    
+
                                     <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                                        <?php 
+                                        <?php
                                         // Afficher uniquement les pages près de la page actuelle
                                         if ($i == 1 || $i == $totalPages || ($i >= $page - 2 && $i <= $page + 2)) {
                                             echo '<li class="page-item ' . ($page == $i ? 'active' : '') . '">';
@@ -422,9 +425,9 @@ $pageTitle = "Tableau de Bord - AMEA";
                                         }
                                         ?>
                                     <?php endfor; ?>
-                                    
+
                                     <li class="page-item <?php if ($page >= $totalPages) echo 'disabled'; ?>">
-                                        <a class="page-link" href="?page=<?php echo $page+1; ?>&perPage=<?php echo $perPage; ?>&search=<?php echo urlencode($search); ?>&sexe=<?php echo urlencode($sexeFilter); ?>&statut=<?php echo urlencode($statutFilter); ?>&etablissement=<?php echo urlencode($etablissementFilter); ?>">
+                                        <a class="page-link" href="?page=<?php echo $page + 1; ?>&perPage=<?php echo $perPage; ?>&search=<?php echo urlencode($search); ?>&sexe=<?php echo urlencode($sexeFilter); ?>&statut=<?php echo urlencode($statutFilter); ?>&etablissement=<?php echo urlencode($etablissementFilter); ?>">
                                             Suivant
                                         </a>
                                     </li>
@@ -460,7 +463,7 @@ $pageTitle = "Tableau de Bord - AMEA";
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Scripts personnalisés -->
     <script src="assets/js/dashboard.js"></script>
-    
+
     <script>
         // Toggle sidebar
         document.getElementById('sidebarToggle').addEventListener('click', function(e) {
@@ -544,7 +547,7 @@ $pageTitle = "Tableau de Bord - AMEA";
             type: 'bar',
             data: {
                 labels: [
-                    <?php 
+                    <?php
                     foreach ($etablissementStats as $stat) {
                         echo "'" . addslashes($stat['etablissement']) . "', ";
                     }
@@ -553,7 +556,7 @@ $pageTitle = "Tableau de Bord - AMEA";
                 datasets: [{
                     label: 'Nombre d\'étudiants',
                     data: [
-                        <?php 
+                        <?php
                         foreach ($etablissementStats as $stat) {
                             echo $stat['nombre'] . ", ";
                         }
@@ -584,5 +587,37 @@ $pageTitle = "Tableau de Bord - AMEA";
             }
         });
     </script>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row align-items-start">
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
+                    <h5><strong style="color: var(--light-beige);">AEESGS</strong> - Administration</h5>
+                    <p>Plateforme de gestion des étudiants guinéens au Sénégal.</p>
+                </div>
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
+                    <h5>Liens rapides</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="dashboard.php" class="text-white">Tableau de bord</a></li>
+                        <li><a href="users.php" class="text-white">Gestion des utilisateurs</a></li>
+                        <li><a href="export.php" class="text-white">Exporter</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
+                    <h5>Contact</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> admin@aeesgs.org</li>
+                        <li><i class="fas fa-phone me-2"></i> +221 XX XXX XX XX</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p>&copy; <?php echo date('Y'); ?> <strong style="color: var(--light-beige);">GUI CONNECT</strong>. Tous droits réservés. | Développé par <a href="https://gui-connect.com/" target="_blank" style="color: var(--light-beige); text-decoration: none;"><strong>GUI CONNECT</strong></a></p>
+            </div>
+        </div>
+    </footer>
 </body>
+
 </html>

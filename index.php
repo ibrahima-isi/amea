@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AMEA - Association des Étudiants Guinéens au Sénégal</title>
+    <title>AEESGS</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -108,7 +108,7 @@
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container">
                 <a class="navbar-brand" href="index.php">
-                    <i class="fas fa-graduation-cap"></i> AMEA
+                    <i class="fas fa-graduation-cap"></i> <strong style="color: var(--light-beige);">AEESGS</strong>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -135,7 +135,7 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
-                    <h1>Bienvenue sur la plateforme AMEA</h1>
+                    <h1>Bienvenue sur la plateforme <strong style="color: var(--light-beige);">AEESGS</strong></h1>
                     <p class="lead">Recensement des étudiants guinéens au Sénégal</p>
                     <p>Cette plateforme permet aux étudiants guinéens résidant au Sénégal de s'enregistrer afin de faciliter la communication, l'entraide et la coordination des activités communautaires.</p>
                     <a href="register.php" class="btn btn-light btn-lg mt-3">
@@ -156,9 +156,9 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center">
-                    <h2 style="color: var(--dark-blue);">À propos de l'AMEA</h2>
-                    <p class="lead" style="color: var(--medium-blue);">L'Association des Étudiants Guinéens au Sénégal</p>
-                    <p>L'AMEA est une organisation qui vise à rassembler et soutenir tous les étudiants guinéens poursuivant leurs études au Sénégal. Notre mission est de faciliter leur intégration, promouvoir l'excellence académique et renforcer les liens de solidarité entre les membres de notre communauté.</p>
+                    <h2 style="color: var(--dark-blue);">À propos de l'<strong style="color: var(--medium-blue);">AEESGS</strong></h2>
+                    <p class="lead" style="color: var(--medium-blue);">L'Amicale des Eleves, Etudiants et Stagiaires Guineens au Senegal</p>
+                    <p>L'<strong style="color: var(--medium-blue);">AEESGS</strong> est une organisation qui vise à rassembler et soutenir tous les étudiants guinéens poursuivant leurs études au Sénégal. Notre mission est de faciliter leur intégration, promouvoir l'excellence académique et renforcer les liens de solidarité entre les membres de notre communauté.</p>
                 </div>
             </div>
         </div>
@@ -203,12 +203,12 @@
     <!-- Pied de page -->
     <footer class="text-white py-4">
         <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>AMEA - Association des Étudiants Guinéens au Sénégal</h5>
-                    <p>Une plateforme de recensement et de mise en réseau pour tous les étudiants guinéens au Sénégal.</p>
+            <div class="row align-items-start">
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
+                    <h5><strong style="color: var(--light-beige);">AEESGS</strong></h5>
+                    <p>Plateforme de recensement des étudiants guinéens au Sénégal.</p>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
                     <h5>Liens rapides</h5>
                     <ul class="list-unstyled">
                         <li><a href="index.php" class="text-white">Accueil</a></li>
@@ -216,7 +216,7 @@
                         <li><a href="login.php" class="text-white">Administration</a></li>
                     </ul>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
                     <h5>Contact</h5>
                     <ul class="list-unstyled">
                         <li><i class="fas fa-envelope me-2"></i> contact@amea.org</li>
@@ -226,7 +226,7 @@
             </div>
             <hr>
             <div class="text-center">
-                <p>&copy; 2025 AMEA. Tous droits réservés.</p>
+                <p>&copy; 2025 <strong style="color: var(--light-beige);">GUI CONNECT</strong>. Tous droits réservés. | Développé par <a href="https://gui-connect.com/" target="_blank" style="color: var(--light-beige); text-decoration: none;"><strong>GUI CONNECT</strong></a></p>
             </div>
         </div>
     </footer>
