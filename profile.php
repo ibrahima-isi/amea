@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Page de profil administrateur
  * Fichier: profile.php
@@ -35,7 +36,7 @@ try {
     $stmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
     $stmt->execute();
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
-} catch(PDOException $e) {
+} catch (PDOException $e) {
     $error = "Erreur lors de la récupération des informations : " . $e->getMessage();
 }
 
@@ -45,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_profile'])) {
     $newNom = trim($_POST['nom'] ?? '');
     $newPrenom = trim($_POST['prenom'] ?? '');
     $newEmail = trim($_POST['email'] ?? '');
-    
+
     // Valider les entrées
     if (empty($newNom) || empty($newPrenom) || empty($newEmail)) {
         $error = "Tous les champs sont obligatoires.";
@@ -59,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_profile'])) {
             $checkStmt->bindParam(':email', $newEmail);
             $checkStmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
             $checkStmt->execute();
-            
+
             if ($checkStmt->fetchColumn() > 0) {
                 $error = "Cette adresse email est déjà utilisée par un autre utilisateur.";
             } else {
@@ -71,21 +72,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_profile'])) {
                 $updateStmt->bindParam(':email', $newEmail);
                 $updateStmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
                 $updateStmt->execute();
-                
+
                 // Mettre à jour les informations de session
                 $_SESSION['nom'] = $newNom;
                 $_SESSION['prenom'] = $newPrenom;
-                
+
                 // Récupérer les informations mises à jour
                 $sql = "SELECT * FROM user WHERE id_user = :id_user";
                 $stmt = $conn->prepare($sql);
                 $stmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
                 $stmt->execute();
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
-                
+
                 $success = "Votre profil a été mis à jour avec succès.";
             }
-        } catch(PDOException $e) {
+        } catch (PDOException $e) {
             $error = "Erreur lors de la mise à jour du profil : " . $e->getMessage();
         }
     }
@@ -97,7 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['change_password'])) {
     $currentPassword = $_POST['current_password'] ?? '';
     $newPassword = $_POST['new_password'] ?? '';
     $confirmPassword = $_POST['confirm_password'] ?? '';
-    
+
     // Valider les entrées
     if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
         $error = "Tous les champs de mot de passe sont obligatoires.";
@@ -111,29 +112,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['change_password'])) {
             if (password_verify($currentPassword, $user['password'])) {
                 // Hacher le nouveau mot de passe
                 $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-                
+
                 // Mettre à jour le mot de passe
                 $updateSql = "UPDATE user SET password = :password WHERE id_user = :id_user";
                 $updateStmt = $conn->prepare($updateSql);
                 $updateStmt->bindParam(':password', $hashedPassword);
                 $updateStmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
                 $updateStmt->execute();
-                
+
                 $success = "Votre mot de passe a été changé avec succès.";
             } else {
                 $error = "Le mot de passe actuel est incorrect.";
             }
-        } catch(PDOException $e) {
+        } catch (PDOException $e) {
             $error = "Erreur lors du changement de mot de passe : " . $e->getMessage();
         }
     }
 }
 
 // Titre de la page
-$pageTitle = "Profil Administrateur - AMEA";
+$pageTitle = "AEESGS - Profil Administrateur";
 ?>
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -145,7 +147,7 @@ $pageTitle = "Profil Administrateur - AMEA";
     <!-- Styles personnalisés -->
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
-    
+
     <!-- Custom Color Palette CSS -->
     <style>
         :root {
@@ -154,125 +156,128 @@ $pageTitle = "Profil Administrateur - AMEA";
             --light-blue: #94B4C1;
             --pale-yellow: #ECEFCA;
         }
-        
+
         body {
             background-color: #f8f8fa;
             color: var(--dark-blue);
         }
-        
+
         /* Sidebar styling */
         #sidebar-wrapper {
             background-color: var(--dark-blue);
         }
-        
+
         #sidebar-wrapper .list-group-item {
             background-color: transparent;
             color: white;
-            border-color: rgba(255,255,255,0.1);
+            border-color: rgba(255, 255, 255, 0.1);
         }
-        
-        #sidebar-wrapper .list-group-item.active, 
+
+        #sidebar-wrapper .list-group-item.active,
         #sidebar-wrapper .list-group-item:hover {
             background-color: var(--medium-blue);
         }
-        
+
         /* Navbar styling */
         .navbar {
             background-color: white !important;
             border-bottom: 1px solid var(--light-blue) !important;
         }
-        
+
         /* Breadcrumb styling */
         .breadcrumb-item a {
             color: var(--medium-blue);
         }
-        
+
         .breadcrumb-item.active {
             color: var(--dark-blue);
         }
-        
+
         /* Alert styling */
         .alert-success {
             background-color: rgba(236, 239, 202, 0.2);
             border-color: var(--pale-yellow);
             color: var(--dark-blue);
         }
-        
+
         .alert-danger {
             background-color: rgba(220, 53, 69, 0.1);
             border-color: #dc3545;
             color: var(--dark-blue);
         }
-        
+
         /* Custom button styles */
         .btn-primary {
             background-color: var(--medium-blue) !important;
             border-color: var(--medium-blue) !important;
         }
-        
-        .btn-primary:hover, .btn-primary:focus {
+
+        .btn-primary:hover,
+        .btn-primary:focus {
             background-color: var(--dark-blue) !important;
             border-color: var(--dark-blue) !important;
         }
-        
+
         .btn-outline-light:hover {
             color: var(--dark-blue) !important;
         }
-        
+
         /* Card styling */
         .card {
             border: none;
             box-shadow: 0 0.15rem 1.75rem 0 rgba(33, 52, 72, 0.1);
         }
-        
+
         .card-header {
             background-color: var(--dark-blue) !important;
             color: white !important;
         }
-        
+
         .card-body {
             background-color: white;
         }
-        
+
         /* Form controls */
-        .form-control:focus, .form-select:focus {
+        .form-control:focus,
+        .form-select:focus {
             border-color: var(--light-blue) !important;
             box-shadow: 0 0 0 0.25rem rgba(148, 180, 193, 0.25) !important;
         }
-        
+
         /* Avatar placeholder */
         .avatar-placeholder {
             background-color: var(--medium-blue) !important;
         }
-        
+
         /* Badge colors */
         .bg-success {
             background-color: var(--light-blue) !important;
         }
-        
+
         .bg-danger {
             background-color: #dc3545 !important;
         }
-        
+
         /* Text colors */
         .text-primary {
             color: var(--medium-blue) !important;
         }
-        
+
         .text-secondary {
             color: var(--dark-blue) !important;
             opacity: 0.7;
         }
-        
+
         .text-muted {
             color: var(--dark-blue) !important;
             opacity: 0.6;
         }
     </style>
 </head>
+
 <body>
     <div class="d-flex" id="wrapper">
-         <?php include 'includes/sidebar.php'; ?>        <!-- Page content wrapper -->
+        <?php include 'includes/sidebar.php'; ?> <!-- Page content wrapper -->
         <div id="page-content-wrapper">
             <!-- Top navigation -->
             <nav class="navbar navbar-expand-lg navbar-light border-bottom">
@@ -449,29 +454,61 @@ $pageTitle = "Profil Administrateur - AMEA";
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Scripts personnalisés -->
     <script src="assets/js/dashboard.js"></script>
-    
+
     <script>
         // Toggle sidebar
         document.getElementById('sidebarToggle').addEventListener('click', function(e) {
             e.preventDefault();
             document.getElementById('wrapper').classList.toggle('toggled');
         });
-        
+
         // Validation du formulaire de mot de passe
         document.getElementById('passwordForm').addEventListener('submit', function(e) {
             var newPassword = document.getElementById('new_password').value;
             var confirmPassword = document.getElementById('confirm_password').value;
-            
+
             if (newPassword != confirmPassword) {
                 e.preventDefault();
                 alert('Les mots de passe ne correspondent pas.');
             }
-            
+
             if (newPassword.length < 8) {
                 e.preventDefault();
                 alert('Le mot de passe doit contenir au moins 8 caractères.');
             }
         });
     </script>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row align-items-start">
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
+                    <h5><strong style="color: var(--light-beige);">AEESGS</strong> - Administration</h5>
+                    <p>Plateforme de gestion des étudiants guinéens au Sénégal.</p>
+                </div>
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
+                    <h5>Liens rapides</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="dashboard.php" class="text-white">Tableau de bord</a></li>
+                        <li><a href="users.php" class="text-white">Gestion des utilisateurs</a></li>
+                        <li><a href="profile.php" class="text-white">Mon profil</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
+                    <h5>Contact</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> admin@aeesgs.org</li>
+                        <li><i class="fas fa-phone me-2"></i> +221 XX XXX XX XX</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p>&copy; <?php echo date('Y'); ?> <strong style="color: var(--light-beige);">GUI CONNECT</strong>. Tous droits réservés. | Développé par <a href="https://gui-connect.com/" target="_blank" style="color: var(--light-beige); text-decoration: none;"><strong>GUI CONNECT</strong></a></p>
+            </div>
+        </div>
+    </footer>
 </body>
+
 </html>
