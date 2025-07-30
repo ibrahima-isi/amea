@@ -137,7 +137,7 @@
                 <div class="col-lg-6">
                     <h1>Bienvenue sur la plateforme <strong style="color: var(--light-beige);">AEESGS</strong></h1>
                     <p class="lead">Recensement des étudiants guinéens au Sénégal</p>
-                    <p>Cette plateforme permet aux étudiants guinéens résidant au Sénégal de s'enregistrer afin de faciliter la communication, l'entraide et la coordination des activités communautaires.</p>
+                    <p>Cette plateforme permet aux élèves, étudiants et stagiaires guinéens résidant au Sénégal de s'enregistrer afin de faciliter la communication, l'entraide et la coordination des activités communautaires.</p>
                     <a href="register.php" class="btn btn-light btn-lg mt-3">
                         <i class="fas fa-user-plus"></i> S'enregistrer maintenant
                     </a>
@@ -158,7 +158,7 @@
                 <div class="col-lg-8 mx-auto text-center">
                     <h2 style="color: var(--dark-blue);">À propos de l'<strong style="color: var(--medium-blue);">AEESGS</strong></h2>
                     <p class="lead" style="color: var(--medium-blue);">L'Amicale des Eleves, Etudiants et Stagiaires Guineens au Senegal</p>
-                    <p>L'<strong style="color: var(--medium-blue);">AEESGS</strong> est une organisation qui vise à rassembler et soutenir tous les étudiants guinéens poursuivant leurs études au Sénégal. Notre mission est de faciliter leur intégration, promouvoir l'excellence académique et renforcer les liens de solidarité entre les membres de notre communauté.</p>
+                    <p>L'<strong style="color: var(--medium-blue);">AEESGS</strong> est une organisation qui vise à rassembler et à soutenir tous les élèves, étudiants et stagiaires guinéens poursuivant leurs études au Sénégal. Notre mission est de faciliter leur intégration, de promouvoir l'excellence académique et de renforcer les liens de solidarité entre les membres de notre communauté.</p>
                 </div>
             </div>
         </div>
@@ -206,7 +206,7 @@
             <div class="row align-items-start">
                 <div class="col-md-4 text-center d-flex flex-column justify-content-start">
                     <h5><strong style="color: var(--light-beige);">AEESGS</strong></h5>
-                    <p>Plateforme de recensement des étudiants guinéens au Sénégal.</p>
+                    <p>Plateforme de recensement des élèves, étudiants et stagiaires guinéens au Sénégal.</p>
                 </div>
                 <div class="col-md-4 text-center d-flex flex-column justify-content-start">
                     <h5>Liens rapides</h5>
@@ -219,8 +219,8 @@
                 <div class="col-md-4 text-center d-flex flex-column justify-content-start">
                     <h5>Contact</h5>
                     <ul class="list-unstyled">
-                        <li><i class="fas fa-envelope me-2"></i> contact@amea.org</li>
-                        <li><i class="fas fa-phone me-2"></i> +221 XX XXX XX XX</li>
+                        <li><i class="fas fa-envelope me-2"></i>ceo@gui-connect.com</li>
+                        <li><i class="fas fa-phone me-2"></i>(+221) 76 214 17 15</li>
                     </ul>
                 </div>
             </div>
