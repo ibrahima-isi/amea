@@ -7,3 +7,5 @@ data.sql
 .bash_history
 .ssh/
 .viminfo
+.lesshst
+
