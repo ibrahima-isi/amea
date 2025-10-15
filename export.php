@@ -29,118 +29,131 @@ $prenom = $_SESSION['prenom'];
 // Initialiser les variables d'erreur et de succès
 $error = "";
 $success = "";
+$csrfToken = generateCsrfToken();
+
+$allowedExportFields = [
+    'id_personne' => '`id_personne`',
+    'nom' => '`nom`',
+    'prenom' => '`prenom`',
+    'sexe' => '`sexe`',
+    'age' => '`age`',
+    'date_naissance' => '`date_naissance`',
+    'telephone' => '`telephone`',
+    'email' => '`email`',
+    'etablissement' => '`etablissement`',
+    'statut' => '`statut`',
+    'domaine_etudes' => '`domaine_etudes`',
+    'niveau_etudes' => '`niveau_etudes`',
+    'lieu_residence' => '`lieu_residence`',
+    'type_logement' => '`type_logement`',
+    'precision_logement' => '`precision_logement`',
+    'annee_arrivee' => '`annee_arrivee`',
+    'projet_apres_formation' => '`projet_apres_formation`',
+    'date_enregistrement' => '`date_enregistrement`'
+];
 
 // Traitement de l'exportation
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
-    // Récupérer les paramètres d'exportation
-    $exportFormat = $_POST['export_format'] ?? 'csv';
-    $selectedFields = $_POST['fields'] ?? [];
-    $filters = [
-        'sexe' => $_POST['sexe'] ?? '',
-        'statut' => $_POST['statut'] ?? '',
-        'etablissement' => $_POST['etablissement'] ?? '',
-        'niveau_etudes' => $_POST['niveau_etudes'] ?? '',
-        'type_logement' => $_POST['type_logement'] ?? ''
-    ];
-
-    // Si aucun champ n'est sélectionné, afficher une erreur
-    if (empty($selectedFields)) {
-        $error = "Veuillez sélectionner au moins un champ à exporter.";
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        $error = "La session a expiré. Veuillez soumettre à nouveau le formulaire.";
     } else {
-        try {
-            // Construire la requête SQL avec les champs sélectionnés
-            $fields = implode(', ', $selectedFields);
-            $sql = "SELECT $fields FROM personne";
+        $exportFormat = $_POST['export_format'] ?? 'csv';
+        $exportFormat = in_array($exportFormat, ['csv', 'excel', 'json'], true) ? $exportFormat : 'csv';
 
-            // Ajouter les filtres à la requête SQL
-            $whereClauses = [];
-            $params = [];
+        $selectedFields = $_POST['fields'] ?? [];
+        $selectedFields = array_values(array_unique(array_filter($selectedFields, function ($field) use ($allowedExportFields) {
+            return array_key_exists($field, $allowedExportFields);
+        })));
 
-            foreach ($filters as $key => $value) {
-                if (!empty($value)) {
-                    $whereClauses[] = "$key = :$key";
-                    $params[":$key"] = $value;
-                }
-            }
+        $allowedFilterKeys = ['sexe', 'statut', 'etablissement', 'niveau_etudes', 'type_logement'];
+        $filters = [];
+        foreach ($allowedFilterKeys as $key) {
+            $filters[$key] = trim($_POST[$key] ?? '');
+        }
 
-            if (count($whereClauses) > 0) {
-                $sql .= " WHERE " . implode(' AND ', $whereClauses);
-            }
+        if (empty($selectedFields)) {
+            $error = "Veuillez sélectionner au moins un champ à exporter.";
+        } else {
+            try {
+                $selectedColumnList = array_map(function ($field) use ($allowedExportFields) {
+                    return $allowedExportFields[$field];
+                }, $selectedFields);
 
-            // Exécuter la requête
-            $stmt = $conn->prepare($sql);
-            foreach ($params as $key => $value) {
-                $stmt->bindValue($key, $value);
-            }
-            $stmt->execute();
-            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $sql = "SELECT " . implode(', ', $selectedColumnList) . " FROM personne";
 
-            // Si aucune donnée n'est trouvée, afficher un message
-            if (count($data) === 0) {
-                $error = "Aucune donnée ne correspond aux critères sélectionnés.";
-            } else {
-                // Préparer les en-têtes pour l'exportation
-                $headers = array_keys($data[0]);
+                $whereClauses = [];
+                $params = [];
 
-                // Effectuer l'exportation selon le format choisi
-                if ($exportFormat === 'csv') {
-                    // Exporter au format CSV
-                    $filename = 'export_etudiants_' . date('Y-m-d_H-i-s') . '.csv';
-                    header('Content-Type: text/csv; charset=utf-8');
-                    header('Content-Disposition: attachment; filename="' . $filename . '"');
-
-                    $output = fopen('php://output', 'w');
-
-                    // Ajouter le BOM UTF-8 pour Excel
-                    fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
-
-                    // Écrire les en-têtes
-                    fputcsv($output, $headers, ';');
-
-                    // Écrire les données
-                    foreach ($data as $row) {
-                        fputcsv($output, $row, ';');
+                foreach ($filters as $key => $value) {
+                    if ($value !== '') {
+                        $whereClauses[] = "$key = :$key";
+                        $params[":$key"] = $value;
                     }
-
-                    fclose($output);
-                    exit();
-                } elseif ($exportFormat === 'excel') {
-                    // Pour l'exportation Excel, nous allons utiliser le format CSV
-                    // car PHP natif ne supporte pas directement l'exportation Excel
-                    // Dans une application réelle, vous pourriez utiliser des bibliothèques comme PhpSpreadsheet
-                    $filename = 'export_etudiants_' . date('Y-m-d_H-i-s') . '.csv';
-                    header('Content-Type: application/vnd.ms-excel; charset=utf-8');
-                    header('Content-Disposition: attachment; filename="' . $filename . '"');
-
-                    $output = fopen('php://output', 'w');
-
-                    // Ajouter le BOM UTF-8 pour Excel
-                    fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
-
-                    // Écrire les en-têtes
-                    fputcsv($output, $headers, ';');
-
-                    // Écrire les données
-                    foreach ($data as $row) {
-                        fputcsv($output, $row, ';');
-                    }
-
-                    fclose($output);
-                    exit();
-                } elseif ($exportFormat === 'json') {
-                    // Exporter au format JSON
-                    $filename = 'export_etudiants_' . date('Y-m-d_H-i-s') . '.json';
-                    header('Content-Type: application/json; charset=utf-8');
-                    header('Content-Disposition: attachment; filename="' . $filename . '"');
-
-                    echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-                    exit();
                 }
+
+                if (!empty($whereClauses)) {
+                    $sql .= " WHERE " . implode(' AND ', $whereClauses);
+                }
+
+                $stmt = $conn->prepare($sql);
+                foreach ($params as $key => $value) {
+                    $stmt->bindValue($key, $value);
+                }
+                $stmt->execute();
+                $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                if (count($data) === 0) {
+                    $error = "Aucune donnée ne correspond aux critères sélectionnés.";
+                } else {
+                    $headers = array_keys($data[0]);
+
+                    if ($exportFormat === 'csv') {
+                        $filename = 'export_etudiants_' . date('Y-m-d_H-i-s') . '.csv';
+                        header('Content-Type: text/csv; charset=utf-8');
+                        header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+                        $output = fopen('php://output', 'w');
+                        fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+                        fputcsv($output, $headers, ';');
+
+                        foreach ($data as $row) {
+                            fputcsv($output, $row, ';');
+                        }
+
+                        fclose($output);
+                        exit();
+                    } elseif ($exportFormat === 'excel') {
+                        $filename = 'export_etudiants_' . date('Y-m-d_H-i-s') . '.csv';
+                        header('Content-Type: application/vnd.ms-excel; charset=utf-8');
+                        header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+                        $output = fopen('php://output', 'w');
+                        fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+                        fputcsv($output, $headers, ';');
+
+                        foreach ($data as $row) {
+                            fputcsv($output, $row, ';');
+                        }
+
+                        fclose($output);
+                        exit();
+                    } elseif ($exportFormat === 'json') {
+                        $filename = 'export_etudiants_' . date('Y-m-d_H-i-s') . '.json';
+                        header('Content-Type: application/json; charset=utf-8');
+                        header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+                        echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+                        exit();
+                    }
+                }
+            } catch (PDOException $e) {
+                logError("Erreur lors de l'exportation des données", $e);
+                $error = "Une erreur est survenue lors de l'exportation des données. Veuillez réessayer.";
             }
-        } catch (PDOException $e) {
-            $error = "Erreur lors de l'exportation des données : " . $e->getMessage();
         }
     }
+
+    $csrfToken = generateCsrfToken();
 }
 
 // Récupérer les options pour les filtres
@@ -157,7 +170,8 @@ try {
     $niveauEtudesStmt->execute();
     $niveauxEtudes = $niveauEtudesStmt->fetchAll(PDO::FETCH_COLUMN);
 } catch (PDOException $e) {
-    $error = "Erreur lors de la récupération des options de filtrage : " . $e->getMessage();
+    logError("Erreur lors de la récupération des options de filtrage", $e);
+    $error = "Une erreur est survenue lors de la récupération des options de filtrage.";
 }
 
 // Titre de la page
@@ -227,14 +241,14 @@ $pageTitle = "AEESGS - Exporter les données";
 
                 <?php if (!empty($error)): ?>
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="fas fa-exclamation-triangle me-2"></i> <?php echo $error; ?>
+                        <i class="fas fa-exclamation-triangle me-2"></i> <?php echo htmlspecialchars($error); ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <?php endif; ?>
 
                 <?php if (!empty($success)): ?>
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="fas fa-check-circle me-2"></i> <?php echo $success; ?>
+                        <i class="fas fa-check-circle me-2"></i> <?php echo htmlspecialchars($success); ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <?php endif; ?>
@@ -245,6 +259,7 @@ $pageTitle = "AEESGS - Exporter les données";
                     </div>
                     <div class="card-body">
                         <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
                             <div class="row mb-4">
                                 <div class="col-lg-6">
                                     <div class="card h-100">
