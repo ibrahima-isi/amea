@@ -32,24 +32,24 @@ $success = "";
 $csrfToken = generateCsrfToken();
 
 $allowedExportFields = [
-    'id_personne',
-    'nom',
-    'prenom',
-    'sexe',
-    'age',
-    'date_naissance',
-    'telephone',
-    'email',
-    'etablissement',
-    'statut',
-    'domaine_etudes',
-    'niveau_etudes',
-    'lieu_residence',
-    'type_logement',
-    'precision_logement',
-    'annee_arrivee',
-    'projet_apres_formation',
-    'date_enregistrement'
+    'id_personne' => '`id_personne`',
+    'nom' => '`nom`',
+    'prenom' => '`prenom`',
+    'sexe' => '`sexe`',
+    'age' => '`age`',
+    'date_naissance' => '`date_naissance`',
+    'telephone' => '`telephone`',
+    'email' => '`email`',
+    'etablissement' => '`etablissement`',
+    'statut' => '`statut`',
+    'domaine_etudes' => '`domaine_etudes`',
+    'niveau_etudes' => '`niveau_etudes`',
+    'lieu_residence' => '`lieu_residence`',
+    'type_logement' => '`type_logement`',
+    'precision_logement' => '`precision_logement`',
+    'annee_arrivee' => '`annee_arrivee`',
+    'projet_apres_formation' => '`projet_apres_formation`',
+    'date_enregistrement' => '`date_enregistrement`'
 ];
 
 // Traitement de l'exportation
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
 
         $selectedFields = $_POST['fields'] ?? [];
         $selectedFields = array_values(array_unique(array_filter($selectedFields, function ($field) use ($allowedExportFields) {
-            return in_array($field, $allowedExportFields, true);
+            return array_key_exists($field, $allowedExportFields);
         })));
 
         $allowedFilterKeys = ['sexe', 'statut', 'etablissement', 'niveau_etudes', 'type_logement'];
@@ -75,10 +75,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
             $error = "Veuillez sélectionner au moins un champ à exporter.";
         } else {
             try {
-                $escapedFields = array_map(function ($field) {
-                    return "`" . $field . "`";
+                $selectedColumnList = array_map(function ($field) use ($allowedExportFields) {
+                    return $allowedExportFields[$field];
                 }, $selectedFields);
-                $sql = "SELECT " . implode(', ', $escapedFields) . " FROM personne";
+
+                $sql = "SELECT " . implode(', ', $selectedColumnList) . " FROM personne";
 
                 $whereClauses = [];
                 $params = [];
