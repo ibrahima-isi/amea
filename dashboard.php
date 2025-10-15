@@ -118,115 +118,144 @@ $etablissementStats = $etablissementStatsStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Titre de la page
 $pageTitle = "AEESGS - Tableau de Bord";
-?>
-<!DOCTYPE html>
-<html lang="fr">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $pageTitle; ?></title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Custom Color Palette CSS -->
+// Rendu via layout + contenu
+$layoutPath = __DIR__ . '/templates/admin/layout.html';
+$contentPath = __DIR__ . '/templates/admin/pages/dashboard.html';
+if (!is_file($layoutPath) || !is_file($contentPath)) { http_response_code(500); exit('Template introuvable.'); }
 
-    <!-- Styles personnalisés -->
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/dashboard.css">
-</head>
+ob_start(); include 'includes/sidebar.php'; $sidebarHtml = ob_get_clean();
 
-<body>
-    <div class="d-flex" id="wrapper">
-        <?php include 'includes/sidebar.php'; ?>
-        <!-- Page content wrapper -->
-        <div id="page-content-wrapper">
-            <!-- Top navigation -->
-            <nav class="navbar navbar-expand-lg navbar-light border-bottom">
-                <div class="container-fluid">
-                    <button class="btn btn-primary" id="sidebarToggle">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class="fas fa-user-circle me-1"></i> <?php echo htmlspecialchars($prenom . ' ' . $nom); ?>
-                                </a>
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" href="profile.php">Mon profil</a>
-                                    <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item" href="logout.php">Déconnexion</a>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
+// Générer lignes du tableau des étudiants
+$rowsHtml = '';
+if (count($students) > 0) {
+    foreach ($students as $student) {
+        $badgeClass = 'warning';
+        if ($student['statut'] == 'Étudiant') $badgeClass = 'primary';
+        elseif ($student['statut'] == 'Élève') $badgeClass = 'info';
+        $rowsHtml .= '<tr>'
+            . '<td>' . (int)$student['id_personne'] . '</td>'
+            . '<td>' . htmlspecialchars($student['nom'], ENT_QUOTES, 'UTF-8') . '</td>'
+            . '<td>' . htmlspecialchars($student['prenom'], ENT_QUOTES, 'UTF-8') . '</td>'
+            . '<td>' . htmlspecialchars($student['sexe'], ENT_QUOTES, 'UTF-8') . '</td>'
+            . '<td>' . htmlspecialchars($student['age'], ENT_QUOTES, 'UTF-8') . '</td>'
+            . '<td>' . htmlspecialchars($student['etablissement'], ENT_QUOTES, 'UTF-8') . '</td>'
+            . '<td><span class="badge bg-' . $badgeClass . '">' . htmlspecialchars($student['statut'], ENT_QUOTES, 'UTF-8') . '</span></td>'
+            . '<td>'
+                . '<a href="mailto:' . htmlspecialchars($student['email'], ENT_QUOTES, 'UTF-8') . '" class="text-primary" title="Email">'
+                . '<i class="fas fa-envelope"></i></a>'
+                . '<a href="tel:' . htmlspecialchars($student['telephone'], ENT_QUOTES, 'UTF-8') . '" class="text-success ms-2" title="Téléphone">'
+                . '<i class="fas fa-phone"></i></a>'
+            . '</td>'
+            . '<td>'
+                . '<a href="student-details.php?id=' . (int)$student['id_personne'] . '" class="btn btn-sm btn-outline-primary" title="Voir détails">'
+                . '<i class="fas fa-eye"></i></a>'
+                . '<a href="edit-student.php?id=' . (int)$student['id_personne'] . '" class="btn btn-sm btn-outline-secondary ms-1" title="Modifier">'
+                . '<i class="fas fa-edit"></i></a>'
+            . '</td>'
+            . '</tr>';
+    }
+} else {
+    $rowsHtml = '<tr><td colspan="9" class="text-center">Aucun étudiant trouvé</td></tr>';
+}
 
-            <!-- Page content -->
-            <div class="container-fluid p-4">
-                <div class="row mb-4">
-                    <div class="col">
-                        <h1 class="h3">Tableau de Bord</h1>
-                        <p class="text-muted">Bienvenue, <?php echo htmlspecialchars($prenom . ' ' . $nom); ?> ! Vous êtes connecté en tant que <?php echo $role == 'admin' ? 'administrateur' : 'utilisateur'; ?>.</p>
-                    </div>
-                </div>
+// Pagination
+$paginationHtml = '';
+if ($totalPages > 1) {
+    $buildLink = function($p) use ($perPage, $search, $sexeFilter, $statutFilter, $etablissementFilter) {
+        return '?page=' . $p . '&perPage=' . $perPage . '&search=' . urlencode($search) . '&sexe=' . urlencode($sexeFilter) . '&statut=' . urlencode($statutFilter) . '&etablissement=' . urlencode($etablissementFilter);
+    };
+    $paginationHtml .= '<nav aria-label="Page navigation"><ul class="pagination justify-content-center">';
+    $paginationHtml .= '<li class="page-item ' . ($page <= 1 ? 'disabled' : '') . '"><a class="page-link" href="' . $buildLink($page - 1) . '">Précédent</a></li>';
+    for ($i = 1; $i <= $totalPages; $i++) {
+        if ($i == 1 || $i == $totalPages || ($i >= $page - 2 && $i <= $page + 2)) {
+            $paginationHtml .= '<li class="page-item ' . ($page == $i ? 'active' : '') . '">';
+            $paginationHtml .= '<a class="page-link" href="' . $buildLink($i) . '">' . $i . '</a></li>';
+        } elseif ($i == $page - 3 || $i == $page + 3) {
+            $paginationHtml .= '<li class="page-item disabled"><a class="page-link">...</a></li>';
+        }
+    }
+    $paginationHtml .= '<li class="page-item ' . ($page >= $totalPages ? 'disabled' : '') . '"><a class="page-link" href="' . $buildLink($page + 1) . '">Suivant</a></li>';
+    $paginationHtml .= '</ul></nav>';
+}
 
-                <!-- Cartes de statistiques -->
-                <div class="row mb-4">
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card border-left-primary shadow h-100 py-2">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total des étudiants</div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['total']; ?></div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-users fa-2x text-gray-300"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+// Bloc "par page"
+$perPageHtml = '<div class="d-flex justify-content-center mt-3">'
+    . '<form action="dashboard.php" method="GET" class="d-flex align-items-center">'
+    . '<input type="hidden" name="page" value="1">'
+    . '<input type="hidden" name="search" value="' . htmlspecialchars($search, ENT_QUOTES, 'UTF-8') . '">'
+    . '<input type="hidden" name="sexe" value="' . htmlspecialchars($sexeFilter, ENT_QUOTES, 'UTF-8') . '">'
+    . '<input type="hidden" name="statut" value="' . htmlspecialchars($statutFilter, ENT_QUOTES, 'UTF-8') . '">'
+    . '<input type="hidden" name="etablissement" value="' . htmlspecialchars($etablissementFilter, ENT_QUOTES, 'UTF-8') . '">'
+    . '<label for="perPage" class="me-2">Afficher</label>'
+    . '<select name="perPage" id="perPage" class="form-select form-select-sm w-auto" onchange="this.form.submit()">'
+    . '<option value="10" ' . ($perPage == 10 ? 'selected' : '') . '>10</option>'
+    . '<option value="25" ' . ($perPage == 25 ? 'selected' : '') . '>25</option>'
+    . '<option value="50" ' . ($perPage == 50 ? 'selected' : '') . '>50</option>'
+    . '<option value="100" ' . ($perPage == 100 ? 'selected' : '') . '>100</option>'
+    . '</select>'
+    . '<span class="ms-2">étudiants par page</span>'
+    . '</form>'
+    . '</div>';
 
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card border-left-success shadow h-100 py-2">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Hommes / Femmes</div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['hommes']; ?> / <?php echo $stats['femmes']; ?></div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-venus-mars fa-2x text-gray-300"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+// Options d'établissement
+$etabOptions = '';
+foreach ($etablissements as $etab) {
+    $sel = ($etablissementFilter == $etab) ? 'selected' : '';
+    $etabOptions .= '<option value="' . htmlspecialchars($etab, ENT_QUOTES, 'UTF-8') . '" ' . $sel . '>'
+        . htmlspecialchars($etab, ENT_QUOTES, 'UTF-8') . '</option>';
+}
 
-                    <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card border-left-info shadow h-100 py-2">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Statut (Étudiant)</div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['etudiants']; ?></div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+// Données pour graphiques (top écoles)
+$labels = [];
+$values = [];
+foreach ($etablissementStats as $stat) {
+    $labels[] = "'" . addslashes($stat['etablissement']) . "'";
+    $values[] = (int)$stat['nombre'];
+}
+
+// Remplir le contenu spécifique
+$contentTpl = file_get_contents($contentPath);
+$contentHtml = strtr($contentTpl, [
+    '{{user_fullname}}' => htmlspecialchars($prenom . ' ' . $nom, ENT_QUOTES, 'UTF-8'),
+    '{{role_label}}' => $role == 'admin' ? 'administrateur' : 'utilisateur',
+    '{{stats_total}}' => (string)$stats['total'],
+    '{{stats_hommes}}' => (string)$stats['hommes'],
+    '{{stats_femmes}}' => (string)$stats['femmes'],
+    '{{stats_etudiants}}' => (string)$stats['etudiants'],
+    '{{stats_eleves}}' => (string)$stats['eleves'],
+    '{{stats_stagiaires}}' => (string)$stats['stagiaires'],
+    '{{recent_week}}' => (string)(function() use ($conn) { $q = $conn->prepare("SELECT COUNT(*) FROM personne WHERE date_enregistrement >= DATE_SUB(NOW(), INTERVAL 7 DAY)"); $q->execute(); return $q->fetchColumn(); })(),
+    '{{search}}' => htmlspecialchars($search, ENT_QUOTES, 'UTF-8'),
+    '{{sexe_filter_Masculin}}' => ($sexeFilter == 'Masculin') ? 'selected' : '',
+    '{{sexe_filter_Féminin}}' => ($sexeFilter == 'Féminin') ? 'selected' : '',
+    '{{statut_filter_Élève}}' => ($statutFilter == 'Élève') ? 'selected' : '',
+    '{{statut_filter_Étudiant}}' => ($statutFilter == 'Étudiant') ? 'selected' : '',
+    '{{statut_filter_Stagiaire}}' => ($statutFilter == 'Stagiaire') ? 'selected' : '',
+    '{{etablissement_options}}' => $etabOptions,
+    '{{students_rows}}' => $rowsHtml,
+    '{{pagination}}' => $paginationHtml,
+    '{{per_page_block}}' => $perPageHtml,
+    '{{school_labels}}' => implode(', ', $labels),
+    '{{school_values}}' => implode(', ', $values),
+]);
+
+// Remplir le layout
+$layoutTpl = file_get_contents($layoutPath);
+$output = strtr($layoutTpl, [
+    '{{title}}' => 'AEESGS - Tableau de Bord',
+    '{{sidebar}}' => $sidebarHtml,
+    '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [
+        '{{user_fullname}}' => htmlspecialchars($prenom . ' ' . $nom, ENT_QUOTES, 'UTF-8'),
+    ]),
+    '{{content}}' => $contentHtml,
+    '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), [
+        '{{year}}' => date('Y'),
+    ]),
+]);
+
+echo $output;
+exit();
 
                     <div class="col-xl-3 col-md-6 mb-4">
                         <div class="card border-left-warning shadow h-100 py-2">
@@ -593,8 +622,8 @@ $pageTitle = "AEESGS - Tableau de Bord";
         <div class="container">
             <div class="row align-items-start">
                 <div class="col-md-4 text-center d-flex flex-column justify-content-start">
-                    <h5><strong style="color: var(--light-beige);">AEESGS</strong> - Administration</h5>
-                    <p>Plateforme de gestion des étudiants guinéens au Sénégal.</p>
+                    <h5><strong class="text-light-beige">AEESGS</strong> - Administration</h5>
+                    <p>Plateforme de gestion des élèves, étudiants et stagiaires guinéens au Sénégal.</p>
                 </div>
                 <div class="col-md-4 text-center d-flex flex-column justify-content-start">
                     <h5>Liens rapides</h5>
@@ -614,7 +643,7 @@ $pageTitle = "AEESGS - Tableau de Bord";
             </div>
             <hr>
             <div class="text-center">
-                <p>&copy; <?php echo date('Y'); ?> <strong style="color: var(--light-beige);">GUI CONNECT</strong>. Tous droits réservés. | Développé par <a href="https://gui-connect.com/" target="_blank" style="color: var(--light-beige); text-decoration: none;"><strong>GUI CONNECT</strong></a></p>
+                <p>&copy; <?php echo date('Y'); ?> <strong class="text-light-beige">GUI CONNECT</strong>. Tous droits réservés. | Développé par <a href="https://gui-connect.com/" target="_blank" class="link-light-beige"><strong>GUI CONNECT</strong></a></p>
             </div>
         </div>
     </footer>

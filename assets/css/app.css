@@ -1,0 +1,141 @@
+/* Custom color palette */
+:root {
+    --dark-blue: #213448;
+    --medium-blue: #547792;
+    --light-blue: #94B4C1;
+    --light-beige: #ECEFCA;
+}
+
+/* Override Bootstrap colors */
+.bg-primary {
+    background-color: var(--medium-blue) !important;
+}
+
+.bg-dark {
+    background-color: var(--dark-blue) !important;
+}
+
+.text-primary {
+    color: var(--medium-blue) !important;
+}
+
+.btn-primary {
+    background-color: var(--medium-blue);
+    border-color: var(--medium-blue);
+}
+
+.btn-primary:hover {
+    background-color: #456781;
+    border-color: #456781;
+}
+
+.btn-light {
+    background-color: var(--light-beige);
+    border-color: var(--light-beige);
+    color: var(--dark-blue);
+}
+
+.btn-light:hover {
+    background-color: #dfe1b9;
+    border-color: #dfe1b9;
+    color: var(--dark-blue);
+}
+
+.card {
+    border-color: var(--light-blue);
+}
+
+.bg-light {
+    background-color: var(--light-beige) !important;
+}
+
+/* Custom elements */
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link.active {
+    color: var(--light-beige);
+}
+
+footer {
+    background-color: var(--dark-blue) !important;
+}
+
+.card-header {
+    background-color: var(--medium-blue) !important;
+}
+
+.input-group-text {
+    background-color: var(--light-blue);
+    border-color: var(--light-blue);
+    color: var(--dark-blue);
+}
+
+.form-control:focus {
+    border-color: var(--medium-blue);
+    box-shadow: 0 0 0 0.25rem rgba(84, 119, 146, 0.25);
+}
+
+a {
+    color: var(--medium-blue);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--dark-blue);
+}
+
+footer a.text-white:hover {
+    color: var(--light-beige) !important;
+    text-decoration: underline;
+}
+
+.alert-info {
+    background-color: rgba(148, 180, 193, 0.2);
+    border-color: var(--light-blue);
+    color: var(--dark-blue);
+}
+
+/* Utility classes to remove inline styles */
+.text-light-beige { color: var(--light-beige) !important; }
+.link-light-beige { color: var(--light-beige); text-decoration: none; }
+.link-light-beige:hover { color: var(--light-beige); text-decoration: underline; }
+.bg-page { background-color: #f8f9fa; }
+
+/* Index: hero banner and cards */
+.hero {
+    background: linear-gradient(135deg, var(--medium-blue) 0%, var(--dark-blue) 100%);
+}
+
+.card-shadow {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.text-dark { color: var(--dark-blue) !important; }
+.bg-white { background-color: #ffffff !important; }
+
+/* Avatars */
+.avatar-lg { width: 100px; height: 100px; font-size: 40px; }
+
+/* AEESGS highlight effect */
+.aeesgs-highlight { font-weight: 700; }
+
+@keyframes aeesgsGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Only apply gradient text when supported to preserve fallback color */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+    .aeesgs-highlight {
+        background-image: linear-gradient(90deg, var(--medium-blue), var(--light-beige), var(--medium-blue));
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: aeesgsGradient 6s ease infinite;
+    }
+}

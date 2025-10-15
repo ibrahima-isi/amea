@@ -1,0 +1,208 @@
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="h3">Tableau de Bord</h1>
+    <p class="text-muted">Bienvenue, {{user_fullname}} ! Vous êtes connecté en tant que {{role_label}}.</p>
+  </div>
+  <div class="col-12"></div>
+</div>
+
+<!-- Cartes de statistiques -->
+<div class="row mb-4">
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-primary shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total des étudiants</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">{{stats_total}}</div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-users fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-success shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Hommes / Femmes</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">{{stats_hommes}} / {{stats_femmes}}</div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-venus-mars fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-info shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Statut (Étudiant)</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">{{stats_etudiants}}</div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-warning shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Derniers ajouts</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">{{recent_week}}</div>
+            <div class="text-xs text-muted">(7 derniers jours)</div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Graphiques -->
+<div class="row mb-4">
+  <div class="col-xl-6 mb-4">
+    <div class="card shadow">
+      <div class="card-header">
+        <h6 class="m-0 font-weight-bold">Répartition par sexe</h6>
+      </div>
+      <div class="card-body">
+        <canvas id="genderChart" width="100%" height="40"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-6 mb-4">
+    <div class="card shadow">
+      <div class="card-header">
+        <h6 class="m-0 font-weight-bold">Répartition par statut</h6>
+      </div>
+      <div class="card-body">
+        <canvas id="statusChart" width="100%" height="40"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-lg-12">
+    <div class="card shadow">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold">Top 5 des établissements</h6>
+      </div>
+      <div class="card-body">
+        <canvas id="schoolChart" width="100%" height="30"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filtres et liste des étudiants -->
+<div class="card shadow mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h6 class="m-0 font-weight-bold">Liste des étudiants</h6>
+    <a href="export.php" class="btn btn-outline-light btn-sm">
+      <i class="fas fa-file-export"></i> Exporter
+    </a>
+  </div>
+  <div class="card-body">
+    <form method="GET" action="dashboard.php" class="mb-4">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control" name="search" placeholder="Rechercher..." value="{{search}}">
+          </div>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" name="sexe">
+            <option value="">Tous les sexes</option>
+            <option value="Masculin" {{sexe_filter_Masculin}}>Masculin</option>
+            <option value="Féminin" {{sexe_filter_Féminin}}>Féminin</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" name="statut">
+            <option value="">Tous les statuts</option>
+            <option value="Élève" {{statut_filter_Élève}}>Élève</option>
+            <option value="Étudiant" {{statut_filter_Étudiant}}>Étudiant</option>
+            <option value="Stagiaire" {{statut_filter_Stagiaire}}>Stagiaire</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" name="etablissement">
+            <option value="">Tous les établissements</option>
+            {{etablissement_options}}
+          </select>
+        </div>
+        <div class="col-md-1">
+          <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+        </div>
+      </div>
+    </form>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Sexe</th>
+            <th>Âge</th>
+            <th>Établissement</th>
+            <th>Statut</th>
+            <th>Contact</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{students_rows}}
+        </tbody>
+      </table>
+    </div>
+
+    {{pagination}}
+    {{per_page_block}}
+  </div>
+</div>
+
+<script>
+  // Chart.js - Graphique par sexe
+  var genderCtx = document.getElementById('genderChart').getContext('2d');
+  var genderChart = new Chart(genderCtx, {
+    type: 'pie',
+    data: { labels: ['Masculin', 'Féminin'], datasets: [{ data: [{{stats_hommes}}, {{stats_femmes}}], backgroundColor: ['#547792', '#94B4C1'], hoverBackgroundColor: ['#213448', '#7999A8'], hoverBorderColor: "#ECEFCA" }] },
+    options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } } }
+  });
+
+  // Chart.js - Graphique par statut
+  var statusCtx = document.getElementById('statusChart').getContext('2d');
+  var statusChart = new Chart(statusCtx, {
+    type: 'doughnut',
+    data: { labels: ['Étudiants', 'Élèves', 'Stagiaires'], datasets: [{ data: [{{stats_etudiants}}, {{stats_eleves}}, {{stats_stagiaires}}], backgroundColor: ['#547792', '#94B4C1', '#ECEFCA'], hoverBackgroundColor: ['#213448', '#7999A8', '#D9DCB8'], hoverBorderColor: "#FFFFFF" }] },
+    options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } } }
+  });
+
+  // Chart.js - Graphique des établissements
+  var schoolCtx = document.getElementById('schoolChart').getContext('2d');
+  var schoolChart = new Chart(schoolCtx, {
+    type: 'bar',
+    data: { labels: [{{school_labels}}], datasets: [{ label: "Nombre d'étudiants", data: [{{school_values}}], backgroundColor: '#547792', hoverBackgroundColor: '#213448', borderColor: '#547792', borderWidth: 1 }] },
+    options: { maintainAspectRatio: false, responsive: true, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+  });
+</script>

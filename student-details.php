@@ -57,8 +57,72 @@ try {
 }
 
 // Titre de la page
-$pageTitle = "AEESGS - Détails de " . $student['prenom'] . ' ' . $student['nom'];
-?>
+// Rendu via layout + contenu
+$layoutPath = __DIR__ . '/templates/admin/layout.html';
+$contentPath = __DIR__ . '/templates/admin/pages/student-details.html';
+if (!is_file($layoutPath) || !is_file($contentPath)) { http_response_code(500); exit('Template introuvable.'); }
+
+ob_start(); include 'includes/sidebar.php'; $sidebarHtml = ob_get_clean();
+
+// Flash block
+$flash = getFlashMessage();
+$flashBlock = '';
+if ($flash) {
+    $class = getFlashMessageClass($flash['type']);
+    $flashBlock = '<div class="alert ' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . ' alert-dismissible fade show" role="alert">'
+        . $flash['message'] . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+}
+
+// Construire le bloc de détails
+$details = '';
+$details .= '<div class="row">';
+$details .= '<div class="col-md-4 mb-4"><div class="card shadow h-100"><div class="card-header"><h5 class="m-0">Informations de base</h5></div><div class="card-body">'
+    . '<p><strong>Nom:</strong> ' . htmlspecialchars($student['nom'], ENT_QUOTES, 'UTF-8') . '</p>'
+    . '<p><strong>Prénom:</strong> ' . htmlspecialchars($student['prenom'], ENT_QUOTES, 'UTF-8') . '</p>'
+    . '<p><strong>Sexe:</strong> ' . htmlspecialchars($student['sexe'], ENT_QUOTES, 'UTF-8') . '</p>'
+    . '<p><strong>Âge:</strong> ' . htmlspecialchars($student['age'], ENT_QUOTES, 'UTF-8') . '</p>'
+    . '<p><strong>Date de naissance:</strong> ' . htmlspecialchars($student['date_naissance'], ENT_QUOTES, 'UTF-8') . '</p>'
+    . '</div></div></div>';
+$details .= '<div class="col-md-4 mb-4"><div class="card shadow h-100"><div class="card-header"><h5 class="m-0">Contact</h5></div><div class="card-body">'
+    . '<p><i class="fas fa-envelope me-2"></i>' . htmlspecialchars($student['email'], ENT_QUOTES, 'UTF-8') . '</p>'
+    . '<p><i class="fas fa-phone me-2"></i>' . htmlspecialchars($student['telephone'], ENT_QUOTES, 'UTF-8') . '</p>'
+    . '<p><strong>Résidence:</strong> ' . htmlspecialchars($student['lieu_residence'], ENT_QUOTES, 'UTF-8') . '</p>'
+    . '</div></div></div>';
+$details .= '<div class="col-md-4 mb-4"><div class="card shadow h-100"><div class="card-header"><h5 class="m-0">Parcours académique</h5></div><div class="card-body">'
+    . '<p><strong>Établissement:</strong> ' . htmlspecialchars($student['etablissement'], ENT_QUOTES, 'UTF-8') . '</p>'
+    . '<p><strong>Statut:</strong> ' . htmlspecialchars($student['statut'], ENT_QUOTES, 'UTF-8') . '</p>'
+    . '<p><strong>Domaine d\'études:</strong> ' . htmlspecialchars($student['domaine_etudes'], ENT_QUOTES, 'UTF-8') . '</p>'
+    . '<p><strong>Niveau d\'études:</strong> ' . htmlspecialchars($student['niveau_etudes'], ENT_QUOTES, 'UTF-8') . '</p>'
+    . '</div></div></div>';
+$details .= '</div>';
+
+// Contenu
+$contentTpl = file_get_contents($contentPath);
+$contentHtml = strtr($contentTpl, [
+    '{{flash_block}}' => $flashBlock,
+    '{{details_block}}' => $details,
+    '{{student_id}}' => (string)$student_id,
+    '{{display_name}}' => htmlspecialchars($student['prenom'] . ' ' . $student['nom'], ENT_QUOTES, 'UTF-8'),
+    '{{email}}' => htmlspecialchars($student['email'], ENT_QUOTES, 'UTF-8'),
+    '{{csrf_token}}' => htmlspecialchars(generateCsrfToken(), ENT_QUOTES, 'UTF-8'),
+]);
+
+// Layout
+$layoutTpl = file_get_contents($layoutPath);
+$output = strtr($layoutTpl, [
+    '{{title}}' => 'AEESGS - Détails de ' . htmlspecialchars($student['prenom'] . ' ' . $student['nom'], ENT_QUOTES, 'UTF-8'),
+    '{{sidebar}}' => $sidebarHtml,
+    '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [
+        '{{user_fullname}}' => htmlspecialchars($prenom . ' ' . $nom, ENT_QUOTES, 'UTF-8'),
+    ]),
+    '{{content}}' => $contentHtml,
+    '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), [
+        '{{year}}' => date('Y'),
+    ]),
+]);
+
+echo $output;
+exit();
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -560,7 +624,7 @@ $pageTitle = "AEESGS - Détails de " . $student['prenom'] . ' ' . $student['nom'
             <div class="row align-items-start">
                 <div class="col-md-4 text-center d-flex flex-column justify-content-start">
                     <h5><strong style="color: var(--light-beige);">AEESGS</strong> - Administration</h5>
-                    <p>Plateforme de gestion des étudiants guinéens au Sénégal.</p>
+                    <p>Plateforme de gestion des élèves, étudiants et stagiaires guinéens au Sénégal.</p>
                 </div>
                 <div class="col-md-4 text-center d-flex flex-column justify-content-start">
                     <h5>Liens rapides</h5>

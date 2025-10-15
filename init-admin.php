@@ -95,4 +95,3 @@ try {
     logError("Erreur lors de l'initialisation de l'administrateur", $e);
     echo "Une erreur est survenue lors de la création de l'utilisateur administrateur." . PHP_EOL;
 }
-?>
