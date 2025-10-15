@@ -148,7 +148,10 @@ function verifyCsrfToken($token) {
 }
 
 /**
- * Journalise une erreur dans le fichier de logs de l'application
+ * Journalise une erreur dans le fichier de logs de l'application.
+ *
+ * Note: Le dossier de logs doit exister et être accessible en écriture. En cas
+ * d'échec de création, l'erreur est reportée dans le journal PHP par défaut.
  *
  * @param string $message Message d'erreur contextuel
  * @param \Throwable|null $exception Exception associée
@@ -158,7 +161,10 @@ function logError($message, ?\Throwable $exception = null) {
     $logDirectory = __DIR__ . '/../storage/logs';
 
     if (!is_dir($logDirectory)) {
-        mkdir($logDirectory, 0775, true);
+        if (!mkdir($logDirectory, 0775, true) && !is_dir($logDirectory)) {
+            error_log("Impossible de créer le dossier de logs: " . $logDirectory);
+            return;
+        }
     }
 
     $logMessage = '[' . date('c') . "] " . $message;
