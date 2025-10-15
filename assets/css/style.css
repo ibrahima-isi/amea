@@ -83,6 +83,11 @@ body {
   background-color: white;
 }
 
+/* Sidebar heading */
+.sidebar-heading {
+  background-color: var(--medium-blue) !important;
+}
+
 /* Custom card borders */
 .border-left-primary {
   border-left: 0.25rem solid var(--medium-blue) !important;

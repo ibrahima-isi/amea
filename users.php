@@ -135,10 +135,86 @@ if (!in_array($messageType, $allowedMessageTypes, true)) {
 }
 
 // Titre de la page
-$pageTitle = "AEESGS - Gestion des utilisateurs";
-?>
+// Rendu via layout + contenu
+$layoutPath = __DIR__ . '/templates/admin/layout.html';
+$contentPath = __DIR__ . '/templates/admin/pages/users.html';
+if (!is_file($layoutPath) || !is_file($contentPath)) { http_response_code(500); exit('Template introuvable.'); }
 
-<!DOCTYPE html>
+// Message block
+$messageBlock = '';
+if (!empty($message)) {
+    $messageBlock = '<div class="alert alert-' . htmlspecialchars($messageType, ENT_QUOTES, 'UTF-8') . '">'
+        . '<i class="fas fa-info-circle"></i> ' . htmlspecialchars($message, ENT_QUOTES, 'UTF-8')
+        . '</div>';
+}
+
+// Rows
+$rows = '';
+foreach ($users as $user) {
+    $rows .= '<tr>'
+        . '<td>' . (int)$user['id_user'] . '</td>'
+        . '<td>' . htmlspecialchars($user['username'], ENT_QUOTES, 'UTF-8') . '</td>'
+        . '<td>' . htmlspecialchars($user['nom'], ENT_QUOTES, 'UTF-8') . '</td>'
+        . '<td>' . htmlspecialchars($user['prenom'], ENT_QUOTES, 'UTF-8') . '</td>'
+        . '<td>' . htmlspecialchars($user['email'], ENT_QUOTES, 'UTF-8') . '</td>'
+        . '<td><span class="badge ' . ($user['role'] == 'admin' ? 'bg-success' : 'bg-secondary') . '">' . htmlspecialchars($user['role'], ENT_QUOTES, 'UTF-8') . '</span></td>'
+        . '<td><span class="badge ' . ($user['est_actif'] ? 'bg-success' : 'bg-danger') . '">' . ($user['est_actif'] ? 'Actif' : 'Inactif') . '</span></td>'
+        . '<td>' . htmlspecialchars($user['derniere_connexion'] ?? 'Jamais', ENT_QUOTES, 'UTF-8') . '</td>'
+        . '<td><div class="btn-group" role="group">'
+            . '<form method="POST" class="d-inline">'
+            . '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') . '">'
+            . '<input type="hidden" name="action" value="toggle">'
+            . '<input type="hidden" name="id" value="' . (int)$user['id_user'] . '">'
+            . '<input type="hidden" name="status" value="' . (int)$user['est_actif'] . '">'
+            . '<button type="submit" class="btn btn-sm btn-warning" title="' . ($user['est_actif'] ? 'Désactiver' : 'Activer') . '">'
+            . '<i class="fas ' . ($user['est_actif'] ? 'fa-ban' : 'fa-check') . '"></i>'
+            . '</button>'
+            . '</form>'
+            . '<form method="POST" class="d-inline">'
+            . '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') . '">'
+            . '<input type="hidden" name="action" value="reset">'
+            . '<input type="hidden" name="id" value="' . (int)$user['id_user'] . '">'
+            . '<button type="submit" class="btn btn-sm btn-info" title="Réinitialiser mot de passe" onclick="return confirm(\'Êtes-vous sûr de vouloir réinitialiser le mot de passe de cet utilisateur ?\');">'
+            . '<i class="fas fa-key"></i>'
+            . '</button>'
+            . '</form>'
+    . (($user['id_user'] != $_SESSION['user_id']) ? (
+                '<form method="POST" class="d-inline">'
+                . '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') . '">'
+                . '<input type="hidden" name="action" value="delete">'
+                . '<input type="hidden" name="id" value="' . (int)$user['id_user'] . '">'
+                . '<button type="submit" class="btn btn-sm btn-danger" title="Supprimer" onclick="return confirm(\'Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.\');">'
+                . '<i class="fas fa-trash"></i>'
+                . '</button>'
+                . '</form>'
+            ) : '')
+            . '</div></td>'
+        . '</tr>';
+}
+
+// Contenu
+$contentTpl = file_get_contents($contentPath);
+$contentHtml = strtr($contentTpl, [
+    '{{message_block}}' => $messageBlock,
+    '{{users_rows}}' => $rows,
+]);
+
+// Layout
+$layoutTpl = file_get_contents($layoutPath);
+$output = strtr($layoutTpl, [
+    '{{title}}' => 'AEESGS - Gestion des utilisateurs',
+    '{{sidebar}}' => (function(){ ob_start(); include 'includes/sidebar.php'; return ob_get_clean(); })(),
+    '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [
+        '{{user_fullname}}' => htmlspecialchars($_SESSION['prenom'] . ' ' . $_SESSION['nom'], ENT_QUOTES, 'UTF-8'),
+    ]),
+    '{{content}}' => $contentHtml,
+    '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), [
+        '{{year}}' => date('Y'),
+    ]),
+]);
+
+echo $output;
+exit();
 <html lang="fr">
 
 <head>
@@ -481,7 +557,7 @@ $pageTitle = "AEESGS - Gestion des utilisateurs";
             <div class="row align-items-start">
                 <div class="col-md-4 text-center d-flex flex-column justify-content-start">
                     <h5><strong style="color: var(--light-beige);">AEESGS</strong> - Administration</h5>
-                    <p>Panneau d'administration pour la gestion des étudiants guinéens au Sénégal.</p>
+                    <p>Panneau d'administration pour la gestion des élèves, étudiants et stagiaires guinéens au Sénégal.</p>
                 </div>
                 <div class="col-md-4 text-center d-flex flex-column justify-content-start">
                     <h5>Liens rapides</h5>

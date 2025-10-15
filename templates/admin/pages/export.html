@@ -1,0 +1,160 @@
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="h3">Exporter les données</h1>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Exporter les données</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+{{error_block}}
+{{success_block}}
+
+<div class="card shadow mb-4">
+  <div class="card-header">
+    <h5 class="m-0 font-weight-bold">Exporter les données des étudiants</h5>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{form_action}}">
+      <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+      <div class="row mb-4">
+        <div class="col-lg-6">
+          <div class="card h-100">
+            <div class="card-header bg-light">
+              <h6 class="m-0">Champs à exporter</h6>
+            </div>
+            <div class="card-body">
+              <div class="mb-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="select_all" onclick="toggleAllFields()">
+                  <label class="form-check-label fw-bold" for="select_all">Sélectionner tous les champs</label>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Identité</label>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="id_personne" id="field_id_personne" checked><label class="form-check-label" for="field_id_personne">ID</label></div>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="nom" id="field_nom" checked><label class="form-check-label" for="field_nom">Nom</label></div>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="prenom" id="field_prenom" checked><label class="form-check-label" for="field_prenom">Prénom</label></div>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="sexe" id="field_sexe" checked><label class="form-check-label" for="field_sexe">Sexe</label></div>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="age" id="field_age"><label class="form-check-label" for="field_age">Âge</label></div>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="date_naissance" id="field_date_naissance"><label class="form-check-label" for="field_date_naissance">Date de naissance</label></div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Contact</label>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="telephone" id="field_telephone"><label class="form-check-label" for="field_telephone">Téléphone</label></div>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="email" id="field_email"><label class="form-check-label" for="field_email">Email</label></div>
+                  <label class="form-label fw-bold mt-3">Scolarité</label>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="etablissement" id="field_etablissement" checked><label class="form-check-label" for="field_etablissement">Établissement</label></div>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="statut" id="field_statut" checked><label class="form-check-label" for="field_statut">Statut</label></div>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="domaine_etudes" id="field_domaine_etudes"><label class="form-check-label" for="field_domaine_etudes">Domaine d'études</label></div>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="niveau_etudes" id="field_niveau_etudes"><label class="form-check-label" for="field_niveau_etudes">Niveau d'études</label></div>
+                  <label class="form-label fw-bold mt-3">Résidence</label>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="lieu_residence" id="field_lieu_residence"><label class="form-check-label" for="field_lieu_residence">Lieu de résidence</label></div>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="type_logement" id="field_type_logement"><label class="form-check-label" for="field_type_logement">Type de logement</label></div>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="precision_logement" id="field_precision_logement"><label class="form-check-label" for="field_precision_logement">Précision sur le logement</label></div>
+                  <label class="form-label fw-bold mt-3">Autres</label>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="annee_arrivee" id="field_annee_arrivee"><label class="form-check-label" for="field_annee_arrivee">Année d'arrivée</label></div>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="projet_apres_formation" id="field_projet_apres_formation"><label class="form-check-label" for="field_projet_apres_formation">Projet après formation</label></div>
+                  <div class="form-check"><input class="form-check-input field-checkbox" type="checkbox" name="fields[]" value="date_enregistrement" id="field_date_enregistrement"><label class="form-check-label" for="field_date_enregistrement">Date d'enregistrement</label></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="card h-100">
+            <div class="card-header bg-light">
+              <h6 class="m-0">Filtres et format d'exportation</h6>
+            </div>
+            <div class="card-body">
+              <div class="mb-4">
+                <label class="form-label fw-bold">Filtrer les données</label>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="sexe" class="form-label">Sexe</label>
+                    <select class="form-select" id="sexe" name="sexe">
+                      <option value="">Tous</option>
+                      <option value="Masculin">Masculin</option>
+                      <option value="Féminin">Féminin</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="statut" class="form-label">Statut</label>
+                    <select class="form-select" id="statut" name="statut">
+                      <option value="">Tous</option>
+                      <option value="Élève">Élève</option>
+                      <option value="Étudiant">Étudiant</option>
+                      <option value="Stagiaire">Stagiaire</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="etablissement" class="form-label">Établissement</label>
+                    <select class="form-select" id="etablissement" name="etablissement">
+                      <option value="">Tous</option>
+                      {{etablissement_options}}
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="niveau_etudes" class="form-label">Niveau d'études</label>
+                    <select class="form-select" id="niveau_etudes" name="niveau_etudes">
+                      <option value="">Tous</option>
+                      {{niveau_options}}
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="type_logement" class="form-label">Type de logement</label>
+                    <select class="form-select" id="type_logement" name="type_logement">
+                      <option value="">Tous</option>
+                      <option value="En famille">En famille</option>
+                      <option value="En colocation">En colocation</option>
+                      <option value="En résidence universitaire">En résidence universitaire</option>
+                      <option value="Autre">Autre</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label fw-bold">Format d'exportation</label>
+                <div class="form-check"><input class="form-check-input" type="radio" name="export_format" id="format_csv" value="csv" checked><label class="form-check-label" for="format_csv"><i class="fas fa-file-csv me-2"></i> CSV (compatible Excel)</label></div>
+                <div class="form-check"><input class="form-check-input" type="radio" name="export_format" id="format_excel" value="excel"><label class="form-check-label" for="format_excel"><i class="fas fa-file-excel me-2"></i> Excel (CSV formaté pour Excel)</label></div>
+                <div class="form-check"><input class="form-check-input" type="radio" name="export_format" id="format_json" value="json"><label class="form-check-label" for="format_json"><i class="fas fa-file-code me-2"></i> JSON</label></div>
+              </div>
+
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> L'exportation inclura uniquement les champs sélectionnés et respectera les filtres définis ci-dessus.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between">
+        <a href="dashboard.php" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Retour au tableau de bord</a>
+        <button type="submit" name="export" class="btn btn-primary"><i class="fas fa-file-export"></i> Exporter les données</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.getElementById('sidebarToggle')?.addEventListener('click', function(e) {
+    e.preventDefault(); document.getElementById('wrapper')?.classList.toggle('toggled');
+  });
+  function toggleAllFields() {
+    const selectAll = document.getElementById('select_all');
+    const boxes = document.querySelectorAll('.field-checkbox');
+    boxes.forEach(cb => { cb.checked = selectAll.checked; });
+  }
+  document.querySelectorAll('.field-checkbox').forEach(cb => cb.addEventListener('change', function() {
+    const all = document.querySelectorAll('.field-checkbox');
+    const checked = document.querySelectorAll('.field-checkbox:checked');
+    const selectAll = document.getElementById('select_all');
+    if (selectAll) { selectAll.checked = all.length === checked.length; selectAll.indeterminate = checked.length > 0 && checked.length < all.length; }
+  }));
+</script>

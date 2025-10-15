@@ -134,386 +134,85 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
+// Préparer rendu via template
 $csrfToken = generateCsrfToken();
+$templatePath = __DIR__ . '/templates/register.html';
+if (!is_file($templatePath)) {
+    http_response_code(500);
+    exit('Template introuvable.');
+}
 
-// Titre de la page
-$pageTitle = "AEESGS - Enregistrement";
+// Construire le bloc de feedback
+$feedback = '';
+if (!empty($successMessage)) {
+    $feedback = '<div class="alert alert-success">'
+        . '<i class="fas fa-check-circle"></i> '
+        . htmlspecialchars($successMessage, ENT_QUOTES, 'UTF-8')
+        . '</div>'
+        . '<div class="text-center mb-4">'
+        . '<a href="register.php" class="btn btn-primary">'
+        . '<i class="fas fa-user-plus"></i> Nouvel enregistrement'
+        . '</a>'
+        . ' '
+        . '<a href="index.php" class="btn btn-secondary">'
+        . '<i class="fas fa-home"></i> Retour à l\'accueil'
+        . '</a>'
+        . '</div>';
+} elseif (!empty($error)) {
+    $feedback = '<div class="alert alert-danger">'
+        . '<i class="fas fa-exclamation-triangle"></i> '
+        . htmlspecialchars($error, ENT_QUOTES, 'UTF-8')
+        . '</div>';
+}
+
+// Helper pour attribut selected
+$sel = function ($cond) { return $cond ? 'selected' : ''; };
+
+$tpl = file_get_contents($templatePath);
+
+// Header/Footer partials
+$headerTpl = file_get_contents(__DIR__ . '/templates/partials/header.html');
+$footerTpl = file_get_contents(__DIR__ . '/templates/partials/footer.html');
+$headerHtml = strtr($headerTpl, [
+    '{{index_active}}' => '',
+    '{{register_active}}' => 'active',
+    '{{login_active}}' => '',
+]);
+
+$output = strtr($tpl, [
+    '{{header}}' => $headerHtml,
+    '{{footer}}' => $footerTpl,
+    '{{feedback_block}}' => $feedback,
+    '{{form_action}}' => htmlspecialchars($_SERVER['PHP_SELF'] ?? 'register.php', ENT_QUOTES, 'UTF-8'),
+    '{{csrf_token}}' => htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'),
+    '{{nom}}' => htmlspecialchars($formData['nom'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{prenom}}' => htmlspecialchars($formData['prenom'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{date_naissance}}' => htmlspecialchars($formData['date_naissance'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{telephone}}' => htmlspecialchars($formData['telephone'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{email}}' => htmlspecialchars($formData['email'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{lieu_residence}}' => htmlspecialchars($formData['lieu_residence'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{annee_arrivee}}' => htmlspecialchars($formData['annee_arrivee'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{precision_logement}}' => htmlspecialchars($formData['precision_logement'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{etablissement}}' => htmlspecialchars($formData['etablissement'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{domaine_etudes}}' => htmlspecialchars($formData['domaine_etudes'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{niveau_etudes}}' => htmlspecialchars($formData['niveau_etudes'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{projet_apres_formation}}' => htmlspecialchars($formData['projet_apres_formation'] ?? '', ENT_QUOTES, 'UTF-8'),
+    // Sexe selects
+    '{{sexe_sel_none}}' => $sel(empty($formData['sexe'] ?? '')),
+    '{{sexe_sel_Masculin}}' => $sel(($formData['sexe'] ?? '') === 'Masculin'),
+    '{{sexe_sel_Féminin}}' => $sel(($formData['sexe'] ?? '') === 'Féminin'),
+    // Type logement
+    '{{type_logement_sel_none}}' => $sel(empty($formData['type_logement'] ?? '')),
+    '{{type_logement_sel_En famille}}' => $sel(($formData['type_logement'] ?? '') === 'En famille'),
+    '{{type_logement_sel_En colocation}}' => $sel(($formData['type_logement'] ?? '') === 'En colocation'),
+    '{{type_logement_sel_En résidence universitaire}}' => $sel(($formData['type_logement'] ?? '') === 'En résidence universitaire'),
+    '{{type_logement_sel_Autre}}' => $sel(($formData['type_logement'] ?? '') === 'Autre'),
+    // Statut
+    '{{statut_sel_none}}' => $sel(empty($formData['statut'] ?? '')),
+    '{{statut_sel_Élève}}' => $sel(($formData['statut'] ?? '') === 'Élève'),
+    '{{statut_sel_Étudiant}}' => $sel(($formData['statut'] ?? '') === 'Étudiant'),
+    '{{statut_sel_Stagiaire}}' => $sel(($formData['statut'] ?? '') === 'Stagiaire'),
+]);
+
+echo $output;
 ?>
-
-<!DOCTYPE html>
-<html lang="fr">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $pageTitle; ?></title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Styles personnalisés -->
-    <link rel="stylesheet" href="assets/css/style.css">
-    <!-- Custom Color Palette CSS -->
-    <style>
-        :root {
-            --dark-blue: #213448;
-            --medium-blue: #547792;
-            --light-blue: #94B4C1;
-            --pale-yellow: #ECEFCA;
-            --light-beige: #ECEFCA;
-        }
-
-        body {
-            background-color: #f8f8fa;
-            color: var(--dark-blue);
-        }
-
-        /* Main content styling */
-        main {
-            background-color: #f8f8fa;
-        }
-
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            color: var(--dark-blue);
-        }
-
-        /* Card styling */
-        .card {
-            border: none;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(33, 52, 72, 0.1);
-        }
-
-        .card-header {
-            background-color: var(--dark-blue) !important;
-            color: white !important;
-            padding: 1rem 1.5rem;
-        }
-
-        .card-body {
-            background-color: white;
-        }
-
-        /* Form controls */
-        .form-control:focus,
-        .form-select:focus {
-            border-color: var(--light-blue) !important;
-            box-shadow: 0 0 0 0.25rem rgba(148, 180, 193, 0.25) !important;
-        }
-
-        .form-label {
-            color: var(--dark-blue);
-            font-weight: 500;
-        }
-
-        /* Section headers */
-        .h5 {
-            color: var(--medium-blue);
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid rgba(148, 180, 193, 0.2);
-            margin-top: 1rem;
-        }
-
-        /* Button styling */
-        .btn-primary {
-            background-color: var(--medium-blue) !important;
-            border-color: var(--medium-blue) !important;
-        }
-
-        .btn-primary:hover,
-        .btn-primary:focus {
-            background-color: var(--dark-blue) !important;
-            border-color: var(--dark-blue) !important;
-        }
-
-        .btn-secondary {
-            background-color: var(--dark-blue) !important;
-            border-color: var(--dark-blue) !important;
-        }
-
-        .btn-secondary:hover,
-        .btn-secondary:focus {
-            background-color: rgba(33, 52, 72, 0.9) !important;
-            border-color: rgba(33, 52, 72, 0.9) !important;
-        }
-
-        .btn-outline-secondary {
-            color: var(--medium-blue) !important;
-            border-color: var(--medium-blue) !important;
-        }
-
-        .btn-outline-secondary:hover {
-            background-color: var(--medium-blue) !important;
-            color: white !important;
-        }
-
-        /* Alert styling */
-        .alert-success {
-            background-color: rgba(236, 239, 202, 0.2);
-            border-color: var(--pale-yellow);
-            color: var(--dark-blue);
-        }
-
-        .alert-danger {
-            background-color: rgba(220, 53, 69, 0.1);
-            border-color: #dc3545;
-            color: var(--dark-blue);
-        }
-
-        /* Footer styling */
-        footer.bg-dark {
-            background-color: var(--dark-blue) !important;
-        }
-
-        footer a.text-white:hover {
-            color: var(--light-beige) !important;
-            text-decoration: underline;
-        }
-
-        /* Navbar styling */
-        .navbar-dark .navbar-nav .nav-link {
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .navbar-dark .navbar-nav .nav-link:hover,
-        .navbar-dark .navbar-nav .nav-link.active {
-            color: var(--light-beige);
-        }
-
-        .bg-dark {
-            background-color: var(--dark-blue) !important;
-        }
-
-        /* Text colors */
-        .text-primary {
-            color: var(--medium-blue) !important;
-        }
-
-        .text-secondary {
-            color: var(--dark-blue) !important;
-            opacity: 0.7;
-        }
-
-        .text-muted {
-            color: var(--dark-blue) !important;
-            opacity: 0.6;
-        }
-
-        /* Required fields */
-        .text-danger {
-            color: #dc3545 !important;
-        }
-    </style>
-</head>
-
-<body>
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <div class="container">
-                <a class="navbar-brand" href="index.php">
-                    <i class="fas fa-graduation-cap"></i> <strong style="color: var(--light-beige);">AEESGS</strong>
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="index.php">Accueil</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="register.php">S'enregistrer</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="login.php">Administration</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <!-- Contenu principal -->
-    <main class="py-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-10 mx-auto">
-                    <div class="card shadow">
-                        <div class="card-header">
-                            <h2 class="h4 mb-0">Formulaire d'enregistrement des étudiants guinéens au Sénégal</h2>
-                        </div>
-                        <div class="card-body">
-                            <?php if (!empty($successMessage)): ?>
-                                <div class="alert alert-success">
-                                    <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($successMessage); ?>
-                                </div>
-                                <div class="text-center mb-4">
-                                    <a href="register.php" class="btn btn-primary">
-                                        <i class="fas fa-user-plus"></i> Nouvel enregistrement
-                                    </a>
-                                    <a href="index.php" class="btn btn-secondary">
-                                        <i class="fas fa-home"></i> Retour à l'accueil
-                                    </a>
-                                </div>
-                            <?php else: ?>
-                                <?php if (!empty($error)): ?>
-                                    <div class="alert alert-danger">
-                                        <i class="fas fa-exclamation-triangle"></i> <?php echo htmlspecialchars($error); ?>
-                                    </div>
-                                <?php endif; ?>
-
-                                <p class="text-muted mb-4">Veuillez remplir ce formulaire pour vous enregistrer dans la base de données des étudiants guinéens au Sénégal.</p>
-
-                                <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" id="registrationForm">
-                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
-                                    <!-- Informations personnelles -->
-                                    <h3 class="h5 mb-3">Informations personnelles</h3>
-                                    <div class="row g-3 mb-4">
-                                        <div class="col-md-6">
-                                            <label for="nom" class="form-label">Nom <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="nom" name="nom" value="<?php echo htmlspecialchars($formData['nom'] ?? ''); ?>" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="prenom" class="form-label">Prénom <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="prenom" name="prenom" value="<?php echo htmlspecialchars($formData['prenom'] ?? ''); ?>" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="sexe" class="form-label">Sexe <span class="text-danger">*</span></label>
-                                            <select class="form-select" id="sexe" name="sexe" required>
-                                                <option value="" disabled <?php echo empty($formData['sexe']) ? 'selected' : ''; ?>>Sélectionnez</option>
-                                                <option value="Masculin" <?php echo isset($formData['sexe']) && $formData['sexe'] == 'Masculin' ? 'selected' : ''; ?>>Masculin</option>
-                                                <option value="Féminin" <?php echo isset($formData['sexe']) && $formData['sexe'] == 'Féminin' ? 'selected' : ''; ?>>Féminin</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="date_naissance" class="form-label">Date de naissance <span class="text-danger">*</span></label>
-                                            <input type="date" class="form-control" id="date_naissance" name="date_naissance" value="<?php echo htmlspecialchars($formData['date_naissance'] ?? ''); ?>" required>
-                                        </div>
-                                    </div>
-
-                                    <!-- Informations de contact et résidence -->
-                                    <h3 class="h5 mb-3">Contact et résidence</h3>
-                                    <div class="row g-3 mb-4">
-                                        <div class="col-md-6">
-                                            <label for="telephone" class="form-label">Téléphone <span class="text-danger">*</span></label>
-                                            <input type="tel" class="form-control" id="telephone" name="telephone" value="<?php echo htmlspecialchars($formData['telephone'] ?? ''); ?>" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                                            <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($formData['email'] ?? ''); ?>" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="lieu_residence" class="form-label">Lieu de résidence au Sénégal <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="lieu_residence" name="lieu_residence" value="<?php echo htmlspecialchars($formData['lieu_residence'] ?? ''); ?>" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="annee_arrivee" class="form-label">Année d'arrivée au Sénégal</label>
-                                            <input type="number" class="form-control" id="annee_arrivee" name="annee_arrivee" min="2000" max="2030" value="<?php echo htmlspecialchars($formData['annee_arrivee'] ?? ''); ?>">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="type_logement" class="form-label">Type de logement <span class="text-danger">*</span></label>
-                                            <select class="form-select" id="type_logement" name="type_logement" required>
-                                                <option value="" disabled <?php echo empty($formData['type_logement']) ? 'selected' : ''; ?>>Sélectionnez</option>
-                                                <option value="En famille" <?php echo isset($formData['type_logement']) && $formData['type_logement'] == 'En famille' ? 'selected' : ''; ?>>En famille</option>
-                                                <option value="En colocation" <?php echo isset($formData['type_logement']) && $formData['type_logement'] == 'En colocation' ? 'selected' : ''; ?>>En colocation</option>
-                                                <option value="En résidence universitaire" <?php echo isset($formData['type_logement']) && $formData['type_logement'] == 'En résidence universitaire' ? 'selected' : ''; ?>>En résidence universitaire</option>
-                                                <option value="Autre" <?php echo isset($formData['type_logement']) && $formData['type_logement'] == 'Autre' ? 'selected' : ''; ?>>Autre</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="precision_logement" class="form-label">Précisions sur le logement</label>
-                                            <input type="text" class="form-control" id="precision_logement" name="precision_logement" value="<?php echo htmlspecialchars($formData['precision_logement'] ?? ''); ?>">
-                                        </div>
-                                    </div>
-
-                                    <!-- Informations académiques -->
-                                    <h3 class="h5 mb-3">Informations académiques</h3>
-                                    <div class="row g-3 mb-4">
-                                        <div class="col-md-6">
-                                            <label for="etablissement" class="form-label">Établissement <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="etablissement" name="etablissement" value="<?php echo htmlspecialchars($formData['etablissement'] ?? ''); ?>" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="statut" class="form-label">Statut <span class="text-danger">*</span></label>
-                                            <select class="form-select" id="statut" name="statut" required>
-                                                <option value="" disabled <?php echo empty($formData['statut']) ? 'selected' : ''; ?>>Sélectionnez</option>
-                                                <option value="Élève" <?php echo isset($formData['statut']) && $formData['statut'] == 'Élève' ? 'selected' : ''; ?>>Élève</option>
-                                                <option value="Étudiant" <?php echo isset($formData['statut']) && $formData['statut'] == 'Étudiant' ? 'selected' : ''; ?>>Étudiant</option>
-                                                <option value="Stagiaire" <?php echo isset($formData['statut']) && $formData['statut'] == 'Stagiaire' ? 'selected' : ''; ?>>Stagiaire</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="domaine_etudes" class="form-label">Domaine d'études <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="domaine_etudes" name="domaine_etudes" value="<?php echo htmlspecialchars($formData['domaine_etudes'] ?? ''); ?>" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="niveau_etudes" class="form-label">Niveau d'études <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="niveau_etudes" name="niveau_etudes" value="<?php echo htmlspecialchars($formData['niveau_etudes'] ?? ''); ?>" required>
-                                        </div>
-                                    </div>
-
-                                    <!-- Projets futurs -->
-                                    <h3 class="h5 mb-3">Projets futurs</h3>
-                                    <div class="mb-4">
-                                        <label for="projet_apres_formation" class="form-label">Projet après formation</label>
-                                        <textarea class="form-control" id="projet_apres_formation" name="projet_apres_formation" rows="3"><?php echo htmlspecialchars($formData['projet_apres_formation'] ?? ''); ?></textarea>
-                                    </div>
-
-                                    <!-- Boutons de soumission -->
-                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                        <button type="reset" class="btn btn-outline-secondary">
-                                            <i class="fas fa-undo"></i> Réinitialiser
-                                        </button>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-save"></i> Enregistrer
-                                        </button>
-                                    </div>
-                                </form>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Pied de page -->
-    <footer class="bg-dark text-white py-4 mt-5">
-        <div class="container">
-            <div class="row align-items-start">
-                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
-                    <h5><strong style="color: var(--light-beige);">AEESGS</strong></h5>
-                    <p>Plateforme de recensement des étudiants guinéens au Sénégal.</p>
-                </div>
-                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
-                    <h5>Liens rapides</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="index.php" class="text-white">Accueil</a></li>
-                        <li><a href="register.php" class="text-white">S'enregistrer</a></li>
-                        <li><a href="login.php" class="text-white">Administration</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4 text-center d-flex flex-column justify-content-start">
-                    <h5>Contact</h5>
-                    <ul class="list-unstyled">
-                        <li><i class="fas fa-envelope me-2"></i> contact@amea.org</li>
-                        <li><i class="fas fa-phone me-2"></i> +221 XX XXX XX XX</li>
-                    </ul>
-                </div>
-            </div>
-            <hr>
-            <div class="text-center">
-                <p>&copy; 2025 <strong style="color: var(--light-beige);">GUI CONNECT</strong>. Tous droits réservés. | Développé par <a href="https://gui-connect.com/" target="_blank" style="color: var(--light-beige); text-decoration: none;"><strong>GUI CONNECT</strong></a></p>
-            </div>
-        </div>
-    </footer>
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Scripts personnalisés -->
-    <script src="assets/js/main.js"></script>
-    <script src="assets/js/validation.js"></script>
-</body>
-
-</html>

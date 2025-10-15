@@ -1,0 +1,52 @@
+<div class="row mb-4">
+  <div class="col-md-8">
+    <h1 class="h3">Détails de l'étudiant</h1>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Détails de l'étudiant</li>
+      </ol>
+    </nav>
+  </div>
+  <div class="col-md-4 text-end">
+    <a href="edit-student.php?id={{student_id}}" class="btn btn-primary">
+      <i class="fas fa-edit"></i> Modifier
+    </a>
+    <a href="#" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+      <i class="fas fa-trash"></i> Supprimer
+    </a>
+  </div>
+</div>
+
+{{flash_block}}
+
+{{details_block}}
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteModalLabel">Confirmation de suppression</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Êtes-vous sûr de vouloir supprimer définitivement cet étudiant ? Cette action est irréversible.</p>
+        <p class="fw-bold">{{display_name}} ({{email}})</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <form action="delete-student.php" method="POST">
+          <input type="hidden" name="student_id" value="{{student_id}}">
+          <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Supprimer définitivement
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script>
+    function printStudentDetails() { window.print(); }
+  </script>
+</div>

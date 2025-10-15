@@ -175,9 +175,68 @@ try {
 }
 
 // Titre de la page
-$pageTitle = "AEESGS - Exporter les données";
-?>
-<!DOCTYPE html>
+// Rendu via layout + contenu
+$layoutPath = __DIR__ . '/templates/admin/layout.html';
+$contentPath = __DIR__ . '/templates/admin/pages/export.html';
+if (!is_file($layoutPath) || !is_file($contentPath)) { http_response_code(500); exit('Template introuvable.'); }
+
+ob_start(); include 'includes/sidebar.php'; $sidebarHtml = ob_get_clean();
+
+// Blocs d'alerte
+$errorBlock = '';
+if (!empty($error)) {
+    $errorBlock = '<div class="alert alert-danger alert-dismissible fade show" role="alert">'
+        . '<i class="fas fa-exclamation-triangle me-2"></i> ' . htmlspecialchars($error, ENT_QUOTES, 'UTF-8')
+        . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
+        . '</div>';
+}
+$successBlock = '';
+if (!empty($success)) {
+    $successBlock = '<div class="alert alert-success alert-dismissible fade show" role="alert">'
+        . '<i class="fas fa-check-circle me-2"></i> ' . htmlspecialchars($success, ENT_QUOTES, 'UTF-8')
+        . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
+        . '</div>';
+}
+
+// Options pour les sélecteurs
+$etabOptions = '';
+foreach ($etablissements as $etablissement) {
+    $etabOptions .= '<option value="' . htmlspecialchars($etablissement, ENT_QUOTES, 'UTF-8') . '">'
+        . htmlspecialchars($etablissement, ENT_QUOTES, 'UTF-8') . '</option>';
+}
+$niveauOptions = '';
+foreach ($niveauxEtudes as $niveau) {
+    $niveauOptions .= '<option value="' . htmlspecialchars($niveau, ENT_QUOTES, 'UTF-8') . '">'
+        . htmlspecialchars($niveau, ENT_QUOTES, 'UTF-8') . '</option>';
+}
+
+// Contenu
+$contentTpl = file_get_contents($contentPath);
+$contentHtml = strtr($contentTpl, [
+    '{{error_block}}' => $errorBlock,
+    '{{success_block}}' => $successBlock,
+    '{{form_action}}' => htmlspecialchars($_SERVER['PHP_SELF'] ?? 'export.php', ENT_QUOTES, 'UTF-8'),
+    '{{csrf_token}}' => htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'),
+    '{{etablissement_options}}' => $etabOptions,
+    '{{niveau_options}}' => $niveauOptions,
+]);
+
+// Layout
+$layoutTpl = file_get_contents($layoutPath);
+$output = strtr($layoutTpl, [
+    '{{title}}' => 'AEESGS - Exporter les données',
+    '{{sidebar}}' => $sidebarHtml,
+    '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [
+        '{{user_fullname}}' => htmlspecialchars($prenom . ' ' . $nom, ENT_QUOTES, 'UTF-8'),
+    ]),
+    '{{content}}' => $contentHtml,
+    '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), [
+        '{{year}}' => date('Y'),
+    ]),
+]);
+
+echo $output;
+exit();
 <html lang="fr">
 
 <head>
@@ -523,7 +582,7 @@ $pageTitle = "AEESGS - Exporter les données";
             <div class="row align-items-start">
                 <div class="col-md-4 text-center d-flex flex-column justify-content-start">
                     <h5><strong style="color: var(--light-beige);">AEESGS</strong> - Administration</h5>
-                    <p>Plateforme de gestion des étudiants guinéens au Sénégal.</p>
+                    <p>Plateforme de gestion des élèves, étudiants et stagiaires guinéens au Sénégal.</p>
                 </div>
                 <div class="col-md-4 text-center d-flex flex-column justify-content-start">
                     <h5>Liens rapides</h5>
