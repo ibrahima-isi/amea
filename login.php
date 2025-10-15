@@ -63,9 +63,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         // Rediriger vers le tableau de bord
                         header("Location: dashboard.php");
                         exit();
+                    } else {
+                        $error = "Nom d'utilisateur ou mot de passe incorrect.";
                     }
-
-                    $error = "Nom d'utilisateur ou mot de passe incorrect.";
                 } else {
                     $error = "Nom d'utilisateur ou mot de passe incorrect.";
                 }
