@@ -37,97 +37,95 @@ try {
     $stmt->execute();
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    $error = "Erreur lors de la récupération des informations : " . $e->getMessage();
+    logError("Erreur lors de la récupération du profil utilisateur", $e);
+    $error = "Impossible de récupérer les informations de profil pour le moment.";
 }
 
-// Traitement du formulaire de mise à jour du profil
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_profile'])) {
-    // Récupérer les données du formulaire
-    $newNom = trim($_POST['nom'] ?? '');
-    $newPrenom = trim($_POST['prenom'] ?? '');
-    $newEmail = trim($_POST['email'] ?? '');
+$csrfToken = generateCsrfToken();
 
-    // Valider les entrées
-    if (empty($newNom) || empty($newPrenom) || empty($newEmail)) {
-        $error = "Tous les champs sont obligatoires.";
-    } else if (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
-        $error = "Veuillez entrer une adresse email valide.";
-    } else {
-        try {
-            // Vérifier si l'email existe déjà pour un autre utilisateur
-            $checkSql = "SELECT COUNT(*) FROM user WHERE email = :email AND id_user != :id_user";
-            $checkStmt = $conn->prepare($checkSql);
-            $checkStmt->bindParam(':email', $newEmail);
-            $checkStmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
-            $checkStmt->execute();
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        $error = "La session a expiré. Veuillez réessayer.";
+    } elseif (isset($_POST['update_profile'])) {
+        $newNom = trim($_POST['nom'] ?? '');
+        $newPrenom = trim($_POST['prenom'] ?? '');
+        $newEmail = trim($_POST['email'] ?? '');
 
-            if ($checkStmt->fetchColumn() > 0) {
-                $error = "Cette adresse email est déjà utilisée par un autre utilisateur.";
-            } else {
-                // Mettre à jour les informations de l'utilisateur
-                $updateSql = "UPDATE user SET nom = :nom, prenom = :prenom, email = :email WHERE id_user = :id_user";
-                $updateStmt = $conn->prepare($updateSql);
-                $updateStmt->bindParam(':nom', $newNom);
-                $updateStmt->bindParam(':prenom', $newPrenom);
-                $updateStmt->bindParam(':email', $newEmail);
-                $updateStmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
-                $updateStmt->execute();
+        if (empty($newNom) || empty($newPrenom) || empty($newEmail)) {
+            $error = "Tous les champs sont obligatoires.";
+        } elseif (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+            $error = "Veuillez entrer une adresse email valide.";
+        } else {
+            try {
+                $checkSql = "SELECT COUNT(*) FROM user WHERE email = :email AND id_user != :id_user";
+                $checkStmt = $conn->prepare($checkSql);
+                $checkStmt->bindParam(':email', $newEmail);
+                $checkStmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
+                $checkStmt->execute();
 
-                // Mettre à jour les informations de session
-                $_SESSION['nom'] = $newNom;
-                $_SESSION['prenom'] = $newPrenom;
+                if ($checkStmt->fetchColumn() > 0) {
+                    $error = "Cette adresse email est déjà utilisée par un autre utilisateur.";
+                } else {
+                    $updateSql = "UPDATE user SET nom = :nom, prenom = :prenom, email = :email WHERE id_user = :id_user";
+                    $updateStmt = $conn->prepare($updateSql);
+                    $updateStmt->bindParam(':nom', $newNom);
+                    $updateStmt->bindParam(':prenom', $newPrenom);
+                    $updateStmt->bindParam(':email', $newEmail);
+                    $updateStmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
+                    $updateStmt->execute();
 
-                // Récupérer les informations mises à jour
-                $sql = "SELECT * FROM user WHERE id_user = :id_user";
-                $stmt = $conn->prepare($sql);
-                $stmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
-                $stmt->execute();
-                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $_SESSION['nom'] = $newNom;
+                    $_SESSION['prenom'] = $newPrenom;
 
-                $success = "Votre profil a été mis à jour avec succès.";
+                    $sql = "SELECT * FROM user WHERE id_user = :id_user";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
+                    $stmt->execute();
+                    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    $success = "Votre profil a été mis à jour avec succès.";
+                    $error = "";
+                }
+            } catch (PDOException $e) {
+                logError("Erreur lors de la mise à jour du profil utilisateur", $e);
+                $error = "Une erreur est survenue lors de la mise à jour du profil. Veuillez réessayer plus tard.";
             }
-        } catch (PDOException $e) {
-            $error = "Erreur lors de la mise à jour du profil : " . $e->getMessage();
+        }
+    } elseif (isset($_POST['change_password'])) {
+        $currentPassword = $_POST['current_password'] ?? '';
+        $newPassword = $_POST['new_password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
+
+        if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
+            $error = "Tous les champs de mot de passe sont obligatoires.";
+        } elseif ($newPassword !== $confirmPassword) {
+            $error = "Le nouveau mot de passe et sa confirmation ne correspondent pas.";
+        } elseif (strlen($newPassword) < 8) {
+            $error = "Le nouveau mot de passe doit contenir au moins 8 caractères.";
+        } else {
+            try {
+                if (password_verify($currentPassword, $user['password'])) {
+                    $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+
+                    $updateSql = "UPDATE user SET password = :password WHERE id_user = :id_user";
+                    $updateStmt = $conn->prepare($updateSql);
+                    $updateStmt->bindParam(':password', $hashedPassword);
+                    $updateStmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
+                    $updateStmt->execute();
+
+                    $success = "Votre mot de passe a été changé avec succès.";
+                    $error = "";
+                } else {
+                    $error = "Le mot de passe actuel est incorrect.";
+                }
+            } catch (PDOException $e) {
+                logError("Erreur lors du changement de mot de passe", $e);
+                $error = "Une erreur est survenue lors du changement de mot de passe. Veuillez réessayer plus tard.";
+            }
         }
     }
-}
 
-// Traitement du formulaire de changement de mot de passe
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['change_password'])) {
-    // Récupérer les données du formulaire
-    $currentPassword = $_POST['current_password'] ?? '';
-    $newPassword = $_POST['new_password'] ?? '';
-    $confirmPassword = $_POST['confirm_password'] ?? '';
-
-    // Valider les entrées
-    if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
-        $error = "Tous les champs de mot de passe sont obligatoires.";
-    } else if ($newPassword !== $confirmPassword) {
-        $error = "Le nouveau mot de passe et sa confirmation ne correspondent pas.";
-    } else if (strlen($newPassword) < 8) {
-        $error = "Le nouveau mot de passe doit contenir au moins 8 caractères.";
-    } else {
-        try {
-            // Vérifier le mot de passe actuel
-            if (password_verify($currentPassword, $user['password'])) {
-                // Hacher le nouveau mot de passe
-                $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-
-                // Mettre à jour le mot de passe
-                $updateSql = "UPDATE user SET password = :password WHERE id_user = :id_user";
-                $updateStmt = $conn->prepare($updateSql);
-                $updateStmt->bindParam(':password', $hashedPassword);
-                $updateStmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
-                $updateStmt->execute();
-
-                $success = "Votre mot de passe a été changé avec succès.";
-            } else {
-                $error = "Le mot de passe actuel est incorrect.";
-            }
-        } catch (PDOException $e) {
-            $error = "Erreur lors du changement de mot de passe : " . $e->getMessage();
-        }
-    }
+    $csrfToken = generateCsrfToken();
 }
 
 // Titre de la page
@@ -318,14 +316,14 @@ $pageTitle = "AEESGS - Profil Administrateur";
 
                 <?php if (!empty($error)): ?>
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="fas fa-exclamation-triangle me-2"></i> <?php echo $error; ?>
+                        <i class="fas fa-exclamation-triangle me-2"></i> <?php echo htmlspecialchars($error); ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <?php endif; ?>
 
                 <?php if (!empty($success)): ?>
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="fas fa-check-circle me-2"></i> <?php echo $success; ?>
+                        <i class="fas fa-check-circle me-2"></i> <?php echo htmlspecialchars($success); ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <?php endif; ?>
@@ -340,11 +338,11 @@ $pageTitle = "AEESGS - Profil Administrateur";
                             <div class="card-body">
                                 <div class="text-center mb-4">
                                     <div class="avatar-placeholder rounded-circle mx-auto mb-3" style="width: 100px; height: 100px; line-height: 100px; font-size: 40px;">
-                                        <?php echo strtoupper(substr($user['prenom'], 0, 1) . substr($user['nom'], 0, 1)); ?>
+                                        <?php echo htmlspecialchars(strtoupper(substr($user['prenom'] ?? '', 0, 1) . substr($user['nom'] ?? '', 0, 1))); ?>
                                     </div>
                                     <h4 class="font-weight-bold"><?php echo htmlspecialchars($user['prenom'] . ' ' . $user['nom']); ?></h4>
                                     <p class="mb-1 text-muted">
-                                        <?php echo $user['role'] == 'admin' ? 'Administrateur' : 'Utilisateur'; ?>
+                                        <?php echo ($user['role'] ?? '') === 'admin' ? 'Administrateur' : 'Utilisateur'; ?>
                                     </p>
                                     <p class="badge bg-<?php echo $user['est_actif'] ? 'success' : 'danger'; ?>">
                                         <?php echo $user['est_actif'] ? 'Compte actif' : 'Compte inactif'; ?>
@@ -353,7 +351,7 @@ $pageTitle = "AEESGS - Profil Administrateur";
                                 <hr>
                                 <div class="row mb-2">
                                     <div class="col-5 text-secondary">ID:</div>
-                                    <div class="col-7"><?php echo $user['id_user']; ?></div>
+                                    <div class="col-7"><?php echo isset($user['id_user']) ? (int)$user['id_user'] : ''; ?></div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="col-5 text-secondary">Nom d'utilisateur:</div>
@@ -388,6 +386,7 @@ $pageTitle = "AEESGS - Profil Administrateur";
                                     </div>
                                     <div class="card-body">
                                         <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+                                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
                                             <div class="row mb-3">
                                                 <div class="col-md-6">
                                                     <label for="nom" class="form-label">Nom</label>
@@ -423,6 +422,7 @@ $pageTitle = "AEESGS - Profil Administrateur";
                                     </div>
                                     <div class="card-body">
                                         <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" id="passwordForm">
+                                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
                                             <div class="mb-3">
                                                 <label for="current_password" class="form-label">Mot de passe actuel</label>
                                                 <input type="password" class="form-control" id="current_password" name="current_password" required>
