@@ -33,5 +33,6 @@ try {
     $conn->exec("SET NAMES utf8");
 } catch(PDOException $e) {
     // En cas d'erreur de connexion
-    die("Erreur de connexion à la base de données: " . $e->getMessage());
+    logError('Erreur de connexion à la base de données', $e);
+    die("Erreur de connexion à la base de données. Veuillez contacter l'administrateur.");
 }
