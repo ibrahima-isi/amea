@@ -115,14 +115,14 @@ function isValidPhone($phone) {
  * @return string Le jeton CSRF généré
  */
 function generateCsrfToken() {
-    if (!isset($_SESSION)) {
+    if (session_status() !== PHP_SESSION_ACTIVE) {
         session_start();
     }
-    
-    if (!isset($_SESSION['csrf_token'])) {
+
+    if (empty($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     }
-    
+
     return $_SESSION['csrf_token'];
 }
 
@@ -133,15 +133,41 @@ function generateCsrfToken() {
  * @return boolean Vrai si le jeton est valide, faux sinon
  */
 function verifyCsrfToken($token) {
-    if (!isset($_SESSION)) {
+    if (session_status() !== PHP_SESSION_ACTIVE) {
         session_start();
     }
-    
-    if (!isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
+
+    if (empty($token) || empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
         return false;
     }
-    
+
+    // Régénérer le jeton après une utilisation réussie pour limiter la réutilisation
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+
     return true;
+}
+
+/**
+ * Journalise une erreur dans le fichier de logs de l'application
+ *
+ * @param string $message Message d'erreur contextuel
+ * @param \Throwable|null $exception Exception associée
+ * @return void
+ */
+function logError($message, ?\Throwable $exception = null) {
+    $logDirectory = __DIR__ . '/../storage/logs';
+
+    if (!is_dir($logDirectory)) {
+        mkdir($logDirectory, 0775, true);
+    }
+
+    $logMessage = '[' . date('c') . "] " . $message;
+
+    if ($exception !== null) {
+        $logMessage .= ' | ' . $exception->getMessage();
+    }
+
+    file_put_contents($logDirectory . '/app.log', $logMessage . PHP_EOL, FILE_APPEND);
 }
 
 /**

@@ -16,19 +16,25 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['username'])) {
 
 // Inclure la configuration de la base de données
 require_once 'config/database.php';
+require_once 'functions/utility-functions.php';
 
 // Initialiser les variables
 $error = "";
+$csrfToken = generateCsrfToken();
 
 // Traitement du formulaire lors de la soumission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        $error = "La session a expiré. Veuillez réessayer.";
+    }
+
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
     // Validation des entrées
-    if (empty($username) || empty($password)) {
+    if (empty($error) && (empty($username) || empty($password))) {
         $error = "Veuillez entrer un nom d'utilisateur et un mot de passe.";
-    } else {
+    } elseif (empty($error)) {
         try {
             // Rechercher l'utilisateur dans la base de données
             $sql = "SELECT * FROM user WHERE username = :username AND est_actif = 1";
@@ -42,6 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Vérifier le mot de passe
                 if (password_verify($password, $user['password'])) {
                     // Connexion réussie, enregistrer les informations dans la session
+                    session_regenerate_id(true);
                     $_SESSION['user_id'] = $user['id_user'];
                     $_SESSION['username'] = $user['username'];
                     $_SESSION['role'] = $user['role'];
@@ -64,9 +71,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $error = "Nom d'utilisateur ou mot de passe incorrect.";
             }
         } catch (PDOException $e) {
-            $error = "Erreur lors de la tentative de connexion: " . $e->getMessage();
+            logError('Erreur lors de la tentative de connexion', $e);
+            $error = "Une erreur est survenue lors de la tentative de connexion. Veuillez réessayer plus tard.";
         }
     }
+
+    $csrfToken = generateCsrfToken();
 }
 
 // Titre de la page
@@ -225,14 +235,16 @@ $pageTitle = "AEESGS - Administration";
                             <h2 class="h4 mb-0">Connexion Administration</h2>
                         </div>
                         <div class="card-body p-4">
-                            <!-- PHP error message placeholder -->
-                            <!-- <div class="alert alert-danger">
-                                <i class="fas fa-exclamation-triangle"></i> Message d'erreur
-                            </div> -->
+                            <?php if (!empty($error)): ?>
+                                <div class="alert alert-danger" role="alert">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> <?php echo htmlspecialchars($error); ?>
+                                </div>
+                            <?php endif; ?>
 
                             <p class="text-muted mb-4 text-center">Veuillez vous connecter pour accéder au tableau de bord administratif.</p>
 
-                            <form action="" method="POST">
+                            <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
                                 <div class="mb-3">
                                     <label for="username" class="form-label">Nom d'utilisateur</label>
                                     <div class="input-group">
@@ -264,15 +276,12 @@ $pageTitle = "AEESGS - Administration";
                         </div>
                     </div>
 
-                    <!-- Information sur le compte administrateur initial -->
+                    <!-- Information sur l'initialisation de l'administrateur -->
                     <div class="alert alert-info mt-4" style="background-color: rgba(236, 239, 202, 0.5); border-color: var(--light-beige);">
-                        <h5 class="alert-heading" style="color: var(--dark-blue);"><i class="fas fa-info-circle" style="color: var(--medium-blue);"></i> Première connexion?</h5>
-                        <p>Si aucun compte administrateur n'a été créé, veuillez exécuter le script d'initialisation pour créer un compte par défaut avec les identifiants suivants :</p>
-                        <ul>
-                            <li>Nom d'utilisateur : <strong>admin</strong></li>
-                            <li>Mot de passe : <strong>admin123</strong></li>
-                        </ul>
-                        <p class="mb-0">Pensez à changer le mot de passe par défaut après la première connexion.</p>
+                        <h5 class="alert-heading" style="color: var(--dark-blue);"><i class="fas fa-info-circle" style="color: var(--medium-blue);"></i> Première connexion ?</h5>
+                        <p>Définissez une variable d'environnement <code>INIT_ADMIN_SECRET</code> sur le serveur puis exécutez en ligne de commande&nbsp;:</p>
+                        <pre class="mb-2"><code>php init-admin.php &lt;username&gt; &lt;mot_de_passe&gt; &lt;email&gt; &lt;prenom&gt; &lt;nom&gt; &lt;secret&gt;</code></pre>
+                        <p class="mb-0">Le mot de passe doit contenir au moins 12 caractères. Supprimez le script une fois l'administrateur créé.</p>
                     </div>
                 </div>
             </div>

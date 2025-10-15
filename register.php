@@ -9,13 +9,21 @@
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
 
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+
 // Initialiser les variables
-$success = false;
+$successMessage = '';
 $error = "";
 $formData = [];
 
 // Traitement du formulaire lors de la soumission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        $error = "La session a expiré. Veuillez soumettre à nouveau le formulaire.";
+    }
+
     // Récupérer les données du formulaire
     $formData = [
         'nom' => trim($_POST['nom'] ?? ''),
@@ -51,16 +59,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'type_logement'
     ];
 
-    foreach ($requiredFields as $field) {
-        if (empty($formData[$field])) {
-            $error = "Tous les champs obligatoires doivent être remplis.";
-            break;
+    if (empty($error)) {
+        foreach ($requiredFields as $field) {
+            if (empty($formData[$field])) {
+                $error = "Tous les champs obligatoires doivent être remplis.";
+                break;
+            }
         }
     }
 
     // Valider l'email
     if (empty($error) && !filter_var($formData['email'], FILTER_VALIDATE_EMAIL)) {
         $error = "L'adresse email n'est pas valide.";
+    }
+
+    // Valider le numéro de téléphone
+    if (empty($error) && !isValidPhone($formData['telephone'])) {
+        $error = "Le numéro de téléphone renseigné n'est pas valide.";
     }
 
     // Calculer l'âge à partir de la date de naissance
@@ -74,41 +89,54 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Si aucune erreur, enregistrer les données dans la base de données
     if (empty($error)) {
         try {
-            $sql = "INSERT INTO personne (nom, prenom, sexe, age, date_naissance, lieu_residence, 
-                    etablissement, statut, domaine_etudes, niveau_etudes, telephone, email, 
-                    annee_arrivee, type_logement, precision_logement, projet_apres_formation) 
-                    VALUES (:nom, :prenom, :sexe, :age, :date_naissance, :lieu_residence, 
-                    :etablissement, :statut, :domaine_etudes, :niveau_etudes, :telephone, :email, 
-                    :annee_arrivee, :type_logement, :precision_logement, :projet_apres_formation)";
+            // Vérifier les doublons sur l'adresse email
+            $duplicateSql = "SELECT COUNT(*) FROM personne WHERE email = :email";
+            $duplicateStmt = $conn->prepare($duplicateSql);
+            $duplicateStmt->bindParam(':email', $formData['email']);
+            $duplicateStmt->execute();
 
-            $stmt = $conn->prepare($sql);
-            $stmt->bindParam(':nom', $formData['nom']);
-            $stmt->bindParam(':prenom', $formData['prenom']);
-            $stmt->bindParam(':sexe', $formData['sexe']);
-            $stmt->bindParam(':age', $formData['age']);
-            $stmt->bindParam(':date_naissance', $formData['date_naissance']);
-            $stmt->bindParam(':lieu_residence', $formData['lieu_residence']);
-            $stmt->bindParam(':etablissement', $formData['etablissement']);
-            $stmt->bindParam(':statut', $formData['statut']);
-            $stmt->bindParam(':domaine_etudes', $formData['domaine_etudes']);
-            $stmt->bindParam(':niveau_etudes', $formData['niveau_etudes']);
-            $stmt->bindParam(':telephone', $formData['telephone']);
-            $stmt->bindParam(':email', $formData['email']);
-            $stmt->bindParam(':annee_arrivee', $formData['annee_arrivee']);
-            $stmt->bindParam(':type_logement', $formData['type_logement']);
-            $stmt->bindParam(':precision_logement', $formData['precision_logement']);
-            $stmt->bindParam(':projet_apres_formation', $formData['projet_apres_formation']);
+            if ($duplicateStmt->fetchColumn() > 0) {
+                $error = "Cette adresse email est déjà enregistrée.";
+            } else {
+                $sql = "INSERT INTO personne (nom, prenom, sexe, age, date_naissance, lieu_residence,
+                        etablissement, statut, domaine_etudes, niveau_etudes, telephone, email,
+                        annee_arrivee, type_logement, precision_logement, projet_apres_formation)
+                        VALUES (:nom, :prenom, :sexe, :age, :date_naissance, :lieu_residence,
+                        :etablissement, :statut, :domaine_etudes, :niveau_etudes, :telephone, :email,
+                        :annee_arrivee, :type_logement, :precision_logement, :projet_apres_formation)";
 
-            $stmt->execute();
-            $success = true;
+                $stmt = $conn->prepare($sql);
+                $stmt->bindParam(':nom', $formData['nom']);
+                $stmt->bindParam(':prenom', $formData['prenom']);
+                $stmt->bindParam(':sexe', $formData['sexe']);
+                $stmt->bindParam(':age', $formData['age']);
+                $stmt->bindParam(':date_naissance', $formData['date_naissance']);
+                $stmt->bindParam(':lieu_residence', $formData['lieu_residence']);
+                $stmt->bindParam(':etablissement', $formData['etablissement']);
+                $stmt->bindParam(':statut', $formData['statut']);
+                $stmt->bindParam(':domaine_etudes', $formData['domaine_etudes']);
+                $stmt->bindParam(':niveau_etudes', $formData['niveau_etudes']);
+                $stmt->bindParam(':telephone', $formData['telephone']);
+                $stmt->bindParam(':email', $formData['email']);
+                $stmt->bindParam(':annee_arrivee', $formData['annee_arrivee']);
+                $stmt->bindParam(':type_logement', $formData['type_logement']);
+                $stmt->bindParam(':precision_logement', $formData['precision_logement']);
+                $stmt->bindParam(':projet_apres_formation', $formData['projet_apres_formation']);
 
-            // Réinitialiser les données du formulaire après succès
-            $formData = [];
+                $stmt->execute();
+                $successMessage = "Votre enregistrement a été effectué avec succès ! Merci pour votre participation.";
+
+                // Réinitialiser les données du formulaire après succès
+                $formData = [];
+            }
         } catch (PDOException $e) {
-            $error = "Erreur lors de l'enregistrement: " . $e->getMessage();
+            logError("Erreur lors de l'enregistrement d'un étudiant", $e);
+            $error = "Une erreur inattendue est survenue lors de l'enregistrement. Veuillez réessayer plus tard.";
         }
     }
 }
+
+$csrfToken = generateCsrfToken();
 
 // Titre de la page
 $pageTitle = "AEESGS - Enregistrement";
@@ -319,9 +347,9 @@ $pageTitle = "AEESGS - Enregistrement";
                             <h2 class="h4 mb-0">Formulaire d'enregistrement des étudiants guinéens au Sénégal</h2>
                         </div>
                         <div class="card-body">
-                            <?php if ($success): ?>
+                            <?php if (!empty($successMessage)): ?>
                                 <div class="alert alert-success">
-                                    <i class="fas fa-check-circle"></i> Votre enregistrement a été effectué avec succès ! Merci pour votre participation.
+                                    <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($successMessage); ?>
                                 </div>
                                 <div class="text-center mb-4">
                                     <a href="register.php" class="btn btn-primary">
@@ -334,13 +362,14 @@ $pageTitle = "AEESGS - Enregistrement";
                             <?php else: ?>
                                 <?php if (!empty($error)): ?>
                                     <div class="alert alert-danger">
-                                        <i class="fas fa-exclamation-triangle"></i> <?php echo $error; ?>
+                                        <i class="fas fa-exclamation-triangle"></i> <?php echo htmlspecialchars($error); ?>
                                     </div>
                                 <?php endif; ?>
 
                                 <p class="text-muted mb-4">Veuillez remplir ce formulaire pour vous enregistrer dans la base de données des étudiants guinéens au Sénégal.</p>
 
                                 <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" id="registrationForm">
+                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
                                     <!-- Informations personnelles -->
                                     <h3 class="h5 mb-3">Informations personnelles</h3>
                                     <div class="row g-3 mb-4">

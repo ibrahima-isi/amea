@@ -16,101 +16,123 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role
 
 // Inclure la configuration de la base de données
 require_once 'config/database.php';
+require_once 'functions/utility-functions.php';
 
 // Initialiser les variables
 $message = "";
 $messageType = "";
 $users = [];
+$csrfToken = generateCsrfToken();
 
 // Fonction pour obtenir la liste des utilisateurs
 function getUsers($conn)
 {
     try {
-        $sql = "SELECT id_user, username, nom, prenom, email, role, est_actif, derniere_connexion, date_creation 
+        $sql = "SELECT id_user, username, nom, prenom, email, role, est_actif, derniere_connexion, date_creation
                 FROM user ORDER BY id_user DESC";
         $stmt = $conn->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
+        logError('Erreur lors de la récupération des utilisateurs', $e);
         return [];
     }
 }
 
-// Traiter la suppression d'un utilisateur
-if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
-    $userId = (int)$_GET['id'];
-
-    // Empêcher la suppression de soi-même
-    if ($userId != $_SESSION['user_id']) {
-        try {
-            $sql = "DELETE FROM user WHERE id_user = :id_user";
-            $stmt = $conn->prepare($sql);
-            $stmt->bindParam(':id_user', $userId);
-            $stmt->execute();
-
-            $message = "L'utilisateur a été supprimé avec succès.";
-            $messageType = "success";
-        } catch (PDOException $e) {
-            $message = "Erreur lors de la suppression de l'utilisateur: " . $e->getMessage();
-            $messageType = "danger";
-        }
-    } else {
-        $message = "Vous ne pouvez pas supprimer votre propre compte.";
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        $message = "La session a expiré. Veuillez réessayer.";
         $messageType = "warning";
-    }
-}
-
-// Traiter l'activation/désactivation d'un utilisateur
-if (isset($_GET['action']) && $_GET['action'] == 'toggle' && isset($_GET['id'])) {
-    $userId = (int)$_GET['id'];
-    $status = (int)$_GET['status'];
-    $newStatus = $status ? 0 : 1; // Inverser le statut
-
-    // Empêcher la désactivation de soi-même
-    if ($userId != $_SESSION['user_id'] || $newStatus == 1) {
-        try {
-            $sql = "UPDATE user SET est_actif = :est_actif WHERE id_user = :id_user";
-            $stmt = $conn->prepare($sql);
-            $stmt->bindParam(':est_actif', $newStatus);
-            $stmt->bindParam(':id_user', $userId);
-            $stmt->execute();
-
-            $statusText = $newStatus ? "activé" : "désactivé";
-            $message = "L'utilisateur a été " . $statusText . " avec succès.";
-            $messageType = "success";
-        } catch (PDOException $e) {
-            $message = "Erreur lors de la modification du statut: " . $e->getMessage();
-            $messageType = "danger";
-        }
     } else {
-        $message = "Vous ne pouvez pas désactiver votre propre compte.";
-        $messageType = "warning";
+        $action = $_POST['action'] ?? '';
+        $userId = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+
+        switch ($action) {
+            case 'delete':
+                if ($userId !== (int)$_SESSION['user_id']) {
+                    try {
+                        $sql = "DELETE FROM user WHERE id_user = :id_user";
+                        $stmt = $conn->prepare($sql);
+                        $stmt->bindParam(':id_user', $userId, PDO::PARAM_INT);
+                        $stmt->execute();
+
+                        $message = "L'utilisateur a été supprimé avec succès.";
+                        $messageType = "success";
+                    } catch (PDOException $e) {
+                        logError("Erreur lors de la suppression d'un utilisateur", $e);
+                        $message = "Une erreur est survenue lors de la suppression de l'utilisateur.";
+                        $messageType = "danger";
+                    }
+                } else {
+                    $message = "Vous ne pouvez pas supprimer votre propre compte.";
+                    $messageType = "warning";
+                }
+                break;
+
+            case 'toggle':
+                $currentStatus = isset($_POST['status']) ? (int)$_POST['status'] : 0;
+                $newStatus = $currentStatus ? 0 : 1;
+
+                if ($userId !== (int)$_SESSION['user_id'] || $newStatus === 1) {
+                    try {
+                        $sql = "UPDATE user SET est_actif = :est_actif WHERE id_user = :id_user";
+                        $stmt = $conn->prepare($sql);
+                        $stmt->bindParam(':est_actif', $newStatus, PDO::PARAM_INT);
+                        $stmt->bindParam(':id_user', $userId, PDO::PARAM_INT);
+                        $stmt->execute();
+
+                        $statusText = $newStatus ? "activé" : "désactivé";
+                        $message = "L'utilisateur a été " . $statusText . " avec succès.";
+                        $messageType = "success";
+                    } catch (PDOException $e) {
+                        logError("Erreur lors du changement de statut d'un utilisateur", $e);
+                        $message = "Une erreur est survenue lors de la modification du statut.";
+                        $messageType = "danger";
+                    }
+                } else {
+                    $message = "Vous ne pouvez pas désactiver votre propre compte.";
+                    $messageType = "warning";
+                }
+                break;
+
+            case 'reset':
+                $tempPassword = bin2hex(random_bytes(4));
+                $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
+
+                try {
+                    $sql = "UPDATE user SET password = :password WHERE id_user = :id_user";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bindParam(':password', $hashedPassword);
+                    $stmt->bindParam(':id_user', $userId, PDO::PARAM_INT);
+                    $stmt->execute();
+
+                    $message = "Le mot de passe a été réinitialisé. Nouveau mot de passe temporaire : " . $tempPassword;
+                    $messageType = "success";
+                } catch (PDOException $e) {
+                    logError("Erreur lors de la réinitialisation du mot de passe d'un utilisateur", $e);
+                    $message = "Une erreur est survenue lors de la réinitialisation du mot de passe.";
+                    $messageType = "danger";
+                }
+                break;
+
+            default:
+                $message = "Action non reconnue.";
+                $messageType = "warning";
+                break;
+        }
     }
-}
 
-// Traiter la réinitialisation du mot de passe
-if (isset($_GET['action']) && $_GET['action'] == 'reset' && isset($_GET['id'])) {
-    $userId = (int)$_GET['id'];
-    $tempPassword = bin2hex(random_bytes(4)); // Génère un mot de passe temporaire de 8 caractères
-    $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
-
-    try {
-        $sql = "UPDATE user SET password = :password WHERE id_user = :id_user";
-        $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':password', $hashedPassword);
-        $stmt->bindParam(':id_user', $userId);
-        $stmt->execute();
-
-        $message = "Le mot de passe a été réinitialisé. Nouveau mot de passe temporaire: " . $tempPassword;
-        $messageType = "success";
-    } catch (PDOException $e) {
-        $message = "Erreur lors de la réinitialisation du mot de passe: " . $e->getMessage();
-        $messageType = "danger";
-    }
+    $csrfToken = generateCsrfToken();
 }
 
 // Récupérer la liste des utilisateurs
 $users = getUsers($conn);
+
+// Sécuriser le type de message affiché
+$allowedMessageTypes = ['success', 'danger', 'warning', 'info'];
+if (!in_array($messageType, $allowedMessageTypes, true)) {
+    $messageType = 'info';
+}
 
 // Titre de la page
 $pageTitle = "AEESGS - Gestion des utilisateurs";
@@ -324,7 +346,7 @@ $pageTitle = "AEESGS - Gestion des utilisateurs";
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user-circle"></i> <?php echo $_SESSION['prenom'] . ' ' . $_SESSION['nom']; ?>
+                                <i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?>
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                 <li><a class="dropdown-item" href="profile.php"><i class="fas fa-id-card"></i> Mon profil</a></li>
@@ -351,8 +373,8 @@ $pageTitle = "AEESGS - Gestion des utilisateurs";
             </div>
 
             <?php if (!empty($message)): ?>
-                <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show" role="alert">
-                    <?php echo $message; ?>
+                <div class="alert alert-<?php echo htmlspecialchars($messageType); ?> alert-dismissible fade show" role="alert">
+                    <?php echo secureData($message); ?>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             <?php endif; ?>
@@ -378,14 +400,14 @@ $pageTitle = "AEESGS - Gestion des utilisateurs";
                             <tbody>
                                 <?php foreach ($users as $user): ?>
                                     <tr>
-                                        <td><?php echo $user['id_user']; ?></td>
+                                        <td><?php echo (int)$user['id_user']; ?></td>
                                         <td><?php echo htmlspecialchars($user['username']); ?></td>
                                         <td><?php echo htmlspecialchars($user['nom']); ?></td>
                                         <td><?php echo htmlspecialchars($user['prenom']); ?></td>
                                         <td><?php echo htmlspecialchars($user['email']); ?></td>
                                         <td>
                                             <span class="badge <?php echo $user['role'] == 'admin' ? 'bg-danger' : 'bg-info'; ?>">
-                                                <?php echo $user['role']; ?>
+                                                <?php echo htmlspecialchars($user['role']); ?>
                                             </span>
                                         </td>
                                         <td>
@@ -403,29 +425,43 @@ $pageTitle = "AEESGS - Gestion des utilisateurs";
                                                 </a>
 
                                                 <!-- Bouton Activer/Désactiver -->
-                                                <a href="users.php?action=toggle&id=<?php echo $user['id_user']; ?>&status=<?php echo $user['est_actif']; ?>"
-                                                    class="btn btn-sm <?php echo $user['est_actif'] ? 'btn-warning' : 'btn-success'; ?>"
-                                                    title="<?php echo $user['est_actif'] ? 'Désactiver' : 'Activer'; ?>"
-                                                    onclick="return confirm('Êtes-vous sûr de vouloir <?php echo $user['est_actif'] ? 'désactiver' : 'activer'; ?> cet utilisateur ?');">
-                                                    <i class="fas <?php echo $user['est_actif'] ? 'fa-ban' : 'fa-check'; ?>"></i>
-                                                </a>
+                                                <form method="POST" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
+                                                    <input type="hidden" name="action" value="toggle">
+                                                    <input type="hidden" name="id" value="<?php echo (int)$user['id_user']; ?>">
+                                                    <input type="hidden" name="status" value="<?php echo (int)$user['est_actif']; ?>">
+                                                    <button type="submit"
+                                                        class="btn btn-sm <?php echo $user['est_actif'] ? 'btn-warning' : 'btn-success'; ?>"
+                                                        title="<?php echo $user['est_actif'] ? 'Désactiver' : 'Activer'; ?>"
+                                                        onclick="return confirm('Êtes-vous sûr de vouloir <?php echo $user['est_actif'] ? 'désactiver' : 'activer'; ?> cet utilisateur ?');">
+                                                        <i class="fas <?php echo $user['est_actif'] ? 'fa-ban' : 'fa-check'; ?>"></i>
+                                                    </button>
+                                                </form>
 
                                                 <!-- Bouton Réinitialiser mot de passe -->
-                                                <a href="users.php?action=reset&id=<?php echo $user['id_user']; ?>"
-                                                    class="btn btn-sm btn-info"
-                                                    title="Réinitialiser mot de passe"
-                                                    onclick="return confirm('Êtes-vous sûr de vouloir réinitialiser le mot de passe de cet utilisateur ?');">
-                                                    <i class="fas fa-key"></i>
-                                                </a>
+                                                <form method="POST" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
+                                                    <input type="hidden" name="action" value="reset">
+                                                    <input type="hidden" name="id" value="<?php echo (int)$user['id_user']; ?>">
+                                                    <button type="submit" class="btn btn-sm btn-info"
+                                                        title="Réinitialiser mot de passe"
+                                                        onclick="return confirm('Êtes-vous sûr de vouloir réinitialiser le mot de passe de cet utilisateur ?');">
+                                                        <i class="fas fa-key"></i>
+                                                    </button>
+                                                </form>
 
                                                 <!-- Bouton Supprimer (sauf pour l'utilisateur lui-même) -->
                                                 <?php if ($user['id_user'] != $_SESSION['user_id']): ?>
-                                                    <a href="users.php?action=delete&id=<?php echo $user['id_user']; ?>"
-                                                        class="btn btn-sm btn-danger"
-                                                        title="Supprimer"
-                                                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.');">
-                                                        <i class="fas fa-trash"></i>
-                                                    </a>
+                                                    <form method="POST" class="d-inline">
+                                                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
+                                                        <input type="hidden" name="action" value="delete">
+                                                        <input type="hidden" name="id" value="<?php echo (int)$user['id_user']; ?>">
+                                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                            title="Supprimer"
+                                                            onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.');">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
                                                 <?php endif; ?>
                                             </div>
                                         </td>
