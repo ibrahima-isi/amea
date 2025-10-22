@@ -1,0 +1,166 @@
+:root {
+    --dark-blue: #213448;
+    --medium-blue: #547792;
+    --light-blue: #94B4C1;
+    --pale-yellow: #ECEFCA;
+}
+
+body {
+    background-color: #f8f8fa;
+    color: var(--dark-blue);
+}
+
+/* Navbar styling */
+.navbar-dark {
+    background-color: var(--dark-blue) !important;
+}
+
+.navbar-dark .navbar-brand,
+.navbar-dark .nav-link {
+    color: white !important;
+}
+
+.navbar-dark .nav-link:hover,
+.navbar-dark .nav-link:focus {
+    color: var(--pale-yellow) !important;
+}
+
+.navbar-dark .nav-link.active {
+    color: var(--light-blue) !important;
+}
+
+.dropdown-item:active {
+    background-color: var(--medium-blue);
+}
+
+/* Card styling */
+.card {
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(33, 52, 72, 0.1);
+}
+
+/* Button styling */
+.btn-primary {
+    background-color: var(--medium-blue) !important;
+    border-color: var(--medium-blue) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--dark-blue) !important;
+    border-color: var(--dark-blue) !important;
+}
+
+.btn-success {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+}
+
+.btn-success:hover {
+    background-color: #218838 !important;
+    border-color: #1e7e34 !important;
+}
+
+.btn-danger {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+}
+
+.btn-danger:hover {
+    background-color: #c82333 !important;
+    border-color: #bd2130 !important;
+}
+
+.btn-warning {
+    background-color: var(--pale-yellow) !important;
+    border-color: var(--pale-yellow) !important;
+    color: var(--dark-blue) !important;
+}
+
+.btn-warning:hover {
+    background-color: #e0e3bd !important;
+    border-color: #d4d7b1 !important;
+}
+
+.btn-info {
+    background-color: var(--light-blue) !import;
+    border-color: var(--light-blue) !important;
+    color: white !important;
+}
+
+.btn-info:hover {
+    background-color: #7fa6b5 !important;
+    border-color: #7fa6b5 !important;
+}
+
+/* Badge colors */
+.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+.bg-info {
+    background-color: var(--light-blue) !important;
+}
+
+.bg-success {
+    background-color: var(--medium-blue) !important;
+}
+
+.bg-secondary {
+    background-color: #6c757d !important;
+}
+
+/* Table styling */
+.table-striped>tbody>tr:nth-of-type(odd) {
+    background-color: rgba(148, 180, 193, 0.05) !important;
+}
+
+.table-hover>tbody>tr:hover {
+    background-color: rgba(148, 180, 193, 0.1) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: var(--medium-blue) !important;
+    border-color: var(--medium-blue) !important;
+    color: white !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: var(--light-blue) !important;
+    border-color: var(--light-blue) !important;
+    color: white !important;
+}
+
+/* Alert styling */
+.alert-success {
+    background-color: rgba(236, 239, 202, 0.2);
+    border-color: var(--pale-yellow);
+    color: var(--dark-blue);
+}
+
+.alert-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+    border-color: #dc3545;
+    color: var(--dark-blue);
+}
+
+/* Footer styling */
+footer.bg-dark {
+    background-color: var(--dark-blue) !important;
+}
+
+footer a.text-white:hover {
+    color: var(--pale-yellow) !important;
+    text-decoration: none;
+}
+
+/* Text colors */
+.text-primary {
+    color: var(--medium-blue) !important;
+}
+
+.text-secondary {
+    color: var(--dark-blue) !important;
+    opacity: 0.7;
+}

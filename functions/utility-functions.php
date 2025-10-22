@@ -16,16 +16,6 @@ function env($key, $default = null)
 }
 
 /**
- * Sécurise les données avant de les afficher
- *
- * @param string $data Les données à sécuriser
- * @return string Les données sécurisées
- */
-function secureData($data) {
-    return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
-}
-
-/**
  * Génère une chaîne aléatoire de la longueur spécifiée
  *
  * @param int $length Longueur de la chaîne aléatoire
@@ -147,124 +137,23 @@ function verifyCsrfToken($token) {
     return true;
 }
 
+
+
 /**
- * Journalise une erreur dans le fichier de logs de l'application.
- *
- * Note: Le dossier de logs doit exister et être accessible en écriture. En cas
- * d'échec de création, l'erreur est reportée dans le journal PHP par défaut.
+ * Journalise une erreur dans le journal PHP par défaut.
  *
  * @param string $message Message d'erreur contextuel
  * @param \Throwable|null $exception Exception associée
  * @return void
  */
 function logError($message, ?\Throwable $exception = null) {
-    $logDirectory = __DIR__ . '/../storage/logs';
-
-    if (!is_dir($logDirectory)) {
-        if (!mkdir($logDirectory, 0775, true) && !is_dir($logDirectory)) {
-            error_log("Impossible de créer le dossier de logs: " . $logDirectory);
-            return;
-        }
-    }
-
     $logMessage = '[' . date('c') . "] " . $message;
 
     if ($exception !== null) {
         $logMessage .= ' | ' . $exception->getMessage();
     }
 
-    file_put_contents($logDirectory . '/app.log', $logMessage . PHP_EOL, FILE_APPEND);
-}
-
-/**
- * Enregistre un message flash dans la session
- *
- * @param string $type Type de message (success, error, warning, info)
- * @param string $message Contenu du message
- * @return void
- */
-function setFlashMessage($type, $message) {
-    if (!isset($_SESSION)) {
-        session_start();
-    }
-    
-    $_SESSION['flash_message'] = [
-        'type' => $type,
-        'message' => $message
-    ];
-}
-
-/**
- * Récupère et supprime le message flash de la session
- *
- * @return array|null Le message flash ou null s'il n'y en a pas
- */
-function getFlashMessage() {
-    if (!isset($_SESSION)) {
-        session_start();
-    }
-    
-    if (isset($_SESSION['flash_message'])) {
-        $flashMessage = $_SESSION['flash_message'];
-        unset($_SESSION['flash_message']);
-        return $flashMessage;
-    }
-    
-    return null;
-}
-
-/**
- * Génère une classe Bootstrap pour les différents types de messages flash
- *
- * @param string $type Type de message (success, error, warning, info)
- * @return string La classe Bootstrap correspondante
- */
-function getFlashMessageClass($type) {
-    $classes = [
-        'success' => 'alert-success',
-        'error' => 'alert-danger',
-        'warning' => 'alert-warning',
-        'info' => 'alert-info'
-    ];
-    
-    return $classes[$type] ?? 'alert-info';
-}
-
-/**
- * Vérifie si l'utilisateur est connecté
- *
- * @return boolean Vrai si l'utilisateur est connecté, faux sinon
- */
-function isLoggedIn() {
-    if (!isset($_SESSION)) {
-        session_start();
-    }
-    
-    return isset($_SESSION['user_id']) && isset($_SESSION['username']);
-}
-
-/**
- * Vérifie si l'utilisateur connecté est un administrateur
- *
- * @return boolean Vrai si l'utilisateur est un administrateur, faux sinon
- */
-function isAdmin() {
-    if (!isset($_SESSION)) {
-        session_start();
-    }
-    
-    return isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
-}
-
-/**
- * Redirige vers une autre page
- *
- * @param string $url L'URL de redirection
- * @return void
- */
-function redirect($url) {
-    header("Location: $url");
-    exit();
+    error_log($logMessage);
 }
 
 /**
