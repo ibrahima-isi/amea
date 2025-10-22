@@ -1,5 +1,5 @@
 -- Structure de la base de données
-CREATE TABLE `personne` (
+CREATE TABLE `personnes` (
   `id_personne` int(11) NOT NULL AUTO_INCREMENT,
   `nom` varchar(100) NOT NULL,
   `prenom` varchar(100) NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE `personne` (
   PRIMARY KEY (`id_personne`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `user` (
+CREATE TABLE `users` (
   `id_user` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
