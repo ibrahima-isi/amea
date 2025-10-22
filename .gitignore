@@ -8,4 +8,6 @@ data.sql
 .ssh/
 .viminfo
 .lesshst
-
+init-admin.php
+init.sql
+schema.sql
