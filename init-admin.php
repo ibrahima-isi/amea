@@ -8,6 +8,11 @@
  * puis supprimé du serveur.
  */
 
+if (getenv('APP_ENV') === 'production') {
+    echo "Ce script ne peut pas être exécuté en environnement de production." . PHP_EOL;
+    exit(1);
+}
+
 // Restreindre l'exécution au mode CLI pour éviter toute exposition via le web
 if (php_sapi_name() !== 'cli') {
     http_response_code(403);
