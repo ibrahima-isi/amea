@@ -65,7 +65,7 @@ if (count($whereClauses) > 0) {
 }
 
 // Récupérer le nombre total d'étudiants (pour la pagination)
-$countSql = "SELECT COUNT(*) FROM personne $whereSQL";
+$countSql = "SELECT COUNT(*) FROM personnes $whereSQL";
 $countStmt = $conn->prepare($countSql);
 foreach ($params as $key => $value) {
     $countStmt->bindValue($key, $value);
@@ -77,7 +77,7 @@ $totalStudents = $countStmt->fetchColumn();
 $totalPages = ceil($totalStudents / $perPage);
 
 // Récupérer la liste des étudiants avec pagination et filtres
-$sql = "SELECT * FROM personne $whereSQL ORDER BY date_enregistrement DESC LIMIT :offset, :perPage";
+$sql = "SELECT * FROM personnes $whereSQL ORDER BY date_enregistrement DESC LIMIT :offset, :perPage";
 $stmt = $conn->prepare($sql);
 foreach ($params as $key => $value) {
     $stmt->bindValue($key, $value);
@@ -88,7 +88,7 @@ $stmt->execute();
 $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Obtenir les listes pour les filtres de sélection
-$etablissementSql = "SELECT DISTINCT etablissement FROM personne ORDER BY etablissement";
+$etablissementSql = "SELECT DISTINCT etablissement FROM personnes ORDER BY etablissement";
 $etablissementStmt = $conn->prepare($etablissementSql);
 $etablissementStmt->execute();
 $etablissements = $etablissementStmt->fetchAll(PDO::FETCH_COLUMN);
@@ -101,14 +101,14 @@ $statsSql = "SELECT
     SUM(CASE WHEN statut = 'Élève' THEN 1 ELSE 0 END) as eleves,
     SUM(CASE WHEN statut = 'Étudiant' THEN 1 ELSE 0 END) as etudiants,
     SUM(CASE WHEN statut = 'Stagiaire' THEN 1 ELSE 0 END) as stagiaires
-FROM personne";
+FROM personnes
 $statsStmt = $conn->prepare($statsSql);
 $statsStmt->execute();
 $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
 
 // Obtenir une répartition par établissement (top 5)
 $etablissementStatsSql = "SELECT etablissement, COUNT(*) as nombre 
-                         FROM personne 
+FROM personnes
                          GROUP BY etablissement 
                          ORDER BY nombre DESC 
                          LIMIT 5";
@@ -225,7 +225,7 @@ $contentHtml = strtr($contentTpl, [
     '{{stats_etudiants}}' => (string)$stats['etudiants'],
     '{{stats_eleves}}' => (string)$stats['eleves'],
     '{{stats_stagiaires}}' => (string)$stats['stagiaires'],
-    '{{recent_week}}' => (string)(function() use ($conn) { $q = $conn->prepare("SELECT COUNT(*) FROM personne WHERE date_enregistrement >= DATE_SUB(NOW(), INTERVAL 7 DAY)"); $q->execute(); return $q->fetchColumn(); })(),
+    '{{recent_week}}' => (string)(function() use ($conn) { $q = $conn->prepare("SELECT COUNT(*) FROM personnes WHERE date_enregistrement >= DATE_SUB(NOW(), INTERVAL 7 DAY)"); $q->execute(); return $q->fetchColumn(); })(),
     '{{search}}' => htmlspecialchars($search, ENT_QUOTES, 'UTF-8'),
     '{{sexe_filter_Masculin}}' => ($sexeFilter == 'Masculin') ? 'selected' : '',
     '{{sexe_filter_Féminin}}' => ($sexeFilter == 'Féminin') ? 'selected' : '',

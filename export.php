@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
                     return $allowedExportFields[$field];
                 }, $selectedFields);
 
-                $sql = "SELECT " . implode(', ', $selectedColumnList) . " FROM personne";
+                $sql = "SELECT " . implode(', ', $selectedColumnList) . " FROM personnes";
 
                 $whereClauses = [];
                 $params = [];
@@ -159,13 +159,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
 // Récupérer les options pour les filtres
 try {
     // Établissements
-    $etablissementSql = "SELECT DISTINCT etablissement FROM personne ORDER BY etablissement";
+    $etablissementSql = "SELECT DISTINCT etablissement FROM personnes ORDER BY etablissement";
     $etablissementStmt = $conn->prepare($etablissementSql);
     $etablissementStmt->execute();
     $etablissements = $etablissementStmt->fetchAll(PDO::FETCH_COLUMN);
 
     // Niveaux d'études
-    $niveauEtudesSql = "SELECT DISTINCT niveau_etudes FROM personne ORDER BY niveau_etudes";
+    $niveauEtudesSql = "SELECT DISTINCT niveau_etudes FROM personnes ORDER BY niveau_etudes";
     $niveauEtudesStmt = $conn->prepare($niveauEtudesSql);
     $niveauEtudesStmt->execute();
     $niveauxEtudes = $niveauEtudesStmt->fetchAll(PDO::FETCH_COLUMN);

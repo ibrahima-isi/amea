@@ -31,7 +31,7 @@ $success = "";
 
 // Récupérer les informations complètes de l'utilisateur
 try {
-    $sql = "SELECT * FROM user WHERE id_user = :id_user";
+    $sql = "SELECT * FROM users WHERE id_user = :id_user";
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
     $stmt->execute();
@@ -57,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error = "Veuillez entrer une adresse email valide.";
         } else {
             try {
-                $checkSql = "SELECT COUNT(*) FROM user WHERE email = :email AND id_user != :id_user";
+                $checkSql = "SELECT COUNT(*) FROM users WHERE email = :email AND id_user != :id_user";
                 $checkStmt = $conn->prepare($checkSql);
                 $checkStmt->bindParam(':email', $newEmail);
                 $checkStmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
@@ -66,7 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if ($checkStmt->fetchColumn() > 0) {
                     $error = "Cette adresse email est déjà utilisée par un autre utilisateur.";
                 } else {
-                    $updateSql = "UPDATE user SET nom = :nom, prenom = :prenom, email = :email WHERE id_user = :id_user";
+                    $updateSql = "UPDATE users SET nom = :nom, prenom = :prenom, email = :email WHERE id_user = :id_user";
                     $updateStmt = $conn->prepare($updateSql);
                     $updateStmt->bindParam(':nom', $newNom);
                     $updateStmt->bindParam(':prenom', $newPrenom);
@@ -77,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $_SESSION['nom'] = $newNom;
                     $_SESSION['prenom'] = $newPrenom;
 
-                    $sql = "SELECT * FROM user WHERE id_user = :id_user";
+                    $sql = "SELECT * FROM users WHERE id_user = :id_user";
                     $stmt = $conn->prepare($sql);
                     $stmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
                     $stmt->execute();
@@ -107,7 +107,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if (password_verify($currentPassword, $user['password'])) {
                     $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
 
-                    $updateSql = "UPDATE user SET password = :password WHERE id_user = :id_user";
+                    $updateSql = "UPDATE users SET password = :password WHERE id_user = :id_user";
                     $updateStmt = $conn->prepare($updateSql);
                     $updateStmt->bindParam(':password', $hashedPassword);
                     $updateStmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);

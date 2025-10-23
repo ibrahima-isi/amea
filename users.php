@@ -29,7 +29,7 @@ function getUsers($conn)
 {
     try {
         $sql = "SELECT id_user, username, nom, prenom, email, role, est_actif, derniere_connexion, date_creation
-                FROM user ORDER BY id_user DESC";
+                FROM users ORDER BY id_user DESC";
         $stmt = $conn->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'delete':
                 if ($userId !== (int)$_SESSION['user_id']) {
                     try {
-                        $sql = "DELETE FROM user WHERE id_user = :id_user";
+                        $sql = "DELETE FROM users WHERE id_user = :id_user";
                         $stmt = $conn->prepare($sql);
                         $stmt->bindParam(':id_user', $userId, PDO::PARAM_INT);
                         $stmt->execute();
@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if ($userId !== (int)$_SESSION['user_id'] || $newStatus === 1) {
                     try {
-                        $sql = "UPDATE user SET est_actif = :est_actif WHERE id_user = :id_user";
+                        $sql = "UPDATE users SET est_actif = :est_actif WHERE id_user = :id_user";
                         $stmt = $conn->prepare($sql);
                         $stmt->bindParam(':est_actif', $newStatus, PDO::PARAM_INT);
                         $stmt->bindParam(':id_user', $userId, PDO::PARAM_INT);
@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
 
                 try {
-                    $sql = "UPDATE user SET password = :password WHERE id_user = :id_user";
+                    $sql = "UPDATE users SET password = :password WHERE id_user = :id_user";
                     $stmt = $conn->prepare($sql);
                     $stmt->bindParam(':password', $hashedPassword);
                     $stmt->bindParam(':id_user', $userId, PDO::PARAM_INT);

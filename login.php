@@ -36,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             try {
                 // Rechercher l'utilisateur dans la base de données
-                $sql = "SELECT * FROM user WHERE username = :username AND est_actif = 1";
+                $sql = "SELECT * FROM users WHERE username = :username AND est_actif = 1";
                 $stmt = $conn->prepare($sql);
                 $stmt->bindParam(':username', $username);
                 $stmt->execute();
@@ -55,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $_SESSION['prenom'] = $user['prenom'];
 
                         // Mettre à jour la dernière connexion
-                        $updateSql = "UPDATE user SET derniere_connexion = NOW() WHERE id_user = :id_user";
+                        $updateSql = "UPDATE users SET derniere_connexion = NOW() WHERE id_user = :id_user";
                         $updateStmt = $conn->prepare($updateSql);
                         $updateStmt->bindParam(':id_user', $user['id_user']);
                         $updateStmt->execute();
