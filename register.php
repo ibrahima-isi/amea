@@ -87,7 +87,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (empty($error)) {
             try {
                 // Vérifier les doublons sur l'adresse email
-                $duplicateSql = "SELECT COUNT(*) FROM personne WHERE email = :email";
+                $duplicateSql = "SELECT COUNT(*) FROM personnes WHERE email = :email";
                 $duplicateStmt = $conn->prepare($duplicateSql);
                 $duplicateStmt->bindParam(':email', $formData['email']);
                 $duplicateStmt->execute();
@@ -95,7 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if ($duplicateStmt->fetchColumn() > 0) {
                     $error = "Cette adresse email est déjà enregistrée.";
                 } else {
-                    $sql = "INSERT INTO personne (nom, prenom, sexe, age, date_naissance, lieu_residence,
+                    $sql = "INSERT INTO personnes (nom, prenom, sexe, age, date_naissance, lieu_residence,
                             etablissement, statut, domaine_etudes, niveau_etudes, telephone, email,
                             annee_arrivee, type_logement, precision_logement, projet_apres_formation)
                             VALUES (:nom, :prenom, :sexe, :age, :date_naissance, :lieu_residence,

@@ -36,7 +36,7 @@ $student_id = (int)$_GET['id'];
 
 // Récupérer les détails de l'étudiant depuis la base de données
 try {
-    $sql = "SELECT * FROM personne WHERE id_personne = :id";
+    $sql = "SELECT * FROM personnes WHERE id_personne = :id";
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(':id', $student_id, PDO::PARAM_INT);
     $stmt->execute();
