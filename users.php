@@ -6,13 +6,15 @@
  */
 
 // Démarrer la session
-session_start();
+require_once 'config/session.php';
 
 // Vérifier si l'utilisateur est connecté et a les droits d'administrateur
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     header("Location: login.php");
     exit();
 }
+
+$role = $_SESSION['role'];
 
 // Inclure la configuration de la base de données
 require_once 'config/database.php';
@@ -140,6 +142,10 @@ $layoutPath = __DIR__ . '/templates/admin/layout.html';
 $contentPath = __DIR__ . '/templates/admin/pages/users.html';
 if (!is_file($layoutPath) || !is_file($contentPath)) { http_response_code(500); exit('Template introuvable.'); }
 
+ob_start();
+include 'includes/sidebar.php';
+$sidebarHtml = ob_get_clean();
+
 // Message block
 $messageBlock = '';
 if (!empty($message)) {
@@ -178,6 +184,9 @@ foreach ($users as $user) {
             . '<i class="fas fa-key"></i>'
             . '</button>'
             . '</form>'
+            . '<a href="edit-user.php?id=' . (int)$user['id_user'] . '" class="btn btn-sm btn-info" title="Modifier">
+                <i class="fas fa-edit"></i>
+            </a>'
     . (($user['id_user'] != $_SESSION['user_id']) ? (
                 '<form method="POST" class="d-inline">'
                 . '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') . '">'
@@ -203,7 +212,7 @@ $contentHtml = strtr($contentTpl, [
 $layoutTpl = file_get_contents($layoutPath);
 $output = strtr($layoutTpl, [
     '{{title}}' => 'AEESGS - Gestion des utilisateurs',
-    '{{sidebar}}' => (function(){ ob_start(); include 'includes/sidebar.php'; return ob_get_clean(); })(),
+    '{{sidebar}}' => $sidebarHtml,
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [
         '{{user_fullname}}' => htmlspecialchars($_SESSION['prenom'] . ' ' . $_SESSION['nom'], ENT_QUOTES, 'UTF-8'),
     ]),

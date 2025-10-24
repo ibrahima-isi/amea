@@ -23,12 +23,12 @@
                 <div class="col-lg-10 mx-auto">
                     <div class="card shadow">
                         <div class="card-header">
-                            <h2 class="h4 mb-0">Formulaire d'enregistrement des élèves, étudiants et stagiaires guinéens au Sénégal</h2>
+                            <h2 class="h4 mb-0">Modifier l'étudiant</h2>
                         </div>
                         <div class="card-body">
                             {{feedback_block}}
 
-                            <p class="text-muted mb-4">Veuillez remplir ce formulaire pour vous enregistrer dans la base de données des élèves, étudiants et stagiaires guinéens au Sénégal.</p>
+                            <p class="text-muted mb-4">Mettez à jour les informations de l'étudiant ci-dessous.</p>
 
                             <form action="{{form_action}}" method="POST" id="registrationForm" enctype="multipart/form-data">
                                 <input type="hidden" name="csrf_token" value="{{csrf_token}}">
@@ -131,12 +131,9 @@
 
                                 <!-- Boutons de soumission -->
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                    <a href="index.php" class="btn btn-secondary"><i class="fas fa-times"></i> Annuler</a>
-                                    <button type="reset" class="btn btn-outline-secondary">
-                                        <i class="fas fa-undo"></i> Réinitialiser
-                                    </button>
+                                    <a href="dashboard.php" class="btn btn-secondary"><i class="fas fa-times"></i> Annuler</a>
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save"></i> Enregistrer
+                                        <i class="fas fa-save"></i> Enregistrer les modifications
                                     </button>
                                 </div>
                             </form>

@@ -9,9 +9,7 @@
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
 
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
-}
+require_once 'config/session.php';
 
 // Initialiser les variables
 $successMessage = '';
@@ -43,6 +41,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         ];
 
         // Valider les données
+        $photoPath = null;
+        if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+            $photoTmpPath = $_FILES['photo']['tmp_name'];
+            $photoName = $_FILES['photo']['name'];
+            $photoSize = $_FILES['photo']['size'];
+            $photoType = $_FILES['photo']['type'];
+            $photoExtension = strtolower(pathinfo($photoName, PATHINFO_EXTENSION));
+
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+            if (in_array($photoExtension, $allowedExtensions)) {
+                if ($photoSize < 2000000) { // 2MB
+                    $newFileName = uniqid('', true) . '.' . $photoExtension;
+                    $uploadPath = 'uploads/students/' . $newFileName;
+                    if (move_uploaded_file($photoTmpPath, $uploadPath)) {
+                        $photoPath = $uploadPath;
+                    } else {
+                        $error = "Erreur lors de l'upload de l'image.";
+                    }
+                } else {
+                    var_dump($formData['photo']);
+die;
+                    $error = "L'image est trop volumineuse (max 2MB).";
+                }
+            } else {
+                $error = "Le format de l'image n'est pas supporté (jpg, jpeg, png, gif).";
+            }
+        }
+        $formData['photo'] = $photoPath;
+
         $requiredFields = [
             'nom',
             'prenom',
@@ -97,10 +124,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 } else {
                     $sql = "INSERT INTO personnes (nom, prenom, sexe, age, date_naissance, lieu_residence,
                             etablissement, statut, domaine_etudes, niveau_etudes, telephone, email,
-                            annee_arrivee, type_logement, precision_logement, projet_apres_formation)
+                            annee_arrivee, type_logement, precision_logement, projet_apres_formation, photo)
                             VALUES (:nom, :prenom, :sexe, :age, :date_naissance, :lieu_residence,
                             :etablissement, :statut, :domaine_etudes, :niveau_etudes, :telephone, :email,
-                            :annee_arrivee, :type_logement, :precision_logement, :projet_apres_formation)";
+                            :annee_arrivee, :type_logement, :precision_logement, :projet_apres_formation, :photo)";
 
                     $stmt = $conn->prepare($sql);
                     $stmt->bindParam(':nom', $formData['nom']);
@@ -119,6 +146,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $stmt->bindParam(':type_logement', $formData['type_logement']);
                     $stmt->bindParam(':precision_logement', $formData['precision_logement']);
                     $stmt->bindParam(':projet_apres_formation', $formData['projet_apres_formation']);
+                    $stmt->bindParam(':photo', $formData['photo']);
 
                     $stmt->execute();
                     $successMessage = "Votre enregistrement a été effectué avec succès ! Merci pour votre participation.";

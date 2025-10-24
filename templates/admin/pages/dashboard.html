@@ -82,7 +82,9 @@
         <h6 class="m-0 font-weight-bold">Répartition par sexe</h6>
       </div>
       <div class="card-body">
-        <canvas id="genderChart" width="100%" height="40"></canvas>
+        <div class="chart-container">
+          <canvas id="genderChart"></canvas>
+        </div>
       </div>
     </div>
   </div>
@@ -92,7 +94,9 @@
         <h6 class="m-0 font-weight-bold">Répartition par statut</h6>
       </div>
       <div class="card-body">
-        <canvas id="statusChart" width="100%" height="40"></canvas>
+        <div class="chart-container">
+          <canvas id="statusChart"></canvas>
+        </div>
       </div>
     </div>
   </div>
@@ -105,81 +109,15 @@
         <h6 class="m-0 font-weight-bold">Top 5 des établissements</h6>
       </div>
       <div class="card-body">
-        <canvas id="schoolChart" width="100%" height="30"></canvas>
+        <div class="chart-container">
+          <canvas id="schoolChart"></canvas>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Filtres et liste des étudiants -->
-<div class="card shadow mb-4">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <h6 class="m-0 font-weight-bold">Liste des étudiants</h6>
-    <a href="export.php" class="btn btn-outline-light btn-sm">
-      <i class="fas fa-file-export"></i> Exporter
-    </a>
-  </div>
-  <div class="card-body">
-    <form method="GET" action="dashboard.php" class="mb-4">
-      <div class="row g-3">
-        <div class="col-md-4">
-          <div class="input-group">
-            <span class="input-group-text"><i class="fas fa-search"></i></span>
-            <input type="text" class="form-control" name="search" placeholder="Rechercher..." value="{{search}}">
-          </div>
-        </div>
-        <div class="col-md-2">
-          <select class="form-select" name="sexe">
-            <option value="">Tous les sexes</option>
-            <option value="Masculin" {{sexe_filter_Masculin}}>Masculin</option>
-            <option value="Féminin" {{sexe_filter_Féminin}}>Féminin</option>
-          </select>
-        </div>
-        <div class="col-md-2">
-          <select class="form-select" name="statut">
-            <option value="">Tous les statuts</option>
-            <option value="Élève" {{statut_filter_Élève}}>Élève</option>
-            <option value="Étudiant" {{statut_filter_Étudiant}}>Étudiant</option>
-            <option value="Stagiaire" {{statut_filter_Stagiaire}}>Stagiaire</option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <select class="form-select" name="etablissement">
-            <option value="">Tous les établissements</option>
-            {{etablissement_options}}
-          </select>
-        </div>
-        <div class="col-md-1">
-          <button type="submit" class="btn btn-primary w-100">Filtrer</button>
-        </div>
-      </div>
-    </form>
 
-    <div class="table-responsive">
-      <table class="table table-bordered table-hover">
-        <thead class="table-light">
-          <tr>
-            <th>ID</th>
-            <th>Nom</th>
-            <th>Prénom</th>
-            <th>Sexe</th>
-            <th>Âge</th>
-            <th>Établissement</th>
-            <th>Statut</th>
-            <th>Contact</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{students_rows}}
-        </tbody>
-      </table>
-    </div>
-
-    {{pagination}}
-    {{per_page_block}}
-  </div>
-</div>
 
 <script>
   // Chart.js - Graphique par sexe
