@@ -101,17 +101,13 @@ $statsSql = "SELECT
     SUM(CASE WHEN statut = 'Élève' THEN 1 ELSE 0 END) as eleves,
     SUM(CASE WHEN statut = 'Étudiant' THEN 1 ELSE 0 END) as etudiants,
     SUM(CASE WHEN statut = 'Stagiaire' THEN 1 ELSE 0 END) as stagiaires
-FROM personnes
+FROM personnes";
 $statsStmt = $conn->prepare($statsSql);
 $statsStmt->execute();
 $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
 
 // Obtenir une répartition par établissement (top 5)
-$etablissementStatsSql = "SELECT etablissement, COUNT(*) as nombre 
-FROM personnes
-                         GROUP BY etablissement 
-                         ORDER BY nombre DESC 
-                         LIMIT 5";
+$etablissementStatsSql = "SELECT etablissement, COUNT(*) as nombre FROM personnes GROUP BY etablissement ORDER BY nombre DESC LIMIT 5";
 $etablissementStatsStmt = $conn->prepare($etablissementStatsSql);
 $etablissementStatsStmt->execute();
 $etablissementStats = $etablissementStatsStmt->fetchAll(PDO::FETCH_ASSOC);
