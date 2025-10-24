@@ -44,6 +44,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if ($stmt->rowCount() == 1) {
                     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+                    // DEBUG
+                    var_dump($password);
+                    var_dump($user);
+                    var_dump(password_verify($password, $user['password']));
+                    die;
+
                     // Vérifier le mot de passe
                     if (password_verify($password, $user['password'])) {
                         // Connexion réussie, enregistrer les informations dans la session
