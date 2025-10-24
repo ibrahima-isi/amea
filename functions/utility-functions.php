@@ -87,16 +87,16 @@ function truncateString($string, $length = 100, $append = '...') {
 }
 
 /**
- * Valide un numéro de téléphone (format sénégalais ou guinéen)
+ * Valide un numéro de téléphone pour qu'il contienne exactement 9 chiffres.
  *
  * @param string $phone Le numéro de téléphone à valider
- * @return boolean Vrai si le numéro est valide, faux sinon
+ * @return boolean Vrai si le numéro contient 9 chiffres, faux sinon
  */
 function isValidPhone($phone) {
-    // Format sénégalais: +221 XX XXX XX XX ou 7X XXX XX XX
-    // Format guinéen: +224 XXX XX XX XX ou 6XX XX XX XX
-    return preg_match('/^(\+221|221)?\s*[7][0-9]\s*[0-9]{3}\s*[0-9]{2}\s*[0-9]{2}$/', $phone) || 
-           preg_match('/^(\+224|224)?\s*[6][0-9]{2}\s*[0-9]{2}\s*[0-9]{2}\s*[0-9]{2}$/', $phone);
+    // Supprimer tous les caractères non numériques
+    $digits = preg_replace('/[^0-9]/', '', $phone);
+    // Vérifier si le nombre de chiffres est exactement 9
+    return strlen($digits) === 9;
 }
 
 /**

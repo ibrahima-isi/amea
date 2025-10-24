@@ -9,13 +9,13 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
-$error = '';
+$errors = [];
 $success = '';
 $formData = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-        $error = "La session a expiré. Veuillez soumettre à nouveau le formulaire.";
+        $errors['form'] = "La session a expiré. Veuillez soumettre à nouveau le formulaire.";
     } else {
         $formData = [
             'username' => trim($_POST['username'] ?? ''),
@@ -24,24 +24,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'prenom' => trim($_POST['prenom'] ?? ''),
             'password' => $_POST['password'] ?? '',
             'confirm_password' => $_POST['confirm_password'] ?? '',
-            'role' => $_POST['role'] ?? 'utilisateur',
+            'role' => $_POST['role'] ?? 'user',
             'est_actif' => $_POST['est_actif'] ?? 0
         ];
 
         // Validation
-        if (empty($formData['username']) || empty($formData['email']) || empty($formData['nom']) || empty($formData['prenom']) || empty($formData['password']) || empty($formData['confirm_password'])) {
-            $error = 'Veuillez remplir tous les champs.';
-        } elseif ($formData['password'] !== $formData['confirm_password']) {
-            $error = 'Les mots de passe ne correspondent pas.';
+        if (empty($formData['username'])) {
+            $errors['username'] = 'Le nom d\'utilisateur est requis.';
+        }
+        if (empty($formData['email'])) {
+            $errors['email'] = 'L\'adresse email est requise.';
         } elseif (!filter_var($formData['email'], FILTER_VALIDATE_EMAIL)) {
-            $error = 'L\'adresse email n\'est pas valide.';
-        } else {
+            $errors['email'] = 'L\'adresse email n\'est pas valide.';
+        }
+        if (empty($formData['nom'])) {
+            $errors['nom'] = 'Le nom est requis.';
+        }
+        if (empty($formData['prenom'])) {
+            $errors['prenom'] = 'Le prénom est requis.';
+        }
+        if (empty($formData['password'])) {
+            $errors['password'] = 'Le mot de passe est requis.';
+        }
+        if ($formData['password'] !== $formData['confirm_password']) {
+            $errors['confirm_password'] = 'Les mots de passe ne correspondent pas.';
+        }
+
+        if (empty($errors)) {
             // Check for existing username or email
             $stmt = $conn->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
             $stmt->execute([$formData['username'], $formData['email']]);
-            if ($stmt->fetch()) {
-                $error = 'Ce nom d\'utilisateur ou cet email est déjà utilisé.';
-            } else {
+            $existingUser = $stmt->fetch();
+            if ($existingUser) {
+                if ($existingUser['username'] === $formData['username']) {
+                    $errors['username'] = 'Ce nom d\'utilisateur est déjà utilisé.';
+                }
+                if ($existingUser['email'] === $formData['email']) {
+                    $errors['email'] = 'Cet email est déjà utilisé.';
+                }
+            }
+
+            if (empty($errors)) {
                 // Hash password
                 $hashedPassword = password_hash($formData['password'], PASSWORD_DEFAULT);
 
@@ -88,7 +111,7 @@ $sel = function ($value, $options) {
 };
 
 $contentHtml = strtr($template, [
-    '{{feedback_block}}' => $success ? '<div class="alert alert-success">' . $success . '</div>' : ($error ? '<div class="alert alert-danger">' . $error . '</div>' : ''),
+    '{{feedback_block}}' => $success ? '<div class="alert alert-success">' . $success . '</div>' : (isset($errors['form']) ? '<div class="alert alert-danger">' . $errors['form'] . '</div>' : ''),
     '{{form_action}}' => 'add-user.php',
     '{{csrf_token}}' => generateCsrfToken(),
     '{{username}}' => htmlspecialchars($formData['username'] ?? '', ENT_QUOTES, 'UTF-8'),
@@ -99,6 +122,12 @@ $contentHtml = strtr($template, [
     '{{role_sel_user}}' => $sel('user', $formData['role'] ?? 'user'),
     '{{est_actif_sel_1}}' => $sel(1, $formData['est_actif'] ?? 1),
     '{{est_actif_sel_0}}' => $sel(0, $formData['est_actif'] ?? 1),
+    '{{error_username}}' => $errors['username'] ?? '',
+    '{{error_email}}' => $errors['email'] ?? '',
+    '{{error_nom}}' => $errors['nom'] ?? '',
+    '{{error_prenom}}' => $errors['prenom'] ?? '',
+    '{{error_password}}' => $errors['password'] ?? '',
+    '{{error_confirm_password}}' => $errors['confirm_password'] ?? '',
 ]);
 
 $layoutTpl = file_get_contents($layoutPath);

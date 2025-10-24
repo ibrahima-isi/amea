@@ -1,4 +1,7 @@
 <?php
+
+require_once 'config/session.php';
+
 // Page d'accueil: rendu depuis un template HTML
 $templatePath = __DIR__ . '/templates/index.html';
 if (!is_file($templatePath)) {
@@ -6,6 +9,12 @@ if (!is_file($templatePath)) {
     exit('Template introuvable.');
 }
 $tpl = file_get_contents($templatePath);
+
+$successMessage = '';
+if (isset($_SESSION['success_message'])) {
+    $successMessage = '<div class="alert alert-success">' . $_SESSION['success_message'] . '</div>';
+    unset($_SESSION['success_message']);
+}
 
 // Header/Footer partials
 $headerTpl = file_get_contents(__DIR__ . '/templates/partials/header.html');
@@ -19,6 +28,7 @@ $headerHtml = strtr($headerTpl, [
 $output = strtr($tpl, [
     '{{header}}' => $headerHtml,
     '{{footer}}' => $footerTpl,
+    '{{success_message}}' => $successMessage,
 ]);
 
 echo $output;

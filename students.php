@@ -24,6 +24,30 @@ $sexeFilter = isset($_GET['sexe']) ? $_GET['sexe'] : '';
 $statutFilter = isset($_GET['statut']) ? $_GET['statut'] : '';
 $etablissementFilter = isset($_GET['etablissement']) ? $_GET['etablissement'] : '';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
+    if (isset($_POST['id']) && is_numeric($_POST['id'])) {
+        $student_id_to_delete = (int)$_POST['id'];
+
+        // First, get the photo path to delete the file
+        $stmt = $conn->prepare("SELECT photo FROM personnes WHERE id_personne = ?");
+        $stmt->execute([$student_id_to_delete]);
+        $photo_to_delete = $stmt->fetchColumn();
+
+        // Delete the student from the database
+        $deleteStmt = $conn->prepare("DELETE FROM personnes WHERE id_personne = ?");
+        $deleteStmt->execute([$student_id_to_delete]);
+
+        // Delete the photo file if it exists
+        if ($photo_to_delete && file_exists($photo_to_delete)) {
+            unlink($photo_to_delete);
+        }
+
+        // Redirect to the same page to see the changes
+        header("Location: students.php?page=$page&perPage=$perPage&search=$search&sexe=$sexeFilter&statut=$statutFilter&etablissement=$etablissementFilter");
+        exit();
+    }
+}
+
 // Construire la requête SQL avec les filtres
 $whereClauses = [];
 $params = [];
@@ -131,20 +155,22 @@ if (count($students) > 0) {
             . '<td>' . htmlspecialchars($student['nom'], ENT_QUOTES, 'UTF-8') . '</td>'
             . '<td>' . htmlspecialchars($student['prenom'], ENT_QUOTES, 'UTF-8') . '</td>'
             . '<td>' . htmlspecialchars($student['sexe'], ENT_QUOTES, 'UTF-8') . '</td>'
-            . '<td>' . htmlspecialchars($student['age'], ENT_QUOTES, 'UTF-8') . '</td>'
             . '<td>' . htmlspecialchars($student['etablissement'], ENT_QUOTES, 'UTF-8') . '</td>'
             . '<td><span class="badge bg-' . $badgeClass . '">' . htmlspecialchars($student['statut'], ENT_QUOTES, 'UTF-8') . '</span></td>'
-            . '<td>'
-                . '<a href="mailto:' . htmlspecialchars($student['email'], ENT_QUOTES, 'UTF-8') . '" class="text-primary" title="Email">'
-                . '<i class="fas fa-envelope"></i></a>'
-                . '<a href="tel:' . htmlspecialchars($student['telephone'], ENT_QUOTES, 'UTF-8') . '" class="text-success ms-2" title="Téléphone">'
-                . '<i class="fas fa-phone"></i></a>'
-            . '</td>'
+            . '<td><a href="mailto:' . htmlspecialchars($student['email'], ENT_QUOTES, 'UTF-8') . '" class="text-primary">' . htmlspecialchars($student['email'], ENT_QUOTES, 'UTF-8') . '</a></td>'
+            . '<td><a href="tel:' . htmlspecialchars($student['telephone'], ENT_QUOTES, 'UTF-8') . '" class="text-success">' . htmlspecialchars($student['telephone'], ENT_QUOTES, 'UTF-8') . '</a></td>'
             . '<td>'
                 . '<a href="student-details.php?id=' . (int)$student['id_personne'] . '" class="btn btn-sm btn-outline-primary" title="Voir détails">'
                 . '<i class="fas fa-eye"></i></a>'
                 . '<a href="edit-student.php?id=' . (int)$student['id_personne'] . '" class="btn btn-sm btn-outline-secondary ms-1" title="Modifier">'
                 . '<i class="fas fa-edit"></i></a>'
+                . '<form method="POST" action="students.php?page=' . $page . '&perPage=' . $perPage . '" class="d-inline">'
+                . '<input type="hidden" name="action" value="delete">'
+                . '<input type="hidden" name="id" value="' . (int)$student['id_personne'] . '">'
+                . '<button type="submit" class="btn btn-sm btn-outline-danger ms-1 btn-delete-student" title="Supprimer">'
+                . '<i class="fas fa-trash"></i>'
+                . '</button>'
+                . '</form>'
             . '</td>'
             . '</tr>';
     }

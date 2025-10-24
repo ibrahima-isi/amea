@@ -9,6 +9,9 @@
     </nav>
   </div>
   <div class="col-md-4 text-end">
+    <a href="students.php" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour
+    </a>
     <a href="edit-student.php?id={{student_id}}" class="btn btn-primary">
       <i class="fas fa-edit"></i> Modifier
     </a>
@@ -36,8 +39,9 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
-        <form action="delete-student.php" method="POST">
-          <input type="hidden" name="student_id" value="{{student_id}}">
+        <form action="students.php" method="POST">
+          <input type="hidden" name="action" value="delete">
+          <input type="hidden" name="id" value="{{student_id}}">
           <input type="hidden" name="csrf_token" value="{{csrf_token}}">
           <button type="submit" class="btn btn-danger">
             <i class="fas fa-trash"></i> Supprimer définitivement

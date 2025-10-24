@@ -12,26 +12,29 @@ require_once 'functions/utility-functions.php';
 require_once 'config/session.php';
 
 // Initialiser les variables
-$successMessage = '';
-$error = "";
+$errors = [];
 $formData = [];
 
 // Traitement du formulaire lors de la soumission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-        $error = "La session a expiré. Veuillez soumettre à nouveau le formulaire.";
+        $errors['form'] = "La session a expiré. Veuillez soumettre à nouveau le formulaire.";
     } else {
         // Récupérer les données du formulaire
         $formData = [
             'nom' => trim($_POST['nom'] ?? ''),
             'prenom' => trim($_POST['prenom'] ?? ''),
+            'numero_identite' => trim($_POST['numero_identite'] ?? ''),
             'sexe' => $_POST['sexe'] ?? '',
             'date_naissance' => $_POST['date_naissance'] ?? '',
             'lieu_residence' => trim($_POST['lieu_residence'] ?? ''),
             'etablissement' => trim($_POST['etablissement'] ?? ''),
+            'autre_etablissement' => trim($_POST['autre_etablissement'] ?? ''),
             'statut' => $_POST['statut'] ?? '',
             'domaine_etudes' => trim($_POST['domaine_etudes'] ?? ''),
+            'autre_domaine_etudes' => trim($_POST['autre_domaine_etudes'] ?? ''),
             'niveau_etudes' => trim($_POST['niveau_etudes'] ?? ''),
+            'autre_niveau_etudes' => trim($_POST['autre_niveau_etudes'] ?? ''),
             'telephone' => trim($_POST['telephone'] ?? ''),
             'email' => trim($_POST['email'] ?? ''),
             'annee_arrivee' => $_POST['annee_arrivee'] ?? null,
@@ -46,7 +49,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $photoTmpPath = $_FILES['photo']['tmp_name'];
             $photoName = $_FILES['photo']['name'];
             $photoSize = $_FILES['photo']['size'];
-            $photoType = $_FILES['photo']['type'];
             $photoExtension = strtolower(pathinfo($photoName, PATHINFO_EXTENSION));
 
             $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
@@ -57,53 +59,73 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     if (move_uploaded_file($photoTmpPath, $uploadPath)) {
                         $photoPath = $uploadPath;
                     } else {
-                        $error = "Erreur lors de l'upload de l'image.";
+                        $errors['photo'] = "Erreur lors de l'upload de l'image.";
                     }
                 } else {
-                    var_dump($formData['photo']);
-die;
-                    $error = "L'image est trop volumineuse (max 2MB).";
+                    $errors['photo'] = "L'image est trop volumineuse (max 2MB).";
                 }
             } else {
-                $error = "Le format de l'image n'est pas supporté (jpg, jpeg, png, gif).";
+                $errors['photo'] = "Le format de l'image n'est pas supporté (jpg, jpeg, png, gif).";
             }
         }
         $formData['photo'] = $photoPath;
 
+        if ($formData['etablissement'] === 'Autre') {
+            $formData['etablissement'] = $formData['autre_etablissement'];
+        }
+
+        if ($formData['domaine_etudes'] === 'Autre') {
+            $formData['domaine_etudes'] = $formData['autre_domaine_etudes'];
+        }
+
+        if ($formData['niveau_etudes'] === 'Autre') {
+            $formData['niveau_etudes'] = $formData['autre_niveau_etudes'];
+        }
+
         $requiredFields = [
-            'nom',
-            'prenom',
-            'sexe',
-            'date_naissance',
-            'lieu_residence',
-            'etablissement',
-            'statut',
-            'domaine_etudes',
-            'niveau_etudes',
-            'telephone',
-            'email',
-            'type_logement'
+            'nom' => 'Le nom est requis.',
+            'prenom' => 'Le prénom est requis.',
+            'sexe' => 'Le sexe est requis.',
+            'date_naissance' => 'La date de naissance est requise.',
+            'lieu_residence' => 'Le lieu de résidence est requis.',
+            'etablissement' => 'L\'établissement est requis.',
+            'statut' => 'Le statut est requis.',
+            'domaine_etudes' => 'Le domaine d\'études est requis.',
+            'niveau_etudes' => 'Le niveau d\'études est requis.',
+            'telephone' => 'Le téléphone est requis.',
+            'email' => 'L\'email est requis.',
+            'type_logement' => 'Le type de logement est requis.'
         ];
 
-        foreach ($requiredFields as $field) {
+        foreach ($requiredFields as $field => $message) {
             if (empty($formData[$field])) {
-                $error = "Tous les champs obligatoires doivent être remplis.";
-                break;
+                $errors[$field] = $message;
+            }
+        }
+
+        if (empty($formData['numero_identite'])) {
+            $errors['numero_identite'] = 'Le numéro d\'identité est requis.';
+        } else {
+            // Check for uniqueness
+            $stmt = $conn->prepare("SELECT id_personne FROM personnes WHERE numero_identite = ?");
+            $stmt->execute([$formData['numero_identite']]);
+            if ($stmt->fetch()) {
+                $errors['numero_identite'] = 'Ce numéro d\'identité est déjà utilisé.';
             }
         }
 
         // Valider l'email
-        if (empty($error) && !filter_var($formData['email'], FILTER_VALIDATE_EMAIL)) {
-            $error = "L'adresse email n'est pas valide.";
+        if (!isset($errors['email']) && !filter_var($formData['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = "L'adresse email n'est pas valide.";
         }
 
         // Valider le numéro de téléphone
-        if (empty($error) && !isValidPhone($formData['telephone'])) {
-            $error = "Le numéro de téléphone renseigné n'est pas valide.";
+        if (!isset($errors['telephone']) && !isValidPhone($formData['telephone'])) {
+            $errors['telephone'] = "Le numéro de téléphone doit contenir exactement 9 chiffres.";
         }
 
         // Calculer l'âge à partir de la date de naissance
-        if (empty($error) && !empty($formData['date_naissance'])) {
+        if (empty($errors) && !empty($formData['date_naissance'])) {
             $dateNaissance = new DateTime($formData['date_naissance']);
             $today = new DateTime();
             $age = $dateNaissance->diff($today)->y;
@@ -111,7 +133,37 @@ die;
         }
 
         // Si aucune erreur, enregistrer les données dans la base de données
-        if (empty($error)) {
+        if (empty($errors)) {
+            // Add the school to the database if it doesn't exist
+            if (!empty($formData['etablissement'])) {
+                $stmt = $conn->prepare("SELECT id FROM etablissements WHERE nom = ?");
+                $stmt->execute([$formData['etablissement']]);
+                if ($stmt->fetchColumn() === false) {
+                    $insertStmt = $conn->prepare("INSERT INTO etablissements (nom) VALUES (?)");
+                    $insertStmt->execute([$formData['etablissement']]);
+                }
+            }
+
+            // Add the field of study to the database if it doesn't exist
+            if (!empty($formData['domaine_etudes'])) {
+                $stmt = $conn->prepare("SELECT id FROM domaines_etudes WHERE nom = ?");
+                $stmt->execute([$formData['domaine_etudes']]);
+                if ($stmt->fetchColumn() === false) {
+                    $insertStmt = $conn->prepare("INSERT INTO domaines_etudes (nom) VALUES (?)");
+                    $insertStmt->execute([$formData['domaine_etudes']]);
+                }
+            }
+
+            // Add the level of study to the database if it doesn't exist
+            if (!empty($formData['niveau_etudes'])) {
+                $stmt = $conn->prepare("SELECT id FROM niveaux_etudes WHERE nom = ?");
+                $stmt->execute([$formData['niveau_etudes']]);
+                if ($stmt->fetchColumn() === false) {
+                    $insertStmt = $conn->prepare("INSERT INTO niveaux_etudes (nom) VALUES (?)");
+                    $insertStmt->execute([$formData['niveau_etudes']]);
+                }
+            }
+
             try {
                 // Vérifier les doublons sur l'adresse email
                 $duplicateSql = "SELECT COUNT(*) FROM personnes WHERE email = :email";
@@ -120,18 +172,19 @@ die;
                 $duplicateStmt->execute();
 
                 if ($duplicateStmt->fetchColumn() > 0) {
-                    $error = "Cette adresse email est déjà enregistrée.";
+                    $errors['email'] = "Cette adresse email est déjà enregistrée.";
                 } else {
-                    $sql = "INSERT INTO personnes (nom, prenom, sexe, age, date_naissance, lieu_residence,
+                    $sql = "INSERT INTO personnes (nom, prenom, numero_identite, sexe, age, date_naissance, lieu_residence,
                             etablissement, statut, domaine_etudes, niveau_etudes, telephone, email,
                             annee_arrivee, type_logement, precision_logement, projet_apres_formation, photo)
-                            VALUES (:nom, :prenom, :sexe, :age, :date_naissance, :lieu_residence,
+                            VALUES (:nom, :prenom, :numero_identite, :sexe, :age, :date_naissance, :lieu_residence,
                             :etablissement, :statut, :domaine_etudes, :niveau_etudes, :telephone, :email,
                             :annee_arrivee, :type_logement, :precision_logement, :projet_apres_formation, :photo)";
 
                     $stmt = $conn->prepare($sql);
                     $stmt->bindParam(':nom', $formData['nom']);
                     $stmt->bindParam(':prenom', $formData['prenom']);
+                    $stmt->bindParam(':numero_identite', $formData['numero_identite']);
                     $stmt->bindParam(':sexe', $formData['sexe']);
                     $stmt->bindParam(':age', $formData['age']);
                     $stmt->bindParam(':date_naissance', $formData['date_naissance']);
@@ -149,14 +202,13 @@ die;
                     $stmt->bindParam(':photo', $formData['photo']);
 
                     $stmt->execute();
-                    $successMessage = "Votre enregistrement a été effectué avec succès ! Merci pour votre participation.";
-
-                    // Réinitialiser les données du formulaire après succès
-                    $formData = [];
+                    $_SESSION['success_message'] = "Votre enregistrement a été effectué avec succès ! Merci pour votre participation.";
+                    header('Location: index.php');
+                    exit();
                 }
             } catch (PDOException $e) {
                 logError("Erreur lors de l'enregistrement d'un étudiant", $e);
-                $error = "Une erreur inattendue est survenue lors de l'enregistrement. Veuillez réessayer plus tard.";
+                $errors['form'] = "Une erreur inattendue est survenue lors de l'enregistrement. Veuillez réessayer plus tard.";
             }
         }
     }
@@ -170,26 +222,27 @@ if (!is_file($templatePath)) {
     exit('Template introuvable.');
 }
 
+// Fetch schools from the database
+$stmt = $conn->query("SELECT nom FROM etablissements ORDER BY nom ASC");
+$schools = $stmt->fetchAll(PDO::FETCH_COLUMN);
+$schools[] = 'Autre';
+
+// Fetch fields of study from the database
+$stmt = $conn->query("SELECT nom FROM domaines_etudes ORDER BY nom ASC");
+$domaines = $stmt->fetchAll(PDO::FETCH_COLUMN);
+$domaines[] = 'Autre';
+
+// Fetch levels of study from the database
+$stmt = $conn->query("SELECT nom FROM niveaux_etudes ORDER BY nom ASC");
+$niveaux = $stmt->fetchAll(PDO::FETCH_COLUMN);
+$niveaux[] = 'Autre';
+
 // Construire le bloc de feedback
 $feedback = '';
-if (!empty($successMessage)) {
-    $feedback = '<div class="alert alert-success">'
-        . '<i class="fas fa-check-circle"></i> '
-        . htmlspecialchars($successMessage, ENT_QUOTES, 'UTF-8')
-        . '</div>'
-        . '<div class="text-center mb-4">'
-        . '<a href="register.php" class="btn btn-primary">'
-        . '<i class="fas fa-user-plus"></i> Nouvel enregistrement'
-        . '</a>'
-        . ' '
-        . '<a href="index.php" class="btn btn-secondary">'
-        . '<i class="fas fa-home"></i> Retour à l\'accueil'
-        . '</a>'
-        . '</div>';
-} elseif (!empty($error)) {
+if (!empty($errors['form'])) {
     $feedback = '<div class="alert alert-danger">'
         . '<i class="fas fa-exclamation-triangle"></i> '
-        . htmlspecialchars($error, ENT_QUOTES, 'UTF-8')
+        . htmlspecialchars($errors['form'], ENT_QUOTES, 'UTF-8')
         . '</div>';
 }
 
@@ -207,6 +260,24 @@ $headerHtml = strtr($headerTpl, [
     '{{login_active}}' => '',
 ]);
 
+$etablissementOptions = '';
+foreach ($schools as $school) {
+    $selected = ($formData['etablissement'] ?? '') === $school ? 'selected' : '';
+    $etablissementOptions .= "<option value=\"$school\" $selected>$school</option>";
+}
+
+$domaineOptions = '';
+foreach ($domaines as $domaine) {
+    $selected = ($formData['domaine_etudes'] ?? '') === $domaine ? 'selected' : '';
+    $domaineOptions .= "<option value=\"$domaine\" $selected>$domaine</option>";
+}
+
+$niveauOptions = '';
+foreach ($niveaux as $niveau) {
+    $selected = ($formData['niveau_etudes'] ?? '') === $niveau ? 'selected' : '';
+    $niveauOptions .= "<option value=\"$niveau\" $selected>$niveau</option>";
+}
+
 $output = strtr($tpl, [
     '{{header}}' => $headerHtml,
     '{{footer}}' => $footerTpl,
@@ -215,15 +286,16 @@ $output = strtr($tpl, [
     '{{csrf_token}}' => htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'),
     '{{nom}}' => htmlspecialchars($formData['nom'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{prenom}}' => htmlspecialchars($formData['prenom'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{numero_identite}}' => htmlspecialchars($formData['numero_identite'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{date_naissance}}' => htmlspecialchars($formData['date_naissance'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{telephone}}' => htmlspecialchars($formData['telephone'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{email}}' => htmlspecialchars($formData['email'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{lieu_residence}}' => htmlspecialchars($formData['lieu_residence'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{annee_arrivee}}' => htmlspecialchars($formData['annee_arrivee'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{precision_logement}}' => htmlspecialchars($formData['precision_logement'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{etablissement}}' => htmlspecialchars($formData['etablissement'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{domaine_etudes}}' => htmlspecialchars($formData['domaine_etudes'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{niveau_etudes}}' => htmlspecialchars($formData['niveau_etudes'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{etablissement_options}}' => $etablissementOptions,
+    '{{domaine_etudes_options}}' => $domaineOptions,
+    '{{niveau_etudes_options}}' => $niveauOptions,
     '{{projet_apres_formation}}' => htmlspecialchars($formData['projet_apres_formation'] ?? '', ENT_QUOTES, 'UTF-8'),
     // Sexe selects
     '{{sexe_sel_none}}' => $sel(empty($formData['sexe'] ?? '')),
@@ -240,6 +312,21 @@ $output = strtr($tpl, [
     '{{statut_sel_Élève}}' => $sel(($formData['statut'] ?? '') === 'Élève'),
     '{{statut_sel_Étudiant}}' => $sel(($formData['statut'] ?? '') === 'Étudiant'),
     '{{statut_sel_Stagiaire}}' => $sel(($formData['statut'] ?? '') === 'Stagiaire'),
+    // Errors
+    '{{error_nom}}' => $errors['nom'] ?? '',
+    '{{error_prenom}}' => $errors['prenom'] ?? '',
+    '{{error_numero_identite}}' => $errors['numero_identite'] ?? '',
+    '{{error_sexe}}' => $errors['sexe'] ?? '',
+    '{{error_date_naissance}}' => $errors['date_naissance'] ?? '',
+    '{{error_photo}}' => $errors['photo'] ?? '',
+    '{{error_telephone}}' => $errors['telephone'] ?? '',
+    '{{error_email}}' => $errors['email'] ?? '',
+    '{{error_lieu_residence}}' => $errors['lieu_residence'] ?? '',
+    '{{error_etablissement}}' => $errors['etablissement'] ?? '',
+    '{{error_statut}}' => $errors['statut'] ?? '',
+    '{{error_domaine_etudes}}' => $errors['domaine_etudes'] ?? '',
+    '{{error_niveau_etudes}}' => $errors['niveau_etudes'] ?? '',
+    '{{error_type_logement}}' => $errors['type_logement'] ?? '',
 ]);
 
 echo $output;
