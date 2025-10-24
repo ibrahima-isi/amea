@@ -139,3 +139,22 @@ footer a.text-white:hover {
         animation: aeesgsGradient 6s ease infinite;
     }
 }
+
+/* General responsive improvements */
+body {
+    font-size: 1rem;
+}
+
+h1, .h1 { font-size: 1.75rem; }
+h2, .h2 { font-size: 1.5rem; }
+h3, .h3 { font-size: 1.25rem; }
+
+@media (min-width: 768px) {
+    body {
+        font-size: 1.1rem;
+    }
+
+    h1, .h1 { font-size: 2.5rem; }
+    h2, .h2 { font-size: 2rem; }
+    h3, .h3 { font-size: 1.75rem; }
+}

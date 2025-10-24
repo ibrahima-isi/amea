@@ -7,7 +7,7 @@
  */
 
 // Démarrer la session
-session_start();
+require_once 'config/session.php';
 
 // Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['username'])) {

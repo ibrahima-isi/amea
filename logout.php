@@ -5,7 +5,7 @@
  */
 
 // Démarrer la session
-session_start();
+require_once 'config/session.php';
 
 // Détruire toutes les variables de session
 $_SESSION = array();

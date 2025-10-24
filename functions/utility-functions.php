@@ -184,3 +184,73 @@ function exportToCsv($data, $headers, $filename = 'export.csv') {
     fclose($output);
     exit();
 }
+
+/**
+ * Définit un message flash en session.
+ *
+ * @param string $type Le type de message (ex: success, error, warning)
+ * @param string $message Le message à afficher
+ * @return void
+ */
+function setFlashMessage($type, $message) {
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
+    $_SESSION['flash_message'] = [
+        'type' => $type,
+        'message' => $message
+    ];
+}
+
+/**
+ * Récupère et efface le message flash de la session.
+ *
+ * @return array|null Le message flash ou null s'il n'y en a pas
+ */
+function getFlashMessage() {
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
+    if (isset($_SESSION['flash_message'])) {
+        $flash = $_SESSION['flash_message'];
+        unset($_SESSION['flash_message']);
+        return $flash;
+    }
+    return null;
+}
+
+/**
+ * Retourne la classe CSS Bootstrap correspondant au type de message flash.
+ *
+ * @param string $type Le type de message
+ * @return string La classe CSS
+ */
+function getFlashMessageClass($type) {
+    switch ($type) {
+        case 'success':
+            return 'alert-success';
+        case 'error':
+            return 'alert-danger';
+        case 'warning':
+            return 'alert-warning';
+        default:
+            return 'alert-info';
+    }
+}
+
+/**
+ * Nettoie une chaîne de caractères pour l'exportation CSV.
+ *
+ * @param string|null $data La chaîne à nettoyer
+ * @return string La chaîne nettoyée
+ */
+function cleanData($data) {
+    if ($data === null) {
+        return '';
+    }
+    // Supprimer les sauts de ligne et les tabulations
+    $data = str_replace(["\r", "\n", "\t"], ' ', $data);
+    // Échapper les guillemets doubles
+    $data = str_replace('"', '""', $data);
+    return $data;
+}
