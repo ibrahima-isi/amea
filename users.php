@@ -97,25 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 break;
 
-            case 'reset':
-                $tempPassword = bin2hex(random_bytes(4));
-                $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
 
-                try {
-                    $sql = "UPDATE users SET password = :password WHERE id_user = :id_user";
-                    $stmt = $conn->prepare($sql);
-                    $stmt->bindParam(':password', $hashedPassword);
-                    $stmt->bindParam(':id_user', $userId, PDO::PARAM_INT);
-                    $stmt->execute();
-
-                    $message = "Le mot de passe a été réinitialisé. Nouveau mot de passe temporaire : " . $tempPassword;
-                    $messageType = "success";
-                } catch (PDOException $e) {
-                    logError("Erreur lors de la réinitialisation du mot de passe d'un utilisateur", $e);
-                    $message = "Une erreur est survenue lors de la réinitialisation du mot de passe.";
-                    $messageType = "danger";
-                }
-                break;
 
             default:
                 $message = "Action non reconnue.";
@@ -176,14 +158,7 @@ foreach ($users as $user) {
             . '<i class="fas ' . ($user['est_actif'] ? 'fa-ban' : 'fa-check') . '"></i>'
             . '</button>'
             . '</form>'
-            . '<form method="POST" class="d-inline">'
-            . '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') . '">'
-            . '<input type="hidden" name="action" value="reset">'
-            . '<input type="hidden" name="id" value="' . (int)$user['id_user'] . '">'
-            . '<button type="submit" class="btn btn-sm btn-info" title="Réinitialiser mot de passe" onclick="return confirm(\'Êtes-vous sûr de vouloir réinitialiser le mot de passe de cet utilisateur ?\');">'
-            . '<i class="fas fa-key"></i>'
-            . '</button>'
-            . '</form>'
+
             . '<a href="edit-user.php?id=' . (int)$user['id_user'] . '" class="btn btn-sm btn-info" title="Modifier">
                 <i class="fas fa-edit"></i>
             </a>'
