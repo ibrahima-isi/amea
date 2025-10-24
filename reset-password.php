@@ -3,7 +3,7 @@
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
 
-$error = '';
+$errors = [];
 $success = '';
 $token = $_GET['token'] ?? '';
 
@@ -18,13 +18,13 @@ $stmt->execute([$token]);
 $reset = $stmt->fetch();
 
 if (!$reset) {
-    $error = 'Ce jeton de réinitialisation de mot de passe n\'est pas valide.';
+    $errors['form'] = 'Ce jeton de réinitialisation de mot de passe n\'est pas valide.';
 } else {
     $expires = new DateTime($reset['expires_at']);
     $now = new DateTime();
 
     if ($now > $expires) {
-        $error = 'Ce jeton de réinitialisation de mot de passe a expiré.';
+        $errors['form'] = 'Ce jeton de réinitialisation de mot de passe a expiré.';
     }
 }
 
@@ -32,10 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
 
-    if (empty($password) || empty($confirm_password)) {
-        $error = 'Veuillez remplir tous les champs.';
+    if (empty($password)) {
+        $errors['password'] = 'Veuillez remplir tous les champs.';
     } elseif ($password !== $confirm_password) {
-        $error = 'Les mots de passe ne correspondent pas.';
+        $errors['confirm_password'] = 'Les mots de passe ne correspondent pas.';
     } else {
         // Update the password
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
@@ -59,8 +59,11 @@ if (!is_file($templatePath)) {
 $feedback = '';
 if (!empty($success)) {
     $feedback = '<div class="alert alert-success">' . htmlspecialchars($success, ENT_QUOTES, 'UTF-8') . '</div>';
-} elseif (!empty($error)) {
-    $feedback = '<div class="alert alert-danger">' . htmlspecialchars($error, ENT_QUOTES, 'UTF-8') . '</div>';
+} elseif (!empty($errors)) {
+    // If there is a form-level error, display it in the feedback block.
+    if (isset($errors['form'])) {
+        $feedback = '<div class="alert alert-danger">' . htmlspecialchars($errors['form'], ENT_QUOTES, 'UTF-8') . '</div>';
+    }
 }
 
 $tpl = file_get_contents($templatePath);
@@ -78,6 +81,8 @@ $output = strtr($tpl, [
     '{{footer}}' => $footerTpl,
     '{{feedback_block}}' => $feedback,
     '{{token}}' => htmlspecialchars($token, ENT_QUOTES, 'UTF-8'),
+    '{{error_password}}' => $errors['password'] ?? '',
+    '{{error_confirm_password}}' => $errors['confirm_password'] ?? '',
 ]);
 
 echo $output;

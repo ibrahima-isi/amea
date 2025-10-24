@@ -14,14 +14,15 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Vérifier l'expiration de la session
-if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $session_lifetime)) {
-    // La session a expiré
-    session_unset();
-    session_destroy();
-    header("Location: login.php?expired=1");
-    exit();
+// Vérifier l'expiration de la session uniquement pour les utilisateurs connectés
+if (isset($_SESSION['user_id'])) {
+    if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $session_lifetime)) {
+        // La session a expiré
+        session_unset();
+        session_destroy();
+        header("Location: login.php?expired=1");
+        exit();
+    }
+    // Mettre à jour le temps de la dernière activité
+    $_SESSION['last_activity'] = time();
 }
-
-// Mettre à jour le temps de la dernière activité
-$_SESSION['last_activity'] = time();

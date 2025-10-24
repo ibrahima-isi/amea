@@ -38,10 +38,12 @@
                                     <div class="col-md-6">
                                         <label for="nom" class="form-label">Nom <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="nom" name="nom" value="{{nom}}" required>
+                                        <div class="invalid-feedback">{{error_nom}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="prenom" class="form-label">Prénom <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="prenom" name="prenom" value="{{prenom}}" required>
+                                        <div class="invalid-feedback">{{error_prenom}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="sexe" class="form-label">Sexe <span class="text-danger">*</span></label>
@@ -50,14 +52,23 @@
                                             <option value="Masculin" {{sexe_sel_Masculin}}>Masculin</option>
                                             <option value="Féminin" {{sexe_sel_Féminin}}>Féminin</option>
                                         </select>
+                                        <div class="invalid-feedback">{{error_sexe}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="date_naissance" class="form-label">Date de naissance <span class="text-danger">*</span></label>
                                         <input type="date" class="form-control" id="date_naissance" name="date_naissance" value="{{date_naissance}}" required>
+                                        <div class="invalid-feedback">{{error_date_naissance}}</div>
                                     </div>
+                                    <div class="col-md-6">
+                                        <label for="numero_identite" class="form-label">Numéro d'ID ou Passeport <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="numero_identite" name="numero_identite" value="{{numero_identite}}" required>
+                                        <div class="invalid-feedback">{{error_numero_identite}}</div>
+                                    </div>
+
                                     <div class="col-md-6">
                                         <label for="photo" class="form-label">ID or Passeport</label>
                                         <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+                                        <div class="invalid-feedback">{{error_photo}}</div>
                                     </div>
                                 </div>
 
@@ -66,15 +77,18 @@
                                 <div class="row g-3 mb-4">
                                     <div class="col-md-6">
                                         <label for="telephone" class="form-label">Téléphone <span class="text-danger">*</span></label>
-                                        <input type="tel" class="form-control" id="telephone" name="telephone" value="{{telephone}}" required>
+                                        <input type="tel" class="form-control" id="telephone" name="telephone" value="{{telephone}}" placeholder="7X XXX XX XX" required>
+                                        <div class="invalid-feedback">{{error_telephone}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
                                         <input type="email" class="form-control" id="email" name="email" value="{{email}}" required>
+                                        <div class="invalid-feedback">{{error_email}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="lieu_residence" class="form-label">Lieu de résidence au Sénégal <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="lieu_residence" name="lieu_residence" value="{{lieu_residence}}" required>
+                                        <div class="invalid-feedback">{{error_lieu_residence}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="annee_arrivee" class="form-label">Année d'arrivée au Sénégal</label>
@@ -89,6 +103,7 @@
                                             <option value="En résidence universitaire" {{type_logement_sel_En résidence universitaire}}>En résidence universitaire</option>
                                             <option value="Autre" {{type_logement_sel_Autre}}>Autre</option>
                                         </select>
+                                        <div class="invalid-feedback">{{error_type_logement}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="precision_logement" class="form-label">Précisions sur le logement</label>
@@ -101,7 +116,15 @@
                                 <div class="row g-3 mb-4">
                                     <div class="col-md-6">
                                         <label for="etablissement" class="form-label">Établissement <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="etablissement" name="etablissement" value="{{etablissement}}" required>
+                                        <select class="form-select" id="etablissement" name="etablissement" required>
+                                            <option value="" disabled selected>Sélectionnez votre établissement</option>
+                                            {{etablissement_options}}
+                                        </select>
+                                        <div class="invalid-feedback">{{error_etablissement}}</div>
+                                    </div>
+                                    <div class="col-md-6" id="autre_etablissement_wrapper" style="display: none;">
+                                        <label for="autre_etablissement" class="form-label">Précisez l'établissement <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="autre_etablissement" name="autre_etablissement">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="statut" class="form-label">Statut <span class="text-danger">*</span></label>
@@ -111,14 +134,31 @@
                                             <option value="Étudiant" {{statut_sel_Étudiant}}>Étudiant</option>
                                             <option value="Stagiaire" {{statut_sel_Stagiaire}}>Stagiaire</option>
                                         </select>
+                                        <div class="invalid-feedback">{{error_statut}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="domaine_etudes" class="form-label">Domaine d'études <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="domaine_etudes" name="domaine_etudes" value="{{domaine_etudes}}" required>
+                                        <select class="form-select" id="domaine_etudes" name="domaine_etudes" required>
+                                            <option value="" disabled selected>Sélectionnez votre domaine d'études</option>
+                                            {{domaine_etudes_options}}
+                                        </select>
+                                        <div class="invalid-feedback">{{error_domaine_etudes}}</div>
+                                    </div>
+                                    <div class="col-md-6" id="autre_domaine_etudes_wrapper" style="display: none;">
+                                        <label for="autre_domaine_etudes" class="form-label">Précisez le domaine d'études <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="autre_domaine_etudes" name="autre_domaine_etudes">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="niveau_etudes" class="form-label">Niveau d'études <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="niveau_etudes" name="niveau_etudes" value="{{niveau_etudes}}" required>
+                                        <select class="form-select" id="niveau_etudes" name="niveau_etudes" required>
+                                            <option value="" disabled selected>Sélectionnez votre niveau d'études</option>
+                                            {{niveau_etudes_options}}
+                                        </select>
+                                        <div class="invalid-feedback">{{error_niveau_etudes}}</div>
+                                    </div>
+                                    <div class="col-md-6" id="autre_niveau_etudes_wrapper" style="display: none;">
+                                        <label for="autre_niveau_etudes" class="form-label">Précisez le niveau d'études <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="autre_niveau_etudes" name="autre_niveau_etudes">
                                     </div>
                                 </div>
 
@@ -154,6 +194,40 @@
     <!-- Scripts personnalisés -->
     <script src="assets/js/main.js"></script>
     <script src="assets/js/validation.js"></script>
+    <script>
+        document.getElementById('etablissement').addEventListener('change', function () {
+            var wrapper = document.getElementById('autre_etablissement_wrapper');
+            if (this.value === 'Autre') {
+                wrapper.style.display = 'block';
+                document.getElementById('autre_etablissement').setAttribute('required', 'required');
+            } else {
+                wrapper.style.display = 'none';
+                document.getElementById('autre_etablissement').removeAttribute('required');
+            }
+        });
+
+        document.getElementById('domaine_etudes').addEventListener('change', function () {
+            var wrapper = document.getElementById('autre_domaine_etudes_wrapper');
+            if (this.value === 'Autre') {
+                wrapper.style.display = 'block';
+                document.getElementById('autre_domaine_etudes').setAttribute('required', 'required');
+            } else {
+                wrapper.style.display = 'none';
+                document.getElementById('autre_domaine_etudes').removeAttribute('required');
+            }
+        });
+
+        document.getElementById('niveau_etudes').addEventListener('change', function () {
+            var wrapper = document.getElementById('autre_niveau_etudes_wrapper');
+            if (this.value === 'Autre') {
+                wrapper.style.display = 'block';
+                document.getElementById('autre_niveau_etudes').setAttribute('required', 'required');
+            } else {
+                wrapper.style.display = 'none';
+                document.getElementById('autre_niveau_etudes').removeAttribute('required');
+            }
+        });
+    </script>
 </body>
 
 </html>

@@ -37,6 +37,7 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     $(document).ready(function() {
       $('#usersTable').DataTable({
@@ -44,6 +45,26 @@
         order: [[0, 'desc']],
         pageLength: 10,
         responsive: true
+      });
+
+      // Handle delete confirmation
+      $('#usersTable').on('click', '.btn-delete-user', function(e) {
+        e.preventDefault();
+        var form = $(this).closest('form');
+        Swal.fire({
+          title: 'Êtes-vous sûr?',
+          text: "Cette action est irréversible!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Oui, supprimer!',
+          cancelButtonText: 'Annuler'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            form.submit();
+          }
+        });
       });
     });
   </script>

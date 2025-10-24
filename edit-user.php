@@ -26,33 +26,45 @@ if (!$user) {
     exit();
 }
 
-$error = '';
+$errors = [];
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $formData = [
         'username' => trim($_POST['username'] ?? ''),
         'email' => trim($_POST['email'] ?? ''),
-        'role' => $_POST['role'] ?? 'utilisateur',
+        'role' => $_POST['role'] ?? 'user',
         'est_actif' => $_POST['est_actif'] ?? 0
     ];
 
-    $sql = "UPDATE users SET 
-        username = :username, 
-        email = :email, 
-        role = :role, 
-        est_actif = :est_actif
-    WHERE id_user = :id_user";
+    if (empty($formData['username'])) {
+        $errors['username'] = 'Le nom d\'utilisateur est requis.';
+    }
 
-    $stmt = $conn->prepare($sql);
-    $stmt->execute(array_merge($formData, ['id_user' => $user_id_to_edit]));
+    if (empty($formData['email'])) {
+        $errors['email'] = 'L\'adresse email est requise.';
+    } elseif (!filter_var($formData['email'], FILTER_VALIDATE_EMAIL)) {
+        $errors['email'] = 'L\'adresse email n\'est pas valide.';
+    }
 
-    $success = 'Les informations de l\'utilisateur ont été mises à jour avec succès.';
+    if (empty($errors)) {
+        $sql = "UPDATE users SET 
+            username = :username, 
+            email = :email, 
+            role = :role, 
+            est_actif = :est_actif
+        WHERE id_user = :id_user";
 
-    // Refresh user data
-    $stmt = $conn->prepare("SELECT * FROM users WHERE id_user = ?");
-    $stmt->execute([$user_id_to_edit]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt = $conn->prepare($sql);
+        $stmt->execute(array_merge($formData, ['id_user' => $user_id_to_edit]));
+
+        $success = 'Les informations de l\'utilisateur ont été mises à jour avec succès.';
+
+        // Refresh user data
+        $stmt = $conn->prepare("SELECT * FROM users WHERE id_user = ?");
+        $stmt->execute([$user_id_to_edit]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }
 
 $role = $_SESSION['role'];
@@ -78,7 +90,7 @@ $sel = function ($value, $options) {
 };
 
 $contentHtml = strtr($template, [
-    '{{feedback_block}}' => $success ? '<div class="alert alert-success">' . $success . '</div>' : ($error ? '<div class="alert alert-danger">' . $error . '</div>' : ''),
+    '{{feedback_block}}' => $success ? '<div class="alert alert-success">' . $success . '</div>' : (isset($errors['form']) ? '<div class="alert alert-danger">' . $errors['form'] . '</div>' : ''),
     '{{form_action}}' => 'edit-user.php?id=' . $user_id_to_edit,
     '{{csrf_token}}' => generateCsrfToken(),
     '{{username}}' => htmlspecialchars($user['username'] ?? '', ENT_QUOTES, 'UTF-8'),
@@ -87,6 +99,8 @@ $contentHtml = strtr($template, [
     '{{role_sel_user}}' => $sel('user', $user['role']),
     '{{est_actif_sel_1}}' => $sel(1, $user['est_actif']),
     '{{est_actif_sel_0}}' => $sel(0, $user['est_actif']),
+    '{{error_username}}' => $errors['username'] ?? '',
+    '{{error_email}}' => $errors['email'] ?? '',
 ]);
 
 $layoutTpl = file_get_contents($layoutPath);

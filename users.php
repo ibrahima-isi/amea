@@ -167,7 +167,7 @@ foreach ($users as $user) {
                 . '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') . '">'
                 . '<input type="hidden" name="action" value="delete">'
                 . '<input type="hidden" name="id" value="' . (int)$user['id_user'] . '">'
-                . '<button type="submit" class="btn btn-sm btn-danger" title="Supprimer" onclick="return confirm(\'Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.\');">'
+                . '<button type="submit" class="btn btn-sm btn-danger btn-delete-user" title="Supprimer">'
                 . '<i class="fas fa-trash"></i>'
                 . '</button>'
                 . '</form>'
