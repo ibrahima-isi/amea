@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $formData = [
         'username' => trim($_POST['username'] ?? ''),
         'email' => trim($_POST['email'] ?? ''),
-        'role' => $_POST['role'] ?? 'user',
+        'role' => $_POST['role'] ?? 'utilisateur',
         'est_actif' => $_POST['est_actif'] ?? 0
     ];
 
