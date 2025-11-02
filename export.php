@@ -55,7 +55,9 @@ $allowedExportFields = [
 // Traitement de l'exportation
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-        $error = "La session a expiré. Veuillez soumettre à nouveau le formulaire.";
+    setFlashMessage('error', 'La session a expiré. Veuillez réessayer.');
+        header('Location: export.php');
+        exit();
     } else {
         $exportFormat = $_POST['export_format'] ?? 'csv';
         $exportFormat = in_array($exportFormat, ['csv', 'excel', 'json'], true) ? $exportFormat : 'csv';
@@ -103,7 +105,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
                 $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 if (count($data) === 0) {
-                    $error = "Aucune donnée ne correspond aux critères sélectionnés.";
+                    setFlashMessage('warning', 'Aucune donnée ne correspond aux critères sélectionnés.');
+                    header('Location: export.php');
+                    exit();
                 } else {
                     $headers = array_keys($data[0]);
 
@@ -221,9 +225,26 @@ $contentHtml = strtr($contentTpl, [
     '{{niveau_options}}' => $niveauOptions,
 ]);
 
+$flash = getFlashMessage();
+$flash_script = '';
+if ($flash) {
+    $flash_script = "
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: '{$flash['type']}',
+                    title: 'Notification',
+                    text: '{$flash['message']}',
+                });
+            });
+        </script>
+    ";
+}
+
 // Layout
 $layoutTpl = file_get_contents($layoutPath);
 $output = strtr($layoutTpl, [
+    '{{flash_script}}' => $flash_script,
     '{{title}}' => 'AEESGS - Exporter les données',
     '{{sidebar}}' => $sidebarHtml,
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [

@@ -64,82 +64,26 @@ if (!is_file($layoutPath) || !is_file($contentPath)) { http_response_code(500); 
 
 ob_start(); include 'includes/sidebar.php'; $sidebarHtml = ob_get_clean();
 
-// Flash block
 $flash = getFlashMessage();
-$flashBlock = '';
+$flash_script = '';
 if ($flash) {
-    $class = getFlashMessageClass($flash['type']);
-    $flashBlock = '<div class="alert ' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . ' alert-dismissible fade show" role="alert">'
-        . $flash['message'] . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+    $flash_script = "
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: '{$flash['type']}',
+                    title: 'Notification',
+                    text: '{$flash['message']}',
+                });
+            });
+        </script>
+    ";
 }
-
-// Construire le bloc de détails
-$details = '';
-$details .= '<div class="row">';
-$details .= '<div class="col-md-4 mb-4">'; // Photo column
-if (!empty($student['photo']) && file_exists($student['photo'])) {
-    $modalId = 'photoModal' . $student['id_personne'];
-    $details .= '<a href="#" data-bs-toggle="modal" data-bs-target="#' . $modalId . '">';
-    $details .= '<img src="' . htmlspecialchars($student['photo'], ENT_QUOTES, 'UTF-8') . '" alt="Photo de l\'étudiant" class="img-fluid rounded shadow">';
-    $details .= '</a>';
-
-    // Add the modal HTML
-    $details .= '<div class="modal fade" id="' . $modalId . '" tabindex="-1" aria-labelledby="' . $modalId . 'Label" aria-hidden="true">';
-    $details .= '<div class="modal-dialog modal-dialog-centered modal-lg">';
-    $details .= '<div class="modal-content">';
-    $details .= '<div class="modal-header">';
-    $details .= '<h5 class="modal-title" id="' . $modalId . 'Label">' . htmlspecialchars($student['prenom'] . ' ' . $student['nom'], ENT_QUOTES, 'UTF-8') . '</h5>';
-    $details .= '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
-    $details .= '</div>';
-    $details .= '<div class="modal-body text-center">';
-    $details .= '<img src="' . htmlspecialchars($student['photo'], ENT_QUOTES, 'UTF-8') . '" class="img-fluid">';
-    $details .= '</div>';
-    $details .= '</div>';
-    $details .= '</div>';
-    $details .= '</div>';
-} else {
-    $details .= '<img src="assets/img/placeholder.png" alt="Photo de l\'étudiant" class="img-fluid rounded shadow">';
-}
-$details .= '</div>';
-$details .= '<div class="col-md-8 mb-4">'; // Details column
-$details .= '<div class="card shadow h-100"><div class="card-header"><h5 class="m-0">Informations de base</h5></div><div class="card-body">'
-    . '<p><strong>Nom:</strong> ' . htmlspecialchars($student['nom'], ENT_QUOTES, 'UTF-8') . '</p>'
-    . '<p><strong>Prénom:</strong> ' . htmlspecialchars($student['prenom'], ENT_QUOTES, 'UTF-8') . '</p>'
-    . '<p><strong>Sexe:</strong> ' . htmlspecialchars($student['sexe'], ENT_QUOTES, 'UTF-8') . '</p>'
-    . '<p><strong>Âge:</strong> ' . htmlspecialchars($student['age'], ENT_QUOTES, 'UTF-8') . '</p>'
-    . '<p><strong>Date de naissance:</strong> ' . htmlspecialchars($student['date_naissance'], ENT_QUOTES, 'UTF-8') . '</p>'
-    . '</div></div>';
-$details .= '</div>'; // end details column
-$details .= '</div>'; // end row
-
-$details .= '<div class="row">';
-$details .= '<div class="col-md-6 mb-4"><div class="card shadow h-100"><div class="card-header"><h5 class="m-0">Contact</h5></div><div class="card-body">'
-    . '<p><i class="fas fa-envelope me-2"></i>' . htmlspecialchars($student['email'], ENT_QUOTES, 'UTF-8') . '</p>'
-    . '<p><i class="fas fa-phone me-2"></i>' . htmlspecialchars($student['telephone'], ENT_QUOTES, 'UTF-8') . '</p>'
-    . '<p><strong>Résidence:</strong> ' . htmlspecialchars($student['lieu_residence'], ENT_QUOTES, 'UTF-8') . '</p>'
-    . '</div></div></div>';
-$details .= '<div class="col-md-6 mb-4"><div class="card shadow h-100"><div class="card-header"><h5 class="m-0">Parcours académique</h5></div><div class="card-body">'
-    . '<p><strong>Établissement:</strong> ' . htmlspecialchars($student['etablissement'], ENT_QUOTES, 'UTF-8') . '</p>'
-    . '<p><strong>Statut:</strong> ' . htmlspecialchars($student['statut'], ENT_QUOTES, 'UTF-8') . '</p>'
-    . '<p><strong>Domaine d\'études:</strong> ' . htmlspecialchars($student['domaine_etudes'], ENT_QUOTES, 'UTF-8') . '</p>'
-    . '<p><strong>Niveau d\'études:</strong> ' . htmlspecialchars($student['niveau_etudes'], ENT_QUOTES, 'UTF-8') . '</p>'
-    . '</div></div></div>';
-$details .= '</div>';
-
-// Contenu
-$contentTpl = file_get_contents($contentPath);
-$contentHtml = strtr($contentTpl, [
-    '{{flash_block}}' => $flashBlock,
-    '{{details_block}}' => $details,
-    '{{student_id}}' => (string)$student_id,
-    '{{display_name}}' => htmlspecialchars($student['prenom'] . ' ' . $student['nom'], ENT_QUOTES, 'UTF-8'),
-    '{{email}}' => htmlspecialchars($student['email'], ENT_QUOTES, 'UTF-8'),
-    '{{csrf_token}}' => htmlspecialchars(generateCsrfToken(), ENT_QUOTES, 'UTF-8'),
-]);
 
 // Layout
 $layoutTpl = file_get_contents($layoutPath);
 $output = strtr($layoutTpl, [
+    '{{flash_script}}' => $flash_script,
     '{{title}}' => 'AEESGS - Détails de ' . htmlspecialchars($student['prenom'] . ' ' . $student['nom'], ENT_QUOTES, 'UTF-8'),
     '{{sidebar}}' => $sidebarHtml,
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [

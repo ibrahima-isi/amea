@@ -20,38 +20,38 @@
         <h5 class="m-0 font-weight-bold">Informations de l'utilisateur</h5>
       </div>
       <div class="card-body">
-        <form method="POST" action="{{form_action}}">
+        <form method="POST" action="{{form_action}}" novalidate>
           <input type="hidden" name="csrf_token" value="{{csrf_token}}">
           <div class="row g-3">
             <div class="col-md-6">
               <label for="username" class="form-label">Nom d'utilisateur</label>
-              <input type="text" class="form-control" id="username" name="username" value="{{username}}" required>
-              <div class="invalid-feedback">{{error_username}}</div>
+              <input type="text" class="form-control {{is_invalid_username}}" id="username" name="username" value="{{username}}" required>
+              <div class="text-danger">{{error_username}}</div>
             </div>
             <div class="col-md-6">
               <label for="email" class="form-label">Email</label>
-              <input type="email" class="form-control" id="email" name="email" value="{{email}}" required>
-                <div class="invalid-feedback">{{error_email}}</div>
+              <input type="email" class="form-control {{is_invalid_email}}" id="email" name="email" value="{{email}}" required>
+                <div class="text-danger">{{error_email}}</div>
             </div>
             <div class="col-md-6">
               <label for="nom" class="form-label">Nom</label>
-              <input type="text" class="form-control" id="nom" name="nom" value="{{nom}}" required>
-                <div class="invalid-feedback">{{error_nom}}</div>
+              <input type="text" class="form-control {{is_invalid_nom}}" id="nom" name="nom" value="{{nom}}" required>
+                <div class="text-danger">{{error_nom}}</div>
             </div>
             <div class="col-md-6">
               <label for="prenom" class="form-label">Prénom</label>
-              <input type="text" class="form-control" id="prenom" name="prenom" value="{{prenom}}" required>
-                <div class="invalid-feedback">{{error_prenom}}</div>
+              <input type="text" class="form-control {{is_invalid_prenom}}" id="prenom" name="prenom" value="{{prenom}}" required>
+                <div class="text-danger">{{error_prenom}}</div>
             </div>
             <div class="col-md-6">
               <label for="password" class="form-label">Mot de passe</label>
-              <input type="password" class="form-control" id="password" name="password" required>
-                <div class="invalid-feedback">{{error_password}}</div>
+              <input type="password" class="form-control {{is_invalid_password}}" id="password" name="password" required>
+                <div class="text-danger">{{error_password}}</div>
             </div>
             <div class="col-md-6">
               <label for="confirm_password" class="form-label">Confirmer le mot de passe</label>
-              <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                <div class="invalid-feedback">{{error_confirm_password}}</div>
+              <input type="password" class="form-control {{is_invalid_confirm_password}}" id="confirm_password" name="confirm_password" required>
+                <div class="text-danger">{{error_confirm_password}}</div>
             </div>
             <div class="col-md-6">
               <label for="role" class="form-label">Rôle</label>

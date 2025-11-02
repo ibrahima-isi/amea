@@ -5,12 +5,18 @@
  * Fichier: users.php
  */
 
-// Démarrer la session
 require_once 'config/session.php';
+require_once 'functions/utility-functions.php';
 
-// Vérifier si l'utilisateur est connecté et a les droits d'administrateur
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+// Vérifier si l'utilisateur est connecté
+if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
+    exit();
+}
+
+if ($_SESSION['role'] !== 'admin') {
+    setFlashMessage('error', 'Accès non autorisé.');
+    header("Location: dashboard.php");
     exit();
 }
 
@@ -18,7 +24,6 @@ $role = $_SESSION['role'];
 
 // Inclure la configuration de la base de données
 require_once 'config/database.php';
-require_once 'functions/utility-functions.php';
 
 // Initialiser les variables
 $message = "";
@@ -139,13 +144,14 @@ if (!empty($message)) {
 // Rows
 $rows = '';
 foreach ($users as $user) {
+    $role_display = ($user['role'] === 'admin') ? 'Administrateur' : 'Utilisateur';
     $rows .= '<tr>'
         . '<td>' . (int)$user['id_user'] . '</td>'
         . '<td>' . htmlspecialchars($user['username'], ENT_QUOTES, 'UTF-8') . '</td>'
         . '<td>' . htmlspecialchars($user['nom'], ENT_QUOTES, 'UTF-8') . '</td>'
         . '<td>' . htmlspecialchars($user['prenom'], ENT_QUOTES, 'UTF-8') . '</td>'
         . '<td>' . htmlspecialchars($user['email'], ENT_QUOTES, 'UTF-8') . '</td>'
-        . '<td><span class="badge ' . ($user['role'] == 'admin' ? 'bg-success' : 'bg-secondary') . '">' . htmlspecialchars($user['role'], ENT_QUOTES, 'UTF-8') . '</span></td>'
+        . '<td><span class="badge ' . ($user['role'] == 'admin' ? 'bg-success' : 'bg-secondary') . '">' . htmlspecialchars($role_display, ENT_QUOTES, 'UTF-8') . '</span></td>'
         . '<td><span class="badge ' . ($user['est_actif'] ? 'bg-success' : 'bg-danger') . '">' . ($user['est_actif'] ? 'Actif' : 'Inactif') . '</span></td>'
         . '<td>' . htmlspecialchars($user['derniere_connexion'] ?? 'Jamais', ENT_QUOTES, 'UTF-8') . '</td>'
         . '<td><div class="btn-group" role="group">'
@@ -184,10 +190,27 @@ $contentHtml = strtr($contentTpl, [
 ]);
 
 // Layout
+$flash = getFlashMessage();
+$flash_script = '';
+if ($flash) {
+    $flash_script = "
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: '{$flash['type']}',
+                    title: 'Succès',
+                    text: '{$flash['message']}',
+                });
+            });
+        </script>
+    ";
+}
+
 $layoutTpl = file_get_contents($layoutPath);
 $output = strtr($layoutTpl, [
     '{{title}}' => 'AEESGS - Gestion des utilisateurs',
     '{{sidebar}}' => $sidebarHtml,
+    '{{flash_script}}' => $flash_script,
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [
         '{{user_fullname}}' => htmlspecialchars($_SESSION['prenom'] . ' ' . $_SESSION['nom'], ENT_QUOTES, 'UTF-8'),
     ]),

@@ -1,13 +1,20 @@
 <?php
 
 require_once 'config/session.php';
-require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
+
+if ($_SESSION['role'] !== 'admin') {
+    setFlashMessage('error', 'Accès non autorisé.');
+    header('Location: dashboard.php');
+    exit();
+}
+
+require_once 'config/database.php';
 
 $errors = [];
 $success = '';
@@ -15,7 +22,9 @@ $formData = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-        $errors['form'] = "La session a expiré. Veuillez soumettre à nouveau le formulaire.";
+    setFlashMessage('error', 'La session a expiré. Veuillez réessayer.');
+        header('Location: add-user.php');
+        exit();
     } else {
         $formData = [
             'username' => trim($_POST['username'] ?? ''),
@@ -81,8 +90,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'est_actif' => $formData['est_actif']
                 ]);
 
-                $success = 'L\'utilisateur a été ajouté avec succès.';
-                $formData = []; // Clear form data after successful insertion
+                setFlashMessage('success', 'L\'utilisateur a été ajouté avec succès.');
+                header('Location: users.php');
+                exit();
             }
         }
     }
@@ -110,8 +120,19 @@ $sel = function ($value, $options) {
     return in_array($value, (array)$options) ? 'selected' : '';
 };
 
+$feedback_block = '';
+if (!empty($errors)) {
+    $feedback_block = '<div class="alert alert-danger">Veuillez corriger les erreurs ci-dessous.</div>';
+}
+
+$validation_script = '';
+if (!empty($errors)) {
+    $errors_json = json_encode($errors);
+    $validation_script = "<script>const validationErrors = ".$errors_json.";</script>";
+}
+
 $contentHtml = strtr($template, [
-    '{{feedback_block}}' => $success ? '<div class="alert alert-success">' . $success . '</div>' : (isset($errors['form']) ? '<div class="alert alert-danger">' . $errors['form'] . '</div>' : ''),
+    '{{feedback_block}}' => $feedback_block,
     '{{form_action}}' => 'add-user.php',
     '{{csrf_token}}' => generateCsrfToken(),
     '{{username}}' => htmlspecialchars($formData['username'] ?? '', ENT_QUOTES, 'UTF-8'),
@@ -128,10 +149,33 @@ $contentHtml = strtr($template, [
     '{{error_prenom}}' => $errors['prenom'] ?? '',
     '{{error_password}}' => $errors['password'] ?? '',
     '{{error_confirm_password}}' => $errors['confirm_password'] ?? '',
+    '{{is_invalid_username}}' => isset($errors['username']) ? 'is-invalid' : '',
+    '{{is_invalid_email}}' => isset($errors['email']) ? 'is-invalid' : '',
+    '{{is_invalid_nom}}' => isset($errors['nom']) ? 'is-invalid' : '',
+    '{{is_invalid_prenom}}' => isset($errors['prenom']) ? 'is-invalid' : '',
+    '{{is_invalid_password}}' => isset($errors['password']) ? 'is-invalid' : '',
+    '{{is_invalid_confirm_password}}' => isset($errors['confirm_password']) ? 'is-invalid' : '',
 ]);
+
+$flash = getFlashMessage();
+$flash_script = '';
+if ($flash) {
+    $flash_script = "
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: '{$flash['type']}',
+                    title: 'Succès',
+                    text: '{$flash['message']}',
+                });
+            });
+        </script>
+    ";
+}
 
 $layoutTpl = file_get_contents($layoutPath);
 $output = strtr($layoutTpl, [
+    '{{flash_script}}' => $flash_script,
     '{{title}}' => 'AEESGS - Ajouter un utilisateur',
     '{{sidebar}}' => $sidebarHtml,
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [

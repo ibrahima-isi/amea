@@ -20,18 +20,18 @@
         <h5 class="m-0 font-weight-bold">Informations de l'utilisateur</h5>
       </div>
       <div class="card-body">
-        <form method="POST" action="{{form_action}}">
+        <form method="POST" action="{{form_action}}" novalidate>
           <input type="hidden" name="csrf_token" value="{{csrf_token}}">
           <div class="row g-3">
             <div class="col-md-6">
               <label for="username" class="form-label">Nom d'utilisateur</label>
-              <input type="text" class="form-control" id="username" name="username" value="{{username}}" required>
-              <div class="invalid-feedback">{{error_username}}</div>
+              <input type="text" class="form-control {{is_invalid_username}}" id="username" name="username" value="{{username}}" required>
+              <div class="text-danger">{{error_username}}</div>
             </div>
             <div class="col-md-6">
               <label for="email" class="form-label">Email</label>
-              <input type="email" class="form-control" id="email" name="email" value="{{email}}" required>
-              <div class="invalid-feedback">{{error_email}}</div>
+              <input type="email" class="form-control {{is_invalid_email}}" id="email" name="email" value="{{email}}" required>
+              <div class="text-danger">{{error_email}}</div>
             </div>
             <div class="col-md-6">
               <label for="role" class="form-label">Rôle</label>

@@ -64,10 +64,27 @@ $tpl = file_get_contents($templatePath);
 $headerTpl = file_get_contents(__DIR__ . '/templates/partials/header.html');
 $footerTpl = file_get_contents(__DIR__ . '/templates/partials/footer.html');
 
+$flash = getFlashMessage();
+$flash_script = '';
+if ($flash) {
+    $flash_script = "
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: '{$flash['type']}',
+                    title: 'Notification',
+                    text: '{$flash['message']}',
+                });
+            });
+        </script>
+    ";
+}
+
 $headerHtml = strtr($headerTpl, [
     '{{index_active}}' => '',
     '{{register_active}}' => '',
     '{{login_active}}' => '',
+    '{{flash_script}}' => $flash_script,
 ]);
 
 $output = strtr($tpl, [
