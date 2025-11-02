@@ -67,10 +67,27 @@ $contentHtml = strtr($contentTpl, [
     '{{school_values}}' => implode(', ', $values),
 ]);
 
+$flash = getFlashMessage();
+$flash_script = '';
+if ($flash) {
+    $flash_script = "
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: '{$flash['type']}',
+                    title: 'Succès',
+                    text: '{$flash['message']}',
+                });
+            });
+        </script>
+    ";
+}
+
 $layoutTpl = file_get_contents($layoutPath);
 $output = strtr($layoutTpl, [
     '{{title}}' => 'AEESGS - Tableau de Bord',
     '{{sidebar}}' => $sidebarHtml,
+    '{{flash_script}}' => $flash_script,
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [
         '{{user_fullname}}' => htmlspecialchars($prenom . ' ' . $nom, ENT_QUOTES, 'UTF-8'),
     ]),

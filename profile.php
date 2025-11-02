@@ -45,7 +45,9 @@ $csrfToken = generateCsrfToken();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-        $error = "La session a expiré. Veuillez réessayer.";
+    setFlashMessage('error', 'La session a expiré. Veuillez réessayer.');
+        header('Location: profile.php');
+        exit();
     } elseif (isset($_POST['update_profile'])) {
         $newNom = trim($_POST['nom'] ?? '');
         $newPrenom = trim($_POST['prenom'] ?? '');
@@ -83,8 +85,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $stmt->execute();
                     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                    $success = "Votre profil a été mis à jour avec succès.";
-                    $error = "";
+                    setFlashMessage('success', 'Votre profil a été mis à jour avec succès.');
+                    header('Location: profile.php');
+                    exit();
                 }
             } catch (PDOException $e) {
                 logError("Erreur lors de la mise à jour du profil utilisateur", $e);
@@ -113,8 +116,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $updateStmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
                     $updateStmt->execute();
 
-                    $success = "Votre mot de passe a été changé avec succès.";
-                    $error = "";
+                    setFlashMessage('success', 'Votre mot de passe a été changé avec succès.');
+                    header('Location: profile.php');
+                    exit();
                 } else {
                     $error = "Le mot de passe actuel est incorrect.";
                 }
@@ -168,9 +172,26 @@ $contentHtml = strtr($contentTpl, [
     '{{csrf_token}}' => htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'),
 ]);
 
+$flash = getFlashMessage();
+$flash_script = '';
+if ($flash) {
+    $flash_script = "
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: '{$flash['type']}',
+                    title: 'Notification',
+                    text: '{$flash['message']}',
+                });
+            });
+        </script>
+    ";
+}
+
 // Layout
 $layoutTpl = file_get_contents($layoutPath);
 $output = strtr($layoutTpl, [
+    '{{flash_script}}' => $flash_script,
     '{{title}}' => 'AEESGS - Profil Administrateur',
     '{{sidebar}}' => $sidebarHtml,
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [

@@ -25,7 +25,9 @@ $csrfToken = generateCsrfToken();
 // Traitement du formulaire lors de la soumission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-        $error = "La session a expiré. Veuillez réessayer.";
+    setFlashMessage('error', 'La session a expiré. Veuillez réessayer.');
+        header('Location: login.php');
+        exit();
     } else {
         $username = trim($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
@@ -97,6 +99,22 @@ if (!empty($error)) {
         . '</div>';
 }
 
+$flash = getFlashMessage();
+$flash_script = '';
+if ($flash) {
+    $flash_script = "
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: '{$flash['type']}',
+                    title: 'Succès',
+                    text: '{$flash['message']}',
+                });
+            });
+        </script>
+    ";
+}
+
 // Inject header/footer partials
 $headerTpl = file_get_contents(__DIR__ . '/templates/partials/header.html');
 $footerTpl = file_get_contents(__DIR__ . '/templates/partials/footer.html');
@@ -104,6 +122,7 @@ $headerHtml = strtr($headerTpl, [
     '{{index_active}}' => '',
     '{{register_active}}' => '',
     '{{login_active}}' => 'active',
+    '{{flash_script}}' => $flash_script,
 ]);
 
 $output = strtr($template, [

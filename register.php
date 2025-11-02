@@ -12,13 +12,17 @@ require_once 'functions/utility-functions.php';
 require_once 'config/session.php';
 
 // Initialiser les variables
-$errors = [];
-$formData = [];
+$errors = $_SESSION['form_errors'] ?? [];
+$formData = $_SESSION['form_data'] ?? [];
+unset($_SESSION['form_errors']);
+unset($_SESSION['form_data']);
 
 // Traitement du formulaire lors de la soumission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-        $errors['form'] = "La session a expiré. Veuillez soumettre à nouveau le formulaire.";
+        setFlashMessage('error', 'La session a expiré. Veuillez réessayer.');
+        header('Location: register.php');
+        exit();
     } else {
         // Récupérer les données du formulaire
         $formData = [
@@ -51,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $photoSize = $_FILES['photo']['size'];
             $photoExtension = strtolower(pathinfo($photoName, PATHINFO_EXTENSION));
 
-            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf'];
             if (in_array($photoExtension, $allowedExtensions)) {
                 if ($photoSize < 2000000) { // 2MB
                     $newFileName = uniqid('', true) . '.' . $photoExtension;
@@ -65,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $errors['photo'] = "L'image est trop volumineuse (max 2MB).";
                 }
             } else {
-                $errors['photo'] = "Le format de l'image n'est pas supporté (jpg, jpeg, png, gif).";
+                $errors['photo'] = "Le format du fichier n\'est pas supporté (jpg, jpeg, png, gif, pdf).";
             }
         }
         $formData['photo'] = $photoPath;
@@ -124,12 +128,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $errors['telephone'] = "Le numéro de téléphone doit contenir exactement 9 chiffres.";
         }
 
-        // Calculer l'âge à partir de la date de naissance
-        if (empty($errors) && !empty($formData['date_naissance'])) {
-            $dateNaissance = new DateTime($formData['date_naissance']);
-            $today = new DateTime();
-            $age = $dateNaissance->diff($today)->y;
-            $formData['age'] = $age;
+        // Si des erreurs sont trouvées, rediriger avec les erreurs
+        if (!empty($errors)) {
+            $_SESSION['form_data'] = $formData;
+            $_SESSION['form_errors'] = $errors;
+            setFlashMessage('error', 'Veuillez corriger les erreurs ci-dessous.');
+            header('Location: register.php');
+            exit();
         }
 
         // Si aucune erreur, enregistrer les données dans la base de données
@@ -202,7 +207,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $stmt->bindParam(':photo', $formData['photo']);
 
                     $stmt->execute();
-                    $_SESSION['success_message'] = "Votre enregistrement a été effectué avec succès ! Merci pour votre participation.";
+                    setFlashMessage('success', 'Votre enregistrement a été effectué avec succès ! Merci pour votre participation.');
                     header('Location: index.php');
                     exit();
                 }
@@ -237,17 +242,27 @@ $stmt = $conn->query("SELECT nom FROM niveaux_etudes ORDER BY nom ASC");
 $niveaux = $stmt->fetchAll(PDO::FETCH_COLUMN);
 $niveaux[] = 'Autre';
 
-// Construire le bloc de feedback
-$feedback = '';
-if (!empty($errors['form'])) {
-    $feedback = '<div class="alert alert-danger">'
-        . '<i class="fas fa-exclamation-triangle"></i> '
-        . htmlspecialchars($errors['form'], ENT_QUOTES, 'UTF-8')
-        . '</div>';
+// Rendu du template
+$flash = getFlashMessage();
+$flash_script = '';
+if ($flash) {
+    $flash_script = "
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: '{$flash['type']}',
+                    title: 'Succès',
+                    text: '{$flash['message']}',
+                });
+            });
+        </script>
+    ";
 }
 
-// Helper pour attribut selected
-$sel = function ($cond) { return $cond ? 'selected' : ''; };
+$feedback = '';
+if (!empty($errors)) {
+    // This is now handled by the SweetAlert flash message
+}
 
 $tpl = file_get_contents($templatePath);
 
@@ -258,6 +273,7 @@ $headerHtml = strtr($headerTpl, [
     '{{index_active}}' => '',
     '{{register_active}}' => 'active',
     '{{login_active}}' => '',
+    '{{flash_script}}' => $flash_script,
 ]);
 
 $etablissementOptions = '';
@@ -278,10 +294,10 @@ foreach ($niveaux as $niveau) {
     $niveauOptions .= "<option value=\"$niveau\" $selected>$niveau</option>";
 }
 
-$output = strtr($tpl, [
+$replacements = [
     '{{header}}' => $headerHtml,
     '{{footer}}' => $footerTpl,
-    '{{feedback_block}}' => $feedback,
+'{{feedback_block}}' => $feedback,
     '{{form_action}}' => htmlspecialchars($_SERVER['PHP_SELF'] ?? 'register.php', ENT_QUOTES, 'UTF-8'),
     '{{csrf_token}}' => htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'),
     '{{nom}}' => htmlspecialchars($formData['nom'] ?? '', ENT_QUOTES, 'UTF-8'),
@@ -297,22 +313,18 @@ $output = strtr($tpl, [
     '{{domaine_etudes_options}}' => $domaineOptions,
     '{{niveau_etudes_options}}' => $niveauOptions,
     '{{projet_apres_formation}}' => htmlspecialchars($formData['projet_apres_formation'] ?? '', ENT_QUOTES, 'UTF-8'),
-    // Sexe selects
-    '{{sexe_sel_none}}' => $sel(empty($formData['sexe'] ?? '')),
-    '{{sexe_sel_Masculin}}' => $sel(($formData['sexe'] ?? '') === 'Masculin'),
-    '{{sexe_sel_Féminin}}' => $sel(($formData['sexe'] ?? '') === 'Féminin'),
-    // Type logement
-    '{{type_logement_sel_none}}' => $sel(empty($formData['type_logement'] ?? '')),
-    '{{type_logement_sel_En famille}}' => $sel(($formData['type_logement'] ?? '') === 'En famille'),
-    '{{type_logement_sel_En colocation}}' => $sel(($formData['type_logement'] ?? '') === 'En colocation'),
-    '{{type_logement_sel_En résidence universitaire}}' => $sel(($formData['type_logement'] ?? '') === 'En résidence universitaire'),
-    '{{type_logement_sel_Autre}}' => $sel(($formData['type_logement'] ?? '') === 'Autre'),
-    // Statut
-    '{{statut_sel_none}}' => $sel(empty($formData['statut'] ?? '')),
-    '{{statut_sel_Élève}}' => $sel(($formData['statut'] ?? '') === 'Élève'),
-    '{{statut_sel_Étudiant}}' => $sel(($formData['statut'] ?? '') === 'Étudiant'),
-    '{{statut_sel_Stagiaire}}' => $sel(($formData['statut'] ?? '') === 'Stagiaire'),
-    // Errors
+    '{{sexe_sel_none}}' => empty($formData['sexe'] ?? '') ? 'selected' : '',
+    '{{sexe_sel_Masculin}}' => ($formData['sexe'] ?? '') === 'Masculin' ? 'selected' : '',
+    '{{sexe_sel_Féminin}}' => ($formData['sexe'] ?? '') === 'Féminin' ? 'selected' : '',
+    '{{type_logement_sel_none}}' => empty($formData['type_logement'] ?? '') ? 'selected' : '',
+    '{{type_logement_sel_En famille}}' => ($formData['type_logement'] ?? '') === 'En famille' ? 'selected' : '',
+    '{{type_logement_sel_En colocation}}' => ($formData['type_logement'] ?? '') === 'En colocation' ? 'selected' : '',
+    '{{type_logement_sel_En résidence universitaire}}' => ($formData['type_logement'] ?? '') === 'En résidence universitaire' ? 'selected' : '',
+    '{{type_logement_sel_Autre}}' => ($formData['type_logement'] ?? '') === 'Autre' ? 'selected' : '',
+    '{{statut_sel_none}}' => empty($formData['statut'] ?? '') ? 'selected' : '',
+    '{{statut_sel_Élève}}' => ($formData['statut'] ?? '') === 'Élève' ? 'selected' : '',
+    '{{statut_sel_Étudiant}}' => ($formData['statut'] ?? '') === 'Étudiant' ? 'selected' : '',
+    '{{statut_sel_Stagiaire}}' => ($formData['statut'] ?? '') === 'Stagiaire' ? 'selected' : '',
     '{{error_nom}}' => $errors['nom'] ?? '',
     '{{error_prenom}}' => $errors['prenom'] ?? '',
     '{{error_numero_identite}}' => $errors['numero_identite'] ?? '',
@@ -327,7 +339,23 @@ $output = strtr($tpl, [
     '{{error_domaine_etudes}}' => $errors['domaine_etudes'] ?? '',
     '{{error_niveau_etudes}}' => $errors['niveau_etudes'] ?? '',
     '{{error_type_logement}}' => $errors['type_logement'] ?? '',
-]);
+    '{{is_invalid_nom}}' => isset($errors['nom']) ? 'is-invalid' : '',
+    '{{is_invalid_prenom}}' => isset($errors['prenom']) ? 'is-invalid' : '',
+    '{{is_invalid_numero_identite}}' => isset($errors['numero_identite']) ? 'is-invalid' : '',
+    '{{is_invalid_sexe}}' => isset($errors['sexe']) ? 'is-invalid' : '',
+    '{{is_invalid_date_naissance}}' => isset($errors['date_naissance']) ? 'is-invalid' : '',
+    '{{is_invalid_photo}}' => isset($errors['photo']) ? 'is-invalid' : '',
+    '{{is_invalid_telephone}}' => isset($errors['telephone']) ? 'is-invalid' : '',
+    '{{is_invalid_email}}' => isset($errors['email']) ? 'is-invalid' : '',
+    '{{is_invalid_lieu_residence}}' => isset($errors['lieu_residence']) ? 'is-invalid' : '',
+    '{{is_invalid_etablissement}}' => isset($errors['etablissement']) ? 'is-invalid' : '',
+    '{{is_invalid_statut}}' => isset($errors['statut']) ? 'is-invalid' : '',
+    '{{is_invalid_domaine_etudes}}' => isset($errors['domaine_etudes']) ? 'is-invalid' : '',
+    '{{is_invalid_niveau_etudes}}' => isset($errors['niveau_etudes']) ? 'is-invalid' : '',
+    '{{is_invalid_type_logement}}' => isset($errors['type_logement']) ? 'is-invalid' : '',
+];
+
+$output = strtr($tpl, $replacements);
 
 echo $output;
 ?>

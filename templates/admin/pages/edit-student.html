@@ -30,38 +30,44 @@
 
                             <p class="text-muted mb-4">Mettez à jour les informations de l'étudiant ci-dessous.</p>
 
-                            <form action="{{form_action}}" method="POST" id="editStudentForm" enctype="multipart/form-data">
+                            <form action="{{form_action}}" method="POST" id="editStudentForm" enctype="multipart/form-data" novalidate>
                                 <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                                 <!-- Informations personnelles -->
                                 <h3 class="h5 mb-3">Informations personnelles</h3>
                                 <div class="row g-3 mb-4">
                                     <div class="col-md-6">
                                         <label for="nom" class="form-label">Nom <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="nom" name="nom" value="{{nom}}" required>
+                                        <input type="text" class="form-control {{is_invalid_nom}}" id="nom" name="nom" value="{{nom}}" required>
+                                        <div class="text-danger">{{error_nom}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="prenom" class="form-label">Prénom <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="prenom" name="prenom" value="{{prenom}}" required>
+                                        <input type="text" class="form-control {{is_invalid_prenom}}" id="prenom" name="prenom" value="{{prenom}}" required>
+                                        <div class="text-danger">{{error_prenom}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="numero_identite" class="form-label">Numéro d'ID ou Passeport <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="numero_identite" name="numero_identite" value="{{numero_identite}}" required>
+                                        <input type="text" class="form-control {{is_invalid_numero_identite}}" id="numero_identite" name="numero_identite" value="{{numero_identite}}" required>
+                                        <div class="text-danger">{{error_numero_identite}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="sexe" class="form-label">Sexe <span class="text-danger">*</span></label>
-                                        <select class="form-select" id="sexe" name="sexe" required>
+                                        <select class="form-select {{is_invalid_sexe}}" id="sexe" name="sexe" required>
                                             <option value="" disabled>Sélectionnez</option>
                                             <option value="Masculin" {{sexe_sel_Masculin}}>Masculin</option>
                                             <option value="Féminin" {{sexe_sel_Féminin}}>Féminin</option>
                                         </select>
+                                        <div class="text-danger">{{error_sexe}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="date_naissance" class="form-label">Date de naissance <span class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" id="date_naissance" name="date_naissance" value="{{date_naissance}}" required>
+                                        <input type="date" class="form-control {{is_invalid_date_naissance}}" id="date_naissance" name="date_naissance" value="{{date_naissance}}" required>
+                                        <div class="text-danger">{{error_date_naissance}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="photo" class="form-label">ID or Passeport</label>
-                                        <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+                                        <input type="file" class="form-control {{is_invalid_photo}}" id="photo" name="photo" accept="image/*,application/pdf">
+                                        <div class="text-danger">{{error_photo}}</div>
                                     </div>
                                 </div>
 
@@ -70,15 +76,18 @@
                                 <div class="row g-3 mb-4">
                                     <div class="col-md-6">
                                         <label for="telephone" class="form-label">Téléphone <span class="text-danger">*</span></label>
-                                        <input type="tel" class="form-control" id="telephone" name="telephone" value="{{telephone}}" placeholder="7X XXX XX XX" required>
+                                        <input type="tel" class="form-control {{is_invalid_telephone}}" id="telephone" name="telephone" value="{{telephone}}" placeholder="7X XXX XX XX" required>
+                                        <div class="text-danger">{{error_telephone}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                                        <input type="email" class="form-control" id="email" name="email" value="{{email}}" required>
+                                        <input type="email" class="form-control {{is_invalid_email}}" id="email" name="email" value="{{email}}" required>
+                                        <div class="text-danger">{{error_email}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="lieu_residence" class="form-label">Lieu de résidence au Sénégal <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="lieu_residence" name="lieu_residence" value="{{lieu_residence}}" required>
+                                        <input type="text" class="form-control {{is_invalid_lieu_residence}}" id="lieu_residence" name="lieu_residence" value="{{lieu_residence}}" required>
+                                        <div class="text-danger">{{error_lieu_residence}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="annee_arrivee" class="form-label">Année d'arrivée au Sénégal</label>
@@ -86,13 +95,14 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label for="type_logement" class="form-label">Type de logement <span class="text-danger">*</span></label>
-                                        <select class="form-select" id="type_logement" name="type_logement" required>
+                                        <select class="form-select {{is_invalid_type_logement}}" id="type_logement" name="type_logement" required>
                                             <option value="" disabled>Sélectionnez</option>
                                             <option value="En famille" {{type_logement_sel_En famille}}>En famille</option>
                                             <option value="En colocation" {{type_logement_sel_En colocation}}>En colocation</option>
                                             <option value="En résidence universitaire" {{type_logement_sel_En résidence universitaire}}>En résidence universitaire</option>
                                             <option value="Autre" {{type_logement_sel_Autre}}>Autre</option>
                                         </select>
+                                        <div class="text-danger">{{error_type_logement}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="precision_logement" class="form-label">Précisions sur le logement</label>
@@ -105,9 +115,10 @@
                                 <div class="row g-3 mb-4">
                                     <div class="col-md-6">
                                         <label for="etablissement" class="form-label">Établissement <span class="text-danger">*</span></label>
-                                        <select class="form-select" id="etablissement" name="etablissement" required>
+                                        <select class="form-select {{is_invalid_etablissement}}" id="etablissement" name="etablissement" required>
                                             {{etablissement_options}}
                                         </select>
+                                        <div class="text-danger">{{error_etablissement}}</div>
                                     </div>
                                     <div class="col-md-6" id="autre_etablissement_wrapper" style="display: none;">
                                         <label for="autre_etablissement" class="form-label">Précisez l'établissement <span class="text-danger">*</span></label>
@@ -115,18 +126,20 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label for="statut" class="form-label">Statut <span class="text-danger">*</span></label>
-                                        <select class="form-select" id="statut" name="statut" required>
+                                        <select class="form-select {{is_invalid_statut}}" id="statut" name="statut" required>
                                             <option value="" disabled>Sélectionnez</option>
                                             <option value="Élève" {{statut_sel_Élève}}>Élève</option>
                                             <option value="Étudiant" {{statut_sel_Étudiant}}>Étudiant</option>
                                             <option value="Stagiaire" {{statut_sel_Stagiaire}}>Stagiaire</option>
                                         </select>
+                                        <div class="text-danger">{{error_statut}}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="domaine_etudes" class="form-label">Domaine d'études <span class="text-danger">*</span></label>
-                                        <select class="form-select" id="domaine_etudes" name="domaine_etudes" required>
+                                        <select class="form-select {{is_invalid_domaine_etudes}}" id="domaine_etudes" name="domaine_etudes" required>
                                             {{domaine_etudes_options}}
                                         </select>
+                                        <div class="text-danger">{{error_domaine_etudes}}</div>
                                     </div>
                                     <div class="col-md-6" id="autre_domaine_etudes_wrapper" style="display: none;">
                                         <label for="autre_domaine_etudes" class="form-label">Précisez le domaine d'études <span class="text-danger">*</span></label>
@@ -134,9 +147,10 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label for="niveau_etudes" class="form-label">Niveau d'études <span class="text-danger">*</span></label>
-                                        <select class="form-select" id="niveau_etudes" name="niveau_etudes" required>
+                                        <select class="form-select {{is_invalid_niveau_etudes}}" id="niveau_etudes" name="niveau_etudes" required>
                                             {{niveau_etudes_options}}
                                         </select>
+                                        <div class="text-danger">{{error_niveau_etudes}}</div>
                                     </div>
                                     <div class="col-md-6" id="autre_niveau_etudes_wrapper" style="display: none;">
                                         <label for="autre_niveau_etudes" class="form-label">Précisez le niveau d'études <span class="text-danger">*</span></label>
