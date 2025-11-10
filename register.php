@@ -140,7 +140,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!empty($errors)) {
         $_SESSION['form_data'] = $formData;
         $_SESSION['form_errors'] = $errors;
-        setFlashMessage('error', 'Veuillez corriger les erreurs ci-dessous.');
         header('Location: register.php');
         exit();
     }
@@ -337,10 +336,16 @@ $maxBirthDate = ($currentYear - 15) . '-12-31';
 $sel = fn($value, $option) => $value === $option ? 'selected' : '';
 $checked = fn($value, $option) => $value === $option ? 'checked' : '';
 
+$validation_errors_json = '';
+if (!empty($errors)) {
+    $validation_errors_json = json_encode($errors);
+}
+
 $replacements = [
     '{{header}}' => $headerHtml,
     '{{footer}}' => $footerTpl,
     '{{flash_json}}' => $flash_json,
+    '{{validation_errors_json}}' => $validation_errors_json,
     '{{feedback_block}}' => $feedback,
     '{{form_action}}' => htmlspecialchars($_SERVER['PHP_SELF'] ?? 'register.php', ENT_QUOTES, 'UTF-8'),
     '{{csrf_token}}' => htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'),
