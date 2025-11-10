@@ -25,38 +25,18 @@ $role = $_SESSION['role'];
 $nom = $_SESSION['nom'];
 $prenom = $_SESSION['prenom'];
 
-// Initialiser les variables d'erreur et de succès
-$error = "";
-$success = "";
-
-// Récupérer les informations complètes de l'utilisateur
-try {
-    $sql = "SELECT * FROM users WHERE id_user = :id_user";
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
-    $stmt->execute();
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    logError("Erreur lors de la récupération du profil utilisateur", $e);
-    $error = "Impossible de récupérer les informations de profil pour le moment.";
-}
-
-$csrfToken = generateCsrfToken();
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-    setFlashMessage('error', 'La session a expiré. Veuillez réessayer.');
-        header('Location: profile.php');
-        exit();
+        setFlashMessage('error', 'La session a expiré. Veuillez réessayer.');
     } elseif (isset($_POST['update_profile'])) {
         $newNom = trim($_POST['nom'] ?? '');
         $newPrenom = trim($_POST['prenom'] ?? '');
         $newEmail = trim($_POST['email'] ?? '');
 
         if (empty($newNom) || empty($newPrenom) || empty($newEmail)) {
-            $error = "Tous les champs sont obligatoires.";
+            setFlashMessage('error', "Tous les champs sont obligatoires.");
         } elseif (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
-            $error = "Veuillez entrer une adresse email valide.";
+            setFlashMessage('error', "Veuillez entrer une adresse email valide.");
         } else {
             try {
                 $checkSql = "SELECT COUNT(*) FROM users WHERE email = :email AND id_user != :id_user";
@@ -66,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $checkStmt->execute();
 
                 if ($checkStmt->fetchColumn() > 0) {
-                    $error = "Cette adresse email est déjà utilisée par un autre utilisateur.";
+                    setFlashMessage('error', "Cette adresse email est déjà utilisée par un autre utilisateur.");
                 } else {
                     $updateSql = "UPDATE users SET nom = :nom, prenom = :prenom, email = :email WHERE id_user = :id_user";
                     $updateStmt = $conn->prepare($updateSql);
@@ -79,19 +59,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $_SESSION['nom'] = $newNom;
                     $_SESSION['prenom'] = $newPrenom;
 
-                    $sql = "SELECT * FROM users WHERE id_user = :id_user";
-                    $stmt = $conn->prepare($sql);
-                    $stmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
-                    $stmt->execute();
-                    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
                     setFlashMessage('success', 'Votre profil a été mis à jour avec succès.');
-                    header('Location: profile.php');
-                    exit();
                 }
             } catch (PDOException $e) {
                 logError("Erreur lors de la mise à jour du profil utilisateur", $e);
-                $error = "Une erreur est survenue lors de la mise à jour du profil. Veuillez réessayer plus tard.";
+                setFlashMessage('danger', "Une erreur est survenue lors de la mise à jour du profil. Veuillez réessayer plus tard.");
             }
         }
     } elseif (isset($_POST['change_password'])) {
@@ -100,14 +72,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $confirmPassword = $_POST['confirm_password'] ?? '';
 
         if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
-            $error = "Tous les champs de mot de passe sont obligatoires.";
+            setFlashMessage('error', "Tous les champs de mot de passe sont obligatoires.");
         } elseif ($newPassword !== $confirmPassword) {
-            $error = "Le nouveau mot de passe et sa confirmation ne correspondent pas.";
+            setFlashMessage('error', "Le nouveau mot de passe et sa confirmation ne correspondent pas.");
         } elseif (strlen($newPassword) < 8) {
-            $error = "Le nouveau mot de passe doit contenir au moins 8 caractères.";
+            setFlashMessage('error', "Le nouveau mot de passe doit contenir au moins 8 caractères.");
         } else {
             try {
-                if (password_verify($currentPassword, $user['password'])) {
+                $sql = "SELECT password FROM users WHERE id_user = :id_user";
+                $stmt = $conn->prepare($sql);
+                $stmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
+                $stmt->execute();
+                $user_password = $stmt->fetchColumn();
+
+                if (password_verify($currentPassword, $user_password)) {
                     $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
 
                     $updateSql = "UPDATE users SET password = :password WHERE id_user = :id_user";
@@ -117,22 +95,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $updateStmt->execute();
 
                     setFlashMessage('success', 'Votre mot de passe a été changé avec succès.');
-                    header('Location: profile.php');
-                    exit();
                 } else {
-                    $error = "Le mot de passe actuel est incorrect.";
+                    setFlashMessage('error', "Le mot de passe actuel est incorrect.");
                 }
             } catch (PDOException $e) {
                 logError("Erreur lors du changement de mot de passe", $e);
-                $error = "Une erreur est survenue lors du changement de mot de passe. Veuillez réessayer plus tard.";
+                setFlashMessage('danger', "Une erreur est survenue lors du changement de mot de passe. Veuillez réessayer plus tard.");
             }
         }
     }
-
-    $csrfToken = generateCsrfToken();
+    header('Location: profile.php');
+    exit();
 }
 
-// Titre de la page
+// Récupérer les informations complètes de l'utilisateur
+try {
+    $sql = "SELECT * FROM users WHERE id_user = :id_user";
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    logError("Erreur lors de la récupération du profil utilisateur", $e);
+    setFlashMessage('danger', "Impossible de récupérer les informations de profil pour le moment.");
+    // Redirect or handle error appropriately
+}
+
+$csrfToken = generateCsrfToken();
+
 // Rendu via layout + contenu
 $layoutPath = __DIR__ . '/templates/admin/layout.html';
 $contentPath = __DIR__ . '/templates/admin/pages/profile.html';
@@ -140,27 +130,11 @@ if (!is_file($layoutPath) || !is_file($contentPath)) { http_response_code(500); 
 
 ob_start(); include 'includes/sidebar.php'; $sidebarHtml = ob_get_clean();
 
-// Blocs d'alerte
-$errorBlock = '';
-if (!empty($error)) {
-    $errorBlock = '<div class="alert alert-danger alert-dismissible fade show" role="alert">'
-        . '<i class="fas fa-exclamation-triangle me-2"></i> ' . htmlspecialchars($error, ENT_QUOTES, 'UTF-8')
-        . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
-        . '</div>';
-}
-$successBlock = '';
-if (!empty($success)) {
-    $successBlock = '<div class="alert alert-success alert-dismissible fade show" role="alert">'
-        . '<i class="fas fa-check-circle me-2"></i> ' . htmlspecialchars($success, ENT_QUOTES, 'UTF-8')
-        . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
-        . '</div>';
-}
-
 // Contenu spécifique
 $contentTpl = file_get_contents($contentPath);
 $contentHtml = strtr($contentTpl, [
-    '{{error_block}}' => $errorBlock,
-    '{{success_block}}' => $successBlock,
+    '{{error_block}}' => '', // Handled by flash messages
+    '{{success_block}}' => '', // Handled by flash messages
     '{{avatar_initials}}' => htmlspecialchars(strtoupper(substr($user['prenom'] ?? '', 0, 1) . substr($user['nom'] ?? '', 0, 1)), ENT_QUOTES, 'UTF-8'),
     '{{display_name}}' => htmlspecialchars(($user['prenom'] ?? '') . ' ' . ($user['nom'] ?? ''), ENT_QUOTES, 'UTF-8'),
     '{{username}}' => htmlspecialchars($username, ENT_QUOTES, 'UTF-8'),
@@ -173,25 +147,15 @@ $contentHtml = strtr($contentTpl, [
 ]);
 
 $flash = getFlashMessage();
-$flash_script = '';
+$flash_json = '';
 if ($flash) {
-    $flash_script = "
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({
-                    icon: '{$flash['type']}',
-                    title: 'Notification',
-                    text: '{$flash['message']}',
-                });
-            });
-        </script>
-    ";
+    $flash_json = json_encode($flash);
 }
 
 // Layout
 $layoutTpl = file_get_contents($layoutPath);
 $output = strtr($layoutTpl, [
-    '{{flash_script}}' => $flash_script,
+    '{{flash_json}}' => $flash_json,
     '{{title}}' => 'AEESGS - Profil Administrateur',
     '{{sidebar}}' => $sidebarHtml,
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [

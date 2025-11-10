@@ -64,32 +64,114 @@ if (!is_file($layoutPath) || !is_file($contentPath)) { http_response_code(500); 
 
 ob_start(); include 'includes/sidebar.php'; $sidebarHtml = ob_get_clean();
 
+// Prepare flash message
 $flash = getFlashMessage();
-$flash_script = '';
+$flash_json = '';
 if ($flash) {
-    $flash_script = "
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({
-                    icon: '{$flash['type']}',
-                    title: 'Notification',
-                    text: '{$flash['message']}',
-                });
-            });
-        </script>
-    ";
+    $flash_json = json_encode($flash);
 }
+
+// Prepare validation script (always empty for a display page)
+$validation_script = '';
+
+// Read content template
+$template = file_get_contents($contentPath);
+
+// Build the details block HTML
+$detailsHtml = '<div class="card"><div class="card-body">';
+$detailsHtml .= '<div class="row">';
+$detailsHtml .= '<div class="col-md-3 text-center">';
+
+$identitePath = $student['identite'] ?? '';
+$modalHtml = '';
+if (!empty($identitePath) && file_exists($identitePath)) {
+    $fileExtension = strtolower(pathinfo($identitePath, PATHINFO_EXTENSION));
+    $isPdf = ($fileExtension === 'pdf');
+    $isImage = in_array($fileExtension, ['png', 'jpg', 'jpeg', 'gif']);
+    $modalId = 'identiteModal' . $student['id_personne'];
+
+    if ($isImage) {
+        $detailsHtml .= '<a href="#" data-bs-toggle="modal" data-bs-target="#' . $modalId . '">';
+        $detailsHtml .= '<img src="' . htmlspecialchars($identitePath) . '" alt="Pièce d\'identité" class="img-fluid rounded mb-3">';
+        $detailsHtml .= '</a>';
+        $modalHtml = '<div class="modal fade" id="' . $modalId . '" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content"><div class="modal-body text-center"><img src="' . htmlspecialchars($identitePath) . '" class="img-fluid"></div></div></div></div>';
+    } elseif ($isPdf) {
+        $detailsHtml .= '<a href="#" data-bs-toggle="modal" data-bs-target="#' . $modalId . '" class="text-decoration-none d-block">';
+        $detailsHtml .= '<i class="fas fa-file-pdf fa-5x text-danger mb-2"></i>';
+        $detailsHtml .= '<span>Voir le PDF</span>';
+        $detailsHtml .= '</a>';
+        $modalHtml = '<div class="modal fade" id="' . $modalId . '" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl"><div class="modal-content" style="height: 90vh;"><div class="modal-header"><h5 class="modal-title">Pièce d\'identité</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><iframe src="' . htmlspecialchars($identitePath) . '" width="100%" height="100%"></iframe></div></div></div></div>';
+    } else {
+        $detailsHtml .= '<img src="assets/img/placeholder.png" alt="Pièce d\'identité" class="img-fluid rounded mb-3">';
+    }
+} else {
+    $detailsHtml .= '<img src="assets/img/placeholder.png" alt="Pièce d\'identité" class="img-fluid rounded mb-3">';
+}
+
+$detailsHtml .= '</div>';
+$detailsHtml .= '<div class="col-md-9">';
+$detailsHtml .= '<h4 class="mb-3">Informations Personnelles</h4>';
+$detailsHtml .= '<dl class="row">';
+$detailsHtml .= '<dt class="col-sm-4">Nom Complet</dt><dd class="col-sm-8">' . htmlspecialchars(($student['prenom'] ?? '') . ' ' . ($student['nom'] ?? '')) . '</dd>';
+$detailsHtml .= '<dt class="col-sm-4">Âge</dt><dd class="col-sm-8">' . calculateAge($student['date_naissance']) . ' ans</dd>';
+$detailsHtml .= '<dt class="col-sm-4">Date de Naissance</dt><dd class="col-sm-8">' . formatDateFr($student['date_naissance']) . '</dd>';
+$detailsHtml .= '<dt class="col-sm-4">Sexe</dt><dd class="col-sm-8">' . htmlspecialchars($student['sexe'] ?? '') . '</dd>';
+$detailsHtml .= '<dt class="col-sm-4">Numéro d\'ID/Passeport</dt><dd class="col-sm-8">' . htmlspecialchars($student['numero_identite'] ?? '') . '</dd>';
+$detailsHtml .= '</dl>';
+$detailsHtml .= '<hr>';
+$detailsHtml .= '<h4 class="mb-3">Contact et Résidence</h4>';
+$detailsHtml .= '<dl class="row">';
+$detailsHtml .= '<dt class="col-sm-4">Téléphone</dt><dd class="col-sm-8">' . htmlspecialchars($student['telephone'] ?? '') . '</dd>';
+$detailsHtml .= '<dt class="col-sm-4">Email</dt><dd class="col-sm-8">' . htmlspecialchars($student['email'] ?? '') . '</dd>';
+$detailsHtml .= '<dt class="col-sm-4">Lieu de Résidence</dt><dd class="col-sm-8">' . htmlspecialchars($student['lieu_residence'] ?? '') . '</dd>';
+$detailsHtml .= '<dt class="col-sm-4">Année d\'arrivée</dt><dd class="col-sm-8">' . htmlspecialchars($student['annee_arrivee'] ?? 'N/A') . '</dd>';
+$detailsHtml .= '<dt class="col-sm-4">Type de Logement</dt><dd class="col-sm-8">' . htmlspecialchars($student['type_logement'] ?? '') . '</dd>';
+if (!empty($student['precision_logement'])) {
+    $detailsHtml .= '<dt class="col-sm-4">Précision Logement</dt><dd class="col-sm-8">' . htmlspecialchars($student['precision_logement'] ?? '') . '</dd>';
+}
+$detailsHtml .= '</dl>';
+$detailsHtml .= '<hr>';
+$detailsHtml .= '<h4 class="mb-3">Informations Académiques</h4>';
+$detailsHtml .= '<dl class="row">';
+$detailsHtml .= '<dt class="col-sm-4">Établissement</dt><dd class="col-sm-8">' . htmlspecialchars($student['etablissement'] ?? '') . '</dd>';
+$detailsHtml .= '<dt class="col-sm-4">Statut</dt><dd class="col-sm-8">' . htmlspecialchars($student['statut'] ?? '') . '</dd>';
+$detailsHtml .= '<dt class="col-sm-4">Domaine d\'Études</dt><dd class="col-sm-8">' . htmlspecialchars($student['domaine_etudes'] ?? '') . '</dd>';
+$detailsHtml .= '<dt class="col-sm-4">Niveau d\'Études</dt><dd class="col-sm-8">' . htmlspecialchars($student['niveau_etudes'] ?? '') . '</dd>';
+$detailsHtml .= '</dl>';
+if (!empty($student['projet_apres_formation'])) {
+    $detailsHtml .= '<hr>';
+    $detailsHtml .= '<h4 class="mb-3">Projet Après Formation</h4>';
+    $detailsHtml .= '<p>' . nl2br(htmlspecialchars($student['projet_apres_formation'] ?? '')) . '</p>';
+}
+$detailsHtml .= '</div>'; // col-md-9
+$detailsHtml .= '</div>'; // row
+$detailsHtml .= '</div></div>'; // card-body, card
+$detailsHtml .= $modalHtml; // Append the modal HTML
+
+// Prepare final replacements
+$replacements = [
+    '{{flash_block}}' => '',
+    '{{details_block}}' => $detailsHtml,
+    '{{student_id}}' => $student_id,
+    '{{display_name}}' => htmlspecialchars(($student['prenom'] ?? '') . ' ' . ($student['nom'] ?? '')),
+    '{{email}}' => htmlspecialchars($student['email'] ?? ''),
+    '{{csrf_token}}' => generateCsrfToken()
+];
+
+// Perform content replacement
+$contentHtml = strtr($template, $replacements);
 
 // Layout
 $layoutTpl = file_get_contents($layoutPath);
 $output = strtr($layoutTpl, [
-    '{{flash_script}}' => $flash_script,
+    '{{flash_json}}' => $flash_json,
     '{{title}}' => 'AEESGS - Détails de ' . htmlspecialchars($student['prenom'] . ' ' . $student['nom'], ENT_QUOTES, 'UTF-8'),
     '{{sidebar}}' => $sidebarHtml,
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [
         '{{user_fullname}}' => htmlspecialchars($prenom . ' ' . $nom, ENT_QUOTES, 'UTF-8'),
     ]),
     '{{content}}' => $contentHtml,
+    '{{validation_script}}' => $validation_script,
     '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), [
         '{{year}}' => date('Y'),
     ]),

@@ -3,6 +3,10 @@
  * Configuration de la connexion à la base de données
  * Fichier : config/database.php
  */
+
+// Force la locale en UTF-8 pour la gestion des chaînes de caractères
+setlocale(LC_ALL, 'fr_FR.UTF-8');
+
 require_once  __DIR__ . "/../functions/utility-functions.php";
 
 // Load environment variables from .env file
@@ -26,11 +30,11 @@ define('DB_PASS', env('DB_PASS'));              // Mot de passe de la base de do
 
 // Établir la connexion à la base de données
 try {
-    $conn = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME, DB_USER, DB_PASS);
+    $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
+    $conn = new PDO($dsn, DB_USER, DB_PASS);
+    $conn->exec("SET NAMES 'utf8mb4'");
     // Configurer PDO pour qu'il génère des exceptions en cas d'erreur
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    // Définir le jeu de caractères à utf8
-    $conn->exec("SET NAMES utf8");
 } catch(PDOException $e) {
     // En cas d'erreur de connexion
     logError('Erreur de connexion à la base de données', $e);

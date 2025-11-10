@@ -95,7 +95,7 @@ function truncateString($string, $length = 100, $append = '...') {
 function isValidPhone($phone) {
     // Supprimer tous les caractères non numériques
     $digits = preg_replace('/[^0-9]/', '', $phone);
-    // Vérifier si le nombre de chiffres est exactement 9
+    // Vérifier si le numéro contient exactement 9 chiffres
     return strlen($digits) === 9;
 }
 

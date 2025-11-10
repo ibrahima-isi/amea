@@ -129,6 +129,17 @@ $validation_script = '';
 if (!empty($errors)) {
     $errors_json = json_encode($errors);
     $validation_script = "<script>const validationErrors = ".$errors_json.";</script>";
+    $validation_script .= "
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur de validation',
+                    text: 'Veuillez corriger les erreurs indiquées sur le formulaire.',
+                });
+            });
+        </script>
+    ";
 }
 
 $contentHtml = strtr($template, [
@@ -158,24 +169,14 @@ $contentHtml = strtr($template, [
 ]);
 
 $flash = getFlashMessage();
-$flash_script = '';
+$flash_json = '';
 if ($flash) {
-    $flash_script = "
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({
-                    icon: '{$flash['type']}',
-                    title: 'Succès',
-                    text: '{$flash['message']}',
-                });
-            });
-        </script>
-    ";
+    $flash_json = json_encode($flash);
 }
 
 $layoutTpl = file_get_contents($layoutPath);
 $output = strtr($layoutTpl, [
-    '{{flash_script}}' => $flash_script,
+    '{{flash_json}}' => $flash_json,
     '{{title}}' => 'AEESGS - Ajouter un utilisateur',
     '{{sidebar}}' => $sidebarHtml,
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [

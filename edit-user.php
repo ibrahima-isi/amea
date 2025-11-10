@@ -34,7 +34,7 @@ if (!$user) {
 }
 
 $errors = [];
-$success = '';
+$formData = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
@@ -98,19 +98,25 @@ $sel = function ($value, $options) {
     return in_array($value, (array)$options) ? 'selected' : '';
 };
 
-$feedback_block = '';
-if (!empty($errors)) {
-    $feedback_block = '<div class="alert alert-danger">Veuillez corriger les erreurs ci-dessous.</div>';
-}
-
 $validation_script = '';
 if (!empty($errors)) {
     $errors_json = json_encode($errors);
     $validation_script = "<script>const validationErrors = ".$errors_json.";</script>";
+    $validation_script .= "
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur de validation',
+                    text: 'Veuillez corriger les erreurs indiquées sur le formulaire.',
+                });
+            });
+        </script>
+    ";
 }
 
 $contentHtml = strtr($template, [
-    '{{feedback_block}}' => $feedback_block,
+    '{{feedback_block}}' => '',
     '{{form_action}}' => 'edit-user.php?id=' . $user_id_to_edit,
     '{{csrf_token}}' => generateCsrfToken(),
     '{{username}}' => htmlspecialchars($formData['username'] ?? $user['username'] ?? '', ENT_QUOTES, 'UTF-8'),
@@ -126,24 +132,15 @@ $contentHtml = strtr($template, [
 ]);
 
 $flash = getFlashMessage();
-$flash_script = '';
+$flash_json = '';
 if ($flash) {
-    $flash_script = "
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({
-                    icon: '{$flash['type']}',
-                    title: 'Succès',
-                    text: '{$flash['message']}',
-                });
-            });
-        </script>
-    ";
+    $flash_json = json_encode($flash);
 }
 
 $layoutTpl = file_get_contents($layoutPath);
 $output = strtr($layoutTpl, [
-    '{{flash_script}}' => $flash_script,
+    '{{flash_json}}' => $flash_json,
+    '{{validation_script}}' => $validation_script,
     '{{title}}' => 'AEESGS - Modifier l\'utilisateur',
     '{{sidebar}}' => $sidebarHtml,
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [

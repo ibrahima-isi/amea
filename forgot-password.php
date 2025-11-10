@@ -1,49 +1,59 @@
 <?php
 
+require_once 'config/session.php';
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
 
-$error = '';
-$success = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email'] ?? '');
-
-    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Veuillez fournir une adresse e-mail valide.';
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        setFlashMessage('error', 'La session a expiré. Veuillez réessayer.');
     } else {
-        // Check if user exists
-        $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-        $stmt->execute([$email]);
-        $user = $stmt->fetch();
+        $email = trim($_POST['email'] ?? '');
 
-        if ($user) {
-            // Generate a token
-            $token = bin2hex(random_bytes(50));
-
-            // Set expiration date
-            $expires = new DateTime('+1 hour');
-            $expires_at = $expires->format('Y-m-d H:i:s');
-
-            // Store the token in the database
-            $stmt = $conn->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)");
-            $stmt->execute([$email, $token, $expires_at]);
-
-            // Send the email
-            $resetLink = getenv('APP_URL') . '/reset-password.php?token=' . $token;
-            $emailBody = "<h1>Réinitialisation de votre mot de passe</h1>";
-            $emailBody .= "<p>Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe:</p>";
-            $emailBody .= "<a href='{$resetLink}'>{$resetLink}</a>";
-
-            // For now, we'll just log the email to a file
-            $logMessage = "To: {$email}\nSubject: Password Reset\nBody: {$emailBody}\n";
-            file_put_contents('logs/mail.log', $logMessage, FILE_APPEND);
-
-            $success = 'Un lien de réinitialisation de mot de passe a été envoyé à votre adresse e-mail.';
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            setFlashMessage('error', 'Veuillez fournir une adresse e-mail valide.');
         } else {
-            $error = 'Aucun utilisateur trouvé avec cette adresse e-mail.';
+            // Check if user exists
+            $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            $user = $stmt->fetch();
+
+            if ($user) {
+                // Generate a token
+                $token = bin2hex(random_bytes(50));
+
+                // Set expiration date
+                $expires = new DateTime('+1 hour');
+                $expires_at = $expires->format('Y-m-d H:i:s');
+
+                // Store the token in the database
+                $stmt = $conn->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)");
+                $stmt->execute([$email, $token, $expires_at]);
+
+                // Send the email
+                $resetLink = env('APP_URL', 'http://localhost') . '/reset-password.php?token=' . $token;
+                $subject = 'Réinitialisation de votre mot de passe';
+                $emailBody = "<h1>Réinitialisation de votre mot de passe</h1>";
+                $emailBody .= "<p>Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe:</p>";
+                $emailBody .= "<a href='{$resetLink}'>{$resetLink}</a>";
+
+                $headers = "MIME-Version: 1.0" . "\r\n";
+                $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+                $headers .= 'From: no-reply@aeesgs.org' . "\r\n";
+
+                if (mail($email, $subject, $emailBody, $headers)) {
+                    setFlashMessage('success', 'Un lien de réinitialisation de mot de passe a été envoyé à votre adresse e-mail.');
+                } else {
+                    setFlashMessage('error', 'Impossible d\'envoyer l\'e-mail de réinitialisation. Veuillez contacter un administrateur.');
+                }
+            } else {
+                // To prevent user enumeration, show the same message whether the user exists or not.
+                setFlashMessage('success', 'Si un compte avec cette adresse e-mail existe, un lien de réinitialisation de mot de passe a été envoyé.');
+            }
         }
     }
+    header('Location: forgot-password.php');
+    exit();
 }
 
 $templatePath = __DIR__ . '/templates/forgot-password.html';
@@ -52,45 +62,29 @@ if (!is_file($templatePath)) {
     exit('Template introuvable.');
 }
 
-$feedback = '';
-if (!empty($success)) {
-    $feedback = '<div class="alert alert-success">' . htmlspecialchars($success, ENT_QUOTES, 'UTF-8') . '</div>';
-} elseif (!empty($error)) {
-    $feedback = '<div class="alert alert-danger">' . htmlspecialchars($error, ENT_QUOTES, 'UTF-8') . '</div>';
-}
-
 $tpl = file_get_contents($templatePath);
 
 $headerTpl = file_get_contents(__DIR__ . '/templates/partials/header.html');
 $footerTpl = file_get_contents(__DIR__ . '/templates/partials/footer.html');
 
 $flash = getFlashMessage();
-$flash_script = '';
+$flash_json = '';
 if ($flash) {
-    $flash_script = "
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({
-                    icon: '{$flash['type']}',
-                    title: 'Notification',
-                    text: '{$flash['message']}',
-                });
-            });
-        </script>
-    ";
+    $flash_json = json_encode($flash);
 }
 
 $headerHtml = strtr($headerTpl, [
     '{{index_active}}' => '',
     '{{register_active}}' => '',
     '{{login_active}}' => '',
-    '{{flash_script}}' => $flash_script,
 ]);
 
 $output = strtr($tpl, [
     '{{header}}' => $headerHtml,
     '{{footer}}' => $footerTpl,
-    '{{feedback_block}}' => $feedback,
+    '{{csrf_token}}' => generateCsrfToken(),
+    '{{feedback_block}}' => '', // Handled by flash messages
+    '{{flash_json}}' => $flash_json,
 ]);
 
 echo $output;
