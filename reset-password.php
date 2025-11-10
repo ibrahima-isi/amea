@@ -1,10 +1,9 @@
 <?php
 
+require_once 'config/session.php';
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
 
-$errors = [];
-$success = '';
 $token = $_GET['token'] ?? '';
 
 if (empty($token)) {
@@ -18,36 +17,48 @@ $stmt->execute([$token]);
 $reset = $stmt->fetch();
 
 if (!$reset) {
-    $errors['form'] = 'Ce jeton de réinitialisation de mot de passe n\'est pas valide.';
+    setFlashMessage('error', 'Ce jeton de réinitialisation de mot de passe n\'est pas valide.');
+    header('Location: login.php');
+    exit();
 } else {
     $expires = new DateTime($reset['expires_at']);
     $now = new DateTime();
 
     if ($now > $expires) {
-        $errors['form'] = 'Ce jeton de réinitialisation de mot de passe a expiré.';
+        setFlashMessage('error', 'Ce jeton de réinitialisation de mot de passe a expiré.');
+        header('Location: login.php');
+        exit();
     }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $password = $_POST['password'] ?? '';
-    $confirm_password = $_POST['confirm_password'] ?? '';
-
-    if (empty($password)) {
-        $errors['password'] = 'Veuillez remplir tous les champs.';
-    } elseif ($password !== $confirm_password) {
-        $errors['confirm_password'] = 'Les mots de passe ne correspondent pas.';
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        setFlashMessage('error', 'La session a expiré. Veuillez réessayer.');
     } else {
-        // Update the password
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $conn->prepare("UPDATE users SET password = ? WHERE email = ?");
-        $stmt->execute([$hashedPassword, $reset['email']]);
+        $password = $_POST['password'] ?? '';
+        $confirm_password = $_POST['confirm_password'] ?? '';
 
-        // Delete the token
-        $stmt = $conn->prepare("DELETE FROM password_resets WHERE token = ?");
-        $stmt->execute([$token]);
+        if (empty($password)) {
+            setFlashMessage('error', 'Veuillez remplir tous les champs.');
+        } elseif ($password !== $confirm_password) {
+            setFlashMessage('error', 'Les mots de passe ne correspondent pas.');
+        } else {
+            // Update the password
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $conn->prepare("UPDATE users SET password = ? WHERE email = ?");
+            $stmt->execute([$hashedPassword, $reset['email']]);
 
-        $success = 'Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.';
+            // Delete the token
+            $stmt = $conn->prepare("DELETE FROM password_resets WHERE token = ?");
+            $stmt->execute([$token]);
+
+            setFlashMessage('success', 'Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.');
+            header('Location: login.php');
+            exit();
+        }
     }
+    header('Location: reset-password.php?token=' . $token);
+    exit();
 }
 
 $templatePath = __DIR__ . '/templates/reset-password.html';
@@ -56,50 +67,31 @@ if (!is_file($templatePath)) {
     exit('Template introuvable.');
 }
 
-$feedback = '';
-if (!empty($success)) {
-    $feedback = '<div class="alert alert-success">' . htmlspecialchars($success, ENT_QUOTES, 'UTF-8') . '</div>';
-} elseif (!empty($errors)) {
-    // If there is a form-level error, display it in the feedback block.
-    if (isset($errors['form'])) {
-        $feedback = '<div class="alert alert-danger">' . htmlspecialchars($errors['form'], ENT_QUOTES, 'UTF-8') . '</div>';
-    }
-}
-
 $tpl = file_get_contents($templatePath);
 
 $headerTpl = file_get_contents(__DIR__ . '/templates/partials/header.html');
 $footerTpl = file_get_contents(__DIR__ . '/templates/partials/footer.html');
 $flash = getFlashMessage();
-$flash_script = '';
+$flash_json = '';
 if ($flash) {
-    $flash_script = "
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({
-                    icon: '{$flash['type']}',
-                    title: 'Notification',
-                    text: '{$flash['message']}',
-                });
-            });
-        </script>
-    ";
+    $flash_json = json_encode($flash);
 }
 
 $headerHtml = strtr($headerTpl, [
     '{{index_active}}' => '',
     '{{register_active}}' => '',
     '{{login_active}}' => '',
-    '{{flash_script}}' => $flash_script,
 ]);
 
 $output = strtr($tpl, [
     '{{header}}' => $headerHtml,
     '{{footer}}' => $footerTpl,
-    '{{feedback_block}}' => $feedback,
+    '{{csrf_token}}' => generateCsrfToken(),
+    '{{feedback_block}}' => '', // Handled by flash messages
     '{{token}}' => htmlspecialchars($token, ENT_QUOTES, 'UTF-8'),
-    '{{error_password}}' => $errors['password'] ?? '',
-    '{{error_confirm_password}}' => $errors['confirm_password'] ?? '',
+    '{{error_password}}' => '', // No longer used
+    '{{error_confirm_password}}' => '', // No longer used
+    '{{flash_json}}' => $flash_json,
 ]);
 
 echo $output;

@@ -1,0 +1,1 @@
+I have found and fixed the bug. The issue was a faulty javascript validation rule that was preventing the form from being submitted, even with valid data. I have corrected the script, and the form should now work as expected. Please try submitting the form again.

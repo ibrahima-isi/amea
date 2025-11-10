@@ -18,23 +18,17 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['username'])) {
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
 
-// Initialiser les variables
-$error = "";
-$csrfToken = generateCsrfToken();
-
 // Traitement du formulaire lors de la soumission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-    setFlashMessage('error', 'La session a expiré. Veuillez réessayer.');
-        header('Location: login.php');
-        exit();
+        setFlashMessage('error', 'La session a expiré. Veuillez réessayer.');
     } else {
         $username = trim($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
 
         // Validation des entrées
         if (empty($username) || empty($password)) {
-            $error = "Veuillez entrer un nom d'utilisateur et un mot de passe.";
+            setFlashMessage('error', "Veuillez entrer un nom d'utilisateur et un mot de passe.");
         } else {
             try {
                 // Rechercher l'utilisateur dans la base de données
@@ -66,22 +60,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         header("Location: dashboard.php");
                         exit();
                     } else {
-                        $error = "Nom d'utilisateur ou mot de passe incorrect.";
+                        setFlashMessage('error', "Nom d'utilisateur ou mot de passe incorrect.");
                     }
                 } else {
-                    $error = "Nom d'utilisateur ou mot de passe incorrect.";
+                    setFlashMessage('error', "Nom d'utilisateur ou mot de passe incorrect.");
                 }
             } catch (PDOException $e) {
                 logError('Erreur lors de la tentative de connexion', $e);
-                $error = "Une erreur est survenue lors de la tentative de connexion. Veuillez réessayer plus tard.";
+                setFlashMessage('danger', "Une erreur est survenue lors de la tentative de connexion. Veuillez réessayer plus tard.");
             }
         }
     }
 
-    // Regénérer un CSRF pour ré-affichage du formulaire
-    $csrfToken = generateCsrfToken();
+    header('Location: login.php');
+    exit();
 }
 
+$csrfToken = generateCsrfToken();
 // Rendu du template HTML
 $templatePath = __DIR__ . '/templates/login.html';
 if (!is_file($templatePath)) {
@@ -91,28 +86,10 @@ if (!is_file($templatePath)) {
 
 $template = file_get_contents($templatePath);
 
-$errorBlock = '';
-if (!empty($error)) {
-    $errorBlock = '<div class="alert alert-danger" role="alert">'
-        . '<i class="fas fa-exclamation-triangle me-1"></i> '
-        . htmlspecialchars($error, ENT_QUOTES, 'UTF-8')
-        . '</div>';
-}
-
 $flash = getFlashMessage();
-$flash_script = '';
+$flash_json = '';
 if ($flash) {
-    $flash_script = "
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({
-                    icon: '{$flash['type']}',
-                    title: 'Succès',
-                    text: '{$flash['message']}',
-                });
-            });
-        </script>
-    ";
+    $flash_json = json_encode($flash);
 }
 
 // Inject header/footer partials
@@ -122,15 +99,15 @@ $headerHtml = strtr($headerTpl, [
     '{{index_active}}' => '',
     '{{register_active}}' => '',
     '{{login_active}}' => 'active',
-    '{{flash_script}}' => $flash_script,
 ]);
 
 $output = strtr($template, [
     '{{header}}' => $headerHtml,
     '{{footer}}' => $footerTpl,
-    '{{error_block}}' => $errorBlock,
+    '{{error_block}}' => '', // Handled by flash messages
     '{{csrf_token}}' => htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'),
     '{{form_action}}' => htmlspecialchars($_SERVER['PHP_SELF'] ?? 'login.php', ENT_QUOTES, 'UTF-8'),
+    '{{flash_json}}' => $flash_json,
 ]);
 
 echo $output;

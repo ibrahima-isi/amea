@@ -29,17 +29,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $student_id_to_delete = (int)$_POST['id'];
 
         // First, get the photo path to delete the file
-        $stmt = $conn->prepare("SELECT photo FROM personnes WHERE id_personne = ?");
+        $stmt = $conn->prepare("SELECT identite FROM personnes WHERE id_personne = ?");
         $stmt->execute([$student_id_to_delete]);
-        $photo_to_delete = $stmt->fetchColumn();
+        $identite_to_delete = $stmt->fetchColumn();
 
         // Delete the student from the database
         $deleteStmt = $conn->prepare("DELETE FROM personnes WHERE id_personne = ?");
         $deleteStmt->execute([$student_id_to_delete]);
 
         // Delete the photo file if it exists
-        if ($photo_to_delete && file_exists($photo_to_delete)) {
-            unlink($photo_to_delete);
+        if ($identite_to_delete && file_exists($identite_to_delete)) {
+            unlink($identite_to_delete);
         }
 
         // Redirect to the same page to see the changes
@@ -128,10 +128,10 @@ if (count($students) > 0) {
         if ($student['statut'] == 'Étudiant') $badgeClass = 'primary';
         elseif ($student['statut'] == 'Élève') $badgeClass = 'info';
         $photoHtml = '<img src="assets/img/placeholder.png" alt="Photo" class="img-thumbnail" width="50">';
-        if (!empty($student['photo']) && file_exists($student['photo'])) {
+        if (!empty($student['identite']) && file_exists($student['identite'])) {
             $modalId = 'photoModal' . $student['id_personne'];
             $photoHtml = '<a href="#" data-bs-toggle="modal" data-bs-target="#' . $modalId . '">';
-            $photoHtml .= '<img src="' . htmlspecialchars($student['photo'], ENT_QUOTES, 'UTF-8') . '" alt="Photo" class="img-thumbnail" width="50">';
+            $photoHtml .= '<img src="' . htmlspecialchars($student['identite'], ENT_QUOTES, 'UTF-8') . '" alt="Photo" class="img-thumbnail" width="50">';
             $photoHtml .= '</a>';
 
             // Add the modal HTML
@@ -143,7 +143,7 @@ if (count($students) > 0) {
             $photoHtml .= '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
             $photoHtml .= '</div>';
             $photoHtml .= '<div class="modal-body text-center">';
-            $photoHtml .= '<img src="' . htmlspecialchars($student['photo'], ENT_QUOTES, 'UTF-8') . '" class="img-fluid">';
+            $photoHtml .= '<img src="' . htmlspecialchars($student['identite'], ENT_QUOTES, 'UTF-8') . '" class="img-fluid">';
             $photoHtml .= '</div>';
             $photoHtml .= '</div>';
             $photoHtml .= '</div>';
@@ -240,26 +240,16 @@ $contentHtml = strtr($contentTpl, [
 ]);
 
 $flash = getFlashMessage();
-$flash_script = '';
+$flash_json = '';
 if ($flash) {
-    $flash_script = "
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({
-                    icon: '{$flash['type']}',
-                    title: 'Succès',
-                    text: '{$flash['message']}',
-                });
-            });
-        </script>
-    ";
+    $flash_json = json_encode($flash);
 }
 
 $layoutTpl = file_get_contents($layoutPath);
 $output = strtr($layoutTpl, [
     '{{title}}' => 'AEESGS - Liste des étudiants',
     '{{sidebar}}' => $sidebarHtml,
-    '{{flash_script}}' => $flash_script,
+    '{{flash_json}}' => $flash_json,
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [
         '{{user_fullname}}' => htmlspecialchars($prenom . ' ' . $nom, ENT_QUOTES, 'UTF-8'),
     ]),

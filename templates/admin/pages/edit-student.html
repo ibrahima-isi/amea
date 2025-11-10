@@ -1,210 +1,209 @@
-<!DOCTYPE html>
-<html lang="fr">
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h3">Modifier l'étudiant</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+                <li class="breadcrumb-item"><a href="students.php">Gestion des étudiants</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Modifier l'étudiant</li>
+            </ol>
+        </nav>
+    </div>
+</div>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AEESGS - Modifier l'étudiant</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Styles -->
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/app.css">
-</head>
+{{feedback_block}}
 
-<body>
-    {{header}}
-    <!-- Contenu principal -->
-    <main class="py-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-10 mx-auto">
-                    <div class="card shadow">
-                        <div class="card-header">
-                            <h2 class="h4 mb-0">Modifier l'étudiant</h2>
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="m-0 font-weight-bold">Mettez à jour les informations de l'étudiant</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{form_action}}" method="POST" id="editStudentForm" enctype="multipart/form-data" novalidate>
+                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                    <!-- Informations personnelles -->
+                    <h3 class="h5 mb-3">Informations personnelles</h3>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="nom" class="form-label">Nom <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control {{is_invalid_nom}}" id="nom" name="nom" value="{{nom}}" required>
+                            <div class="text-danger">{{error_nom}}</div>
                         </div>
-                        <div class="card-body">
-                            {{feedback_block}}
-
-                            <p class="text-muted mb-4">Mettez à jour les informations de l'étudiant ci-dessous.</p>
-
-                            <form action="{{form_action}}" method="POST" id="editStudentForm" enctype="multipart/form-data" novalidate>
-                                <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-                                <!-- Informations personnelles -->
-                                <h3 class="h5 mb-3">Informations personnelles</h3>
-                                <div class="row g-3 mb-4">
-                                    <div class="col-md-6">
-                                        <label for="nom" class="form-label">Nom <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control {{is_invalid_nom}}" id="nom" name="nom" value="{{nom}}" required>
-                                        <div class="text-danger">{{error_nom}}</div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="prenom" class="form-label">Prénom <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control {{is_invalid_prenom}}" id="prenom" name="prenom" value="{{prenom}}" required>
-                                        <div class="text-danger">{{error_prenom}}</div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="numero_identite" class="form-label">Numéro d'ID ou Passeport <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control {{is_invalid_numero_identite}}" id="numero_identite" name="numero_identite" value="{{numero_identite}}" required>
-                                        <div class="text-danger">{{error_numero_identite}}</div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="sexe" class="form-label">Sexe <span class="text-danger">*</span></label>
-                                        <select class="form-select {{is_invalid_sexe}}" id="sexe" name="sexe" required>
-                                            <option value="" disabled>Sélectionnez</option>
-                                            <option value="Masculin" {{sexe_sel_Masculin}}>Masculin</option>
-                                            <option value="Féminin" {{sexe_sel_Féminin}}>Féminin</option>
-                                        </select>
-                                        <div class="text-danger">{{error_sexe}}</div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="date_naissance" class="form-label">Date de naissance <span class="text-danger">*</span></label>
-                                        <input type="date" class="form-control {{is_invalid_date_naissance}}" id="date_naissance" name="date_naissance" value="{{date_naissance}}" required>
-                                        <div class="text-danger">{{error_date_naissance}}</div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="photo" class="form-label">ID or Passeport</label>
-                                        <input type="file" class="form-control {{is_invalid_photo}}" id="photo" name="photo" accept="image/*,application/pdf">
-                                        <div class="text-danger">{{error_photo}}</div>
-                                    </div>
-                                </div>
-
-                                <!-- Informations de contact et résidence -->
-                                <h3 class="h5 mb-3">Contact et résidence</h3>
-                                <div class="row g-3 mb-4">
-                                    <div class="col-md-6">
-                                        <label for="telephone" class="form-label">Téléphone <span class="text-danger">*</span></label>
-                                        <input type="tel" class="form-control {{is_invalid_telephone}}" id="telephone" name="telephone" value="{{telephone}}" placeholder="7X XXX XX XX" required>
-                                        <div class="text-danger">{{error_telephone}}</div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                                        <input type="email" class="form-control {{is_invalid_email}}" id="email" name="email" value="{{email}}" required>
-                                        <div class="text-danger">{{error_email}}</div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="lieu_residence" class="form-label">Lieu de résidence au Sénégal <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control {{is_invalid_lieu_residence}}" id="lieu_residence" name="lieu_residence" value="{{lieu_residence}}" required>
-                                        <div class="text-danger">{{error_lieu_residence}}</div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="annee_arrivee" class="form-label">Année d'arrivée au Sénégal</label>
-                                        <input type="number" class="form-control" id="annee_arrivee" name="annee_arrivee" min="2000" max="2030" value="{{annee_arrivee}}">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="type_logement" class="form-label">Type de logement <span class="text-danger">*</span></label>
-                                        <select class="form-select {{is_invalid_type_logement}}" id="type_logement" name="type_logement" required>
-                                            <option value="" disabled>Sélectionnez</option>
-                                            <option value="En famille" {{type_logement_sel_En famille}}>En famille</option>
-                                            <option value="En colocation" {{type_logement_sel_En colocation}}>En colocation</option>
-                                            <option value="En résidence universitaire" {{type_logement_sel_En résidence universitaire}}>En résidence universitaire</option>
-                                            <option value="Autre" {{type_logement_sel_Autre}}>Autre</option>
-                                        </select>
-                                        <div class="text-danger">{{error_type_logement}}</div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="precision_logement" class="form-label">Précisions sur le logement</label>
-                                        <input type="text" class="form-control" id="precision_logement" name="precision_logement" value="{{precision_logement}}">
-                                    </div>
-                                </div>
-
-                                <!-- Informations académiques -->
-                                <h3 class="h5 mb-3">Informations académiques</h3>
-                                <div class="row g-3 mb-4">
-                                    <div class="col-md-6">
-                                        <label for="etablissement" class="form-label">Établissement <span class="text-danger">*</span></label>
-                                        <select class="form-select {{is_invalid_etablissement}}" id="etablissement" name="etablissement" required>
-                                            {{etablissement_options}}
-                                        </select>
-                                        <div class="text-danger">{{error_etablissement}}</div>
-                                    </div>
-                                    <div class="col-md-6" id="autre_etablissement_wrapper" style="display: none;">
-                                        <label for="autre_etablissement" class="form-label">Précisez l'établissement <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="autre_etablissement" name="autre_etablissement">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="statut" class="form-label">Statut <span class="text-danger">*</span></label>
-                                        <select class="form-select {{is_invalid_statut}}" id="statut" name="statut" required>
-                                            <option value="" disabled>Sélectionnez</option>
-                                            <option value="Élève" {{statut_sel_Élève}}>Élève</option>
-                                            <option value="Étudiant" {{statut_sel_Étudiant}}>Étudiant</option>
-                                            <option value="Stagiaire" {{statut_sel_Stagiaire}}>Stagiaire</option>
-                                        </select>
-                                        <div class="text-danger">{{error_statut}}</div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="domaine_etudes" class="form-label">Domaine d'études <span class="text-danger">*</span></label>
-                                        <select class="form-select {{is_invalid_domaine_etudes}}" id="domaine_etudes" name="domaine_etudes" required>
-                                            {{domaine_etudes_options}}
-                                        </select>
-                                        <div class="text-danger">{{error_domaine_etudes}}</div>
-                                    </div>
-                                    <div class="col-md-6" id="autre_domaine_etudes_wrapper" style="display: none;">
-                                        <label for="autre_domaine_etudes" class="form-label">Précisez le domaine d'études <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="autre_domaine_etudes" name="autre_domaine_etudes">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="niveau_etudes" class="form-label">Niveau d'études <span class="text-danger">*</span></label>
-                                        <select class="form-select {{is_invalid_niveau_etudes}}" id="niveau_etudes" name="niveau_etudes" required>
-                                            {{niveau_etudes_options}}
-                                        </select>
-                                        <div class="text-danger">{{error_niveau_etudes}}</div>
-                                    </div>
-                                    <div class="col-md-6" id="autre_niveau_etudes_wrapper" style="display: none;">
-                                        <label for="autre_niveau_etudes" class="form-label">Précisez le niveau d'études <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="autre_niveau_etudes" name="autre_niveau_etudes">
-                                    </div>
-                                </div>
-
-                                <!-- Projets futurs -->
-                                <h3 class="h5 mb-3">Projets futurs</h3>
-                                <div class="mb-4">
-                                    <label for="projet_apres_formation" class="form-label">Projet après formation</label>
-                                    <textarea class="form-control" id="projet_apres_formation" name="projet_apres_formation" rows="3">{{projet_apres_formation}}</textarea>
-                                </div>
-
-                                <!-- Boutons de soumission -->
-                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                    <a href="dashboard.php" class="btn btn-secondary"><i class="fas fa-times"></i> Annuler</a>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save"></i> Enregistrer les modifications
-                                    </button>
-                                </div>
-                            </form>
+                        <div class="col-md-6">
+                            <label for="prenom" class="form-label">Prénom <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control {{is_invalid_prenom}}" id="prenom" name="prenom" value="{{prenom}}" required>
+                            <div class="text-danger">{{error_prenom}}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Sexe <span class="text-danger">*</span></label>
+                            <div class="form-check">
+                                <input class="form-check-input {{is_invalid_sexe}}" type="radio" name="sexe" id="sexeMasculin" value="Masculin" {{sexe_checked_Masculin}} required>
+                                <label class="form-check-label" for="sexeMasculin">Masculin</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input {{is_invalid_sexe}}" type="radio" name="sexe" id="sexeFeminin" value="Feminin" {{sexe_checked_Feminin}} required>
+                                <label class="form-check-label" for="sexeFeminin">Féminin</label>
+                            </div>
+                            <div class="text-danger">{{error_sexe}}</div>
+                        </div>                        <div class="col-md-6">
+                            <label for="date_naissance" class="form-label">Date de naissance <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control {{is_invalid_date_naissance}}" id="date_naissance" name="date_naissance" value="{{date_naissance}}" required max="{{max_birth_date}}">
+                            <div class="text-danger">{{error_date_naissance}}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="numero_identite" class="form-label">Numéro d'ID ou Passeport <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control {{is_invalid_numero_identite}}" id="numero_identite" name="numero_identite" value="{{numero_identite}}" required>
+                            <div class="text-danger">{{error_numero_identite}}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="photo" class="form-label">ID or Passeport</label>
+                            <input type="file" class="form-control {{is_invalid_identite}}" id="photo" name="photo" accept="image/*,application/pdf">
+                            <div class="text-danger">{{error_identite}}</div>
                         </div>
                     </div>
-                </div>
+
+                    <!-- Informations de contact et résidence -->
+                    <h3 class="h5 mb-3">Contact et résidence</h3>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="telephone" class="form-label">Téléphone <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control {{is_invalid_telephone}}" id="telephone" name="telephone" value="{{telephone}}" placeholder="Saisissez votre numero sans l'indicatif du pays (9 chiffres max)" required>
+                            <div class="text-danger">{{error_telephone}}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control {{is_invalid_email}}" id="email" name="email" value="{{email}}" required>
+                            <div class="text-danger">{{error_email}}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="lieu_residence" class="form-label"><span class="text-danger">*</span> Lieu de résidence au Sénégal</label>
+                            <select class="form-select {{is_invalid_lieu_residence}}" id="lieu_residence" name="lieu_residence" required>
+                                {{lieu_residence_options}}
+                            </select>
+                            <div class="text-danger">{{error_lieu_residence}}</div>
+                        </div>
+                        <div class="col-md-6" id="autre_lieu_residence_wrapper" style="display: none;">
+                            <label for="autre_lieu_residence" class="form-label">Précisez le lieu de résidence <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="autre_lieu_residence" name="autre_lieu_residence">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="annee_arrivee" class="form-label">Année d'arrivée au Sénégal</label>
+                            <select class="form-select" id="annee_arrivee" name="annee_arrivee">
+                                {{annee_arrivee_options}}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="type_logement" class="form-label">Type de logement <span class="text-danger">*</span></label>
+                            <select class="form-select {{is_invalid_type_logement}}" id="type_logement" name="type_logement" required>
+                                <option value="" disabled>Sélectionnez</option>
+                                <option value="En famille" {{type_logement_sel_En famille}}>En famille</option>
+                                <option value="En colocation" {{type_logement_sel_En colocation}}>En colocation</option>
+                                <option value="En résidence universitaire" {{type_logement_sel_En résidence universitaire}}>En résidence universitaire</option>
+                                <option value="Autre" {{type_logement_sel_Autre}}>Autre</option>
+                            </select>
+                            <div class="text-danger">{{error_type_logement}}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="precision_logement" class="form-label">Précisions sur le logement</label>
+                            <input type="text" class="form-control" id="precision_logement" name="precision_logement" value="{{precision_logement}}">
+                        </div>
+                    </div>
+
+                    <!-- Informations académiques -->
+                    <h3 class="h5 mb-3">Informations académiques</h3>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="etablissement" class="form-label">Établissement <span class="text-danger">*</span></label>
+                            <select class="form-select {{is_invalid_etablissement}}" id="etablissement" name="etablissement" required>
+                                {{etablissement_options}}
+                            </select>
+                            <div class="text-danger">{{error_etablissement}}</div>
+                        </div>
+                        <div class="col-md-6" id="autre_etablissement_wrapper" style="display: none;">
+                            <label for="autre_etablissement" class="form-label">Précisez l'établissement <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="autre_etablissement" name="autre_etablissement">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="statut" class="form-label">Statut <span class="text-danger">*</span></label>
+                            <select class="form-select {{is_invalid_statut}}" id="statut" name="statut" required>
+                                <option value="" disabled>Sélectionnez</option>
+                                <option value="Élève" {{statut_sel_Élève}}>Élève</option>
+                                <option value="Étudiant" {{statut_sel_Étudiant}}>Étudiant</option>
+                                <option value="Stagiaire" {{statut_sel_Stagiaire}}>Stagiaire</option>
+                            </select>
+                            <div class="text-danger">{{error_statut}}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="domaine_etudes" class="form-label">Domaine d'études <span class="text-danger">*</span></label>
+                            <select class="form-select {{is_invalid_domaine_etudes}}" id="domaine_etudes" name="domaine_etudes" required>
+                                {{domaine_etudes_options}}
+                            </select>
+                            <div class="text-danger">{{error_domaine_etudes}}</div>
+                        </div>
+                        <div class="col-md-6" id="autre_domaine_etudes_wrapper" style="display: none;">
+                            <label for="autre_domaine_etudes" class="form-label">Précisez le domaine d'études <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="autre_domaine_etudes" name="autre_domaine_etudes">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="niveau_etudes" class="form-label">Niveau d'études <span class="text-danger">*</span></label>
+                            <select class="form-select {{is_invalid_niveau_etudes}}" id="niveau_etudes" name="niveau_etudes" required>
+                                {{niveau_etudes_options}}
+                            </select>
+                            <div class="text-danger">{{error_niveau_etudes}}</div>
+                        </div>
+                        <div class="col-md-6" id="autre_niveau_etudes_wrapper" style="display: none;">
+                            <label for="autre_niveau_etudes" class="form-label">Précisez le niveau d'études <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="autre_niveau_etudes" name="autre_niveau_etudes">
+                        </div>
+                    </div>
+
+                    <!-- Projets futurs -->
+                    <h3 class="h5 mb-3">Projets futurs</h3>
+                    <div class="mb-4">
+                        <label for="projet_apres_formation" class="form-label">Projet après formation</label>
+                        <textarea class="form-control" id="projet_apres_formation" name="projet_apres_formation" rows="3">{{projet_apres_formation}}</textarea>
+                    </div>
+
+                    <!-- Boutons de soumission -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="students.php" class="btn btn-secondary"><i class="fas fa-times"></i> Annuler</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Enregistrer les modifications
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
-    </main>
+    </div>
+</div>
 
-    <!-- Pied de page -->
-    {{footer}}
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Scripts personnalisés -->
-    <script src="assets/js/main.js"></script>
-    <script>
-        function setupOtherFieldListener(selectId, wrapperId, inputId) {
-            document.getElementById(selectId).addEventListener('change', function () {
-                var wrapper = document.getElementById(wrapperId);
-                var input = document.getElementById(inputId);
-                if (this.value === 'Autre') {
-                    wrapper.style.display = 'block';
-                    input.setAttribute('required', 'required');
-                } else {
-                    wrapper.style.display = 'none';
-                    input.removeAttribute('required');
-                }
-            });
-        }
+<script>
+    function setupOtherFieldListener(selectId, wrapperId, inputId) {
+        document.getElementById(selectId).addEventListener('change', function () {
+            var wrapper = document.getElementById(wrapperId);
+            var input = document.getElementById(inputId);
+            if (this.value === 'Autre') {
+                wrapper.style.display = 'block';
+                input.setAttribute('required', 'required');
+            } else {
+                wrapper.style.display = 'none';
+                input.removeAttribute('required');
+            }
+        });
+    }
 
-        setupOtherFieldListener('etablissement', 'autre_etablissement_wrapper', 'autre_etablissement');
-        setupOtherFieldListener('domaine_etudes', 'autre_domaine_etudes_wrapper', 'autre_domaine_etudes');
-        setupOtherFieldListener('niveau_etudes', 'autre_niveau_etudes_wrapper', 'autre_niveau_etudes');
-    </script>
-</body>
+    setupOtherFieldListener('etablissement', 'autre_etablissement_wrapper', 'autre_etablissement');
+    setupOtherFieldListener('domaine_etudes', 'autre_domaine_etudes_wrapper', 'autre_domaine_etudes');
+    setupOtherFieldListener('niveau_etudes', 'autre_niveau_etudes_wrapper', 'autre_niveau_etudes');
+    setupOtherFieldListener('lieu_residence', 'autre_lieu_residence_wrapper', 'autre_lieu_residence');
 
-</html>
+    // Initialize flatpickr
+    flatpickr("#date_naissance", {
+        altInput: true,
+        altFormat: "j F Y",
+        dateFormat: "Y-m-d",
+        maxDate: "{{max_birth_date}}",
+        locale: "fr"
+    });
+</script>

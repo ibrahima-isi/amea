@@ -1,4 +1,5 @@
 <?php
+error_reporting(E_ALL & ~E_DEPRECATED);
 
 /**
  * Amicale des Eleves, Etudiants et Stagiaires Guineens au Senegal - Application de Gestion des Étudiants
@@ -60,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
         exit();
     } else {
         $exportFormat = $_POST['export_format'] ?? 'csv';
-        $exportFormat = in_array($exportFormat, ['csv', 'excel', 'json'], true) ? $exportFormat : 'csv';
+        $exportFormat = in_array($exportFormat, ['csv', 'json', 'pdf'], true) ? $exportFormat : 'csv';
 
         $selectedFields = $_POST['fields'] ?? [];
         $selectedFields = array_values(array_unique(array_filter($selectedFields, function ($field) use ($allowedExportFields) {
@@ -118,25 +119,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
 
                         $output = fopen('php://output', 'w');
                         fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
-                        fputcsv($output, $headers, ';');
+                        fputcsv($output, $headers, ';', '"', '\\');
 
                         foreach ($data as $row) {
-                            fputcsv($output, $row, ';');
-                        }
-
-                        fclose($output);
-                        exit();
-                    } elseif ($exportFormat === 'excel') {
-                        $filename = 'export_etudiants_' . date('Y-m-d_H-i-s') . '.csv';
-                        header('Content-Type: application/vnd.ms-excel; charset=utf-8');
-                        header('Content-Disposition: attachment; filename="' . $filename . '"');
-
-                        $output = fopen('php://output', 'w');
-                        fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
-                        fputcsv($output, $headers, ';');
-
-                        foreach ($data as $row) {
-                            fputcsv($output, $row, ';');
+                            fputcsv($output, $row, ';', '"', '\\');
                         }
 
                         fclose($output);
@@ -147,6 +133,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
                         header('Content-Disposition: attachment; filename="' . $filename . '"');
 
                         echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+                        exit();
+                    } elseif ($exportFormat === 'pdf') {
+                        $_SESSION['export_data'] = $data;
+                        $_SESSION['export_headers'] = $headers;
+                        $_SESSION['export_filters'] = $filters;
+                        header('Location: export-preview.php');
                         exit();
                     }
                 }
@@ -241,10 +233,16 @@ if ($flash) {
     ";
 }
 
+$validation_script = '';
+if (!empty($error)) {
+    $validation_script = "<script>const validationErrors = " . json_encode(['form' => $error]) . ";</script>";
+}
+
 // Layout
 $layoutTpl = file_get_contents($layoutPath);
 $output = strtr($layoutTpl, [
     '{{flash_script}}' => $flash_script,
+    '{{validation_script}}' => $validation_script,
     '{{title}}' => 'AEESGS - Exporter les données',
     '{{sidebar}}' => $sidebarHtml,
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [

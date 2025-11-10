@@ -23,199 +23,226 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         setFlashMessage('error', 'La session a expiré. Veuillez réessayer.');
         header('Location: register.php');
         exit();
+    }
+
+    // 1. Sanitize and retrieve form data
+    $formData = [
+        'nom' => trim($_POST['nom'] ?? ''),
+        'prenom' => trim($_POST['prenom'] ?? ''),
+        'numero_identite' => trim($_POST['numero_identite'] ?? ''),
+        'sexe' => $_POST['sexe'] ?? '',
+        'date_naissance' => $_POST['date_naissance'] ?? '',
+        'lieu_residence' => trim($_POST['lieu_residence'] ?? ''),
+        'autre_lieu_residence' => trim($_POST['autre_lieu_residence'] ?? ''),
+        'etablissement' => trim($_POST['etablissement'] ?? ''),
+        'autre_etablissement' => trim($_POST['autre_etablissement'] ?? ''),
+        'statut' => $_POST['statut'] ?? '',
+        'domaine_etudes' => trim($_POST['domaine_etudes'] ?? ''),
+        'autre_domaine_etudes' => trim($_POST['autre_domaine_etudes'] ?? ''),
+        'niveau_etudes' => trim($_POST['niveau_etudes'] ?? ''),
+        'autre_niveau_etudes' => trim($_POST['autre_niveau_etudes'] ?? ''),
+        'telephone' => trim($_POST['telephone'] ?? ''),
+        'email' => trim($_POST['email'] ?? ''),
+        'annee_arrivee' => $_POST['annee_arrivee'] ?? null,
+        'type_logement' => $_POST['type_logement'] ?? '',
+        'precision_logement' => trim($_POST['precision_logement'] ?? ''),
+        'projet_apres_formation' => trim($_POST['projet_apres_formation'] ?? '')
+    ];
+
+    // 2. Handle 'Other' options
+    if ($formData['lieu_residence'] === 'Autre') $formData['lieu_residence'] = $formData['autre_lieu_residence'];
+    if ($formData['etablissement'] === 'Autre') $formData['etablissement'] = $formData['autre_etablissement'];
+    if ($formData['domaine_etudes'] === 'Autre') $formData['domaine_etudes'] = $formData['autre_domaine_etudes'];
+    if ($formData['niveau_etudes'] === 'Autre') $formData['niveau_etudes'] = $formData['autre_niveau_etudes'];
+
+    // 3. Normalize nullable fields and calculate age
+    $formData['annee_arrivee'] = ($formData['annee_arrivee'] === null || $formData['annee_arrivee'] === '') ? null : (int)$formData['annee_arrivee'];
+    $formData['precision_logement'] = $formData['precision_logement'] === '' ? null : $formData['precision_logement'];
+    $formData['projet_apres_formation'] = $formData['projet_apres_formation'] === '' ? null : $formData['projet_apres_formation'];
+    $formData['age'] = null;
+
+    // 4. Validation
+    $errors = [];
+    $requiredFields = [
+        'nom' => 'Le nom est requis.',
+        'prenom' => 'Le prénom est requis.',
+        'sexe' => 'Le sexe est requis.',
+        'date_naissance' => 'La date de naissance est requise.',
+        'lieu_residence' => 'Le lieu de résidence est requis.',
+        'etablissement' => 'L\'établissement est requis.',
+        'statut' => 'Le statut est requis.',
+        'domaine_etudes' => 'Le domaine d\'études est requis.',
+        'niveau_etudes' => 'Le niveau d\'études est requis.',
+        'telephone' => 'Le téléphone est requis.',
+        'email' => 'L\'email est requis.',
+        'type_logement' => 'Le type de logement est requis.'
+    ];
+
+    foreach ($requiredFields as $field => $message) {
+        if (empty($formData[$field])) {
+            $errors[$field] = $message;
+        }
+    }
+
+    if (empty($formData['numero_identite'])) {
+        $errors['numero_identite'] = 'Le numéro d\'identité est requis.';
     } else {
-        // Récupérer les données du formulaire
-        $formData = [
-            'nom' => trim($_POST['nom'] ?? ''),
-            'prenom' => trim($_POST['prenom'] ?? ''),
-            'numero_identite' => trim($_POST['numero_identite'] ?? ''),
-            'sexe' => $_POST['sexe'] ?? '',
-            'date_naissance' => $_POST['date_naissance'] ?? '',
-            'lieu_residence' => trim($_POST['lieu_residence'] ?? ''),
-            'etablissement' => trim($_POST['etablissement'] ?? ''),
-            'autre_etablissement' => trim($_POST['autre_etablissement'] ?? ''),
-            'statut' => $_POST['statut'] ?? '',
-            'domaine_etudes' => trim($_POST['domaine_etudes'] ?? ''),
-            'autre_domaine_etudes' => trim($_POST['autre_domaine_etudes'] ?? ''),
-            'niveau_etudes' => trim($_POST['niveau_etudes'] ?? ''),
-            'autre_niveau_etudes' => trim($_POST['autre_niveau_etudes'] ?? ''),
-            'telephone' => trim($_POST['telephone'] ?? ''),
-            'email' => trim($_POST['email'] ?? ''),
-            'annee_arrivee' => $_POST['annee_arrivee'] ?? null,
-            'type_logement' => $_POST['type_logement'] ?? '',
-            'precision_logement' => trim($_POST['precision_logement'] ?? ''),
-            'projet_apres_formation' => trim($_POST['projet_apres_formation'] ?? '')
-        ];
+        $stmt = $conn->prepare("SELECT id_personne FROM personnes WHERE numero_identite = ?");
+        $stmt->execute([$formData['numero_identite']]);
+        if ($stmt->fetch()) {
+            $errors['numero_identite'] = 'Ce numéro d\'identité est déjà utilisé.';
+        }
+    }
 
-        // Valider les données
-        $photoPath = null;
-        if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
-            $photoTmpPath = $_FILES['photo']['tmp_name'];
-            $photoName = $_FILES['photo']['name'];
-            $photoSize = $_FILES['photo']['size'];
-            $photoExtension = strtolower(pathinfo($photoName, PATHINFO_EXTENSION));
+    if (!isset($errors['email']) && !filter_var($formData['email'], FILTER_VALIDATE_EMAIL)) {
+        $errors['email'] = "L'adresse email n'est pas valide.";
+    }
 
-            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf'];
-            if (in_array($photoExtension, $allowedExtensions)) {
-                if ($photoSize < 2000000) { // 2MB
-                    $newFileName = uniqid('', true) . '.' . $photoExtension;
-                    $uploadPath = 'uploads/students/' . $newFileName;
-                    if (move_uploaded_file($photoTmpPath, $uploadPath)) {
-                        $photoPath = $uploadPath;
-                    } else {
-                        $errors['photo'] = "Erreur lors de l'upload de l'image.";
-                    }
+    if (!isset($errors['telephone']) && !isValidPhone($formData['telephone'])) {
+        $errors['telephone'] = "Le numéro de téléphone doit contenir exactement 9 chiffres.";
+    }
+
+    if (empty($errors['date_naissance'])) {
+        $formData['age'] = calculateAge($formData['date_naissance']);
+        if ($formData['age'] < 15) {
+            $errors['date_naissance'] = "L'âge doit être d'au moins 15 ans.";
+        }
+    }
+
+    // 5. Handle file upload
+    $identitePath = null;
+    if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+        $photoTmpPath = $_FILES['photo']['tmp_name'];
+        $photoName = $_FILES['photo']['name'];
+        $photoSize = $_FILES['photo']['size'];
+        $photoExtension = strtolower(pathinfo($photoName, PATHINFO_EXTENSION));
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf'];
+
+        if (in_array($photoExtension, $allowedExtensions)) {
+            if ($photoSize < 2000000) { // 2MB
+                $newFileName = uniqid('', true) . '.' . $photoExtension;
+                $uploadPath = 'uploads/students/' . $newFileName;
+                if (move_uploaded_file($photoTmpPath, $uploadPath)) {
+                    $identitePath = $uploadPath;
                 } else {
-                    $errors['photo'] = "L'image est trop volumineuse (max 2MB).";
+                    $errors['identite'] = "Erreur lors de l'upload du fichier d'identité.";
                 }
             } else {
-                $errors['photo'] = "Le format du fichier n\'est pas supporté (jpg, jpeg, png, gif, pdf).";
+                $errors['identite'] = "Le fichier d'identité est trop volumineux (max 2MB).";
             }
-        }
-        $formData['photo'] = $photoPath;
-
-        if ($formData['etablissement'] === 'Autre') {
-            $formData['etablissement'] = $formData['autre_etablissement'];
-        }
-
-        if ($formData['domaine_etudes'] === 'Autre') {
-            $formData['domaine_etudes'] = $formData['autre_domaine_etudes'];
-        }
-
-        if ($formData['niveau_etudes'] === 'Autre') {
-            $formData['niveau_etudes'] = $formData['autre_niveau_etudes'];
-        }
-
-        $requiredFields = [
-            'nom' => 'Le nom est requis.',
-            'prenom' => 'Le prénom est requis.',
-            'sexe' => 'Le sexe est requis.',
-            'date_naissance' => 'La date de naissance est requise.',
-            'lieu_residence' => 'Le lieu de résidence est requis.',
-            'etablissement' => 'L\'établissement est requis.',
-            'statut' => 'Le statut est requis.',
-            'domaine_etudes' => 'Le domaine d\'études est requis.',
-            'niveau_etudes' => 'Le niveau d\'études est requis.',
-            'telephone' => 'Le téléphone est requis.',
-            'email' => 'L\'email est requis.',
-            'type_logement' => 'Le type de logement est requis.'
-        ];
-
-        foreach ($requiredFields as $field => $message) {
-            if (empty($formData[$field])) {
-                $errors[$field] = $message;
-            }
-        }
-
-        if (empty($formData['numero_identite'])) {
-            $errors['numero_identite'] = 'Le numéro d\'identité est requis.';
         } else {
-            // Check for uniqueness
-            $stmt = $conn->prepare("SELECT id_personne FROM personnes WHERE numero_identite = ?");
-            $stmt->execute([$formData['numero_identite']]);
-            if ($stmt->fetch()) {
-                $errors['numero_identite'] = 'Ce numéro d\'identité est déjà utilisé.';
-            }
+            $errors['identite'] = "Le format du fichier d'identité n'est pas supporté (jpg, jpeg, png, gif, pdf).";
         }
+    }
+    $formData['identite'] = $identitePath;
 
-        // Valider l'email
-        if (!isset($errors['email']) && !filter_var($formData['email'], FILTER_VALIDATE_EMAIL)) {
-            $errors['email'] = "L'adresse email n'est pas valide.";
+    // 6. If validation fails, redirect back
+    if (!empty($errors)) {
+        $_SESSION['form_data'] = $formData;
+        $_SESSION['form_errors'] = $errors;
+        setFlashMessage('error', 'Veuillez corriger les erreurs ci-dessous.');
+        header('Location: register.php');
+        exit();
+    }
+
+    // 7. If validation passes, insert into DB
+    if (!empty($formData['etablissement'])) {
+        $stmt = $conn->prepare("SELECT id FROM etablissements WHERE nom = ?");
+        $stmt->execute([$formData['etablissement']]);
+        if ($stmt->fetchColumn() === false) {
+            $conn->prepare("INSERT INTO etablissements (nom) VALUES (?)")->execute([$formData['etablissement']]);
         }
-
-        // Valider le numéro de téléphone
-        if (!isset($errors['telephone']) && !isValidPhone($formData['telephone'])) {
-            $errors['telephone'] = "Le numéro de téléphone doit contenir exactement 9 chiffres.";
+    }
+    if (!empty($formData['domaine_etudes'])) {
+        $stmt = $conn->prepare("SELECT id FROM domaines_etudes WHERE nom = ?");
+        $stmt->execute([$formData['domaine_etudes']]);
+        if ($stmt->fetchColumn() === false) {
+            $conn->prepare("INSERT INTO domaines_etudes (nom) VALUES (?)")->execute([$formData['domaine_etudes']]);
         }
+    }
+    if (!empty($formData['niveau_etudes'])) {
+        $stmt = $conn->prepare("SELECT id FROM niveaux_etudes WHERE nom = ?");
+        $stmt->execute([$formData['niveau_etudes']]);
+        if ($stmt->fetchColumn() === false) {
+            $conn->prepare("INSERT INTO niveaux_etudes (nom) VALUES (?)")->execute([$formData['niveau_etudes']]);
+        }
+    }
 
-        // Si des erreurs sont trouvées, rediriger avec les erreurs
-        if (!empty($errors)) {
+    try {
+        $duplicateSql = "SELECT COUNT(*) FROM personnes WHERE email = :email";
+        $duplicateStmt = $conn->prepare($duplicateSql);
+        $duplicateStmt->bindParam(':email', $formData['email']);
+        $duplicateStmt->execute();
+        if ($duplicateStmt->fetchColumn() > 0) {
+            $errors['email'] = "Cette adresse email est déjà enregistrée.";
             $_SESSION['form_data'] = $formData;
             $_SESSION['form_errors'] = $errors;
-            setFlashMessage('error', 'Veuillez corriger les erreurs ci-dessous.');
+            setFlashMessage('error', 'Cette adresse email est déjà enregistrée.');
             header('Location: register.php');
             exit();
         }
 
-        // Si aucune erreur, enregistrer les données dans la base de données
-        if (empty($errors)) {
-            // Add the school to the database if it doesn't exist
-            if (!empty($formData['etablissement'])) {
-                $stmt = $conn->prepare("SELECT id FROM etablissements WHERE nom = ?");
-                $stmt->execute([$formData['etablissement']]);
-                if ($stmt->fetchColumn() === false) {
-                    $insertStmt = $conn->prepare("INSERT INTO etablissements (nom) VALUES (?)");
-                    $insertStmt->execute([$formData['etablissement']]);
-                }
-            }
-
-            // Add the field of study to the database if it doesn't exist
-            if (!empty($formData['domaine_etudes'])) {
-                $stmt = $conn->prepare("SELECT id FROM domaines_etudes WHERE nom = ?");
-                $stmt->execute([$formData['domaine_etudes']]);
-                if ($stmt->fetchColumn() === false) {
-                    $insertStmt = $conn->prepare("INSERT INTO domaines_etudes (nom) VALUES (?)");
-                    $insertStmt->execute([$formData['domaine_etudes']]);
-                }
-            }
-
-            // Add the level of study to the database if it doesn't exist
-            if (!empty($formData['niveau_etudes'])) {
-                $stmt = $conn->prepare("SELECT id FROM niveaux_etudes WHERE nom = ?");
-                $stmt->execute([$formData['niveau_etudes']]);
-                if ($stmt->fetchColumn() === false) {
-                    $insertStmt = $conn->prepare("INSERT INTO niveaux_etudes (nom) VALUES (?)");
-                    $insertStmt->execute([$formData['niveau_etudes']]);
-                }
-            }
-
-            try {
-                // Vérifier les doublons sur l'adresse email
-                $duplicateSql = "SELECT COUNT(*) FROM personnes WHERE email = :email";
-                $duplicateStmt = $conn->prepare($duplicateSql);
-                $duplicateStmt->bindParam(':email', $formData['email']);
-                $duplicateStmt->execute();
-
-                if ($duplicateStmt->fetchColumn() > 0) {
-                    $errors['email'] = "Cette adresse email est déjà enregistrée.";
-                } else {
-                    $sql = "INSERT INTO personnes (nom, prenom, numero_identite, sexe, age, date_naissance, lieu_residence,
-                            etablissement, statut, domaine_etudes, niveau_etudes, telephone, email,
-                            annee_arrivee, type_logement, precision_logement, projet_apres_formation, photo)
-                            VALUES (:nom, :prenom, :numero_identite, :sexe, :age, :date_naissance, :lieu_residence,
-                            :etablissement, :statut, :domaine_etudes, :niveau_etudes, :telephone, :email,
-                            :annee_arrivee, :type_logement, :precision_logement, :projet_apres_formation, :photo)";
-
-                    $stmt = $conn->prepare($sql);
-                    $stmt->bindParam(':nom', $formData['nom']);
-                    $stmt->bindParam(':prenom', $formData['prenom']);
-                    $stmt->bindParam(':numero_identite', $formData['numero_identite']);
-                    $stmt->bindParam(':sexe', $formData['sexe']);
-                    $stmt->bindParam(':age', $formData['age']);
-                    $stmt->bindParam(':date_naissance', $formData['date_naissance']);
-                    $stmt->bindParam(':lieu_residence', $formData['lieu_residence']);
-                    $stmt->bindParam(':etablissement', $formData['etablissement']);
-                    $stmt->bindParam(':statut', $formData['statut']);
-                    $stmt->bindParam(':domaine_etudes', $formData['domaine_etudes']);
-                    $stmt->bindParam(':niveau_etudes', $formData['niveau_etudes']);
-                    $stmt->bindParam(':telephone', $formData['telephone']);
-                    $stmt->bindParam(':email', $formData['email']);
-                    $stmt->bindParam(':annee_arrivee', $formData['annee_arrivee']);
-                    $stmt->bindParam(':type_logement', $formData['type_logement']);
-                    $stmt->bindParam(':precision_logement', $formData['precision_logement']);
-                    $stmt->bindParam(':projet_apres_formation', $formData['projet_apres_formation']);
-                    $stmt->bindParam(':photo', $formData['photo']);
-
-                    $stmt->execute();
-                    setFlashMessage('success', 'Votre enregistrement a été effectué avec succès ! Merci pour votre participation.');
-                    header('Location: index.php');
-                    exit();
-                }
-            } catch (PDOException $e) {
-                logError("Erreur lors de l'enregistrement d'un étudiant", $e);
-                $errors['form'] = "Une erreur inattendue est survenue lors de l'enregistrement. Veuillez réessayer plus tard.";
-            }
+        $phoneSql = "SELECT COUNT(*) FROM personnes WHERE telephone = :telephone";
+        $phoneStmt = $conn->prepare($phoneSql);
+        $phoneStmt->bindParam(':telephone', $formData['telephone']);
+        $phoneStmt->execute();
+        if ($phoneStmt->fetchColumn() > 0) {
+            $errors['telephone'] = "Ce numéro de téléphone est déjà enregistré.";
+            $_SESSION['form_data'] = $formData;
+            $_SESSION['form_errors'] = $errors;
+            setFlashMessage('error', 'Ce numéro de téléphone est déjà enregistré.');
+            header('Location: register.php');
+            exit();
         }
+
+        $sql = "INSERT INTO personnes (nom, prenom, numero_identite, sexe, age, date_naissance, lieu_residence,
+                etablissement, statut, domaine_etudes, niveau_etudes, telephone, email,
+                annee_arrivee, type_logement, precision_logement, projet_apres_formation, identite)
+                VALUES (:nom, :prenom, :numero_identite, :sexe, :age, :date_naissance, :lieu_residence,
+                :etablissement, :statut, :domaine_etudes, :niveau_etudes, :telephone, :email,
+                :annee_arrivee, :type_logement, :precision_logement, :projet_apres_formation, :identite)";
+
+        $stmt = $conn->prepare($sql);
+
+        $bindings = [
+            ':nom' => $formData['nom'],
+            ':prenom' => $formData['prenom'],
+            ':numero_identite' => $formData['numero_identite'],
+            ':sexe' => $formData['sexe'],
+            ':age' => $formData['age'],
+            ':date_naissance' => $formData['date_naissance'],
+            ':lieu_residence' => $formData['lieu_residence'],
+            ':etablissement' => $formData['etablissement'],
+            ':statut' => $formData['statut'],
+            ':domaine_etudes' => $formData['domaine_etudes'],
+            ':niveau_etudes' => $formData['niveau_etudes'],
+            ':telephone' => $formData['telephone'],
+            ':email' => $formData['email'],
+            ':annee_arrivee' => $formData['annee_arrivee'],
+            ':type_logement' => $formData['type_logement'],
+            ':precision_logement' => $formData['precision_logement'],
+            ':projet_apres_formation' => $formData['projet_apres_formation'],
+            ':identite' => $formData['identite'],
+        ];
+
+        $stmt->execute($bindings);
+        setFlashMessage('success', 'Vous êtes inscrit avec succès');
+        session_write_close();
+        header('Location: index.php');
+        exit();
+
+    } catch (PDOException $e) {
+        // Affiche l'erreur pour le débogage
+        echo "<h1>Erreur de base de données :</h1>";
+        echo "<pre>";
+        print_r($e->getMessage());
+        echo "</pre>";
+        // Affiche les données qui ont été envoyées
+        echo "<h2>Données envoyées :</h2>";
+        echo "<pre>";
+        print_r($bindings);
+        echo "</pre>";
+        exit(); // Arrête l'exécution pour ne pas rediriger
     }
 }
 
@@ -244,19 +271,9 @@ $niveaux[] = 'Autre';
 
 // Rendu du template
 $flash = getFlashMessage();
-$flash_script = '';
+$flash_json = '';
 if ($flash) {
-    $flash_script = "
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({
-                    icon: '{$flash['type']}',
-                    title: 'Succès',
-                    text: '{$flash['message']}',
-                });
-            });
-        </script>
-    ";
+    $flash_json = json_encode($flash);
 }
 
 $feedback = '';
@@ -273,7 +290,6 @@ $headerHtml = strtr($headerTpl, [
     '{{index_active}}' => '',
     '{{register_active}}' => 'active',
     '{{login_active}}' => '',
-    '{{flash_script}}' => $flash_script,
 ]);
 
 $etablissementOptions = '';
@@ -294,28 +310,57 @@ foreach ($niveaux as $niveau) {
     $niveauOptions .= "<option value=\"$niveau\" $selected>$niveau</option>";
 }
 
+// Fetch locations from the database
+$stmt = $conn->query("SELECT region, name FROM locations ORDER BY region, name ASC");
+$locations = $stmt->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_COLUMN);
+
+$lieuResidenceOptions = '<option value="" selected>Sélectionnez un lieu</option>';
+foreach ($locations as $region => $cities) {
+    $lieuResidenceOptions .= "<optgroup label=\"$region\">";
+    foreach ($cities as $city) {
+        $selected = ($formData['lieu_residence'] ?? '') === $city ? 'selected' : '';
+        $lieuResidenceOptions .= "<option value=\"$city\" $selected>$city</option>";
+    }
+    $lieuResidenceOptions .= "</optgroup>";
+}
+$lieuResidenceOptions .= '<option value="Autre">Autre</option>';
+
+$anneeArriveeOptions = '<option value="" selected>Sélectionnez</option>';
+$currentYear = date('Y');
+for ($year = $currentYear; $year >= 1990; $year--) {
+    $selected = ($formData['annee_arrivee'] ?? '') == $year ? 'selected' : '';
+    $anneeArriveeOptions .= "<option value=\"$year\" $selected>$year</option>";
+}
+
+$maxBirthDate = ($currentYear - 15) . '-12-31';
+
+$sel = fn($value, $option) => $value === $option ? 'selected' : '';
+$checked = fn($value, $option) => $value === $option ? 'checked' : '';
+
 $replacements = [
     '{{header}}' => $headerHtml,
     '{{footer}}' => $footerTpl,
-'{{feedback_block}}' => $feedback,
+    '{{flash_json}}' => $flash_json,
+    '{{feedback_block}}' => $feedback,
     '{{form_action}}' => htmlspecialchars($_SERVER['PHP_SELF'] ?? 'register.php', ENT_QUOTES, 'UTF-8'),
     '{{csrf_token}}' => htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'),
     '{{nom}}' => htmlspecialchars($formData['nom'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{prenom}}' => htmlspecialchars($formData['prenom'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{numero_identite}}' => htmlspecialchars($formData['numero_identite'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{date_naissance}}' => htmlspecialchars($formData['date_naissance'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{max_birth_date}}' => $maxBirthDate,
     '{{telephone}}' => htmlspecialchars($formData['telephone'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{email}}' => htmlspecialchars($formData['email'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{lieu_residence}}' => htmlspecialchars($formData['lieu_residence'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{annee_arrivee}}' => htmlspecialchars($formData['annee_arrivee'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{lieu_residence_options}}' => $lieuResidenceOptions,
+    '{{annee_arrivee_options}}' => $anneeArriveeOptions,
     '{{precision_logement}}' => htmlspecialchars($formData['precision_logement'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{etablissement_options}}' => $etablissementOptions,
     '{{domaine_etudes_options}}' => $domaineOptions,
     '{{niveau_etudes_options}}' => $niveauOptions,
     '{{projet_apres_formation}}' => htmlspecialchars($formData['projet_apres_formation'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{sexe_sel_none}}' => empty($formData['sexe'] ?? '') ? 'selected' : '',
-    '{{sexe_sel_Masculin}}' => ($formData['sexe'] ?? '') === 'Masculin' ? 'selected' : '',
-    '{{sexe_sel_Féminin}}' => ($formData['sexe'] ?? '') === 'Féminin' ? 'selected' : '',
+    '{{sexe_checked_Masculin}}' => $checked($formData['sexe'] ?? '', 'Masculin'),
+    '{{sexe_checked_Feminin}}' => ($formData['sexe'] ?? '') === 'Féminin' ? 'selected' : '',
     '{{type_logement_sel_none}}' => empty($formData['type_logement'] ?? '') ? 'selected' : '',
     '{{type_logement_sel_En famille}}' => ($formData['type_logement'] ?? '') === 'En famille' ? 'selected' : '',
     '{{type_logement_sel_En colocation}}' => ($formData['type_logement'] ?? '') === 'En colocation' ? 'selected' : '',
@@ -330,7 +375,7 @@ $replacements = [
     '{{error_numero_identite}}' => $errors['numero_identite'] ?? '',
     '{{error_sexe}}' => $errors['sexe'] ?? '',
     '{{error_date_naissance}}' => $errors['date_naissance'] ?? '',
-    '{{error_photo}}' => $errors['photo'] ?? '',
+    '{{error_photo}}' => $errors['identite'] ?? '',
     '{{error_telephone}}' => $errors['telephone'] ?? '',
     '{{error_email}}' => $errors['email'] ?? '',
     '{{error_lieu_residence}}' => $errors['lieu_residence'] ?? '',
@@ -344,7 +389,7 @@ $replacements = [
     '{{is_invalid_numero_identite}}' => isset($errors['numero_identite']) ? 'is-invalid' : '',
     '{{is_invalid_sexe}}' => isset($errors['sexe']) ? 'is-invalid' : '',
     '{{is_invalid_date_naissance}}' => isset($errors['date_naissance']) ? 'is-invalid' : '',
-    '{{is_invalid_photo}}' => isset($errors['photo']) ? 'is-invalid' : '',
+    '{{is_invalid_photo}}' => isset($errors['identite']) ? 'is-invalid' : '',
     '{{is_invalid_telephone}}' => isset($errors['telephone']) ? 'is-invalid' : '',
     '{{is_invalid_email}}' => isset($errors['email']) ? 'is-invalid' : '',
     '{{is_invalid_lieu_residence}}' => isset($errors['lieu_residence']) ? 'is-invalid' : '',
@@ -359,3 +404,4 @@ $output = strtr($tpl, $replacements);
 
 echo $output;
 ?>
+
