@@ -128,10 +128,10 @@ if (count($students) > 0) {
         if ($student['statut'] == 'Étudiant') $badgeClass = 'primary';
         elseif ($student['statut'] == 'Élève') $badgeClass = 'info';
         $photoHtml = '<img src="assets/img/placeholder.png" alt="Photo" class="img-thumbnail" width="50">';
-        if (!empty($student['identite']) && file_exists($student['identite'])) {
+        if (!empty($student['photo'])) {
             $modalId = 'photoModal' . $student['id_personne'];
             $photoHtml = '<a href="#" data-bs-toggle="modal" data-bs-target="#' . $modalId . '">';
-            $photoHtml .= '<img src="' . htmlspecialchars($student['identite'], ENT_QUOTES, 'UTF-8') . '" alt="Photo" class="img-thumbnail" width="50">';
+            $photoHtml .= '<img src="' . htmlspecialchars($student['photo'], ENT_QUOTES, 'UTF-8') . '" alt="Photo" class="img-thumbnail" width="50">';
             $photoHtml .= '</a>';
 
             // Add the modal HTML
