@@ -143,7 +143,7 @@ if (count($students) > 0) {
             $photoHtml .= '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
             $photoHtml .= '</div>';
             $photoHtml .= '<div class="modal-body text-center">';
-            $photoHtml .= '<img src="' . htmlspecialchars($student['identite'], ENT_QUOTES, 'UTF-8') . '" class="img-fluid">';
+            $photoHtml .= '<img src="' . htmlspecialchars($student['photo'], ENT_QUOTES, 'UTF-8') . '" class="img-fluid">';
             $photoHtml .= '</div>';
             $photoHtml .= '</div>';
             $photoHtml .= '</div>';
