@@ -84,7 +84,7 @@ $detailsHtml .= '<div class="col-md-3 text-center">';
 
 $identitePath = $student['identite'] ?? '';
 $modalHtml = '';
-if (!empty($identitePath) && file_exists($identitePath)) {
+if (!empty($identitePath)) {
     $fileExtension = strtolower(pathinfo($identitePath, PATHINFO_EXTENSION));
     $isPdf = ($fileExtension === 'pdf');
     $isImage = in_array($fileExtension, ['png', 'jpg', 'jpeg', 'gif']);
