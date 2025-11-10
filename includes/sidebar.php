@@ -17,6 +17,9 @@
             <a href="users.php" class="list-group-item list-group-item-action text-white">
                 <i class="fas fa-users-cog me-2"></i> Utilisateurs
             </a>
+            <a href="manage-slider.php" class="list-group-item list-group-item-action text-white">
+                <i class="fas fa-images me-2"></i> Gérer le carrousel
+            </a>
         <?php endif; ?>
         <a href="export.php" class="list-group-item list-group-item-action text-white">
             <i class="fas fa-file-export me-2"></i> Export

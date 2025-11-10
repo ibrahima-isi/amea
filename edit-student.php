@@ -218,22 +218,9 @@ if ($flash) {
     $flash_json = json_encode($flash);
 }
 
-// Prepare validation script
-$validation_script = '';
+$validation_errors_json = '';
 if (!empty($errors)) {
-    $errors_json = json_encode($errors);
-    $validation_script = "<script>const validationErrors = ".$errors_json.";</script>";
-    $validation_script .= "
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erreur de validation',
-                    text: 'Veuillez corriger les erreurs indiquées sur le formulaire.',
-                });
-            });
-        </script>
-    ";
+    $validation_errors_json = json_encode($errors);
 }
 
 // Read content template
@@ -326,7 +313,7 @@ $output = strtr($layoutTpl, [
     '{{title}}' => 'AEESGS - Modifier l\'étudiant',
     '{{sidebar}}' => $sidebarHtml,
     '{{flash_json}}' => $flash_json,
-    '{{validation_script}}' => $validation_script,
+    '{{validation_errors_json}}' => $validation_errors_json,
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [
         '{{user_fullname}}' => htmlspecialchars($prenom . ' ' . $nom, ENT_QUOTES, 'UTF-8'),
     ]),

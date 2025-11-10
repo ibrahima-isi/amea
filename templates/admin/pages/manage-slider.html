@@ -1,0 +1,95 @@
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="h3">Gérer le carrousel</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Gérer le carrousel</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="col-md-4 text-end">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#sliderImageModal">
+            <i class="fas fa-plus"></i> Ajouter une image
+        </button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Aperçu</th>
+                    <th>Titre</th>
+                    <th>Ordre</th>
+                    <th>Statut</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Les images seront listées ici par PHP -->
+                <tr>
+                    <td colspan="5" class="text-center">Aucune image dans le carrousel pour le moment.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal pour ajouter/modifier une image -->
+<div class="modal fade" id="sliderImageModal" tabindex="-1" aria-labelledby="sliderImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sliderImageModalLabel">Ajouter une image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="sliderImageForm" action="manage-slider.php" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="add">
+                    <input type="hidden" name="image_id" value="">
+                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Titre de l'image</label>
+                        <input type="text" class="form-control" id="title" name="title" placeholder="Ex: Notre équipe">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="caption" class="form-label">Légende (optionnel)</label>
+                        <textarea class="form-control" id="caption" name="caption" rows="3" placeholder="Une courte description de l'image"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="image_file" class="form-label">Fichier image</label>
+                        <input class="form-control" type="file" id="image_file" name="image_file" accept="image/png, image/jpeg, image/gif" required>
+                        <div class="form-text">Les images doivent être au format JPG, PNG ou GIF et ne pas dépasser 2MB.</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="display_order" class="form-label">Ordre d'affichage</label>
+                                <input type="number" class="form-control" id="display_order" name="display_order" value="0">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="is_active" class="form-label">Statut</label>
+                                <select class="form-select" id="is_active" name="is_active">
+                                    <option value="1" selected>Actif</option>
+                                    <option value="0">Inactif</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" form="sliderImageForm" class="btn btn-primary">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>

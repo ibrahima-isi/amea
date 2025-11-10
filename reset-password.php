@@ -31,17 +31,18 @@ if (!$reset) {
     }
 }
 
+$errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-        setFlashMessage('error', 'La session a expiré. Veuillez réessayer.');
+        $errors['csrf'] = 'La session a expiré. Veuillez réessayer.';
     } else {
         $password = $_POST['password'] ?? '';
         $confirm_password = $_POST['confirm_password'] ?? '';
 
         if (empty($password)) {
-            setFlashMessage('error', 'Veuillez remplir tous les champs.');
+            $errors['password'] = 'Veuillez remplir tous les champs.';
         } elseif ($password !== $confirm_password) {
-            setFlashMessage('error', 'Les mots de passe ne correspondent pas.');
+            $errors['confirm_password'] = 'Les mots de passe ne correspondent pas.';
         } else {
             // Update the password
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
@@ -57,8 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
     }
-    header('Location: reset-password.php?token=' . $token);
-    exit();
 }
 
 $templatePath = __DIR__ . '/templates/reset-password.html';
@@ -77,6 +76,11 @@ if ($flash) {
     $flash_json = json_encode($flash);
 }
 
+$validation_errors_json = '';
+if (!empty($errors)) {
+    $validation_errors_json = json_encode($errors);
+}
+
 $headerHtml = strtr($headerTpl, [
     '{{index_active}}' => '',
     '{{register_active}}' => '',
@@ -89,9 +93,10 @@ $output = strtr($tpl, [
     '{{csrf_token}}' => generateCsrfToken(),
     '{{feedback_block}}' => '', // Handled by flash messages
     '{{token}}' => htmlspecialchars($token, ENT_QUOTES, 'UTF-8'),
-    '{{error_password}}' => '', // No longer used
-    '{{error_confirm_password}}' => '', // No longer used
+    '{{error_password}}' => $errors['password'] ?? '',
+    '{{error_confirm_password}}' => $errors['confirm_password'] ?? '',
     '{{flash_json}}' => $flash_json,
+    '{{validation_errors_json}}' => $validation_errors_json,
 ]);
 
 echo $output;

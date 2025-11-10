@@ -98,21 +98,9 @@ $sel = function ($value, $options) {
     return in_array($value, (array)$options) ? 'selected' : '';
 };
 
-$validation_script = '';
+$validation_errors_json = '';
 if (!empty($errors)) {
-    $errors_json = json_encode($errors);
-    $validation_script = "<script>const validationErrors = ".$errors_json.";</script>";
-    $validation_script .= "
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erreur de validation',
-                    text: 'Veuillez corriger les erreurs indiquées sur le formulaire.',
-                });
-            });
-        </script>
-    ";
+    $validation_errors_json = json_encode($errors);
 }
 
 $contentHtml = strtr($template, [
@@ -140,7 +128,7 @@ if ($flash) {
 $layoutTpl = file_get_contents($layoutPath);
 $output = strtr($layoutTpl, [
     '{{flash_json}}' => $flash_json,
-    '{{validation_script}}' => $validation_script,
+    '{{validation_errors_json}}' => $validation_errors_json,
     '{{title}}' => 'AEESGS - Modifier l\'utilisateur',
     '{{sidebar}}' => $sidebarHtml,
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [
