@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(countries => {
                 new Tagify(input, {
                     whitelist: countries,
+                    enforceWhitelist: true, // Prevent custom inputs
                     maxTags: 5,
                     dropdown: {
                         maxItems: 20,           // <- miximum allowed rendered suggestions

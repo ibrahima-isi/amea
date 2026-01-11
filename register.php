@@ -64,17 +64,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $formData['age'] = null;
 
     // Process Nationalities (Tagify returns JSON: [{"value":"Mali"}, ...])
-    $nationalites = null;
+    $validNats = [];
+    $validIds = [];
     if (!empty($formData['nationalites'])) {
         $decoded = json_decode($formData['nationalites'], true);
         if (is_array($decoded)) {
-            $nationalitesList = array_map(function($item) {
-                return $item['value'];
-            }, $decoded);
-            $nationalites = json_encode($nationalitesList, JSON_UNESCAPED_UNICODE);
+            $names = array_map(fn($item) => $item['value'], $decoded);
+            
+            // Validate against DB
+            if (!empty($names)) {
+                $placeholders = implode(',', array_fill(0, count($names), '?'));
+                $stmtVal = $conn->prepare("SELECT id_pays, nom_fr FROM pays WHERE nom_fr IN ($placeholders)");
+                $stmtVal->execute($names);
+                while ($row = $stmtVal->fetch(PDO::FETCH_ASSOC)) {
+                    $validNats[] = $row['nom_fr'];
+                    $validIds[] = $row['id_pays'];
+                }
+            }
         }
     }
-    $formData['nationalites_json'] = $nationalites;
+    $formData['nationalites_json'] = !empty($validNats) ? json_encode($validNats, JSON_UNESCAPED_UNICODE) : null;
 
     // 4. Validation
     $errors = [];
@@ -241,6 +250,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         // Retrieve the last inserted ID
         $newStudentId = $conn->lastInsertId();
+
+        // Insert nationalities into pivot table
+        if (!empty($validIds)) {
+            $stmtPivot = $conn->prepare("INSERT IGNORE INTO personne_pays (id_personne, id_pays) VALUES (?, ?)");
+            foreach ($validIds as $pid) {
+                $stmtPivot->execute([$newStudentId, $pid]);
+            }
+        }
         
         // Set session variable for the details page
         $_SESSION['registration_student_id'] = $newStudentId;

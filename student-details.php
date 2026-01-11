@@ -167,18 +167,33 @@ $detailsHtml .= '<div class="card-header bg-transparent border-bottom py-3"><h5 
 $detailsHtml .= '<div class="card-body">';
 $detailsHtml .= '<div class="row mb-3">';
 $detailsHtml .= '<div class="col-md-6 mb-3"><strong class="d-block text-muted small">Nationalités</strong>';
-// Nationalities
-if (!empty($student['nationalites'])) {
-    $nats = json_decode($student['nationalites'], true);
-    if (is_array($nats) && count($nats) > 0) {
-        foreach($nats as $nat) {
-            $detailsHtml .= '<span class="badge bg-secondary me-1">' . htmlspecialchars($nat, ENT_QUOTES, 'UTF-8') . '</span>';
+
+// Fetch Nationalities from pivot table
+$stmtNats = $conn->prepare("SELECT p.nom_fr FROM pays p JOIN personne_pays pp ON p.id_pays = pp.id_pays WHERE pp.id_personne = :id");
+$stmtNats->execute([':id' => $student_id]);
+$nationalities = $stmtNats->fetchAll(PDO::FETCH_COLUMN);
+
+if (!empty($nationalities)) {
+    foreach ($nationalities as $nat) {
+        $detailsHtml .= '<span class="badge bg-secondary me-1">' . htmlspecialchars($nat, ENT_QUOTES, 'UTF-8') . '</span>';
+    }
+} else {
+    // Fallback to legacy JSON
+    if (!empty($student['nationalites'])) {
+        $nats = json_decode($student['nationalites'], true);
+        if (is_array($nats) && count($nats) > 0) {
+            foreach($nats as $nat) {
+                 $val = is_array($nat) ? ($nat['value'] ?? '') : $nat;
+                 if ($val) {
+                    $detailsHtml .= '<span class="badge bg-secondary me-1">' . htmlspecialchars($val, ENT_QUOTES, 'UTF-8') . '</span>';
+                 }
+            }
+        } else {
+            $detailsHtml .= '<span class="text-muted">N/A</span>';
         }
     } else {
         $detailsHtml .= '<span class="text-muted">N/A</span>';
     }
-} else {
-    $detailsHtml .= '<span class="text-muted">N/A</span>';
 }
 $detailsHtml .= '</div>';
 $detailsHtml .= '<div class="col-md-6 mb-3"><strong class="d-block text-muted small">Date de Naissance</strong>' . formatDateFr($student['date_naissance']) . '</div>';
