@@ -23,6 +23,7 @@ $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $sexeFilter = isset($_GET['sexe']) ? $_GET['sexe'] : '';
 $statutFilter = isset($_GET['statut']) ? $_GET['statut'] : '';
 $etablissementFilter = isset($_GET['etablissement']) ? $_GET['etablissement'] : '';
+$nationalityFilter = isset($_GET['nationality']) ? $_GET['nationality'] : '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
     if (isset($_POST['id']) && is_numeric($_POST['id'])) {
@@ -43,7 +44,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
 
         // Redirect to the same page to see the changes
-        header("Location: students.php?page=$page&perPage=$perPage&search=$search&sexe=$sexeFilter&statut=$statutFilter&etablissement=$etablissementFilter");
+        $queryParams = http_build_query([
+            'page' => $page,
+            'perPage' => $perPage,
+            'search' => $search,
+            'sexe' => $sexeFilter,
+            'statut' => $statutFilter,
+            'etablissement' => $etablissementFilter,
+            'nationality' => $nationalityFilter
+        ]);
+        header("Location: students.php?$queryParams");
         exit();
     }
 }
@@ -70,6 +80,13 @@ if (!empty($statutFilter)) {
 if (!empty($etablissementFilter)) {
     $whereClauses[] = "etablissement LIKE :etablissement";
     $params[':etablissement'] = "%$etablissementFilter%";
+}
+
+if (!empty($nationalityFilter)) {
+    // Use JSON_CONTAINS for robust JSON array searching (MySQL 5.7+)
+    // Input must be a JSON string, so we json_encode the scalar string.
+    $whereClauses[] = "JSON_CONTAINS(nationalites, :nationality_json)";
+    $params[':nationality_json'] = json_encode($nationalityFilter);
 }
 
 $whereSQL = '';
@@ -101,10 +118,33 @@ $stmt->execute();
 $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Obtenir les listes pour les filtres de sélection
+
+// 1. Établissements
 $etablissementSql = "SELECT DISTINCT etablissement FROM personnes ORDER BY etablissement";
 $etablissementStmt = $conn->prepare($etablissementSql);
 $etablissementStmt->execute();
 $etablissements = $etablissementStmt->fetchAll(PDO::FETCH_COLUMN);
+
+// 2. Nationalités (Extract from JSON)
+$allNatsSql = "SELECT nationalites FROM personnes";
+$allNatsStmt = $conn->query($allNatsSql);
+$uniqueNats = [];
+while ($row = $allNatsStmt->fetch(PDO::FETCH_ASSOC)) {
+    if (!empty($row['nationalites'])) {
+        $decoded = json_decode($row['nationalites'], true);
+        if (is_array($decoded)) {
+            foreach ($decoded as $nat) {
+                $nat = trim($nat);
+                if (!empty($nat)) {
+                    $uniqueNats[] = $nat;
+                }
+            }
+        }
+    }
+}
+$uniqueNats = array_unique($uniqueNats);
+sort($uniqueNats);
+
 
 // Rendu du template HTML
 $layoutPath = __DIR__ . '/templates/admin/layout.html';
@@ -127,31 +167,8 @@ if (count($students) > 0) {
         $badgeClass = 'warning';
         if ($student['statut'] == 'Étudiant') $badgeClass = 'primary';
         elseif ($student['statut'] == 'Élève') $badgeClass = 'info';
-        $photoHtml = '<img src="assets/img/placeholder.png" alt="Photo" class="img-thumbnail" width="50">';
-        if (!empty($student['photo'])) {
-            $modalId = 'photoModal' . $student['id_personne'];
-            $photoHtml = '<a href="#" data-bs-toggle="modal" data-bs-target="#' . $modalId . '">';
-            $photoHtml .= '<img src="' . htmlspecialchars($student['photo'], ENT_QUOTES, 'UTF-8') . '" alt="Photo" class="img-thumbnail" width="50">';
-            $photoHtml .= '</a>';
-
-            // Add the modal HTML
-            $photoHtml .= '<div class="modal fade" id="' . $modalId . '" tabindex="-1" aria-labelledby="' . $modalId . 'Label" aria-hidden="true">';
-            $photoHtml .= '<div class="modal-dialog modal-dialog-centered">';
-            $photoHtml .= '<div class="modal-content">';
-            $photoHtml .= '<div class="modal-header">';
-            $photoHtml .= '<h5 class="modal-title" id="' . $modalId . 'Label">' . htmlspecialchars($student['prenom'] . ' ' . $student['nom'], ENT_QUOTES, 'UTF-8') . '</h5>';
-            $photoHtml .= '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
-            $photoHtml .= '</div>';
-            $photoHtml .= '<div class="modal-body text-center">';
-            $photoHtml .= '<img src="' . htmlspecialchars($student['photo'], ENT_QUOTES, 'UTF-8') . '" class="img-fluid">';
-            $photoHtml .= '</div>';
-            $photoHtml .= '</div>';
-            $photoHtml .= '</div>';
-            $photoHtml .= '</div>';
-        }
-        $rowsHtml .= '<tr>'
-            . '<td>' . $photoHtml . '</td>'
-            . '<td>' . (int)$student['id_personne'] . '</td>'
+        
+        $rowsHtml .= '<tr class="align-middle">'
             . '<td>' . htmlspecialchars($student['nom'], ENT_QUOTES, 'UTF-8') . '</td>'
             . '<td>' . htmlspecialchars($student['prenom'], ENT_QUOTES, 'UTF-8') . '</td>'
             . '<td>' . htmlspecialchars($student['sexe'], ENT_QUOTES, 'UTF-8') . '</td>';
@@ -174,9 +191,7 @@ if (count($students) > 0) {
         $rowsHtml .= '<td>' . $natHtml . '</td>'
             . '<td>' . htmlspecialchars($student['etablissement'], ENT_QUOTES, 'UTF-8') . '</td>'
             . '<td><span class="badge bg-' . $badgeClass . '">' . htmlspecialchars($student['statut'], ENT_QUOTES, 'UTF-8') . '</span></td>'
-            . '<td><a href="mailto:' . htmlspecialchars($student['email'], ENT_QUOTES, 'UTF-8') . '" class="text-primary">' . htmlspecialchars($student['email'], ENT_QUOTES, 'UTF-8') . '</a></td>'
-            . '<td><a href="tel:' . htmlspecialchars($student['telephone'], ENT_QUOTES, 'UTF-8') . '" class="text-success">' . htmlspecialchars($student['telephone'], ENT_QUOTES, 'UTF-8') . '</a></td>'
-            . '<td>'
+            . '<td class="text-nowrap">'
                 . '<a href="student-details.php?id=' . (int)$student['id_personne'] . '" class="btn btn-sm btn-outline-primary" title="Voir détails">'
                 . '<i class="fas fa-eye"></i></a>'
                 . '<a href="edit-student.php?id=' . (int)$student['id_personne'] . '" class="btn btn-sm btn-outline-secondary ms-1" title="Modifier">'
@@ -192,14 +207,14 @@ if (count($students) > 0) {
             . '</tr>';
     }
 } else {
-    $rowsHtml = '<tr><td colspan="10" class="text-center">Aucun étudiant trouvé</td></tr>';
+    $rowsHtml = '<tr><td colspan="7" class="text-center">Aucun étudiant trouvé</td></tr>';
 }
 
 // Pagination
 $paginationHtml = '';
 if ($totalPages > 1) {
-    $buildLink = function($p) use ($perPage, $search, $sexeFilter, $statutFilter, $etablissementFilter) {
-        return '?page=' . $p . '&perPage=' . $perPage . '&search=' . urlencode($search) . '&sexe=' . urlencode($sexeFilter) . '&statut=' . urlencode($statutFilter) . '&etablissement=' . urlencode($etablissementFilter);
+    $buildLink = function($p) use ($perPage, $search, $sexeFilter, $statutFilter, $etablissementFilter, $nationalityFilter) {
+        return '?page=' . $p . '&perPage=' . $perPage . '&search=' . urlencode($search) . '&sexe=' . urlencode($sexeFilter) . '&statut=' . urlencode($statutFilter) . '&etablissement=' . urlencode($etablissementFilter) . '&nationality=' . urlencode($nationalityFilter);
     };
     $paginationHtml .= '<nav aria-label="Page navigation"><ul class="pagination justify-content-center">';
     $paginationHtml .= '<li class="page-item ' . ($page <= 1 ? 'disabled' : '') . '"><a class="page-link" href="' . $buildLink($page - 1) . '">Précédent</a></li>';
@@ -223,6 +238,7 @@ $perPageHtml = '<div class="d-flex justify-content-center mt-3">'
     . '<input type="hidden" name="sexe" value="' . htmlspecialchars($sexeFilter, ENT_QUOTES, 'UTF-8') . '">'
     . '<input type="hidden" name="statut" value="' . htmlspecialchars($statutFilter, ENT_QUOTES, 'UTF-8') . '">'
     . '<input type="hidden" name="etablissement" value="' . htmlspecialchars($etablissementFilter, ENT_QUOTES, 'UTF-8') . '">'
+    . '<input type="hidden" name="nationality" value="' . htmlspecialchars($nationalityFilter, ENT_QUOTES, 'UTF-8') . '">'
     . '<label for="perPage" class="me-2">Afficher</label>'
     . '<select name="perPage" id="perPage" class="form-select form-select-sm w-auto" onchange="this.form.submit()">'
     . '<option value="10" ' . ($perPage == 10 ? 'selected' : '') . '>10</option>'
@@ -242,6 +258,14 @@ foreach ($etablissements as $etab) {
         . htmlspecialchars($etab, ENT_QUOTES, 'UTF-8') . '</option>';
 }
 
+// Options de nationalité
+$natOptions = '';
+foreach ($uniqueNats as $nat) {
+    $sel = ($nationalityFilter == $nat) ? 'selected' : '';
+    $natOptions .= '<option value="' . htmlspecialchars($nat, ENT_QUOTES, 'UTF-8') . '" ' . $sel . '>'
+        . htmlspecialchars($nat, ENT_QUOTES, 'UTF-8') . '</option>';
+}
+
 $contentTpl = file_get_contents($contentPath);
 $contentHtml = strtr($contentTpl, [
     '{{search}}' => htmlspecialchars($search, ENT_QUOTES, 'UTF-8'),
@@ -251,6 +275,7 @@ $contentHtml = strtr($contentTpl, [
     '{{statut_filter_Étudiant}}' => ($statutFilter == 'Étudiant') ? 'selected' : '',
     '{{statut_filter_Stagiaire}}' => ($statutFilter == 'Stagiaire') ? 'selected' : '',
     '{{etablissement_options}}' => $etabOptions,
+    '{{nationality_options}}' => $natOptions,
     '{{students_rows}}' => $rowsHtml,
     '{{pagination}}' => $paginationHtml,
     '{{per_page_block}}' => $perPageHtml,
@@ -271,9 +296,7 @@ $output = strtr($layoutTpl, [
         '{{user_fullname}}' => htmlspecialchars($prenom . ' ' . $nom, ENT_QUOTES, 'UTF-8'),
     ]),
     '{{content}}' => $contentHtml,
-    '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), [
-        '{{year}}' => date('Y'),
-    ]),
+    '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), getFooterReplacements()),
 ]);
 
 echo $output;

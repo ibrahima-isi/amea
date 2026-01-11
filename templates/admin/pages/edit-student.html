@@ -50,14 +50,14 @@
                         </div>
                         
                         <div class="col-md-12 mb-3">
-                            <label for="nationalites" class="form-label">Autres Nationalités (max 5)</label>
-                            <input name="nationalites" id="nationalites" class="form-control" placeholder="Ajouter des nationalités..." value='{{nationalites_value}}'>
+                            <label for="nationalites" class="form-label">Nationalité</label>
+                            <input name="nationalites" id="nationalites" class="form-control" placeholder="Nationalité (max 5)" value='{{nationalites_value}}'>
                             <div class="form-text">Tapez et sélectionnez parmi la liste.</div>
                         </div>
 
                         <div class="col-md-6">
                             <label for="date_naissance" class="form-label">Date de naissance <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control {{is_invalid_date_naissance}}" id="date_naissance" name="date_naissance" value="{{date_naissance}}" required max="{{max_birth_date}}">
+                            <input type="text" class="form-control {{is_invalid_date_naissance}}" id="date_naissance" name="date_naissance" value="{{date_naissance}}" required data-max-date="{{max_birth_date}}">
                             <div class="text-danger">{{error_date_naissance}}</div>
                         </div>
                         <div class="col-md-6">
@@ -208,13 +208,16 @@
     setupOtherFieldListener('lieu_residence', 'autre_lieu_residence_wrapper', 'autre_lieu_residence');
 
     // Initialize flatpickr
-    flatpickr("#date_naissance", {
-        altInput: true,
-        altFormat: "j F Y",
-        dateFormat: "Y-m-d",
-        maxDate: "{{max_birth_date}}",
-        locale: "fr"
-    });
+    const dateNaissanceInput = document.getElementById('date_naissance');
+    if (dateNaissanceInput) {
+        flatpickr(dateNaissanceInput, {
+            altInput: true,
+            altFormat: "j F Y",
+            dateFormat: "Y-m-d",
+            maxDate: dateNaissanceInput.dataset.maxDate || new Date(), // Get maxDate from data attribute
+            locale: "fr"
+        });
+    }
 </script>
 <script src="assets/js/tagify.min.js"></script>
 <script src="assets/js/edit-student.js"></script>

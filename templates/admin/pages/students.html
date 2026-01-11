@@ -7,55 +7,54 @@
     </a>
   </div>
   <div class="card-body">
-    <form method="GET" action="students.php" class="mb-4">
-      <div class="row g-3">
-        <div class="col-12 col-md-4">
+    <form method="GET" action="students.php" class="mb-4" id="filterForm">
+      <div class="row g-2">
+        <div class="col-12 col-md-3">
           <div class="input-group">
             <span class="input-group-text"><i class="fas fa-search"></i></span>
-            <input type="text" class="form-control" name="search" placeholder="Rechercher..." value="{{search}}">
+            <input type="text" class="form-control" name="search" id="searchInput" placeholder="Rechercher..." value="{{search}}">
           </div>
         </div>
         <div class="col-12 col-md-2">
-          <select class="form-select" name="sexe">
+          <select class="form-select auto-submit" name="sexe">
             <option value="">Tous les sexes</option>
             <option value="Masculin" {{sexe_filter_Masculin}}>Masculin</option>
             <option value="Féminin" {{sexe_filter_Féminin}}>Féminin</option>
           </select>
         </div>
         <div class="col-12 col-md-2">
-          <select class="form-select" name="statut">
+          <select class="form-select auto-submit" name="statut">
             <option value="">Tous les statuts</option>
             <option value="Élève" {{statut_filter_Élève}}>Élève</option>
             <option value="Étudiant" {{statut_filter_Étudiant}}>Étudiant</option>
             <option value="Stagiaire" {{statut_filter_Stagiaire}}>Stagiaire</option>
           </select>
         </div>
+        <div class="col-12 col-md-2">
+          <select class="form-select auto-submit" name="nationality">
+            <option value="">Toutes nationalités</option>
+            {{nationality_options}}
+          </select>
+        </div>
         <div class="col-12 col-md-3">
-          <select class="form-select" name="etablissement">
+          <select class="form-select auto-submit" name="etablissement">
             <option value="">Tous les établissements</option>
             {{etablissement_options}}
           </select>
-        </div>
-        <div class="col-12 col-md-1 d-grid">
-          <button type="submit" class="btn btn-primary">Filtrer</button>
         </div>
       </div>
     </form>
 
     <div class="table-responsive">
-      <table class="table table-bordered table-hover">
+      <table class="table table-hover align-middle">
         <thead class="table-light">
           <tr>
-            <th>Photo</th>
-            <th>ID</th>
             <th>Nom</th>
             <th>Prénom</th>
             <th>Sexe</th>
             <th>Nationalités</th>
             <th>Établissement</th>
             <th>Statut</th>
-            <th>Email</th>
-            <th>Téléphone</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -73,6 +72,26 @@
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Auto-submit logic
+        const form = document.getElementById('filterForm');
+        const selects = form.querySelectorAll('.auto-submit');
+        const searchInput = document.getElementById('searchInput');
+
+        // Handle Select changes
+        selects.forEach(select => {
+            select.addEventListener('change', () => form.submit());
+        });
+
+        // Handle Search debounce
+        let timeout = null;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(function() {
+                form.submit();
+            }, 500); // 500ms delay
+        });
+
+        // Delete confirmation
         document.querySelectorAll('.btn-delete-student').forEach(button => {
             button.addEventListener('click', function(e) {
                 e.preventDefault();

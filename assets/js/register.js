@@ -1,4 +1,17 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // === Flatpickr Initialization for Date de naissance ===
+    const dateNaissanceInput = document.getElementById('date_naissance');
+    if (dateNaissanceInput) {
+        flatpickr(dateNaissanceInput, {
+            locale: 'fr',
+            dateFormat: 'Y-m-d', // The format that will be submitted with the form
+            altInput: true, // Show user-friendly date
+            altFormat: 'j F, Y', // How the user-friendly date will look
+            maxDate: dateNaissanceInput.dataset.maxDate || new Date(), // Set maxDate from data attribute, or today if not found
+            // You can add more options here like disable mobile, etc.
+        });
+    }
+
     // === Tagify Initialization for Nationalities ===
     const input = document.querySelector('input[name="nationalites"]');
     if (input) {

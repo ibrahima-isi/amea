@@ -1,4 +1,5 @@
 <?php
+global $conn;
 require_once 'config/database.php';
 
 try {

@@ -78,88 +78,129 @@ $validation_script = '';
 $template = file_get_contents($contentPath);
 
 // Build the details block HTML
-$detailsHtml = '<div class="card"><div class="card-body">';
-$detailsHtml .= '<div class="row">';
-$detailsHtml .= '<div class="col-md-3 text-center">';
+$detailsHtml = '<div class="row">';
+
+// --- LEFT COLUMN: Profile Card & Quick Contact ---
+$detailsHtml .= '<div class="col-lg-4 mb-4">';
+
+// Profile Card
+$detailsHtml .= '<div class="card shadow-sm border-0 mb-4">';
+$detailsHtml .= '<div class="card-body text-center pt-4">';
 
 $identitePath = $student['identite'] ?? '';
 $modalHtml = '';
+$modalId = 'identiteModal' . $student['id_personne'];
+
 if (!empty($identitePath)) {
     $fileExtension = strtolower(pathinfo($identitePath, PATHINFO_EXTENSION));
     $isPdf = ($fileExtension === 'pdf');
     $isImage = in_array($fileExtension, ['png', 'jpg', 'jpeg', 'gif']);
-    $modalId = 'identiteModal' . $student['id_personne'];
 
     if ($isImage) {
         $detailsHtml .= '<a href="#" data-bs-toggle="modal" data-bs-target="#' . $modalId . '">';
-        $detailsHtml .= '<img src="' . htmlspecialchars($identitePath) . '" alt="Pièce d\'identité" class="img-fluid rounded mb-3">';
+        $detailsHtml .= '<img src="' . htmlspecialchars($identitePath) . '" alt="Photo de profil" class="rounded-circle img-thumbnail mb-3" style="width: 150px; height: 150px; object-fit: cover;">';
         $detailsHtml .= '</a>';
         $modalHtml = '<div class="modal fade" id="' . $modalId . '" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content"><div class="modal-body text-center"><img src="' . htmlspecialchars($identitePath) . '" class="img-fluid"></div></div></div></div>';
     } elseif ($isPdf) {
-        $detailsHtml .= '<a href="#" data-bs-toggle="modal" data-bs-target="#' . $modalId . '" class="text-decoration-none d-block">';
-        $detailsHtml .= '<i class="fas fa-file-pdf fa-5x text-danger mb-2"></i>';
-        $detailsHtml .= '<span>Voir le PDF</span>';
+        $detailsHtml .= '<a href="#" data-bs-toggle="modal" data-bs-target="#' . $modalId . '" class="d-inline-block mb-3 text-decoration-none">';
+        $detailsHtml .= '<div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 150px; height: 150px;">';
+        $detailsHtml .= '<i class="fas fa-file-pdf fa-4x text-danger"></i>';
+        $detailsHtml .= '</div>';
+        $detailsHtml .= '<span class="d-block mt-2 small text-muted">Voir le document</span>';
         $detailsHtml .= '</a>';
-        $modalHtml = '<div class="modal fade" id="' . $modalId . '" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl"><div class="modal-content" style="height: 90vh;"><div class="modal-header"><h5 class="modal-title">Pièce d\'identité</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><iframe src="' . htmlspecialchars($identitePath) . '" width="100%" height="100%"></iframe></div></div></div></div>';
+        $modalHtml = '<div class="modal fade" id="' . $modalId . '" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl"><div class="modal-content" style="height: 90vh;"><div class="modal-header"><h5 class="modal-title">Document d\'identité</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><iframe src="' . htmlspecialchars($identitePath) . '" width="100%" height="100%"></iframe></div></div></div></div>';
     } else {
-        $detailsHtml .= '<img src="assets/img/placeholder.png" alt="Pièce d\'identité" class="img-fluid rounded mb-3">';
+         $detailsHtml .= '<img src="assets/img/placeholder.png" alt="Profil" class="rounded-circle img-thumbnail mb-3" style="width: 150px; height: 150px; object-fit: cover;">';
     }
 } else {
-    $detailsHtml .= '<img src="assets/img/placeholder.png" alt="Pièce d\'identité" class="img-fluid rounded mb-3">';
+    $detailsHtml .= '<img src="assets/img/placeholder.png" alt="Profil" class="rounded-circle img-thumbnail mb-3" style="width: 150px; height: 150px; object-fit: cover;">';
 }
 
-$detailsHtml .= '</div>';
-$detailsHtml .= '<div class="col-md-9">';
-$detailsHtml .= '<h4 class="mb-3">Informations Personnelles</h4>';
-$detailsHtml .= '<dl class="row">';
-$detailsHtml .= '<dt class="col-sm-4">Nom Complet</dt><dd class="col-sm-8">' . htmlspecialchars(($student['prenom'] ?? '') . ' ' . ($student['nom'] ?? '')) . '</dd>';
-$detailsHtml .= '<dt class="col-sm-4">Âge</dt><dd class="col-sm-8">' . calculateAge($student['date_naissance']) . ' ans</dd>';
-$detailsHtml .= '<dt class="col-sm-4">Date de Naissance</dt><dd class="col-sm-8">' . formatDateFr($student['date_naissance']) . '</dd>';
-$detailsHtml .= '<dt class="col-sm-4">Sexe</dt><dd class="col-sm-8">' . htmlspecialchars($student['sexe'] ?? '') . '</dd>';
+$fullName = ($student['prenom'] ?? '') . ' ' . ($student['nom'] ?? '');
+$detailsHtml .= '<h4 class="card-title mb-1">' . htmlspecialchars($fullName) . '</h4>';
 
-// Add Nationalities
-$nationalites_html = '<span class="text-muted">N/A</span>';
+// Status Badge
+$statusColor = 'secondary';
+if (($student['statut'] ?? '') === 'Étudiant') $statusColor = 'primary';
+elseif (($student['statut'] ?? '') === 'Élève') $statusColor = 'info';
+$detailsHtml .= '<span class="badge bg-' . $statusColor . ' mb-3">' . htmlspecialchars($student['statut'] ?? 'Inconnu') . '</span>';
+
+// Quick Stat Row (Age, Gender)
+$detailsHtml .= '<div class="d-flex justify-content-center gap-3 text-muted">';
+$detailsHtml .= '<div><i class="fas fa-venus-mars me-1"></i> ' . htmlspecialchars($student['sexe'] ?? '?') . '</div>';
+$detailsHtml .= '<div><i class="fas fa-birthday-cake me-1"></i> ' . calculateAge($student['date_naissance']) . ' ans</div>';
+$detailsHtml .= '</div>';
+
+$detailsHtml .= '</div></div>'; // End Profile Card
+
+// Contact Card
+$detailsHtml .= '<div class="card shadow-sm border-0">';
+$detailsHtml .= '<div class="card-header bg-white border-0 pt-3 pb-0"><h6 class="fw-bold text-uppercase text-muted small"><i class="fas fa-address-book me-2"></i>Coordonnées</h6></div>';
+$detailsHtml .= '<div class="card-body">';
+$detailsHtml .= '<ul class="list-unstyled mb-0">';
+$detailsHtml .= '<li class="mb-3 d-flex align-items-start"><i class="fas fa-envelope text-primary mt-1 me-3"></i><div><span class="d-block small text-muted">Email</span><a href="mailto:' . htmlspecialchars($student['email'] ?? '') . '" class="text-dark text-decoration-none">' . htmlspecialchars($student['email'] ?? 'N/A') . '</a></div></li>';
+$detailsHtml .= '<li class="mb-3 d-flex align-items-start"><i class="fas fa-phone text-success mt-1 me-3"></i><div><span class="d-block small text-muted">Téléphone</span><a href="tel:' . htmlspecialchars($student['telephone'] ?? '') . '" class="text-dark text-decoration-none">' . htmlspecialchars($student['telephone'] ?? 'N/A') . '</a></div></li>';
+$detailsHtml .= '<li class="d-flex align-items-start"><i class="fas fa-map-marker-alt text-danger mt-1 me-3"></i><div><span class="d-block small text-muted">Lieu de résidence</span>' . htmlspecialchars($student['lieu_residence'] ?? 'N/A') . '</div></li>';
+$detailsHtml .= '</ul>';
+$detailsHtml .= '</div></div>'; // End Contact Card
+
+$detailsHtml .= '</div>'; // End Left Column
+
+// --- RIGHT COLUMN: Academic & Details ---
+$detailsHtml .= '<div class="col-lg-8">';
+
+// Academic Info Card
+$detailsHtml .= '<div class="card shadow-sm border-0 mb-4">';
+$detailsHtml .= '<div class="card-header bg-transparent border-bottom py-3"><h5 class="mb-0 text-primary"><i class="fas fa-graduation-cap me-2"></i>Parcours Académique</h5></div>';
+$detailsHtml .= '<div class="card-body">';
+$detailsHtml .= '<div class="row g-4">';
+$detailsHtml .= '<div class="col-md-6"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Établissement</small><span class="fw-bold text-dark">' . htmlspecialchars($student['etablissement'] ?? 'Non spécifié') . '</span></div></div>';
+$detailsHtml .= '<div class="col-md-6"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Domaine d\'Études</small><span class="fw-bold text-dark">' . htmlspecialchars($student['domaine_etudes'] ?? 'Non spécifié') . '</span></div></div>';
+$detailsHtml .= '<div class="col-md-6"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Niveau d\'Études</small><span class="fw-bold text-dark">' . htmlspecialchars($student['niveau_etudes'] ?? 'Non spécifié') . '</span></div></div>';
+$detailsHtml .= '<div class="col-md-6"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Année d\'arrivée</small><span class="fw-bold text-dark">' . htmlspecialchars($student['annee_arrivee'] ?? 'N/A') . '</span></div></div>';
+$detailsHtml .= '</div>';
+$detailsHtml .= '</div></div>';
+
+// Personal Details Card
+$detailsHtml .= '<div class="card shadow-sm border-0 mb-4">';
+$detailsHtml .= '<div class="card-header bg-transparent border-bottom py-3"><h5 class="mb-0 text-primary"><i class="fas fa-info-circle me-2"></i>Informations Personnelles</h5></div>';
+$detailsHtml .= '<div class="card-body">';
+$detailsHtml .= '<div class="row mb-3">';
+$detailsHtml .= '<div class="col-md-6 mb-3"><strong class="d-block text-muted small">Nationalités</strong>';
+// Nationalities
 if (!empty($student['nationalites'])) {
     $nats = json_decode($student['nationalites'], true);
     if (is_array($nats) && count($nats) > 0) {
-        $badges = array_map(function($nat) {
-            return '<span class="badge bg-secondary me-1">' . htmlspecialchars($nat, ENT_QUOTES, 'UTF-8') . '</span>';
-        }, $nats);
-        $nationalites_html = implode(' ', $badges);
+        foreach($nats as $nat) {
+            $detailsHtml .= '<span class="badge bg-secondary me-1">' . htmlspecialchars($nat, ENT_QUOTES, 'UTF-8') . '</span>';
+        }
+    } else {
+        $detailsHtml .= '<span class="text-muted">N/A</span>';
     }
+} else {
+    $detailsHtml .= '<span class="text-muted">N/A</span>';
 }
-$detailsHtml .= '<dt class="col-sm-4">Autres Nationalités</dt><dd class="col-sm-8">' . $nationalites_html . '</dd>';
-
-$detailsHtml .= '<dt class="col-sm-4">Numéro d\'ID/Passeport</dt><dd class="col-sm-8">' . htmlspecialchars($student['numero_identite'] ?? '') . '</dd>';
-$detailsHtml .= '</dl>';
-$detailsHtml .= '<hr>';
-$detailsHtml .= '<h4 class="mb-3">Contact et Résidence</h4>';
-$detailsHtml .= '<dl class="row">';
-$detailsHtml .= '<dt class="col-sm-4">Téléphone</dt><dd class="col-sm-8">' . htmlspecialchars($student['telephone'] ?? '') . '</dd>';
-$detailsHtml .= '<dt class="col-sm-4">Email</dt><dd class="col-sm-8">' . htmlspecialchars($student['email'] ?? '') . '</dd>';
-$detailsHtml .= '<dt class="col-sm-4">Lieu de Résidence</dt><dd class="col-sm-8">' . htmlspecialchars($student['lieu_residence'] ?? '') . '</dd>';
-$detailsHtml .= '<dt class="col-sm-4">Année d\'arrivée</dt><dd class="col-sm-8">' . htmlspecialchars($student['annee_arrivee'] ?? 'N/A') . '</dd>';
-$detailsHtml .= '<dt class="col-sm-4">Type de Logement</dt><dd class="col-sm-8">' . htmlspecialchars($student['type_logement'] ?? '') . '</dd>';
+$detailsHtml .= '</div>';
+$detailsHtml .= '<div class="col-md-6 mb-3"><strong class="d-block text-muted small">Date de Naissance</strong>' . formatDateFr($student['date_naissance']) . '</div>';
+$detailsHtml .= '<div class="col-md-6 mb-3"><strong class="d-block text-muted small">Numéro ID / Passeport</strong>' . htmlspecialchars($student['numero_identite'] ?? 'N/A') . '</div>';
+$detailsHtml .= '<div class="col-md-6 mb-3"><strong class="d-block text-muted small">Type de Logement</strong>' . htmlspecialchars($student['type_logement'] ?? 'N/A') . '</div>';
 if (!empty($student['precision_logement'])) {
-    $detailsHtml .= '<dt class="col-sm-4">Précision Logement</dt><dd class="col-sm-8">' . htmlspecialchars($student['precision_logement'] ?? '') . '</dd>';
+    $detailsHtml .= '<div class="col-12"><strong class="d-block text-muted small">Précision Logement</strong>' . htmlspecialchars($student['precision_logement']) . '</div>';
 }
-$detailsHtml .= '</dl>';
-$detailsHtml .= '<hr>';
-$detailsHtml .= '<h4 class="mb-3">Informations Académiques</h4>';
-$detailsHtml .= '<dl class="row">';
-$detailsHtml .= '<dt class="col-sm-4">Établissement</dt><dd class="col-sm-8">' . htmlspecialchars($student['etablissement'] ?? '') . '</dd>';
-$detailsHtml .= '<dt class="col-sm-4">Statut</dt><dd class="col-sm-8">' . htmlspecialchars($student['statut'] ?? '') . '</dd>';
-$detailsHtml .= '<dt class="col-sm-4">Domaine d\'Études</dt><dd class="col-sm-8">' . htmlspecialchars($student['domaine_etudes'] ?? '') . '</dd>';
-$detailsHtml .= '<dt class="col-sm-4">Niveau d\'Études</dt><dd class="col-sm-8">' . htmlspecialchars($student['niveau_etudes'] ?? '') . '</dd>';
-$detailsHtml .= '</dl>';
+$detailsHtml .= '</div>';
+$detailsHtml .= '</div></div>';
+
+// Project Card (if exists)
 if (!empty($student['projet_apres_formation'])) {
-    $detailsHtml .= '<hr>';
-    $detailsHtml .= '<h4 class="mb-3">Projet Après Formation</h4>';
-    $detailsHtml .= '<p>' . nl2br(htmlspecialchars($student['projet_apres_formation'] ?? '')) . '</p>';
+    $detailsHtml .= '<div class="card shadow-sm border-0">';
+    $detailsHtml .= '<div class="card-header bg-transparent border-bottom py-3"><h5 class="mb-0 text-primary"><i class="fas fa-rocket me-2"></i>Projet Professionnel</h5></div>';
+    $detailsHtml .= '<div class="card-body">';
+    $detailsHtml .= '<p class="card-text text-dark" style="line-height: 1.6;">' . nl2br(htmlspecialchars($student['projet_apres_formation'])) . '</p>';
+    $detailsHtml .= '</div></div>';
 }
-$detailsHtml .= '</div>'; // col-md-9
-$detailsHtml .= '</div>'; // row
-$detailsHtml .= '</div></div>'; // card-body, card
+
+$detailsHtml .= '</div>'; // End Right Column
+$detailsHtml .= '</div>'; // End Row
 $detailsHtml .= $modalHtml; // Append the modal HTML
 
 // Prepare final replacements
@@ -186,9 +227,7 @@ $output = strtr($layoutTpl, [
     ]),
     '{{content}}' => $contentHtml,
     '{{validation_script}}' => $validation_script,
-    '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), [
-        '{{year}}' => date('Y'),
-    ]),
+    '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), getFooterReplacements()),
 ]);
 
 echo $output;
