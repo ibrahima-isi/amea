@@ -1,4 +1,9 @@
 <?php
+/**
+ * Migration script to add 'cv_path' column to 'personnes' table.
+ * File: migration_add_cv_field.php
+ */
+
 require_once 'config/database.php';
 
 echo "Adding 'cv_path' column to 'personnes' table...\n";

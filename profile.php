@@ -1,11 +1,10 @@
 <?php
 
 /**
- * Page de profil administrateur
- * Fichier: profile.php
+ * Admin profile page.
+ * File: profile.php
  */
 
-// Démarrer la session
 require_once 'config/session.php';
 
 // Vérifier si l'utilisateur est connecté
@@ -165,6 +164,6 @@ $output = strtr($layoutTpl, [
     '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), getFooterReplacements()),
 ]);
 
-echo $output;
+echo addVersionToAssets($output);
 exit();
 

@@ -1,4 +1,9 @@
 <?php
+/**
+ * Export preview page for printing.
+ * File: export-preview.php
+ */
+
 require_once 'config/session.php';
 
 if (!isset($_SESSION['user_id'])) {

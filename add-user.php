@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Add new user page.
+ * File: add-user.php
+ */
+
 require_once 'config/session.php';
 require_once 'functions/utility-functions.php';
 
@@ -175,5 +180,5 @@ $output = strtr($layoutTpl, [
     '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), getFooterReplacements()),
 ]);
 
-echo $output;
+echo addVersionToAssets($output);
 

@@ -1,4 +1,9 @@
 <?php
+/**
+ * Migration script to create 'settings' table.
+ * File: migration_add_settings_table.php
+ */
+
 require_once 'config/database.php';
 
 try {

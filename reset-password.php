@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Reset password page.
+ * File: reset-password.php
+ */
+
 require_once 'config/session.php';
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
@@ -99,5 +104,5 @@ $output = strtr($tpl, [
     '{{validation_errors_json}}' => $validation_errors_json,
 ]);
 
-echo $output;
+echo addVersionToAssets($output);
 

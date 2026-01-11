@@ -1,11 +1,10 @@
 <?php
-// TODO: implementer une reinitialisation de mot de passe oublier
+
 /**
- * Page de connexion administrateur (logique seulement)
- * La présentation est rendue via templates/login.html
+ * User login page.
+ * File: login.php
  */
 
-// Démarrer la session
 require_once 'config/session.php';
 
 // Vérifier si l'utilisateur est déjà connecté
@@ -122,5 +121,5 @@ $output = strtr($template, [
     '{{flash_json}}' => $flash_json,
 ]);
 
-echo $output;
+echo addVersionToAssets($output);
 

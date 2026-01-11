@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Formulaire d'enregistrement des étudiants
- * Fichier: register.php
+ * Student registration form.
+ * File: register.php
  */
 
 // Inclure la configuration de la base de données
@@ -356,6 +356,16 @@ $maxBirthDate = ($currentYear - 15) . '-12-31';
 $sel = fn($value, $option) => $value === $option ? 'selected' : '';
 $checked = fn($value, $option) => $value === $option ? 'checked' : '';
 
+$currentIdentiteDisplay = '';
+if (!empty($formData['identite']) && file_exists($formData['identite'])) {
+    $currentIdentiteDisplay = '<div class="mt-2 small text-success"><i class="fas fa-check-circle"></i> Fichier reçu : ' . basename($formData['identite']) . '</div>';
+}
+
+$currentCvDisplay = '';
+if (!empty($formData['cv_path']) && file_exists($formData['cv_path'])) {
+    $currentCvDisplay = '<div class="mt-2 small text-success"><i class="fas fa-check-circle"></i> CV reçu : ' . basename($formData['cv_path']) . '</div>';
+}
+
 $validation_errors_json = '';
 if (!empty($errors)) {
     $validation_errors_json = json_encode($errors);
@@ -427,10 +437,12 @@ $replacements = [
     '{{is_invalid_type_logement}}' => isset($errors['type_logement']) ? 'is-invalid' : '',
     '{{error_cv}}' => $errors['cv'] ?? '', // Add this line
     '{{is_invalid_cv}}' => isset($errors['cv']) ? 'is-invalid' : '', // Add this line
+    '{{current_identite_display}}' => $currentIdentiteDisplay,
+    '{{current_cv_display}}' => $currentCvDisplay,
 ];
 
 $output = strtr($tpl, $replacements);
 
-echo $output;
+echo addVersionToAssets($output);
 ?>
 

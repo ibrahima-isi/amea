@@ -1,10 +1,10 @@
 <?php
 /**
- * Configuration de la connexion à la base de données
- * Fichier : config/database.php
+ * Database connection configuration.
+ * File: config/database.php
  */
 
-// Force la locale en UTF-8 pour la gestion des chaînes de caractères
+// Force locale to UTF-8 for string handling
 setlocale(LC_ALL, 'fr_FR.UTF-8');
 
 require_once  __DIR__ . "/../functions/utility-functions.php";
@@ -21,22 +21,22 @@ if(file_exists($envFile)){
     }
 }
 
-// Informations de connexion à la base de données
-define('DB_HOST', env('DB_HOST'));     // Hôte de la base de données
-define('DB_NAME', env('DB_NAME'));        // Nom de la base de données
-define('DB_USER', env('DB_USER'));          // Nom d'utilisateur de la base de données (à modifier)
-define('DB_PASS', env('DB_PASS'));              // Mot de passe de la base de données (à modifier)
+// Database connection information
+define('DB_HOST', env('DB_HOST'));     // Database host
+define('DB_NAME', env('DB_NAME'));        // Database name
+define('DB_USER', env('DB_USER'));          // Database username
+define('DB_PASS', env('DB_PASS'));              // Database password
 
 
-// Établir la connexion à la base de données
+// Establish database connection
 try {
     $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
     $conn = new PDO($dsn, DB_USER, DB_PASS);
     $conn->exec("SET NAMES 'utf8mb4'");
-    // Configurer PDO pour qu'il génère des exceptions en cas d'erreur
+    // Configure PDO to throw exceptions on error
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch(PDOException $e) {
-    // En cas d'erreur de connexion
-    logError('Erreur de connexion à la base de données', $e);
-    die("Erreur de connexion à la base de données. Veuillez contacter l'administrateur.");
+    // In case of connection error
+    logError('Database connection error', $e);
+    die("Database connection error. Please contact the administrator.");
 }

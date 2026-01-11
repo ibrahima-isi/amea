@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Forgot password page.
+ * File: forgot-password.php
+ */
+
 require_once 'config/session.php';
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
@@ -87,5 +92,5 @@ $output = strtr($tpl, [
     '{{flash_json}}' => $flash_json,
 ]);
 
-echo $output;
+echo addVersionToAssets($output);
 
