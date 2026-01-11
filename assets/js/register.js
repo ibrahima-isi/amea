@@ -34,22 +34,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // === Existing Logic ===
     const etablissementSelect = document.getElementById('etablissement');
-    const autreEtablissementDiv = document.getElementById('autre_etablissement_div');
+    const autreEtablissementDiv = document.getElementById('autre_etablissement_wrapper');
     const autreEtablissementInput = document.getElementById('autre_etablissement');
 
     const domaineSelect = document.getElementById('domaine_etudes');
-    const autreDomaineDiv = document.getElementById('autre_domaine_div');
+    const autreDomaineDiv = document.getElementById('autre_domaine_etudes_wrapper');
     const autreDomaineInput = document.getElementById('autre_domaine_etudes');
 
     const niveauSelect = document.getElementById('niveau_etudes');
-    const autreNiveauDiv = document.getElementById('autre_niveau_div');
+    const autreNiveauDiv = document.getElementById('autre_niveau_etudes_wrapper');
     const autreNiveauInput = document.getElementById('autre_niveau_etudes');
 
     const typeLogementSelect = document.getElementById('type_logement');
     const precisionLogementDiv = document.getElementById('precision_logement_div');
 
     const lieuResidenceSelect = document.getElementById('lieu_residence');
-    const autreLieuResidenceDiv = document.getElementById('autre_lieu_residence_div');
+    const autreLieuResidenceDiv = document.getElementById('autre_lieu_residence_wrapper');
     const autreLieuResidenceInput = document.getElementById('autre_lieu_residence');
 
 
