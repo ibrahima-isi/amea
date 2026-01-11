@@ -240,9 +240,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         ];
 
         $stmt->execute($bindings);
+        
+        // Retrieve the last inserted ID
+        $newStudentId = $conn->lastInsertId();
+        
+        // Set session variable for the details page
+        $_SESSION['registration_student_id'] = $newStudentId;
+        
         setFlashMessage('success', 'Vous êtes inscrit avec succès');
         session_write_close();
-        header('Location: index.php');
+        header('Location: registration-details.php');
         exit();
 
     } catch (PDOException $e) {
