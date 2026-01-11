@@ -151,7 +151,7 @@ $detailsHtml .= '<div class="col-lg-8">';
 
 // Academic Info Card
 $detailsHtml .= '<div class="card shadow-sm border-0 mb-4">';
-$detailsHtml .= '<div class="card-header bg-transparent border-bottom py-3"><h5 class="mb-0 text-primary"><i class="fas fa-graduation-cap me-2"></i>Parcours Académique</h5></div>';
+$detailsHtml .= '<div class="card-header bg-transparent border-bottom py-3"><h5 class="mb-0 text-white"><i class="fas fa-graduation-cap me-2"></i>Parcours Académique</h5></div>';
 $detailsHtml .= '<div class="card-body">';
 $detailsHtml .= '<div class="row g-4">';
 $detailsHtml .= '<div class="col-md-6"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Établissement</small><span class="fw-bold text-dark">' . htmlspecialchars($student['etablissement'] ?? 'Non spécifié') . '</span></div></div>';
@@ -163,7 +163,7 @@ $detailsHtml .= '</div></div>';
 
 // Personal Details Card
 $detailsHtml .= '<div class="card shadow-sm border-0 mb-4">';
-$detailsHtml .= '<div class="card-header bg-transparent border-bottom py-3"><h5 class="mb-0 text-primary"><i class="fas fa-info-circle me-2"></i>Informations Personnelles</h5></div>';
+$detailsHtml .= '<div class="card-header bg-transparent border-bottom py-3"><h5 class="mb-0 text-white"><i class="fas fa-info-circle me-2"></i>Informations Personnelles</h5></div>';
 $detailsHtml .= '<div class="card-body">';
 $detailsHtml .= '<div class="row mb-3">';
 $detailsHtml .= '<div class="col-md-6 mb-3"><strong class="d-block text-muted small">Nationalités</strong>';
@@ -251,7 +251,7 @@ $detailsHtml .= '</div></div>';
 // Project Card (if exists)
 if (!empty($student['projet_apres_formation'])) {
     $detailsHtml .= '<div class="card shadow-sm border-0">';
-    $detailsHtml .= '<div class="card-header bg-transparent border-bottom py-3"><h5 class="mb-0 text-primary"><i class="fas fa-rocket me-2"></i>Projet Professionnel</h5></div>';
+    $detailsHtml .= '<div class="card-header bg-transparent border-bottom py-3"><h5 class="mb-0 text-white"><i class="fas fa-rocket me-2"></i>Projet Professionnel</h5></div>';
     $detailsHtml .= '<div class="card-body">';
     $detailsHtml .= '<p class="card-text text-dark" style="line-height: 1.6;">' . nl2br(htmlspecialchars($student['projet_apres_formation'])) . '</p>';
     $detailsHtml .= '</div></div>';
