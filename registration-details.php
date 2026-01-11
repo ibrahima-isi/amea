@@ -72,7 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'annee_arrivee' => $_POST['annee_arrivee'] ?? null,
         'type_logement' => $_POST['type_logement'] ?? '',
         'precision_logement' => trim($_POST['precision_logement'] ?? ''),
-        'projet_apres_formation' => trim($_POST['projet_apres_formation'] ?? '')
+        'projet_apres_formation' => trim($_POST['projet_apres_formation'] ?? ''),
+        'cv_path' => $student['cv_path'] ?? null // Keep existing CV path
     ];
 
     // Handle 'Other' options
@@ -149,31 +150,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Handle File Upload
     $identitePath = $student['identite'];
-    if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
-        // ... (Upload logic reused)
-        $photoTmpPath = $_FILES['photo']['tmp_name'];
-        $photoName = $_FILES['photo']['name'];
-        $photoSize = $_FILES['photo']['size'];
-        $photoExtension = strtolower(pathinfo($photoName, PATHINFO_EXTENSION));
-        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf'];
-        
-        if (in_array($photoExtension, $allowedExtensions)) {
-            if ($photoSize < 2000000) {
-                 $newFileName = uniqid('', true) . '.' . $photoExtension;
-                 $uploadPath = 'uploads/students/' . $newFileName;
-                 if (move_uploaded_file($photoTmpPath, $uploadPath)) {
-                     // Delete old file if exists
-                     if ($identitePath && file_exists($identitePath)) {
-                         unlink($identitePath);
-                     }
-                     $identitePath = $uploadPath;
-                 }
-            } else {
-                $errors['identite'] = "Le fichier est trop volumineux (max 2MB).";
-            }
+    $identiteUploadResult = handleFileUpload($_FILES['photo'] ?? [], ['jpg', 'jpeg', 'png', 'gif', 'pdf'], 2 * 1024 * 1024, 'uploads/students');
+    if (!$identiteUploadResult['success']) {
+        if ($identiteUploadResult['filepath'] !== null) { // Only set error if a file was actually attempted to be uploaded
+             $errors['identite'] = $identiteUploadResult['message'];
         }
+    } else {
+        // If a new file was uploaded, delete the old one if it exists
+        if ($identiteUploadResult['filepath'] !== null && $identitePath && file_exists($identitePath)) {
+            unlink($identitePath);
+        }
+        $identitePath = $identiteUploadResult['filepath'];
     }
     $formData['identite'] = $identitePath;
+
+    $cvPath = $student['cv_path']; // Keep old path if no new file is uploaded
+    $cvUploadResult = handleFileUpload($_FILES['cv_file'] ?? [], ['pdf', 'png'], 5 * 1024 * 1024, 'uploads/students/cvs');
+    if (!$cvUploadResult['success']) {
+        if ($cvUploadResult['filepath'] !== null) { // Only set error if a file was actually attempted to be uploaded
+             $errors['cv'] = $cvUploadResult['message'];
+        }
+    } else {
+        // If a new file was uploaded, delete the old one if it exists
+        if ($cvUploadResult['filepath'] !== null && $cvPath && file_exists($cvPath)) {
+            unlink($cvPath);
+        }
+        $cvPath = $cvUploadResult['filepath'];
+    }
+    $formData['cv_path'] = $cvPath;
 
     if (empty($errors)) {
         // Update DB
@@ -184,7 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             telephone = :telephone, email = :email, annee_arrivee = :annee_arrivee, 
             type_logement = :type_logement, precision_logement = :precision_logement, 
             projet_apres_formation = :projet_apres_formation, identite = :identite,
-            nationalites = :nationalites
+            nationalites = :nationalites, cv_path = :cv_path
             WHERE id_personne = :id_personne";
         
         $params = [
@@ -197,6 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':type_logement' => $formData['type_logement'], ':precision_logement' => $formData['precision_logement'],
             ':projet_apres_formation' => $formData['projet_apres_formation'], ':identite' => $formData['identite'],
             ':nationalites' => $nationalites_json,
+            ':cv_path' => $formData['cv_path'], // Added cv_path
             ':id_personne' => $student_id
         ];
         
@@ -273,6 +278,11 @@ if ($action === 'edit') {
          // Actually Tagify sends JSON string in POST usually? 
          // Let's ensure it's a string for the value attribute
     }
+
+    $currentCvDisplay = '';
+    if (!empty($formData['cv_path'])) {
+        $currentCvDisplay = '<div class="mt-2">CV actuel: <a href="' . htmlspecialchars($formData['cv_path']) . '" target="_blank" class="btn btn-sm btn-info"><i class="fas fa-download"></i> Télécharger</a></div>';
+    }
     
     $replacements = [
         '{{header}}' => $headerHtml, '{{footer}}' => $footerTpl, '{{flash_json}}' => $flash_json,
@@ -308,11 +318,12 @@ if ($action === 'edit') {
         '{{statut_sel_none}}' => empty($formData['statut']) ? 'selected' : '',
         // Nationalities - If stored as JSON in DB, just pass it.
         // Tagify should handle the JSON value string `[{"value":"Mali"}]`
-        '{{nationalites_value}}' => htmlspecialchars($student['nationalites'] ?? ''), 
+        '{{nationalites_value}}' => htmlspecialchars($student['nationalites'] ?? ''),
+        '{{current_cv_display}}' => $currentCvDisplay,
     ];
     
     // Errors
-    $fields = ['nom', 'prenom', 'numero_identite', 'sexe', 'date_naissance', 'identite', 'telephone', 'email', 'lieu_residence', 'etablissement', 'statut', 'domaine_etudes', 'niveau_etudes', 'type_logement'];
+    $fields = ['nom', 'prenom', 'numero_identite', 'sexe', 'date_naissance', 'identite', 'telephone', 'email', 'lieu_residence', 'etablissement', 'statut', 'domaine_etudes', 'niveau_etudes', 'type_logement', 'cv']; // Added 'cv'
     foreach ($fields as $f) {
         $replacements["{{error_$f}}"] = $errors[$f] ?? '';
         $replacements["{{is_invalid_$f}}"] = isset($errors[$f]) ? 'is-invalid' : '';
@@ -334,6 +345,15 @@ if (!empty($student['nationalites'])) {
     if (is_array($nat_arr)) {
         $student['nationalites_display'] = implode(', ', $nat_arr);
     }
+}
+
+$cvDownloadLink = '';
+if (!empty($student['cv_path'])) {
+    $cvDownloadLink = '
+                                <div class="detail-row">
+                                    <span class="detail-label">CV:</span>
+                                    <span class="detail-value"><a href="' . htmlspecialchars($student['cv_path']) . '" target="_blank" class="btn btn-sm btn-info"><i class="fas fa-download"></i> Télécharger CV</a></span>
+                                </div>';
 }
 
 $replacements = [
@@ -359,6 +379,7 @@ $replacements = [
     '{{projet_apres_formation}}' => !empty($student['projet_apres_formation']) ? nl2br(htmlspecialchars($student['projet_apres_formation'])) : 'Aucun projet spécifié',
     // Logic for Image
     '{{identite_url}}' => !empty($student['identite']) ? $student['identite'] : 'assets/img/placeholder.png',
+    '{{cv_download_link}}' => $cvDownloadLink,
 ];
 
 echo strtr($template, $replacements);

@@ -298,3 +298,51 @@ function cleanData($data) {
     $data = str_replace('"', '""', $data);
     return $data;
 }
+
+/**
+ * Gère le téléchargement d'un fichier, le valide et le déplace.
+ *
+ * @param array $file_input L'entrée du tableau $_FILES pour le fichier.
+ * @param array $allowed_extensions Extensions de fichier autorisées (ex: ['pdf', 'png']).
+ * @param int $max_size Taille maximale autorisée en octets (ex: 5 * 1024 * 1024 pour 5MB).
+ * @param string $upload_dir Le répertoire de destination du téléchargement.
+ * @return array Un tableau contenant 'success' (bool) et 'message' (string) ou 'filepath' (string).
+ */
+function handleFileUpload($file_input, $allowed_extensions, $max_size, $upload_dir) {
+    if (!isset($file_input) || $file_input['error'] === UPLOAD_ERR_NO_FILE) {
+        return ['success' => true, 'filepath' => null]; // No file uploaded is not an error for optional fields
+    }
+
+    if ($file_input['error'] !== UPLOAD_ERR_OK) {
+        return ['success' => false, 'message' => "Erreur lors de l'upload du fichier: " . $file_input['error']];
+    }
+
+    $filename = $file_input['name'];
+    $file_size = $file_input['size'];
+    $file_tmp = $file_input['tmp_name'];
+    $file_ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+    // Validate extension
+    if (!in_array($file_ext, $allowed_extensions)) {
+        return ['success' => false, 'message' => "Extension de fichier non autorisée. Extensions acceptées: " . implode(', ', $allowed_extensions)];
+    }
+
+    // Validate size
+    if ($file_size > $max_size) {
+        return ['success' => false, 'message' => "Le fichier est trop volumineux. Taille maximale: " . ($max_size / (1024 * 1024)) . "MB"];
+    }
+
+    // Generate unique filename and move
+    $new_file_name = uniqid('', true) . '.' . $file_ext;
+    $destination = rtrim($upload_dir, '/') . '/' . $new_file_name;
+
+    if (!is_dir($upload_dir)) {
+        mkdir($upload_dir, 0777, true); // Create directory if it doesn't exist
+    }
+
+    if (move_uploaded_file($file_tmp, $destination)) {
+        return ['success' => true, 'filepath' => $destination];
+    } else {
+        return ['success' => false, 'message' => "Erreur lors du déplacement du fichier téléchargé."];
+    }
+}

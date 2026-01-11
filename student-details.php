@@ -183,6 +183,12 @@ if (!empty($student['nationalites'])) {
 $detailsHtml .= '</div>';
 $detailsHtml .= '<div class="col-md-6 mb-3"><strong class="d-block text-muted small">Date de Naissance</strong>' . formatDateFr($student['date_naissance']) . '</div>';
 $detailsHtml .= '<div class="col-md-6 mb-3"><strong class="d-block text-muted small">Numéro ID / Passeport</strong>' . htmlspecialchars($student['numero_identite'] ?? 'N/A') . '</div>';
+
+// CV Download Link
+if (!empty($student['cv_path'])) {
+    $detailsHtml .= '<div class="col-md-6 mb-3"><strong class="d-block text-muted small">CV</strong><a href="' . htmlspecialchars($student['cv_path']) . '" target="_blank" class="btn btn-sm btn-info ms-2"><i class="fas fa-download"></i> Télécharger</a></div>';
+}
+
 $detailsHtml .= '<div class="col-md-6 mb-3"><strong class="d-block text-muted small">Type de Logement</strong>' . htmlspecialchars($student['type_logement'] ?? 'N/A') . '</div>';
 if (!empty($student['precision_logement'])) {
     $detailsHtml .= '<div class="col-12"><strong class="d-block text-muted small">Précision Logement</strong>' . htmlspecialchars($student['precision_logement']) . '</div>';

@@ -66,10 +66,17 @@
                             <div class="text-danger">{{error_numero_identite}}</div>
                         </div>
                         <div class="col-md-6">
-                            <label for="photo" class="form-label">ID or Passeport</label>
+                            <label for="photo" class="form-label">ID ou Passeport</label>
                             <input type="file" class="form-control {{is_invalid_identite}}" id="photo" name="photo" accept="image/*,application/pdf">
                             <div class="text-danger">{{error_identite}}</div>
                         </div>
+                        <div class="col-md-6">
+                            <label for="cv_file" class="form-label">Télécharger CV (PDF, PNG - max 5MB)</label>
+                            <input type="file" class="form-control {{is_invalid_cv}}" id="cv_file" name="cv_file" accept="application/pdf,image/png">
+                            <div class="text-danger">{{error_cv}}</div>
+                            {{current_cv_display}}
+                        </div>
+
                     </div>
 
                     <!-- Informations de contact et résidence -->

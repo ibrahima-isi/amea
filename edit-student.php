@@ -83,7 +83,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'precision_logement' => trim($_POST['precision_logement'] ?? ''),
         'projet_apres_formation' => trim($_POST['projet_apres_formation'] ?? ''),
         'autre_lieu_residence' => trim($_POST['autre_lieu_residence'] ?? ''),
-        'nationalites' => $_POST['nationalites'] ?? ''
+        'nationalites' => $_POST['nationalites'] ?? '',
+        'cv_path' => $student['cv_path'] ?? null // Keep existing CV path
     ];
 
     // Normalize nullable fields
@@ -141,35 +142,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Handle file upload
+    // Handle file uploads (Identité and CV)
     $identitePath = $student['identite']; // Keep old path if no new file is uploaded
-    if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
-        $photoTmpPath = $_FILES['photo']['tmp_name'];
-        $photoName = $_FILES['photo']['name'];
-        $photoSize = $_FILES['photo']['size'];
-        $photoExtension = strtolower(pathinfo($photoName, PATHINFO_EXTENSION));
-        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf'];
-
-        if (in_array($photoExtension, $allowedExtensions)) {
-            if ($photoSize < 2000000) { // 2MB
-                $newFileName = uniqid('', true) . '.' . $photoExtension;
-                $uploadPath = 'uploads/students/' . $newFileName;
-                if (move_uploaded_file($photoTmpPath, $uploadPath)) {
-                    if ($identitePath && file_exists($identitePath)) {
-                        unlink($identitePath);
-                    }
-                    $identitePath = $uploadPath;
-                } else {
-                    $errors['identite'] = "Erreur lors de l\'upload de l\'image.";
-                }
-            } else {
-                $errors['identite'] = "L\'image est trop volumineuse (max 2MB).";
-            }
-        } else {
-            $errors['identite'] = "Le format du fichier n\'est pas supporté.";
+    $identiteUploadResult = handleFileUpload($_FILES['photo'] ?? [], ['jpg', 'jpeg', 'png', 'gif', 'pdf'], 2 * 1024 * 1024, 'uploads/students');
+    if (!$identiteUploadResult['success']) {
+        if ($identiteUploadResult['filepath'] !== null) { // Only set error if a file was actually attempted to be uploaded
+             $errors['identite'] = $identiteUploadResult['message'];
         }
+    } else {
+        // If a new file was uploaded, delete the old one if it exists
+        if ($identiteUploadResult['filepath'] !== null && $identitePath && file_exists($identitePath)) {
+            unlink($identitePath);
+        }
+        $identitePath = $identiteUploadResult['filepath'];
     }
     $formData['identite'] = $identitePath;
+
+    $cvPath = $student['cv_path']; // Keep old path if no new file is uploaded
+    $cvUploadResult = handleFileUpload($_FILES['cv_file'] ?? [], ['pdf', 'png'], 5 * 1024 * 1024, 'uploads/students/cvs');
+    if (!$cvUploadResult['success']) {
+        if ($cvUploadResult['filepath'] !== null) { // Only set error if a file was actually attempted to be uploaded
+             $errors['cv'] = $cvUploadResult['message'];
+        }
+    } else {
+        // If a new file was uploaded, delete the old one if it exists
+        if ($cvUploadResult['filepath'] !== null && $cvPath && file_exists($cvPath)) {
+            unlink($cvPath);
+        }
+        $cvPath = $cvUploadResult['filepath'];
+    }
+    $formData['cv_path'] = $cvPath;
 
     // If no errors, update the database
     if (empty($errors)) {
@@ -190,7 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             telephone = :telephone, email = :email, annee_arrivee = :annee_arrivee, 
             type_logement = :type_logement, precision_logement = :precision_logement, 
             projet_apres_formation = :projet_apres_formation, identite = :identite,
-            nationalites = :nationalites
+            nationalites = :nationalites, cv_path = :cv_path
             WHERE id_personne = :id_personne";
 
         $params = [
@@ -212,6 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'projet_apres_formation' => $formData['projet_apres_formation'],
             'identite' => $formData['identite'],
             'nationalites' => $nationalites_json,
+            'cv_path' => $formData['cv_path'], // Added cv_path
             'id_personne' => $student_id
         ];
 
@@ -295,6 +298,11 @@ $maxBirthDate = ($currentYear - 15) . '-12-31';
 $sel = fn($value, $option) => $value === $option ? 'selected' : '';
 $checked = fn($value, $option) => $value === $option ? 'checked' : '';
 
+$currentCvDisplay = '';
+if (!empty($formData['cv_path'])) {
+    $currentCvDisplay = '<div class="mt-2">CV actuel: <a href="' . htmlspecialchars($formData['cv_path']) . '" target="_blank" class="btn btn-sm btn-info"><i class="fas fa-download"></i> Télécharger</a></div>';
+}
+
 $replacements = [
     '{{feedback_block}}' => !empty($errors) ? '<div class="alert alert-danger">Veuillez corriger les erreurs ci-dessous.</div>' : '',
     '{{form_action}}' => 'edit-student.php?id=' . $student_id,
@@ -326,9 +334,10 @@ $replacements = [
     '{{statut_sel_Étudiant}}' => $sel($formData['statut'], 'Étudiant'),
     '{{statut_sel_Stagiaire}}' => $sel($formData['statut'], 'Stagiaire'),
     '{{nationalites_value}}' => htmlspecialchars($nationalites_value, ENT_QUOTES, 'UTF-8'),
+    '{{current_cv_display}}' => $currentCvDisplay, // Add this line
 ];
 
-$error_fields = ['nom', 'prenom', 'numero_identite', 'sexe', 'date_naissance', 'identite', 'telephone', 'email', 'lieu_residence', 'etablissement', 'statut', 'domaine_etudes', 'niveau_etudes', 'type_logement'];
+$error_fields = ['nom', 'prenom', 'numero_identite', 'sexe', 'date_naissance', 'identite', 'telephone', 'email', 'lieu_residence', 'etablissement', 'statut', 'domaine_etudes', 'niveau_etudes', 'type_logement', 'cv']; // Added 'cv'
 foreach ($error_fields as $field) {
     $replacements["{{error_$field}}"] = $errors[$field] ?? '';
     $replacements["{{is_invalid_$field}}"] = isset($errors[$field]) ? 'is-invalid' : '';
