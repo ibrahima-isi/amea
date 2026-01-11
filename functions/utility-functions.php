@@ -186,6 +186,37 @@ function exportToCsv($data, $headers, $filename = 'export.csv') {
 }
 
 /**
+ * Récupère une valeur de configuration depuis la base de données.
+ *
+ * @param string $key La clé de configuration
+ * @param string $default La valeur par défaut si la clé n'existe pas
+ * @return string La valeur de la configuration
+ */
+function getSetting($key, $default = '') {
+    global $conn;
+    
+    // Ensure connection is available
+    if (!isset($conn)) {
+        require_once __DIR__ . '/../config/database.php';
+    }
+
+    try {
+        $stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = :key LIMIT 1");
+        $stmt->execute([':key' => $key]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($result) {
+            return $result['setting_value'];
+        }
+    } catch (PDOException $e) {
+        // Silently fail and return default in case of DB error to avoid breaking pages
+        logError("Error fetching setting '$key'", $e);
+    }
+
+    return $default;
+}
+
+/**
  * Définit un message flash en session.
  *
  * @param string $type Le type de message (ex: success, error, warning)
@@ -236,6 +267,19 @@ function getFlashMessageClass($type) {
         default:
             return 'alert-info';
     }
+}
+
+/**
+ * Récupère les remplacements communs pour le pied de page (email, téléphone, année).
+ *
+ * @return array Les remplacements pour le template
+ */
+function getFooterReplacements() {
+    return [
+        '{{contact_email}}' => htmlspecialchars(getSetting('contact_email', 'admin@aeesgs.org')),
+        '{{contact_phone}}' => htmlspecialchars(getSetting('contact_phone', '+221 XX XXX XX XX')),
+        '{{year}}' => date('Y'),
+    ];
 }
 
 /**

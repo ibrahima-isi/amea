@@ -35,10 +35,6 @@ $stmt->execute([$student_id]);
     // If null, make it empty string
     if (is_null($nationalites_value)) $nationalites_value = '';
 
-    // Préparer les données pour le formulaire
-    $formData = [
-        'id' => $student['id_personne'],
-
 
 // Fetch data for dropdowns
 $stmt = $conn->query("SELECT nom FROM etablissements ORDER BY nom ASC");
@@ -349,9 +345,7 @@ $output = strtr($layoutTpl, [
         '{{user_fullname}}' => htmlspecialchars($prenom . ' ' . $nom, ENT_QUOTES, 'UTF-8'),
     ]),
     '{{content}}' => $contentHtml,
-    '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), [
-        '{{year}}' => date('Y'),
-    ]),
+    '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), getFooterReplacements()),
 ]);
 
 echo $output;

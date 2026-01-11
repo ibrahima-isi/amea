@@ -26,7 +26,6 @@ Before any development work (bug fixes, features), follow these steps:
 3. **Test changes thoroughly before committing.**
 4. **Push changes to the appropriate branch and create a pull request for review using GitHub cli.**
 
-
 ### Docker (Recommended)
 The project includes a `compose.yml` for setting up the environment.
 ```bash
@@ -50,28 +49,6 @@ Database credentials are defined in `config/database.php`. It attempts to load f
 *   `DB_NAME`
 *   `DB_USER`
 *   `DB_PASS`
-#### Database Initialization test
-We can see that the database `amea_db` is created and accessible:
-
-mysql> show databases;
-+--------------------+
-| Database           |
-+--------------------+
-| amea_db            |
-| information_schema |
-| mysql              |
-| performance_schema |
-| sys                |
-+--------------------+
-5 rows in set (0.00 sec)
-
-mysql>
-mysql> use amea_db
-Database changed
-mysql> show tables;
-Empty set (0.00 sec)
-
-mysql>
 
 
 ## Development Conventions

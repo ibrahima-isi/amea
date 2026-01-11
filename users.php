@@ -216,9 +216,7 @@ $output = strtr($layoutTpl, [
         '{{user_fullname}}' => htmlspecialchars($_SESSION['prenom'] . ' ' . $_SESSION['nom'], ENT_QUOTES, 'UTF-8'),
     ]),
     '{{content}}' => $contentHtml,
-    '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), [
-        '{{year}}' => date('Y'),
-    ]),
+    '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), getFooterReplacements()),
 ]);
 
 echo $output;

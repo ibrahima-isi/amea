@@ -106,7 +106,7 @@ if ($flash) {
 
 // Inject header/footer partials
 $headerTpl = file_get_contents(__DIR__ . '/templates/partials/header.html');
-$footerTpl = file_get_contents(__DIR__ . '/templates/partials/footer.html');
+$footerTpl = strtr(file_get_contents(__DIR__ . '/templates/partials/footer.html'), getFooterReplacements());
 $headerHtml = strtr($headerTpl, [
     '{{index_active}}' => '',
     '{{register_active}}' => '',

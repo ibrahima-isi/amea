@@ -1,0 +1,54 @@
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Paramètres de configuration</h1>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Paramètres</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-lg border-0 mb-4 rounded-4">
+            <div class="card-header py-4 bg-primary text-white rounded-top-4">
+                <h5 class="m-0 font-weight-bold"><i class="fas fa-address-card me-2"></i>Informations de contact</h5>
+            </div>
+            <div class="card-body p-5">
+                <form method="POST" action="settings.php">
+                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label for="contact_email" class="form-label fw-bold">Adresse Email de Contact</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light border-0"><i class="fas fa-envelope text-primary"></i></span>
+                                <input type="email" class="form-control bg-light border-0" id="contact_email" name="contact_email" value="{{contact_email}}" required>
+                            </div>
+                            <div class="form-text text-muted mt-2">Cette adresse sera affichée dans le pied de page du site.</div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label for="contact_phone" class="form-label fw-bold">Numéro de Téléphone</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light border-0"><i class="fas fa-phone text-success"></i></span>
+                                <input type="text" class="form-control bg-light border-0" id="contact_phone" name="contact_phone" value="{{contact_phone}}" required>
+                            </div>
+                            <div class="form-text text-muted mt-2">Ce numéro sera affiché dans le pied de page du site.</div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4 text-muted opacity-25">
+
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm">
+                            <i class="fas fa-save me-2"></i> Enregistrer les modifications
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
