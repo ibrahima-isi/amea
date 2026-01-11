@@ -47,7 +47,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'annee_arrivee' => $_POST['annee_arrivee'] ?? null,
         'type_logement' => $_POST['type_logement'] ?? '',
         'precision_logement' => trim($_POST['precision_logement'] ?? ''),
-        'projet_apres_formation' => trim($_POST['projet_apres_formation'] ?? '')
+        'projet_apres_formation' => trim($_POST['projet_apres_formation'] ?? ''),
+        'cv_path' => null // Initialize cv_path
     ];
 
     // 2. Handle 'Other' options
@@ -123,32 +124,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // 5. Handle file upload
+    // 5. Handle file uploads (Identité and CV)
     $identitePath = null;
-    if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
-        $photoTmpPath = $_FILES['photo']['tmp_name'];
-        $photoName = $_FILES['photo']['name'];
-        $photoSize = $_FILES['photo']['size'];
-        $photoExtension = strtolower(pathinfo($photoName, PATHINFO_EXTENSION));
-        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf'];
-
-        if (in_array($photoExtension, $allowedExtensions)) {
-            if ($photoSize < 2000000) { // 2MB
-                $newFileName = uniqid('', true) . '.' . $photoExtension;
-                $uploadPath = 'uploads/students/' . $newFileName;
-                if (move_uploaded_file($photoTmpPath, $uploadPath)) {
-                    $identitePath = $uploadPath;
-                } else {
-                    $errors['identite'] = "Erreur lors de l'upload du fichier d'identité.";
-                }
-            } else {
-                $errors['identite'] = "Le fichier d'identité est trop volumineux (max 2MB).";
-            }
-        } else {
-            $errors['identite'] = "Le format du fichier d'identité n'est pas supporté (jpg, jpeg, png, gif, pdf).";
+    $identiteUploadResult = handleFileUpload($_FILES['photo'] ?? [], ['jpg', 'jpeg', 'png', 'gif', 'pdf'], 2 * 1024 * 1024, 'uploads/students');
+    if (!$identiteUploadResult['success']) {
+        if ($identiteUploadResult['filepath'] !== null) { // Only set error if a file was actually attempted to be uploaded
+             $errors['identite'] = $identiteUploadResult['message'];
         }
+    } else {
+        $identitePath = $identiteUploadResult['filepath'];
     }
     $formData['identite'] = $identitePath;
+
+    $cvPath = null;
+    $cvUploadResult = handleFileUpload($_FILES['cv_file'] ?? [], ['pdf', 'png'], 5 * 1024 * 1024, 'uploads/students/cvs');
+    if (!$cvUploadResult['success']) {
+        if ($cvUploadResult['filepath'] !== null) { // Only set error if a file was actually attempted to be uploaded
+             $errors['cv'] = $cvUploadResult['message'];
+        }
+    } else {
+        $cvPath = $cvUploadResult['filepath'];
+    }
+    $formData['cv_path'] = $cvPath;
 
     // 6. If validation fails, redirect back
     if (!empty($errors)) {
@@ -210,10 +207,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $sql = "INSERT INTO personnes (nom, prenom, numero_identite, sexe, age, date_naissance, lieu_residence,
                 etablissement, statut, domaine_etudes, niveau_etudes, telephone, email,
-                annee_arrivee, type_logement, precision_logement, projet_apres_formation, identite, nationalites)
+                annee_arrivee, type_logement, precision_logement, projet_apres_formation, identite, nationalites, cv_path)
                 VALUES (:nom, :prenom, :numero_identite, :sexe, :age, :date_naissance, :lieu_residence,
                 :etablissement, :statut, :domaine_etudes, :niveau_etudes, :telephone, :email,
-                :annee_arrivee, :type_logement, :precision_logement, :projet_apres_formation, :identite, :nationalites)";
+                :annee_arrivee, :type_logement, :precision_logement, :projet_apres_formation, :identite, :nationalites, :cv_path)";
 
         $stmt = $conn->prepare($sql);
 
@@ -237,6 +234,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ':projet_apres_formation' => $formData['projet_apres_formation'],
             ':identite' => $formData['identite'],
             ':nationalites' => $formData['nationalites_json'],
+            ':cv_path' => $formData['cv_path'],
         ];
 
         $stmt->execute($bindings);
@@ -427,6 +425,8 @@ $replacements = [
     '{{is_invalid_domaine_etudes}}' => isset($errors['domaine_etudes']) ? 'is-invalid' : '',
     '{{is_invalid_niveau_etudes}}' => isset($errors['niveau_etudes']) ? 'is-invalid' : '',
     '{{is_invalid_type_logement}}' => isset($errors['type_logement']) ? 'is-invalid' : '',
+    '{{error_cv}}' => $errors['cv'] ?? '', // Add this line
+    '{{is_invalid_cv}}' => isset($errors['cv']) ? 'is-invalid' : '', // Add this line
 ];
 
 $output = strtr($tpl, $replacements);
