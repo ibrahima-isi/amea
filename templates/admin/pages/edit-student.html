@@ -1,4 +1,5 @@
 <div class="row mb-4">
+    <link rel="stylesheet" href="assets/css/tagify.css">
     <div class="col">
         <h1 class="h3">Modifier l'étudiant</h1>
         <nav aria-label="breadcrumb">
@@ -46,7 +47,15 @@
                                 <label class="form-check-label" for="sexeFeminin">Féminin</label>
                             </div>
                             <div class="text-danger">{{error_sexe}}</div>
-                        </div>                        <div class="col-md-6">
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label for="nationalites" class="form-label">Autres Nationalités (max 5)</label>
+                            <input name="nationalites" id="nationalites" class="form-control" placeholder="Ajouter des nationalités..." value='{{nationalites_value}}'>
+                            <div class="form-text">Tapez et sélectionnez parmi la liste.</div>
+                        </div>
+
+                        <div class="col-md-6">
                             <label for="date_naissance" class="form-label">Date de naissance <span class="text-danger">*</span></label>
                             <input type="date" class="form-control {{is_invalid_date_naissance}}" id="date_naissance" name="date_naissance" value="{{date_naissance}}" required max="{{max_birth_date}}">
                             <div class="text-danger">{{error_date_naissance}}</div>
@@ -207,3 +216,5 @@
         locale: "fr"
     });
 </script>
+<script src="assets/js/tagify.min.js"></script>
+<script src="assets/js/edit-student.js"></script>

@@ -131,8 +131,8 @@ function verifyCsrfToken($token) {
         return false;
     }
 
-    // Régénérer le jeton après une utilisation réussie pour limiter la réutilisation
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    // Do NOT regenerate the token here. It should be stable for the session or form lifespan.
+    // Regeneration should happen on privilege escalation (login) or session rotation.
 
     return true;
 }

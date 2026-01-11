@@ -154,7 +154,24 @@ if (count($students) > 0) {
             . '<td>' . (int)$student['id_personne'] . '</td>'
             . '<td>' . htmlspecialchars($student['nom'], ENT_QUOTES, 'UTF-8') . '</td>'
             . '<td>' . htmlspecialchars($student['prenom'], ENT_QUOTES, 'UTF-8') . '</td>'
-            . '<td>' . htmlspecialchars($student['sexe'], ENT_QUOTES, 'UTF-8') . '</td>'
+            . '<td>' . htmlspecialchars($student['sexe'], ENT_QUOTES, 'UTF-8') . '</td>';
+
+        // Nationalities Column
+        $natHtml = '';
+        if (!empty($student['nationalites'])) {
+            $nats = json_decode($student['nationalites'], true);
+            if (is_array($nats) && count($nats) > 0) {
+                 // Show first 2 and a count if more
+                 $displayNats = array_slice($nats, 0, 2);
+                 foreach($displayNats as $n) {
+                     $natHtml .= '<span class="badge bg-secondary me-1" style="font-size: 0.7em;">' . htmlspecialchars($n) . '</span>';
+                 }
+                 if(count($nats) > 2) {
+                     $natHtml .= '<span class="badge bg-light text-dark" style="font-size: 0.7em;">+' . (count($nats) - 2) . '</span>';
+                 }
+            }
+        }
+        $rowsHtml .= '<td>' . $natHtml . '</td>'
             . '<td>' . htmlspecialchars($student['etablissement'], ENT_QUOTES, 'UTF-8') . '</td>'
             . '<td><span class="badge bg-' . $badgeClass . '">' . htmlspecialchars($student['statut'], ENT_QUOTES, 'UTF-8') . '</span></td>'
             . '<td><a href="mailto:' . htmlspecialchars($student['email'], ENT_QUOTES, 'UTF-8') . '" class="text-primary">' . htmlspecialchars($student['email'], ENT_QUOTES, 'UTF-8') . '</a></td>'
