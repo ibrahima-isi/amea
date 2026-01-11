@@ -51,11 +51,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'cv_path' => null // Initialize cv_path
     ];
 
-    // 2. Handle 'Other' options
-    if ($formData['lieu_residence'] === 'Autre') $formData['lieu_residence'] = $formData['autre_lieu_residence'];
-    if ($formData['etablissement'] === 'Autre') $formData['etablissement'] = $formData['autre_etablissement'];
-    if ($formData['domaine_etudes'] === 'Autre') $formData['domaine_etudes'] = $formData['autre_domaine_etudes'];
-    if ($formData['niveau_etudes'] === 'Autre') $formData['niveau_etudes'] = $formData['autre_niveau_etudes'];
+    // 2. Handle 'Other' options for final DB value
+    $finalLieuResidenceForDb = $formData['lieu_residence'];
+    if ($formData['lieu_residence'] === 'Autre') {
+        $finalLieuResidenceForDb = $formData['autre_lieu_residence'];
+    }
+    // Note: etablissement, domaine_etudes, niveau_etudes are processed similarly
+    $finalEtablissementForDb = $formData['etablissement'];
+    if ($formData['etablissement'] === 'Autre') {
+        $finalEtablissementForDb = $formData['autre_etablissement'];
+    }
+
+    $finalDomaineEtudesForDb = $formData['domaine_etudes'];
+    if ($formData['domaine_etudes'] === 'Autre') {
+        $finalDomaineEtudesForDb = $formData['autre_domaine_etudes'];
+    }
+
+    $finalNiveauEtudesForDb = $formData['niveau_etudes'];
+    if ($formData['niveau_etudes'] === 'Autre') {
+        $finalNiveauEtudesForDb = $formData['autre_niveau_etudes'];
+    }
 
     // 3. Normalize nullable fields and calculate age
     $formData['annee_arrivee'] = ($formData['annee_arrivee'] === null || $formData['annee_arrivee'] === '') ? null : (int)$formData['annee_arrivee'];
@@ -165,25 +180,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // 7. If validation passes, insert into DB
-    if (!empty($formData['etablissement'])) {
+    // Check if new options need to be added to auxiliary tables
+    if (!empty($finalEtablissementForDb)) {
         $stmt = $conn->prepare("SELECT id FROM etablissements WHERE nom = ?");
-        $stmt->execute([$formData['etablissement']]);
+        $stmt->execute([$finalEtablissementForDb]);
         if ($stmt->fetchColumn() === false) {
-            $conn->prepare("INSERT INTO etablissements (nom) VALUES (?)")->execute([$formData['etablissement']]);
+            $conn->prepare("INSERT INTO etablissements (nom) VALUES (?)")->execute([$finalEtablissementForDb]);
         }
     }
-    if (!empty($formData['domaine_etudes'])) {
+    if (!empty($finalDomaineEtudesForDb)) {
         $stmt = $conn->prepare("SELECT id FROM domaines_etudes WHERE nom = ?");
-        $stmt->execute([$formData['domaine_etudes']]);
+        $stmt->execute([$finalDomaineEtudesForDb]);
         if ($stmt->fetchColumn() === false) {
-            $conn->prepare("INSERT INTO domaines_etudes (nom) VALUES (?)")->execute([$formData['domaine_etudes']]);
+            $conn->prepare("INSERT INTO domaines_etudes (nom) VALUES (?)")->execute([$finalDomaineEtudesForDb]);
         }
     }
-    if (!empty($formData['niveau_etudes'])) {
+    if (!empty($finalNiveauEtudesForDb)) {
         $stmt = $conn->prepare("SELECT id FROM niveaux_etudes WHERE nom = ?");
-        $stmt->execute([$formData['niveau_etudes']]);
+        $stmt->execute([$finalNiveauEtudesForDb]);
         if ($stmt->fetchColumn() === false) {
-            $conn->prepare("INSERT INTO niveaux_etudes (nom) VALUES (?)")->execute([$formData['niveau_etudes']]);
+            $conn->prepare("INSERT INTO niveaux_etudes (nom) VALUES (?)")->execute([$finalNiveauEtudesForDb]);
         }
     }
 
@@ -230,11 +246,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ':sexe' => $formData['sexe'],
             ':age' => $formData['age'],
             ':date_naissance' => $formData['date_naissance'],
-            ':lieu_residence' => $formData['lieu_residence'],
-            ':etablissement' => $formData['etablissement'],
+            ':lieu_residence' => $finalLieuResidenceForDb,
+            ':etablissement' => $finalEtablissementForDb,
             ':statut' => $formData['statut'],
-            ':domaine_etudes' => $formData['domaine_etudes'],
-            ':niveau_etudes' => $formData['niveau_etudes'],
+            ':domaine_etudes' => $finalDomaineEtudesForDb,
+            ':niveau_etudes' => $finalNiveauEtudesForDb,
             ':telephone' => $formData['telephone'],
             ':email' => $formData['email'],
             ':annee_arrivee' => $formData['annee_arrivee'],
@@ -470,6 +486,10 @@ $replacements = [
     '{{is_invalid_cv}}' => isset($errors['cv']) ? 'is-invalid' : '', // Add this line
     '{{current_identite_display}}' => $currentIdentiteDisplay,
     '{{current_cv_display}}' => $currentCvDisplay,
+    '{{autre_lieu_residence}}' => htmlspecialchars($formData['autre_lieu_residence'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{autre_etablissement}}' => htmlspecialchars($formData['autre_etablissement'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{autre_domaine_etudes}}' => htmlspecialchars($formData['autre_domaine_etudes'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{autre_niveau_etudes}}' => htmlspecialchars($formData['autre_niveau_etudes'] ?? '', ENT_QUOTES, 'UTF-8'),
 ];
 
 $output = strtr($tpl, $replacements);
