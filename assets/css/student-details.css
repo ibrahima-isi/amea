@@ -1,179 +1,37 @@
-:root {
-    --dark-blue: #213448;
-    --medium-blue: #547792;
-    --light-blue: #94B4C1;
-    --pale-yellow: #ECEFCA;
-}
-
-body {
-    background-color: #f8f8fa;
-    color: var(--dark-blue);
-}
-
-/* Sidebar styling */
-#sidebar-wrapper {
-    background-color: var(--dark-blue);
-}
-
-#sidebar-wrapper .list-group-item {
-    background-color: transparent;
-    color: white;
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-#sidebar-wrapper .list-group-item.active,
-#sidebar-wrapper .list-group-item:hover {
-    background-color: var(--medium-blue);
-}
-
-/* Navbar styling */
-.navbar {
-    background-color: white !important;
-    border-bottom: 1px solid var(--light-blue) !important;
-}
-
-/* Breadcrumb styling */
-.breadcrumb-item a {
-    color: var(--medium-blue);
-}
-
-.breadcrumb-item.active {
-    color: var(--dark-blue);
-}
-
-/* Card styling */
-.card {
-    border: none;
-    box-shadow: 0 0.15rem 1.75rem 0 rgba(33, 52, 72, 0.1);
-}
-
-.card-header {
-    background-color: var(--dark-blue) !important;
-    color: white !important;
-}
-
-.card-body {
-    background-color: white;
-}
-
-/* Alert styling */
-.alert-success {
-    background-color: rgba(236, 239, 202, 0.2);
-    border-color: var(--pale-yellow);
-    color: var(--dark-blue);
-}
-
-.alert-danger {
-    background-color: rgba(220, 53, 69, 0.1);
-    border-color: #dc3545;
-    color: var(--dark-blue);
-}
-
-/* Button styling */
-.btn-primary {
-    background-color: var(--medium-blue) !important;
-    border-color: var(--medium-blue) !important;
-}
-
-.btn-primary:hover,
-.btn-primary:focus {
-    background-color: var(--dark-blue) !important;
-    border-color: var(--dark-blue) !important;
-}
-
-.btn-outline-primary {
-    color: var(--medium-blue) !important;
-    border-color: var(--medium-blue) !important;
-}
-
-.btn-outline-primary:hover {
-    background-color: var(--medium-blue) !important;
-    color: white !important;
-}
-
-.btn-outline-secondary {
-    color: var(--dark-blue) !important;
-    border-color: var(--dark-blue) !important;
-}
-
-.btn-outline-secondary:hover {
-    background-color: var(--dark-blue) !important;
-    color: white !important;
-}
-
-/* Keep the danger button for delete actions */
-.btn-danger {
-    background-color: #dc3545;
-    border-color: #dc3545;
-}
-
-.btn-danger:hover {
-    background-color: #c82333;
-    border-color: #bd2130;
-}
-
-/* Badge colors */
-.bg-primary {
-    background-color: var(--medium-blue) !important;
-}
-
-.bg-info {
-    background-color: var(--light-blue) !important;
-}
-
-.bg-warning {
-    background-color: var(--pale-yellow) !important;
-    color: var(--dark-blue) !important;
-}
-
-.bg-danger {
-    background-color: #dc3545 !important;
-}
+/* Student Details Page Specific Styles */
 
 /* Avatar placeholder */
 .avatar-placeholder {
-    background-color: var(--medium-blue) !important;
+    background-color: var(--brand-primary) !important;
+    color: white;
 }
 
-/* Text colors */
-.text-primary {
-    color: var(--medium-blue) !important;
-}
-
-.text-secondary {
-    color: var(--dark-blue) !important;
-    opacity: 0.7;
-}
-
-.text-muted {
-    color: var(--dark-blue) !important;
-    opacity: 0.6;
-}
-
-/* Background colors */
-.bg-light {
-    background-color: rgba(148, 180, 193, 0.1) !important;
-}
-
-/* Modal styling */
-.modal-header.bg-danger {
-    background-color: #dc3545 !important;
-}
-
-/* Print styling - will only affect when printing */
+/* Print styling */
 @media print {
-
     .navbar,
     .btn,
     #sidebarToggle,
     .modal,
-    footer {
+    footer,
+    #sidebar-wrapper,
+    .admin-topbar {
         display: none !important;
+    }
+
+    #wrapper {
+        display: block !important;
+    }
+    
+    #page-content-wrapper {
+        margin: 0 !important;
+        width: 100% !important;
+        padding: 0 !important;
     }
 
     .card {
         border: 1px solid #dee2e6 !important;
         box-shadow: none !important;
+        break-inside: avoid;
     }
 
     .card-header {
@@ -193,5 +51,10 @@ body {
         background-color: white !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+    }
+    
+    /* Ensure text is black for printing */
+    .text-primary, .text-success, .text-info {
+        color: black !important;
     }
 }

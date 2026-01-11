@@ -80,16 +80,14 @@
                                     <label for="date_naissance" class="form-label">Date de naissance<span
                                             class="text-danger">*</span></label>
                                     <input type="text" class="form-control {{is_invalid_date_naissance}}"
-                                           id="date_naissance" name="date_naissance" value="{{date_naissance}}" required
-                                           data-max-date="{{max_birth_date}}">
+                                                    id="date_naissance" name="date_naissance" value="{{date_naissance}}" required data-max-date="{{max_birth_date}}" placeholder="JJ/MM/AAAA">
                                     <div class="text-danger">{{error_date_naissance}}</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="numero_identite" class="form-label">Numéro d'ID ou Passeport <span
                                             class="text-danger">*</span></label>
                                     <input type="text" class="form-control {{is_invalid_numero_identite}}"
-                                           id="numero_identite" name="numero_identite" value="{{numero_identite}}"
-                                           required>
+                                                    id="numero_identite" name="numero_identite" value="{{numero_identite}}" required placeholder="Ex: NNI ou Numéro de passeport">
                                     <div class="text-danger">{{error_numero_identite}}</div>
                                 </div>
 
@@ -117,8 +115,7 @@
                                     <label for="email" class="form-label">Email <span
                                             class="text-danger">*</span></label>
                                     <input type="email" class="form-control {{is_invalid_email}}" id="email"
-                                           name="email" value="{{email}}" required>
-                                    <div class="text-danger">{{error_email}}</div>
+                                                    name="email" value="{{email}}" required placeholder="nom.prenom@exemple.com">                                    <div class="text-danger">{{error_email}}</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="lieu_residence" class="form-label"><span class="text-danger">*</span>
@@ -145,18 +142,15 @@
                                     <label for="type_logement" class="form-label">Type de logement <span
                                             class="text-danger">*</span></label>
                                     <select class="form-select {{is_invalid_type_logement}}" id="type_logement"
-                                            name="type_logement" required>
-                                        <option value="" disabled {{type_logement_sel_none}}>Sélectionnez</option>
-                                        <option value="En famille" {{type_logement_sel_En famille}}>En famille</option>
-                                        <option value="En colocation" {{type_logement_sel_En colocation}}>En
-                                            colocation
-                                        </option>
-                                        <option value="En résidence universitaire" {{type_logement_sel_En résidence
-                                                universitaire}}>En résidence universitaire
-                                        </option>
-                                        <option value="Autre" {{type_logement_sel_Autre}}>Autre</option>
-                                    </select>
-                                    <div class="text-danger">{{error_type_logement}}</div>
+                                                                    name="type_logement" required>
+                                                                    <option value="" disabled {{type_logement_sel_none}}>Sélectionnez</option>
+                                                                    <option value="Colocation" {{type_logement_sel_Colocation}}>Colocation</option>
+                                                                    <option value="Famille" {{type_logement_sel_Famille}}>Famille</option>
+                                                                    <option value="Hébergement temporaire" {{type_logement_sel_Hébergement temporaire}}>Hébergement temporaire</option>
+                                                                    <option value="Location" {{type_logement_sel_Location}}>Location</option>
+                                                                    <option value="Résidence universitaire" {{type_logement_sel_Résidence universitaire}}>Résidence universitaire</option>
+                                                                    <option value="Autre" {{type_logement_sel_Autre}}>Autre</option>
+                                                                </select>                                    <div class="text-danger">{{error_type_logement}}</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="precision_logement" class="form-label">Précisions sur le
@@ -236,8 +230,7 @@
                             <div class="mb-4">
                                 <label for="projet_apres_formation" class="form-label">Projet après formation</label>
                                 <textarea class="form-control" id="projet_apres_formation" name="projet_apres_formation"
-                                          rows="3">{{projet_apres_formation}}</textarea>
-                            </div>
+                                                                rows="3" placeholder="Décrivez vos projets futurs...">{{projet_apres_formation}}</textarea>                            </div>
 
                             <!-- Boutons de soumission -->
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">

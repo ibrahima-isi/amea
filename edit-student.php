@@ -269,7 +269,7 @@ foreach ($niveaux as $niveau) {
 }
 
 // Fetch locations from the database
-$stmt = $conn->query("SELECT region, name FROM locations ORDER BY region, name ASC");
+$stmt = $conn->query("SELECT region, name FROM locations ORDER BY CASE WHEN region LIKE 'Dakar%' THEN 0 ELSE 1 END, region ASC, name ASC");
 $locations = $stmt->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_COLUMN);
 
 $lieuResidenceOptions = '<option value="" selected>Sélectionnez un lieu</option>';
@@ -316,9 +316,11 @@ $replacements = [
     '{{niveau_etudes_options}}' => $niveauOptions,
     '{{sexe_checked_Masculin}}' => $checked($formData['sexe'], 'Masculin'),
     '{{sexe_checked_Feminin}}' => $checked($formData['sexe'], 'Féminin'),
-    '{{type_logement_sel_En famille}}' => $sel($formData['type_logement'], 'En famille'),
-    '{{type_logement_sel_En colocation}}' => $sel($formData['type_logement'], 'En colocation'),
-    '{{type_logement_sel_En résidence universitaire}}' => $sel($formData['type_logement'], 'En résidence universitaire'),
+    '{{type_logement_sel_Colocation}}' => $sel($formData['type_logement'], 'Colocation'),
+    '{{type_logement_sel_Famille}}' => $sel($formData['type_logement'], 'Famille'),
+    '{{type_logement_sel_Hébergement temporaire}}' => $sel($formData['type_logement'], 'Hébergement temporaire'),
+    '{{type_logement_sel_Location}}' => $sel($formData['type_logement'], 'Location'),
+    '{{type_logement_sel_Résidence universitaire}}' => $sel($formData['type_logement'], 'Résidence universitaire'),
     '{{type_logement_sel_Autre}}' => $sel($formData['type_logement'], 'Autre'),
     '{{statut_sel_Élève}}' => $sel($formData['statut'], 'Élève'),
     '{{statut_sel_Étudiant}}' => $sel($formData['statut'], 'Étudiant'),

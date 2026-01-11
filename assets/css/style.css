@@ -1,164 +1,195 @@
 :root {
-  --dark-blue: #213448;
-  --medium-blue: #547792;
-  --light-blue: #94b4c1;
-  --pale-yellow: #ecefca;
+  --brand-dark: #1B4D3E;   /* Deep Forest Green */
+  --brand-primary: #009460; /* Official Guinea Green */
+  --brand-accent: #FCD116;  /* Guinea Yellow */
+  --brand-danger: #CE1126;  /* Guinea Red */
+  --brand-light: #FFFDE7;   /* Pale Cream/Yellow */
+  --brand-subtle: #E8F5E9;
 }
 
 body {
-  background-color: #f8f8fa;
-  color: var(--dark-blue);
+  background-color: #f8f9fa;
+  color: var(--brand-dark);
 }
 
 /* Sidebar styling */
 #sidebar-wrapper {
-  background-color: var(--dark-blue);
+  background-color: var(--brand-dark);
+  border-right: 1px solid rgba(0,0,0,0.1);
 }
 
 #sidebar-wrapper .list-group-item {
   background-color: transparent;
-  color: white;
-  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255,255,255,0.8);
+  border-color: rgba(255, 255, 255, 0.05);
 }
 
 #sidebar-wrapper .list-group-item.active,
 #sidebar-wrapper .list-group-item:hover {
-  background-color: var(--medium-blue);
+  background-color: var(--brand-primary);
+  color: white;
+  border-left: 4px solid var(--brand-accent);
 }
 
 /* Navbar styling */
 .navbar {
   background-color: white !important;
-  border-bottom: 1px solid var(--light-blue) !important;
+  border-bottom: 2px solid var(--brand-primary) !important;
 }
 
 /* Custom button styles */
 .btn-primary {
-  background-color: var(--medium-blue) !important;
-  border-color: var(--medium-blue) !important;
+  background-color: var(--brand-primary) !important;
+  border-color: var(--brand-primary) !important;
 }
 
 .btn-primary:hover,
 .btn-primary:focus {
-  background-color: var(--dark-blue) !important;
-  border-color: var(--dark-blue) !important;
+  background-color: var(--brand-dark) !important;
+  border-color: var(--brand-dark) !important;
 }
 
 .btn-outline-light:hover {
-  color: var(--dark-blue) !important;
+  color: var(--brand-dark) !important;
+  background-color: var(--brand-accent) !important;
+  border-color: var(--brand-accent) !important;
 }
 
 .btn-outline-secondary {
-  color: var(--medium-blue) !important;
-  border-color: var(--medium-blue) !important;
+  color: var(--brand-dark) !important;
+  border-color: var(--brand-dark) !important;
 }
 
 .btn-outline-secondary:hover {
-  background-color: var(--medium-blue) !important;
+  background-color: var(--brand-dark) !important;
   color: white !important;
 }
 
 .btn-outline-primary {
-  color: var(--medium-blue) !important;
-  border-color: var(--medium-blue) !important;
+  color: var(--brand-primary) !important;
+  border-color: var(--brand-primary) !important;
 }
 
 .btn-outline-primary:hover {
-  background-color: var(--medium-blue) !important;
+  background-color: var(--brand-primary) !important;
   color: white !important;
+}
+
+.btn-danger {
+    background-color: var(--brand-danger) !important;
+    border-color: var(--brand-danger) !important;
 }
 
 /* Card styling */
 .card {
   border: none;
-  box-shadow: 0 0.15rem 1.75rem 0 rgba(33, 52, 72, 0.1);
+  box-shadow: 0 0.15rem 1.75rem 0 rgba(27, 77, 62, 0.1);
+  border-top: 3px solid var(--brand-primary);
 }
 
 .card-header {
-  background-color: var(--dark-blue) !important;
-  color: white !important;
+  background-color: white !important;
+  color: var(--brand-primary) !important;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  font-weight: bold;
+}
+
+.sidebar-heading {
+  background-color: var(--brand-dark) !important;
+  color: var(--brand-accent) !important;
+  font-weight: bold;
+  font-size: 1.2rem;
+  padding: 1rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .card-body {
   background-color: white;
 }
 
-/* Sidebar heading */
-.sidebar-heading {
-  background-color: var(--medium-blue) !important;
-}
 
 /* Custom card borders */
 .border-left-primary {
-  border-left: 0.25rem solid var(--medium-blue) !important;
+  border-left: 0.25rem solid var(--brand-primary) !important;
 }
 
 .border-left-success {
-  border-left: 0.25rem solid var(--light-blue) !important;
+  border-left: 0.25rem solid var(--brand-accent) !important; /* Mapped to Yellow/Gold */
 }
 
 .border-left-info {
-  border-left: 0.25rem solid var(--pale-yellow) !important;
+  border-left: 0.25rem solid var(--brand-dark) !important;
 }
 
 .border-left-warning {
-  border-left: 0.25rem solid var(--dark-blue) !important;
+  border-left: 0.25rem solid var(--brand-danger) !important;
 }
 
 /* Text colors */
 .text-primary {
-  color: var(--medium-blue) !important;
+  color: var(--brand-primary) !important;
 }
 
 .text-success {
-  color: var(--light-blue) !important;
+  color: var(--brand-primary) !important; /* Green */
 }
 
 .text-info {
-  color: var(--dark-blue) !important;
+  color: var(--brand-dark) !important;
+}
+
+.text-warning {
+    color: #bfa100 !important; /* Darker yellow for text readability */
 }
 
 /* Badge colors */
 .bg-primary {
-  background-color: var(--medium-blue) !important;
+  background-color: var(--brand-primary) !important;
 }
 
 .bg-info {
-  background-color: var(--light-blue) !important;
+  background-color: var(--brand-dark) !important;
+  color: white !important;
 }
 
 .bg-warning {
-  background-color: var(--pale-yellow) !important;
-  color: var(--dark-blue) !important;
+  background-color: var(--brand-accent) !important;
+  color: var(--brand-dark) !important;
+}
+
+.bg-danger {
+    background-color: var(--brand-danger) !important;
 }
 
 /* Pagination */
 .page-item.active .page-link {
-  background-color: var(--medium-blue) !important;
-  border-color: var(--medium-blue) !important;
+  background-color: var(--brand-primary) !important;
+  border-color: var(--brand-primary) !important;
 }
 
 .page-link {
-  color: var(--medium-blue) !important;
+  color: var(--brand-primary) !important;
 }
 
 .page-link:hover {
-  color: var(--dark-blue) !important;
+  color: var(--brand-dark) !important;
 }
 
 /* Form controls */
 .form-control:focus,
 .form-select:focus {
-  border-color: var(--light-blue) !important;
-  box-shadow: 0 0 0 0.25rem rgba(148, 180, 193, 0.25) !important;
+  border-color: var(--brand-primary) !important;
+  box-shadow: 0 0 0 0.25rem rgba(0, 148, 96, 0.25) !important;
 }
 
 /* Table styling */
 .table-light,
 .table-hover tbody tr:hover {
-  color: var(--dark-blue) !important;
+  color: var(--brand-dark) !important;
+  background-color: var(--brand-subtle) !important;
 }
 
 .table-bordered {
-  border-color: rgba(148, 180, 193, 0.2) !important;
+  border-color: #dee2e6 !important;
 }
