@@ -325,7 +325,7 @@ foreach ($niveaux as $niveau) {
 }
 
 // Fetch locations from the database
-$stmt = $conn->query("SELECT region, name FROM locations ORDER BY region, name ASC");
+$stmt = $conn->query("SELECT region, name FROM locations ORDER BY CASE WHEN region LIKE 'Dakar%' THEN 0 ELSE 1 END, region ASC, name ASC");
 $locations = $stmt->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_COLUMN);
 
 $lieuResidenceOptions = '<option value="" selected>Sélectionnez un lieu</option>';
@@ -382,9 +382,11 @@ $replacements = [
     '{{sexe_checked_Masculin}}' => $checked($formData['sexe'] ?? '', 'Masculin'),
     '{{sexe_checked_Feminin}}' => ($formData['sexe'] ?? '') === 'Féminin' ? 'selected' : '',
     '{{type_logement_sel_none}}' => empty($formData['type_logement'] ?? '') ? 'selected' : '',
-    '{{type_logement_sel_En famille}}' => ($formData['type_logement'] ?? '') === 'En famille' ? 'selected' : '',
-    '{{type_logement_sel_En colocation}}' => ($formData['type_logement'] ?? '') === 'En colocation' ? 'selected' : '',
-    '{{type_logement_sel_En résidence universitaire}}' => ($formData['type_logement'] ?? '') === 'En résidence universitaire' ? 'selected' : '',
+    '{{type_logement_sel_Colocation}}' => ($formData['type_logement'] ?? '') === 'Colocation' ? 'selected' : '',
+    '{{type_logement_sel_Famille}}' => ($formData['type_logement'] ?? '') === 'Famille' ? 'selected' : '',
+    '{{type_logement_sel_Hébergement temporaire}}' => ($formData['type_logement'] ?? '') === 'Hébergement temporaire' ? 'selected' : '',
+    '{{type_logement_sel_Location}}' => ($formData['type_logement'] ?? '') === 'Location' ? 'selected' : '',
+    '{{type_logement_sel_Résidence universitaire}}' => ($formData['type_logement'] ?? '') === 'Résidence universitaire' ? 'selected' : '',
     '{{type_logement_sel_Autre}}' => ($formData['type_logement'] ?? '') === 'Autre' ? 'selected' : '',
     '{{statut_sel_none}}' => empty($formData['statut'] ?? '') ? 'selected' : '',
     '{{statut_sel_Élève}}' => ($formData['statut'] ?? '') === 'Élève' ? 'selected' : '',

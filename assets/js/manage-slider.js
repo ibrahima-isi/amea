@@ -51,8 +51,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 text: "Cette action est irréversible!",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
+                confirmButtonColor: '#CE1126',
+                cancelButtonColor: '#009460',
                 confirmButtonText: 'Oui, supprimer!',
                 cancelButtonText: 'Annuler'
             }).then((result) => {

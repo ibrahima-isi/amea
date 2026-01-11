@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
             html: text,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
+            confirmButtonColor: '#009460',
+            cancelButtonColor: '#CE1126',
             confirmButtonText: confirmButtonText,
             cancelButtonText: 'Annuler'
         }).then((result) => {
