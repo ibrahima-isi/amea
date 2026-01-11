@@ -31,9 +31,22 @@ try {
     if ($stmt->fetchColumn() == 0) {
         // Add the Multi-Valued Index
         // CAST(nationalites AS CHAR(100) ARRAY) extracts the strings from the JSON array
-        $sql = "ALTER TABLE personnes ADD INDEX idx_nationalites ( (CAST(nationalites AS CHAR(100) ARRAY)) )";
-        $conn->exec($sql);
-        echo "Multi-Valued Index 'idx_nationalites' added successfully.\n";
+        // Note: This syntax is specific to MySQL 8.0+. MariaDB does not support it yet.
+        try {
+            $sql = "ALTER TABLE personnes ADD INDEX idx_nationalites ( (CAST(nationalites AS CHAR(100) ARRAY)) )";
+            $conn->exec($sql);
+            echo "Multi-Valued Index 'idx_nationalites' added successfully.\n";
+        } catch (PDOException $e) {
+            // Check for syntax error (42000) which likely means MariaDB or older MySQL
+            if ($e->getCode() == '42000') {
+                echo "Warning: Could not create Multi-Valued Index 'idx_nationalites'.\n";
+                echo "Your database (likely MariaDB) does not support MySQL 8.0 Multi-Valued Indexes.\n";
+                echo "The 'nationalites' column was added, but search performance on this column might be slower.\n";
+                echo "Continuing without the index...\n";
+            } else {
+                throw $e; // Re-throw other errors
+            }
+        }
     } else {
         echo "Index 'idx_nationalites' already exists.\n";
     }

@@ -50,7 +50,6 @@ Database credentials are defined in `config/database.php`. It attempts to load f
 *   `DB_USER`
 *   `DB_PASS`
 
-
 ## Development Conventions
 
 *   **Templating:** The project uses a simple search-and-replace system.
