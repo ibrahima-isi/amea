@@ -251,17 +251,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
 
     } catch (PDOException $e) {
-        // Affiche l'erreur pour le débogage
-        echo "<h1>Erreur de base de données :</h1>";
-        echo "<pre>";
-        print_r($e->getMessage());
-        echo "</pre>";
-        // Affiche les données qui ont été envoyées
-        echo "<h2>Données envoyées :</h2>";
-        echo "<pre>";
-        print_r($bindings);
-        echo "</pre>";
-        exit(); // Arrête l'exécution pour ne pas rediriger
+        logError("Erreur lors de l'inscription : " . $e->getMessage());
+        logError("Données envoyées : " . json_encode($bindings));
+
+        http_response_code(500);
+        echo '<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erreur Interne - AMEA</title>
+    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="d-flex align-items-center justify-content-center vh-100 bg-light">
+    <div class="text-center">
+        <h1 class="display-1 fw-bold text-danger">500</h1>
+        <p class="fs-3"> <span class="text-danger">Oups!</span> Une erreur est survenue.</p>
+        <p class="lead">
+            Un problème technique a empêché la finalisation de votre inscription.
+        </p>
+        <a href="index.php" class="btn btn-primary">Retour à l\'accueil</a>
+    </div>
+</body>
+</html>';
+        exit();
     }
 }
 
