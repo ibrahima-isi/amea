@@ -16,7 +16,7 @@ foreach ($slider_images as $i => $image) {
     $carousel_indicators .= '<button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="' . $i . '" class="' . $active_class . '" aria-current="' . ($is_first ? 'true' : 'false') . '" aria-label="Slide ' . ($i + 1) . '"></button>';
     $carousel_items .= '
         <div class="carousel-item ' . $active_class . '">
-            <img src="' . htmlspecialchars($image['image_path']) . '" class="d-block w-100" alt="' . htmlspecialchars($image['title']) . '">
+            <img src="' . htmlspecialchars($image['image_path']) . '" class="d-block w-100 carousel-img-fixed" alt="' . htmlspecialchars($image['title']) . '">
             <div class="carousel-caption d-none d-md-block">
                 <h5>' . htmlspecialchars($image['title']) . '</h5>
                 <p>' . htmlspecialchars($image['caption']) . '</p>

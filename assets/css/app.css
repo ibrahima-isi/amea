@@ -166,6 +166,20 @@ body {
     background-color: #Fdfdfd;
 }
 
+/* Carousel Image Sizing for consistency */
+.carousel-img-fixed {
+    height: 500px; /* Fixed height for all carousel images */
+    object-fit: cover; /* Ensures images cover the area without distortion */
+}
+
+/* Specific style for student school name badge */
+.student-school-badge {
+    font-size: 0.75em; /* Smaller font size */
+    white-space: normal; /* Allow text to wrap */
+    max-width: 100%; /* Ensure it respects parent width */
+    display: inline-block; /* Allow proper wrapping */
+}
+
 h1, .h1 { font-size: 1.75rem; }
 h2, .h2 { font-size: 1.5rem; }
 h3, .h3 { font-size: 1.25rem; }
