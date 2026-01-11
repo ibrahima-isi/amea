@@ -1,7 +1,7 @@
 <?php
 /**
- * Page de détails post-inscription
- * Fichier: registration-details.php
+ * Post-registration details page.
+ * File: registration-details.php
  */
 
 require_once 'config/session.php';
@@ -329,7 +329,7 @@ if ($action === 'edit') {
         $replacements["{{is_invalid_$f}}"] = isset($errors[$f]) ? 'is-invalid' : '';
     }
 
-    echo strtr($template, $replacements);
+    echo addVersionToAssets(strtr($template, $replacements));
     exit();
 }
 
@@ -348,12 +348,49 @@ if (!empty($student['nationalites'])) {
 }
 
 $cvDownloadLink = '';
+$modalsHtml = '';
+
 if (!empty($student['cv_path'])) {
-    $cvDownloadLink = '
-                                <div class="detail-row">
-                                    <span class="detail-label">CV:</span>
-                                    <span class="detail-value"><a href="' . htmlspecialchars($student['cv_path']) . '" target="_blank" class="btn btn-sm btn-info"><i class="fas fa-download"></i> Télécharger CV</a></span>
-                                </div>';
+    $cvPath = $student['cv_path'];
+    $cvExt = strtolower(pathinfo($cvPath, PATHINFO_EXTENSION));
+    $isCvPdf = ($cvExt === 'pdf');
+    $isCvImage = in_array($cvExt, ['png', 'jpg', 'jpeg', 'gif']);
+    $cvModalId = 'cvModalReg';
+    
+    $cvDownloadLink = '<div class="detail-row"><span class="detail-label">CV:</span><span class="detail-value">';
+    
+    // Download
+    $cvDownloadLink .= '<a href="' . htmlspecialchars($cvPath) . '" download target="_blank" class="btn btn-sm btn-info me-2"><i class="fas fa-download"></i> Télécharger</a>';
+    
+    if ($isCvPdf || $isCvImage) {
+        // View
+        $cvDownloadLink .= '<button type="button" class="btn btn-sm btn-secondary me-2" data-bs-toggle="modal" data-bs-target="#' . $cvModalId . '"><i class="fas fa-eye"></i> Voir</button>';
+        
+        // Print (PDF)
+        if ($isCvPdf) {
+             $cvDownloadLink .= '<button type="button" class="btn btn-sm btn-warning" onclick="printPdf(\'' . htmlspecialchars($cvPath) . '\')"><i class="fas fa-print"></i> Imprimer</button>';
+        }
+
+        // Modal
+        $modalsHtml .= '<div class="modal fade" id="' . $cvModalId . '" tabindex="-1" aria-hidden="true">';
+        $modalsHtml .= '<div class="modal-dialog modal-xl modal-dialog-centered">';
+        $modalsHtml .= '<div class="modal-content" style="height: 90vh;">';
+        $modalsHtml .= '<div class="modal-header"><h5 class="modal-title">Mon CV</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>';
+        $modalsHtml .= '<div class="modal-body text-center p-0">';
+        if ($isCvPdf) {
+            $modalsHtml .= '<iframe src="' . htmlspecialchars($cvPath) . '" width="100%" height="100%" style="border:none;"></iframe>';
+        } else {
+            $modalsHtml .= '<img src="' . htmlspecialchars($cvPath) . '" class="img-fluid" style="max-height: 100%; max-width: 100%;">';
+        }
+        $modalsHtml .= '</div></div></div></div>';
+    }
+    
+    $cvDownloadLink .= '</span></div>';
+    
+    // Add print script if needed (only once)
+    if ($isCvPdf) {
+         $modalsHtml .= '<script>function printPdf(url){var i=document.createElement("iframe");i.style.display="none";i.src=url;document.body.appendChild(i);i.onload=function(){i.contentWindow.focus();i.contentWindow.print();setTimeout(function(){document.body.removeChild(i)},1000);}}</script>';
+    }
 }
 
 $replacements = [
@@ -380,7 +417,8 @@ $replacements = [
     // Logic for Image
     '{{identite_url}}' => !empty($student['identite']) ? $student['identite'] : 'assets/img/placeholder.png',
     '{{cv_download_link}}' => $cvDownloadLink,
+    '{{modals}}' => $modalsHtml,
 ];
 
-echo strtr($template, $replacements);
+echo addVersionToAssets(strtr($template, $replacements));
 ?>

@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Page de détails d'un étudiant
- * Fichier: student-details.php
+ * Student details page.
+ * File: student-details.php
  */
 
 // Démarrer la session
@@ -184,10 +184,62 @@ $detailsHtml .= '</div>';
 $detailsHtml .= '<div class="col-md-6 mb-3"><strong class="d-block text-muted small">Date de Naissance</strong>' . formatDateFr($student['date_naissance']) . '</div>';
 $detailsHtml .= '<div class="col-md-6 mb-3"><strong class="d-block text-muted small">Numéro ID / Passeport</strong>' . htmlspecialchars($student['numero_identite'] ?? 'N/A') . '</div>';
 
-// CV Download Link
+// CV Download & View Link
 if (!empty($student['cv_path'])) {
-    $detailsHtml .= '<div class="col-md-6 mb-3"><strong class="d-block text-muted small">CV</strong><a href="' . htmlspecialchars($student['cv_path']) . '" target="_blank" class="btn btn-sm btn-info ms-2"><i class="fas fa-download"></i> Télécharger</a></div>';
+    $cvPath = $student['cv_path'];
+    $cvExt = strtolower(pathinfo($cvPath, PATHINFO_EXTENSION));
+    $isCvPdf = ($cvExt === 'pdf');
+    $isCvImage = in_array($cvExt, ['png', 'jpg', 'jpeg', 'gif']);
+    $cvModalId = 'cvModal' . $student['id_personne'];
+    
+    $detailsHtml .= '<div class="col-md-6 mb-3"><strong class="d-block text-muted small">CV</strong>';
+    $detailsHtml .= '<div class="mt-1 d-flex flex-wrap gap-2">';
+    
+    // Download Button
+    $detailsHtml .= '<a href="' . htmlspecialchars($cvPath) . '" download target="_blank" class="btn btn-sm btn-info"><i class="fas fa-download"></i> Télécharger</a>';
+    
+    if ($isCvPdf || $isCvImage) {
+        // View Button
+        $detailsHtml .= '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#' . $cvModalId . '"><i class="fas fa-eye"></i> Voir</button>';
+        
+        // Print Button (PDF only)
+        if ($isCvPdf) {
+            $detailsHtml .= '<button type="button" class="btn btn-sm btn-secondary" onclick="printPdf(\'' . htmlspecialchars($cvPath) . '\')"><i class="fas fa-print"></i> Imprimer</button>';
+        }
+
+        // Append modal to $modalHtml
+        $modalHtml .= '<div class="modal fade" id="' . $cvModalId . '" tabindex="-1" aria-hidden="true">';
+        $modalHtml .= '<div class="modal-dialog modal-xl modal-dialog-centered">'; 
+        $modalHtml .= '<div class="modal-content" style="height: 90vh;">';
+        $modalHtml .= '<div class="modal-header"><h5 class="modal-title">CV de ' . htmlspecialchars($student['prenom'] . ' ' . $student['nom']) . '</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>';
+        $modalHtml .= '<div class="modal-body text-center p-0">';
+        
+        if ($isCvPdf) {
+            $modalHtml .= '<iframe src="' . htmlspecialchars($cvPath) . '" width="100%" height="100%" style="border:none;"></iframe>';
+        } else {
+            $modalHtml .= '<img src="' . htmlspecialchars($cvPath) . '" class="img-fluid" style="max-height: 100%; max-width: 100%;">';
+        }
+        
+        $modalHtml .= '</div></div></div></div>';
+    }
+    
+    $detailsHtml .= '</div></div>';
 }
+
+// Add Print Script
+$detailsHtml .= '<script>
+function printPdf(url) {
+    var iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.src = url;
+    document.body.appendChild(iframe);
+    iframe.onload = function() {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(function() { document.body.removeChild(iframe); }, 1000);
+    };
+}
+</script>';
 
 $detailsHtml .= '<div class="col-md-6 mb-3"><strong class="d-block text-muted small">Type de Logement</strong>' . htmlspecialchars($student['type_logement'] ?? 'N/A') . '</div>';
 if (!empty($student['precision_logement'])) {
@@ -236,5 +288,5 @@ $output = strtr($layoutTpl, [
     '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), getFooterReplacements()),
 ]);
 
-echo $output;
+echo addVersionToAssets($output);
 exit();

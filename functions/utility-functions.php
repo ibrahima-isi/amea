@@ -1,14 +1,15 @@
 <?php
 /**
- * Fonctions utilitaires pour la plateforme AMEA
- * Fichier: functions/utility-functions.php
+ * Utility functions for the AMEA platform.
+ * File: functions/utility-functions.php
  */
 
 /**
- * Get environment variable value
- * @param string $key Environment variable name
- * @param mixed $default Default value if not found
- * @return mixed
+ * Get environment variable value.
+ *
+ * @param string $key Environment variable name.
+ * @param mixed $default Default value if not found.
+ * @return mixed The environment variable value or the default.
  */
 function env($key, $default = null)
 {
@@ -16,10 +17,10 @@ function env($key, $default = null)
 }
 
 /**
- * Génère une chaîne aléatoire de la longueur spécifiée
+ * Generates a random string of the specified length.
  *
- * @param int $length Longueur de la chaîne aléatoire
- * @return string La chaîne aléatoire générée
+ * @param int $length Length of the random string.
+ * @return string The generated random string.
  */
 function generateRandomString($length = 10) {
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -32,10 +33,10 @@ function generateRandomString($length = 10) {
 }
 
 /**
- * Calcule l'âge à partir d'une date de naissance
+ * Calculates age from a date of birth.
  *
- * @param string $dateNaissance Date de naissance au format YYYY-MM-DD
- * @return int L'âge calculé
+ * @param string $dateNaissance Date of birth in YYYY-MM-DD format.
+ * @return int The calculated age.
  */
 function calculateAge($dateNaissance) {
     $dateNaissanceObj = new DateTime($dateNaissance);
@@ -45,11 +46,11 @@ function calculateAge($dateNaissance) {
 }
 
 /**
- * Formate une date en français
+ * Formats a date into French format.
  *
- * @param string $date Date au format YYYY-MM-DD
- * @param boolean $includeTime Inclure l'heure dans le format
- * @return string La date formatée
+ * @param string $date Date in YYYY-MM-DD format.
+ * @param boolean $includeTime Whether to include the time in the format.
+ * @return string The formatted date.
  */
 function formatDateFr($date, $includeTime = false) {
     if (empty($date)) {
@@ -62,22 +63,22 @@ function formatDateFr($date, $includeTime = false) {
 }
 
 /**
- * Vérifie si la chaîne est une adresse email valide
+ * Checks if the string is a valid email address.
  *
- * @param string $email L'adresse email à vérifier
- * @return boolean Vrai si l'adresse email est valide, faux sinon
+ * @param string $email The email address to check.
+ * @return boolean True if the email is valid, false otherwise.
  */
 function isValidEmail($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
 /**
- * Tronque une chaîne à la longueur spécifiée
+ * Truncates a string to the specified length.
  *
- * @param string $string La chaîne à tronquer
- * @param int $length La longueur maximale souhaitée
- * @param string $append Texte à ajouter si la chaîne est tronquée
- * @return string La chaîne tronquée
+ * @param string $string The string to truncate.
+ * @param int $length The maximum desired length.
+ * @param string $append Text to append if the string is truncated.
+ * @return string The truncated string.
  */
 function truncateString($string, $length = 100, $append = '...') {
     if (strlen($string) > $length) {
@@ -87,22 +88,22 @@ function truncateString($string, $length = 100, $append = '...') {
 }
 
 /**
- * Valide un numéro de téléphone pour qu'il contienne exactement 9 chiffres.
+ * Validates a phone number to ensure it contains exactly 9 digits.
  *
- * @param string $phone Le numéro de téléphone à valider
- * @return boolean Vrai si le numéro contient 9 chiffres, faux sinon
+ * @param string $phone The phone number to validate.
+ * @return boolean True if the number contains exactly 9 digits, false otherwise.
  */
 function isValidPhone($phone) {
-    // Supprimer tous les caractères non numériques
+    // Remove all non-numeric characters
     $digits = preg_replace('/[^0-9]/', '', $phone);
-    // Vérifier si le numéro contient exactement 9 chiffres
+    // Check if the number contains exactly 9 digits
     return strlen($digits) === 9;
 }
 
 /**
- * Crée un jeton CSRF pour sécuriser les formulaires
+ * Generates a CSRF token to secure forms.
  *
- * @return string Le jeton CSRF généré
+ * @return string The generated CSRF token.
  */
 function generateCsrfToken() {
     if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -117,10 +118,10 @@ function generateCsrfToken() {
 }
 
 /**
- * Vérifie si le jeton CSRF soumis est valide
+ * Verifies if the submitted CSRF token is valid.
  *
- * @param string $token Le jeton CSRF à vérifier
- * @return boolean Vrai si le jeton est valide, faux sinon
+ * @param string $token The CSRF token to verify.
+ * @return boolean True if the token is valid, false otherwise.
  */
 function verifyCsrfToken($token) {
     if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -137,13 +138,11 @@ function verifyCsrfToken($token) {
     return true;
 }
 
-
-
 /**
- * Journalise une erreur dans le journal PHP par défaut.
+ * Logs an error in the default PHP error log.
  *
- * @param string $message Message d'erreur contextuel
- * @param \Throwable|null $exception Exception associée
+ * @param string $message Contextual error message.
+ * @param \Throwable|null $exception Associated exception.
  * @return void
  */
 function logError($message, ?\Throwable $exception = null) {
@@ -157,11 +156,11 @@ function logError($message, ?\Throwable $exception = null) {
 }
 
 /**
- * Exporte les données au format CSV
+ * Exports data to CSV format.
  *
- * @param array $data Les données à exporter
- * @param array $headers Les en-têtes des colonnes
- * @param string $filename Nom du fichier à générer
+ * @param array $data The data to export.
+ * @param array $headers The column headers.
+ * @param string $filename The name of the file to generate.
  * @return void
  */
 function exportToCsv($data, $headers, $filename = 'export.csv') {
@@ -170,13 +169,13 @@ function exportToCsv($data, $headers, $filename = 'export.csv') {
     
     $output = fopen('php://output', 'w');
     
-    // Ajouter le BOM UTF-8 pour Excel
+    // Add UTF-8 BOM for Excel
     fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
     
-    // Écrire les en-têtes
+    // Write headers
     fputcsv($output, $headers, ';');
     
-    // Écrire les données
+    // Write data
     foreach ($data as $row) {
         fputcsv($output, $row, ';');
     }
@@ -186,11 +185,11 @@ function exportToCsv($data, $headers, $filename = 'export.csv') {
 }
 
 /**
- * Récupère une valeur de configuration depuis la base de données.
+ * Retrieves a configuration value from the database.
  *
- * @param string $key La clé de configuration
- * @param string $default La valeur par défaut si la clé n'existe pas
- * @return string La valeur de la configuration
+ * @param string $key The configuration key.
+ * @param string $default The default value if the key does not exist.
+ * @return string The configuration value.
  */
 function getSetting($key, $default = '') {
     global $conn;
@@ -217,10 +216,10 @@ function getSetting($key, $default = '') {
 }
 
 /**
- * Définit un message flash en session.
+ * Sets a flash message in the session.
  *
- * @param string $type Le type de message (ex: success, error, warning)
- * @param string $message Le message à afficher
+ * @param string $type The message type (e.g., success, error, warning).
+ * @param string $message The message to display.
  * @return void
  */
 function setFlashMessage($type, $message) {
@@ -234,9 +233,9 @@ function setFlashMessage($type, $message) {
 }
 
 /**
- * Récupère et efface le message flash de la session.
+ * Retrieves and clears the flash message from the session.
  *
- * @return array|null Le message flash ou null s'il n'y en a pas
+ * @return array|null The flash message or null if none exists.
  */
 function getFlashMessage() {
     if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -251,10 +250,10 @@ function getFlashMessage() {
 }
 
 /**
- * Retourne la classe CSS Bootstrap correspondant au type de message flash.
+ * Returns the Bootstrap CSS class corresponding to the flash message type.
  *
- * @param string $type Le type de message
- * @return string La classe CSS
+ * @param string $type The message type.
+ * @return string The CSS class.
  */
 function getFlashMessageClass($type) {
     switch ($type) {
@@ -270,9 +269,9 @@ function getFlashMessageClass($type) {
 }
 
 /**
- * Récupère les remplacements communs pour le pied de page (email, téléphone, année).
+ * Retrieves common replacements for the footer (email, phone, year).
  *
- * @return array Les remplacements pour le template
+ * @return array The replacements for the template.
  */
 function getFooterReplacements() {
     return [
@@ -283,30 +282,30 @@ function getFooterReplacements() {
 }
 
 /**
- * Nettoie une chaîne de caractères pour l'exportation CSV.
+ * Cleans a string for CSV export.
  *
- * @param string|null $data La chaîne à nettoyer
- * @return string La chaîne nettoyée
+ * @param string|null $data The string to clean.
+ * @return string The cleaned string.
  */
 function cleanData($data) {
     if ($data === null) {
         return '';
     }
-    // Supprimer les sauts de ligne et les tabulations
+    // Remove line breaks and tabs
     $data = str_replace(["\r", "\n", "\t"], ' ', $data);
-    // Échapper les guillemets doubles
+    // Escape double quotes
     $data = str_replace('"', '""', $data);
     return $data;
 }
 
 /**
- * Gère le téléchargement d'un fichier, le valide et le déplace.
+ * Handles file upload, validates, and moves it.
  *
- * @param array $file_input L'entrée du tableau $_FILES pour le fichier.
- * @param array $allowed_extensions Extensions de fichier autorisées (ex: ['pdf', 'png']).
- * @param int $max_size Taille maximale autorisée en octets (ex: 5 * 1024 * 1024 pour 5MB).
- * @param string $upload_dir Le répertoire de destination du téléchargement.
- * @return array Un tableau contenant 'success' (bool) et 'message' (string) ou 'filepath' (string).
+ * @param array $file_input The $_FILES input array for the file.
+ * @param array $allowed_extensions Allowed file extensions (e.g., ['pdf', 'png']).
+ * @param int $max_size Maximum allowed size in bytes (e.g., 5 * 1024 * 1024 for 5MB).
+ * @param string $upload_dir The destination directory for the upload.
+ * @return array An array containing 'success' (bool) and 'message' (string) or 'filepath' (string).
  */
 function handleFileUpload($file_input, $allowed_extensions, $max_size, $upload_dir) {
     if (!isset($file_input) || $file_input['error'] === UPLOAD_ERR_NO_FILE) {
@@ -314,7 +313,7 @@ function handleFileUpload($file_input, $allowed_extensions, $max_size, $upload_d
     }
 
     if ($file_input['error'] !== UPLOAD_ERR_OK) {
-        return ['success' => false, 'message' => "Erreur lors de l'upload du fichier: " . $file_input['error']];
+        return ['success' => false, 'message' => "Upload error: " . $file_input['error']];
     }
 
     $filename = $file_input['name'];
@@ -324,12 +323,12 @@ function handleFileUpload($file_input, $allowed_extensions, $max_size, $upload_d
 
     // Validate extension
     if (!in_array($file_ext, $allowed_extensions)) {
-        return ['success' => false, 'message' => "Extension de fichier non autorisée. Extensions acceptées: " . implode(', ', $allowed_extensions)];
+        return ['success' => false, 'message' => "File extension not allowed. Accepted extensions: " . implode(', ', $allowed_extensions)];
     }
 
     // Validate size
     if ($file_size > $max_size) {
-        return ['success' => false, 'message' => "Le fichier est trop volumineux. Taille maximale: " . ($max_size / (1024 * 1024)) . "MB"];
+        return ['success' => false, 'message' => "File is too large. Maximum size: " . ($max_size / (1024 * 1024)) . "MB"];
     }
 
     // Generate unique filename and move
@@ -343,6 +342,52 @@ function handleFileUpload($file_input, $allowed_extensions, $max_size, $upload_d
     if (move_uploaded_file($file_tmp, $destination)) {
         return ['success' => true, 'filepath' => $destination];
     } else {
-        return ['success' => false, 'message' => "Erreur lors du déplacement du fichier téléchargé."];
+        return ['success' => false, 'message' => "Error moving uploaded file."];
     }
+}
+
+/**
+ * Appends a version parameter to asset URLs (CSS, JS) in HTML content.
+ * The version is based on the file modification time to bust browser cache.
+ *
+ * @param string $html The HTML content to process.
+ * @return string The processed HTML with versioned asset URLs.
+ */
+function addVersionToAssets($html) {
+    // Regex to find href="..." or src="..." pointing to assets/
+    // It captures:
+    // 1. The attribute (href or src)
+    // 2. The quote (" or ')
+    // 3. The path starting with assets/
+    // 4. The quote
+    return preg_replace_callback(
+        '/(href|src)=("|\')(assets\/[^"\']+)\2/i',
+        function ($matches) {
+            $attribute = $matches[1];
+            $quote = $matches[2];
+            $path = $matches[3];
+
+            // Resolve the real file path relative to the document root (current working dir)
+            // Assuming the script is running from the root or we can resolve it.
+            // In this project structure, 'assets/' is at the root.
+            $realPath = __DIR__ . '/../' . $path;
+
+            // Remove any existing query string from the path for checking file existence
+            $cleanPath = explode('?', $realPath)[0];
+
+            if (file_exists($cleanPath)) {
+                $version = filemtime($cleanPath);
+                // Check if there is already a query string
+                if (strpos($path, '?') !== false) {
+                    $newPath = $path . '&v=' . $version;
+                } else {
+                    $newPath = $path . '?v=' . $version;
+                }
+                return $attribute . '=' . $quote . $newPath . $quote;
+            }
+
+            return $matches[0];
+        },
+        $html
+    );
 }

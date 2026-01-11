@@ -1,13 +1,10 @@
 <?php
-error_reporting(E_ALL & ~E_DEPRECATED);
 
 /**
- * Amicale des Eleves, Etudiants et Stagiaires Guineens au Senegal - Application de Gestion des Étudiants
- * Page d'exportation des données
- * Fichier : export.php
+ * Data export page.
+ * File: export.php
  */
 
-// Démarrer la session
 require_once 'config/session.php';
 
 // Vérifier si l'utilisateur est connecté
@@ -252,5 +249,5 @@ $output = strtr($layoutTpl, [
     '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), getFooterReplacements()),
 ]);
 
-echo $output;
+echo addVersionToAssets($output);
 exit();

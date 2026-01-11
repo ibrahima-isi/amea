@@ -1,5 +1,9 @@
 <?php
-global $conn;
+/**
+ * Migration script to add 'nationalites' column.
+ * File: migration_add_nationalites.php
+ */
+
 require_once 'config/database.php';
 
 try {

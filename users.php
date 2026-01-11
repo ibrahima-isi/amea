@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Page de gestion des utilisateurs
- * Fichier: users.php
+ * User management page.
+ * File: users.php
  */
 
 require_once 'config/session.php';
@@ -219,5 +219,5 @@ $output = strtr($layoutTpl, [
     '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), getFooterReplacements()),
 ]);
 
-echo $output;
+echo addVersionToAssets($output);
 exit();

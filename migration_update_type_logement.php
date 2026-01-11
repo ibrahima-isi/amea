@@ -1,4 +1,9 @@
 <?php
+/**
+ * Migration script to update 'type_logement' field.
+ * File: migration_update_type_logement.php
+ */
+
 require_once 'config/database.php';
 
 echo "Updating 'type_logement' column...\n";

@@ -1,19 +1,19 @@
 <?php
 /**
- * Script de déconnexion
- * Fichier: logout.php
+ * Logout script.
+ * File: logout.php
  */
 
-// Démarrer la session
+// Start session
 require_once 'config/session.php';
 
-// Détruire toutes les variables de session
+// Unset all session variables
 $_SESSION = array();
 
-// Détruire la session
+// Destroy the session
 session_destroy();
 
-// Rediriger vers la page de connexion
+// Redirect to login page
 header("Location: index.php");
 exit();
 ?>
