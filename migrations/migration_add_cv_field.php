@@ -4,9 +4,11 @@
  * File: migration_add_cv_field.php
  */
 
-require_once 'config/database.php';
+if (php_sapi_name() !== 'cli') {
+    die("This script can only be run from the command line.");
+}
 
-echo "Adding 'cv_path' column to 'personnes' table...\n";
+require_once __DIR__ . '/../config/database.php';
 
 try {
     // Check if the column already exists to prevent errors on re-running

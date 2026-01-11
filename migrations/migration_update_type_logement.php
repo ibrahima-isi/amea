@@ -1,12 +1,14 @@
 <?php
 /**
- * Migration script to update 'type_logement' field.
+ * Migration script to update 'type_logement' ENUM values.
  * File: migration_update_type_logement.php
  */
 
-require_once 'config/database.php';
+if (php_sapi_name() !== 'cli') {
+    die("This script can only be run from the command line.");
+}
 
-echo "Updating 'type_logement' column...\n";
+require_once __DIR__ . '/../config/database.php';
 
 try {
     // 1. Change column to VARCHAR(100) to accommodate new values and avoid ENUM constraints
