@@ -11,6 +11,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 
 $nom = $_SESSION['nom'];
 $prenom = $_SESSION['prenom'];
+$role = $_SESSION['role']; // Define role for sidebar
 
 // Traitement du formulaire
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
