@@ -4,7 +4,11 @@
  * File: migration_add_nationalites.php
  */
 
-require_once 'config/database.php';
+if (php_sapi_name() !== 'cli') {
+    die("This script can only be run from the command line.");
+}
+
+require_once __DIR__ . '/../config/database.php';
 
 try {
     // Check if column exists

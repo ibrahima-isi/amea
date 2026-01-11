@@ -1,10 +1,14 @@
 <?php
 /**
- * Migration script to add index for 'nationalites' column.
+ * Migration script to add a FULLTEXT index on the 'nationalites' column.
  * File: migration_add_nationalites_index.php
  */
 
-require_once 'config/database.php';
+if (php_sapi_name() !== 'cli') {
+    die("This script can only be run from the command line.");
+}
+
+require_once __DIR__ . '/../config/database.php';
 
 try {
     // 1. Ensure the column exists (redundant if migration_add_nationalites.php ran, but safe)
