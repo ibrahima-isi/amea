@@ -20,13 +20,25 @@ if (!$student_id) {
 // Fetch student data from the database
 $stmt = $conn->prepare("SELECT * FROM personnes WHERE id_personne = ?");
 $stmt->execute([$student_id]);
-$student = $stmt->fetch(PDO::FETCH_ASSOC);
+    $student = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$student) {
-    setFlashMessage('error', 'Étudiant non trouvé.');
-    header('Location: students.php');
-    exit();
-}
+    if (!$student) {
+        setFlashMessage('error', 'Étudiant introuvable.');
+        header('Location: students.php');
+        exit();
+    }
+
+    // Decode nationalities for the form
+    // If it's stored as JSON ["Mali", "Senegal"], we can pass it directly to the value attribute
+    // Tagify will parse it.
+    $nationalites_value = $student['nationalites'] ?? ''; 
+    // If null, make it empty string
+    if (is_null($nationalites_value)) $nationalites_value = '';
+
+    // Préparer les données pour le formulaire
+    $formData = [
+        'id' => $student['id_personne'],
+
 
 // Fetch data for dropdowns
 $stmt = $conn->query("SELECT nom FROM etablissements ORDER BY nom ASC");
@@ -74,7 +86,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'type_logement' => $_POST['type_logement'] ?? '',
         'precision_logement' => trim($_POST['precision_logement'] ?? ''),
         'projet_apres_formation' => trim($_POST['projet_apres_formation'] ?? ''),
-        'autre_lieu_residence' => trim($_POST['autre_lieu_residence'] ?? '')
+        'autre_lieu_residence' => trim($_POST['autre_lieu_residence'] ?? ''),
+        'nationalites' => $_POST['nationalites'] ?? ''
     ];
 
     // Normalize nullable fields
@@ -82,6 +95,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $formData['precision_logement'] = $formData['precision_logement'] === '' ? null : $formData['precision_logement'];
     $formData['projet_apres_formation'] = $formData['projet_apres_formation'] === '' ? null : $formData['projet_apres_formation'];
 
+    // Process Nationalities
+    $nationalites_json = null;
+    if (!empty($formData['nationalites'])) {
+        $decoded = json_decode($formData['nationalites'], true);
+        // Tagify sends [{"value":"Mali"}, ...] OR "Mali, Senegal" depending on mode.
+        // If we get "value" objects:
+        if (is_array($decoded) && isset($decoded[0]['value'])) {
+             $list = array_column($decoded, 'value');
+             $nationalites_json = json_encode($list, JSON_UNESCAPED_UNICODE);
+        } elseif (is_array($decoded)) {
+             // Already a simple array?
+             $nationalites_json = json_encode($decoded, JSON_UNESCAPED_UNICODE);
+        }
+    }
+    
     // Handle 'Other' options
     if ($formData['lieu_residence'] === 'Autre') $formData['lieu_residence'] = $formData['autre_lieu_residence'];
     if ($formData['etablissement'] === 'Autre') $formData['etablissement'] = $formData['autre_etablissement'];
@@ -165,7 +193,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             statut = :statut, domaine_etudes = :domaine_etudes, niveau_etudes = :niveau_etudes, 
             telephone = :telephone, email = :email, annee_arrivee = :annee_arrivee, 
             type_logement = :type_logement, precision_logement = :precision_logement, 
-            projet_apres_formation = :projet_apres_formation, identite = :identite
+            projet_apres_formation = :projet_apres_formation, identite = :identite,
+            nationalites = :nationalites
             WHERE id_personne = :id_personne";
 
         $params = [
@@ -186,6 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'precision_logement' => $formData['precision_logement'],
             'projet_apres_formation' => $formData['projet_apres_formation'],
             'identite' => $formData['identite'],
+            'nationalites' => $nationalites_json,
             'id_personne' => $student_id
         ];
 
@@ -297,6 +327,7 @@ $replacements = [
     '{{statut_sel_Élève}}' => $sel($formData['statut'], 'Élève'),
     '{{statut_sel_Étudiant}}' => $sel($formData['statut'], 'Étudiant'),
     '{{statut_sel_Stagiaire}}' => $sel($formData['statut'], 'Stagiaire'),
+    '{{nationalites_value}}' => htmlspecialchars($nationalites_value, ENT_QUOTES, 'UTF-8'),
 ];
 
 $error_fields = ['nom', 'prenom', 'numero_identite', 'sexe', 'date_naissance', 'identite', 'telephone', 'email', 'lieu_residence', 'etablissement', 'statut', 'domaine_etudes', 'niveau_etudes', 'type_logement'];

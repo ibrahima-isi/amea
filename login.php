@@ -49,6 +49,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $_SESSION['role'] = $user['role'];
                         $_SESSION['nom'] = $user['nom'];
                         $_SESSION['prenom'] = $user['prenom'];
+                        
+                        // Regenerate CSRF token for the new authenticated session
+                        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
                         // Mettre à jour la dernière connexion
                         $updateSql = "UPDATE users SET derniere_connexion = NOW() WHERE id_user = :id_user";
@@ -57,13 +60,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $updateStmt->execute();
 
                         // Rediriger vers le tableau de bord
+                        session_write_close();
                         header("Location: dashboard.php");
                         exit();
                     } else {
                         setFlashMessage('error', "Nom d'utilisateur ou mot de passe incorrect.");
                     }
                 } else {
-                    setFlashMessage('error', "Nom d'utilisateur ou mot de passe incorrect.");
+                    // Check if user exists but is inactive
+                    $checkSql = "SELECT est_actif FROM users WHERE username = :username";
+                    $checkStmt = $conn->prepare($checkSql);
+                    $checkStmt->execute([':username' => $username]);
+                    if ($checkStmt->rowCount() > 0) {
+                        setFlashMessage('error', "Ce compte est désactivé.");
+                    } else {
+                        setFlashMessage('error', "Nom d'utilisateur ou mot de passe incorrect.");
+                    }
                 }
             } catch (PDOException $e) {
                 logError('Erreur lors de la tentative de connexion', $e);

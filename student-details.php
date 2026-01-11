@@ -116,6 +116,20 @@ $detailsHtml .= '<dt class="col-sm-4">Nom Complet</dt><dd class="col-sm-8">' . h
 $detailsHtml .= '<dt class="col-sm-4">Âge</dt><dd class="col-sm-8">' . calculateAge($student['date_naissance']) . ' ans</dd>';
 $detailsHtml .= '<dt class="col-sm-4">Date de Naissance</dt><dd class="col-sm-8">' . formatDateFr($student['date_naissance']) . '</dd>';
 $detailsHtml .= '<dt class="col-sm-4">Sexe</dt><dd class="col-sm-8">' . htmlspecialchars($student['sexe'] ?? '') . '</dd>';
+
+// Add Nationalities
+$nationalites_html = '<span class="text-muted">N/A</span>';
+if (!empty($student['nationalites'])) {
+    $nats = json_decode($student['nationalites'], true);
+    if (is_array($nats) && count($nats) > 0) {
+        $badges = array_map(function($nat) {
+            return '<span class="badge bg-secondary me-1">' . htmlspecialchars($nat, ENT_QUOTES, 'UTF-8') . '</span>';
+        }, $nats);
+        $nationalites_html = implode(' ', $badges);
+    }
+}
+$detailsHtml .= '<dt class="col-sm-4">Autres Nationalités</dt><dd class="col-sm-8">' . $nationalites_html . '</dd>';
+
 $detailsHtml .= '<dt class="col-sm-4">Numéro d\'ID/Passeport</dt><dd class="col-sm-8">' . htmlspecialchars($student['numero_identite'] ?? '') . '</dd>';
 $detailsHtml .= '</dl>';
 $detailsHtml .= '<hr>';

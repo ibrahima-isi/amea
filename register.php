@@ -43,6 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'autre_niveau_etudes' => trim($_POST['autre_niveau_etudes'] ?? ''),
         'telephone' => trim($_POST['telephone'] ?? ''),
         'email' => trim($_POST['email'] ?? ''),
+        'nationalites' => $_POST['nationalites'] ?? '',
         'annee_arrivee' => $_POST['annee_arrivee'] ?? null,
         'type_logement' => $_POST['type_logement'] ?? '',
         'precision_logement' => trim($_POST['precision_logement'] ?? ''),
@@ -60,6 +61,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $formData['precision_logement'] = $formData['precision_logement'] === '' ? null : $formData['precision_logement'];
     $formData['projet_apres_formation'] = $formData['projet_apres_formation'] === '' ? null : $formData['projet_apres_formation'];
     $formData['age'] = null;
+
+    // Process Nationalities (Tagify returns JSON: [{"value":"Mali"}, ...])
+    $nationalites = null;
+    if (!empty($formData['nationalites'])) {
+        $decoded = json_decode($formData['nationalites'], true);
+        if (is_array($decoded)) {
+            $nationalitesList = array_map(function($item) {
+                return $item['value'];
+            }, $decoded);
+            $nationalites = json_encode($nationalitesList, JSON_UNESCAPED_UNICODE);
+        }
+    }
+    $formData['nationalites_json'] = $nationalites;
 
     // 4. Validation
     $errors = [];
@@ -196,10 +210,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $sql = "INSERT INTO personnes (nom, prenom, numero_identite, sexe, age, date_naissance, lieu_residence,
                 etablissement, statut, domaine_etudes, niveau_etudes, telephone, email,
-                annee_arrivee, type_logement, precision_logement, projet_apres_formation, identite)
+                annee_arrivee, type_logement, precision_logement, projet_apres_formation, identite, nationalites)
                 VALUES (:nom, :prenom, :numero_identite, :sexe, :age, :date_naissance, :lieu_residence,
                 :etablissement, :statut, :domaine_etudes, :niveau_etudes, :telephone, :email,
-                :annee_arrivee, :type_logement, :precision_logement, :projet_apres_formation, :identite)";
+                :annee_arrivee, :type_logement, :precision_logement, :projet_apres_formation, :identite, :nationalites)";
 
         $stmt = $conn->prepare($sql);
 
@@ -222,6 +236,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ':precision_logement' => $formData['precision_logement'],
             ':projet_apres_formation' => $formData['projet_apres_formation'],
             ':identite' => $formData['identite'],
+            ':nationalites' => $formData['nationalites_json'],
         ];
 
         $stmt->execute($bindings);
