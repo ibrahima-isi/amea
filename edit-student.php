@@ -33,13 +33,18 @@ $stmt->execute([$student_id]);
         exit();
     }
 
-    // Decode nationalities for the form
-    // If it's stored as JSON ["Mali", "Senegal"], we can pass it directly to the value attribute
-    // Tagify will parse it.
-    $nationalites_value = $student['nationalites'] ?? ''; 
-    // If null, make it empty string
-    if (is_null($nationalites_value)) $nationalites_value = '';
+    // Fetch nationalities from pivot table
+    $stmtNats = $conn->prepare("SELECT p.nom_fr FROM pays p JOIN personne_pays pp ON p.id_pays = pp.id_pays WHERE pp.id_personne = ?");
+    $stmtNats->execute([$student_id]);
+    $nationalitiesList = $stmtNats->fetchAll(PDO::FETCH_COLUMN);
 
+    if (!empty($nationalitiesList)) {
+        $nationalites_value = json_encode($nationalitiesList, JSON_UNESCAPED_UNICODE);
+    } else {
+        // Fallback to legacy
+        $nationalites_value = $student['nationalites'] ?? '';
+        if (is_null($nationalites_value)) $nationalites_value = '';
+    }
 
 // Fetch data for dropdowns
 $stmt = $conn->query("SELECT nom FROM etablissements ORDER BY nom ASC");
@@ -98,19 +103,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $formData['projet_apres_formation'] = $formData['projet_apres_formation'] === '' ? null : $formData['projet_apres_formation'];
 
     // Process Nationalities
-    $nationalites_json = null;
+    $validNats = [];
+    $validIds = [];
     if (!empty($formData['nationalites'])) {
         $decoded = json_decode($formData['nationalites'], true);
-        // Tagify sends [{"value":"Mali"}, ...] OR "Mali, Senegal" depending on mode.
-        // If we get "value" objects:
-        if (is_array($decoded) && isset($decoded[0]['value'])) {
-             $list = array_column($decoded, 'value');
-             $nationalites_json = json_encode($list, JSON_UNESCAPED_UNICODE);
-        } elseif (is_array($decoded)) {
-             // Already a simple array?
-             $nationalites_json = json_encode($decoded, JSON_UNESCAPED_UNICODE);
+        $names = [];
+
+        // Handle Tagify formats
+        if (is_array($decoded)) {
+             if (isset($decoded[0]['value'])) {
+                 $names = array_column($decoded, 'value');
+             } else {
+                 $names = $decoded;
+             }
+        }
+
+        // Validate against DB
+        if (!empty($names)) {
+            $placeholders = implode(',', array_fill(0, count($names), '?'));
+            $stmtVal = $conn->prepare("SELECT id_pays, nom_fr FROM pays WHERE nom_fr IN ($placeholders)");
+            $stmtVal->execute($names);
+            while ($row = $stmtVal->fetch(PDO::FETCH_ASSOC)) {
+                $validNats[] = $row['nom_fr'];
+                $validIds[] = $row['id_pays'];
+            }
         }
     }
+    $nationalites_json = !empty($validNats) ? json_encode($validNats, JSON_UNESCAPED_UNICODE) : null;
     
     // Handle 'Other' options
     if ($formData['lieu_residence'] === 'Autre') $formData['lieu_residence'] = $formData['autre_lieu_residence'];
@@ -225,6 +244,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $stmt = $conn->prepare($sql);
         $stmt->execute($params);
+
+        // Update Nationalities Pivot
+        // 1. Delete old
+        $conn->prepare("DELETE FROM personne_pays WHERE id_personne = ?")->execute([$student_id]);
+        
+        // 2. Insert new
+        if (!empty($validIds)) {
+             $stmtPivot = $conn->prepare("INSERT IGNORE INTO personne_pays (id_personne, id_pays) VALUES (?, ?)");
+             foreach ($validIds as $pid) {
+                 $stmtPivot->execute([$student_id, $pid]);
+             }
+        }
 
         setFlashMessage('success', 'Informations modifiées avec succès');
         header('Location: students.php');
