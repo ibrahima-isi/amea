@@ -19,7 +19,7 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
     
     $conn->exec($sql);
-    echo "Table 'settings' created or already exists.<br>";
+    echo "Table 'settings' created or already exists.\n";
 
     // Default values
     $defaults = [
@@ -33,13 +33,13 @@ try {
     foreach ($defaults as $key => $value) {
         $stmt->execute([':key' => $key, ':value' => $value]);
         if ($stmt->rowCount() > 0) {
-            echo "Inserted default setting: $key<br>";
+            echo "Inserted default setting: $key\n";
         } else {
-            echo "Setting already exists: $key<br>";
+            echo "Setting already exists: $key\n";
         }
     }
 
-    echo "Migration completed successfully.";
+    echo "Migration completed successfully.\n";
 
 } catch(PDOException $e) {
     echo "Error: " . $e->getMessage();
