@@ -73,7 +73,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'type_logement' => $_POST['type_logement'] ?? '',
         'precision_logement' => trim($_POST['precision_logement'] ?? ''),
         'projet_apres_formation' => trim($_POST['projet_apres_formation'] ?? ''),
-        'cv_path' => $student['cv_path'] ?? null // Keep existing CV path
+        'cv_path' => $student['cv_path'] ?? null, // Keep existing CV path
+        'consent_privacy' => isset($_POST['consent_privacy']) ? 1 : 0 // Add consent_privacy
     ];
 
     // Handle 'Other' options
@@ -148,6 +149,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    if ($formData['consent_privacy'] == 0) {
+        $errors['consent_privacy'] = 'Veuillez accepter les termes de confidentialité.';
+    }
+
     // Handle File Upload
     $identitePath = $student['identite'];
     $identiteUploadResult = handleFileUpload($_FILES['photo'] ?? [], ['jpg', 'jpeg', 'png', 'gif', 'pdf'], 2 * 1024 * 1024, 'uploads/students');
@@ -188,7 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             telephone = :telephone, email = :email, annee_arrivee = :annee_arrivee, 
             type_logement = :type_logement, precision_logement = :precision_logement, 
             projet_apres_formation = :projet_apres_formation, identite = :identite,
-            nationalites = :nationalites, cv_path = :cv_path
+            nationalites = :nationalites, cv_path = :cv_path, consent_privacy = :consent_privacy, consent_privacy_date = :consent_privacy_date
             WHERE id_personne = :id_personne";
         
         $params = [
@@ -201,7 +206,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':type_logement' => $formData['type_logement'], ':precision_logement' => $formData['precision_logement'],
             ':projet_apres_formation' => $formData['projet_apres_formation'], ':identite' => $formData['identite'],
             ':nationalites' => $nationalites_json,
-            ':cv_path' => $formData['cv_path'], // Added cv_path
+            ':cv_path' => $formData['cv_path'],
+            ':consent_privacy' => $formData['consent_privacy'],
+            ':consent_privacy_date' => $formData['consent_privacy'] ? date('Y-m-d H:i:s') : null,
             ':id_personne' => $student_id
         ];
         
@@ -320,10 +327,13 @@ if ($action === 'edit') {
         // Tagify should handle the JSON value string `[{"value":"Mali"}]`
         '{{nationalites_value}}' => htmlspecialchars($student['nationalites'] ?? ''),
         '{{current_cv_display}}' => $currentCvDisplay,
+        '{{consent_checked}}' => ($formData['consent_privacy'] ?? 0) == 1 ? 'checked' : '',
+        '{{error_consent_privacy}}' => $errors['consent_privacy'] ?? '',
+        '{{is_invalid_consent_privacy}}' => isset($errors['consent_privacy']) ? 'is-invalid' : '',
     ];
     
     // Errors
-    $fields = ['nom', 'prenom', 'numero_identite', 'sexe', 'date_naissance', 'identite', 'telephone', 'email', 'lieu_residence', 'etablissement', 'statut', 'domaine_etudes', 'niveau_etudes', 'type_logement', 'cv']; // Added 'cv'
+    $fields = ['nom', 'prenom', 'numero_identite', 'sexe', 'date_naissance', 'identite', 'telephone', 'email', 'lieu_residence', 'etablissement', 'statut', 'domaine_etudes', 'niveau_etudes', 'type_logement', 'cv', 'consent_privacy']; // Added 'cv' and 'consent_privacy'
     foreach ($fields as $f) {
         $replacements["{{error_$f}}"] = $errors[$f] ?? '';
         $replacements["{{is_invalid_$f}}"] = isset($errors[$f]) ? 'is-invalid' : '';

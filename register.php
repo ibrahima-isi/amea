@@ -48,7 +48,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'type_logement' => $_POST['type_logement'] ?? '',
         'precision_logement' => trim($_POST['precision_logement'] ?? ''),
         'projet_apres_formation' => trim($_POST['projet_apres_formation'] ?? ''),
-        'cv_path' => null // Initialize cv_path
+        'cv_path' => null, // Initialize cv_path
+        'consent_privacy' => isset($_POST['consent_privacy']) ? 1 : 0 // Add consent_privacy
     ];
 
     // 2. Handle 'Other' options for final DB value
@@ -148,6 +149,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
+    if ($formData['consent_privacy'] == 0) {
+        $errors['consent_privacy'] = 'Veuillez accepter les termes de confidentialité.';
+    }
+
     // 5. Handle file uploads (Identité and CV)
     $identitePath = null;
     $identiteUploadResult = handleFileUpload($_FILES['photo'] ?? [], ['jpg', 'jpeg', 'png', 'gif', 'pdf'], 2 * 1024 * 1024, 'uploads/students');
@@ -232,10 +237,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $sql = "INSERT INTO personnes (nom, prenom, numero_identite, sexe, age, date_naissance, lieu_residence,
                 etablissement, statut, domaine_etudes, niveau_etudes, telephone, email,
-                annee_arrivee, type_logement, precision_logement, projet_apres_formation, identite, nationalites, cv_path)
+                annee_arrivee, type_logement, precision_logement, projet_apres_formation, identite, nationalites, cv_path, consent_privacy, consent_privacy_date)
                 VALUES (:nom, :prenom, :numero_identite, :sexe, :age, :date_naissance, :lieu_residence,
                 :etablissement, :statut, :domaine_etudes, :niveau_etudes, :telephone, :email,
-                :annee_arrivee, :type_logement, :precision_logement, :projet_apres_formation, :identite, :nationalites, :cv_path)";
+                :annee_arrivee, :type_logement, :precision_logement, :projet_apres_formation, :identite, :nationalites, :cv_path, :consent_privacy, :consent_privacy_date)";
 
         $stmt = $conn->prepare($sql);
 
@@ -260,6 +265,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ':identite' => $formData['identite'],
             ':nationalites' => $formData['nationalites_json'],
             ':cv_path' => $formData['cv_path'],
+            ':consent_privacy' => $formData['consent_privacy'],
+            ':consent_privacy_date' => $formData['consent_privacy'] ? date('Y-m-d H:i:s') : null,
         ];
 
         $stmt->execute($bindings);
@@ -490,6 +497,9 @@ $replacements = [
     '{{autre_etablissement}}' => htmlspecialchars($formData['autre_etablissement'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{autre_domaine_etudes}}' => htmlspecialchars($formData['autre_domaine_etudes'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{autre_niveau_etudes}}' => htmlspecialchars($formData['autre_niveau_etudes'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{consent_checked}}' => ($formData['consent_privacy'] ?? 0) == 1 ? 'checked' : '',
+    '{{error_consent_privacy}}' => $errors['consent_privacy'] ?? '',
+    '{{is_invalid_consent_privacy}}' => isset($errors['consent_privacy']) ? 'is-invalid' : '',
 ];
 
 $output = strtr($tpl, $replacements);

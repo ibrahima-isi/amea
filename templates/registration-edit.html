@@ -207,6 +207,21 @@
                                 <textarea class="form-control" id="projet_apres_formation" name="projet_apres_formation" rows="3" placeholder="Décrivez vos projets futurs...">{{projet_apres_formation}}</textarea>
                             </div>
 
+                            <!-- Mentions légales et consentement -->
+                            <h3 class="h5 mb-3">Mentions légales et consentement</h3>
+                            <div class="mb-4">
+                                <div class="form-check {{is_invalid_consent_privacy}}">
+                                    <input class="form-check-input" type="checkbox" name="consent_privacy" id="consentPrivacy" value="1" {{consent_checked}} required>
+                                    <label class="form-check-label" for="consentPrivacy">
+                                        J'accepte les <a href="legal-notice.php" target="_blank" class="text-decoration-underline">Conditions Générales d'Utilisation</a> et la <a href="legal-notice.php#privacy" target="_blank" class="text-decoration-underline">Politique de Confidentialité</a>.
+                                        <div class="form-text text-muted mt-1">
+                                            En cochant cette case, vous confirmez votre accord pour le traitement de vos données et la clause de non-responsabilité.
+                                        </div>
+                                    </label>
+                                    <div class="text-danger">{{error_consent_privacy}}</div>
+                                </div>
+                            </div>
+
                             <!-- Boutons de soumission -->
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                                 <a href="registration-details.php" class="btn btn-secondary">
