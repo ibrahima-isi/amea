@@ -208,8 +208,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$formData['numero_identite'], $student_id]);
         if ($stmt->fetch()) $errors['numero_identite'] = 'Ce numéro d\'identité est déjà utilisé.';
     }
+
+    // Email validation
+    if (!isset($errors['email']) && !filter_var($formData['email'], FILTER_VALIDATE_EMAIL)) {
+        $errors['email'] = "L'adresse email n'est pas valide.";
+    }
+    // Check unique Email
+    if (empty($errors['email'])) { // Only check uniqueness if format is valid
+        $stmt = $conn->prepare("SELECT id_personne FROM personnes WHERE email = ? AND id_personne != ?");
+        $stmt->execute([$formData['email'], $student_id]);
+        if ($stmt->fetch()) $errors['email'] = 'Cette adresse email est déjà enregistrée.';
+    }
+
+    // Telephone validation
     if (!isset($errors['telephone']) && !isValidPhone($formData['telephone'])) {
         $errors['telephone'] = "Le numéro de téléphone doit contenir exactement 9 chiffres.";
+    }
+    // Check unique Telephone
+    if (empty($errors['telephone'])) { // Only check uniqueness if format is valid
+        $stmt = $conn->prepare("SELECT id_personne FROM personnes WHERE telephone = ? AND id_personne != ?");
+        $stmt->execute([$formData['telephone'], $student_id]);
+        if ($stmt->fetch()) $errors['telephone'] = 'Ce numéro de téléphone est déjà enregistré.';
     }
 
     if (empty($errors['date_naissance'])) {
@@ -293,6 +312,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'date_naissance' => $formData['date_naissance'],
             'lieu_residence' => $finalLieuResidenceForDb,
             'etablissement' => $finalEtablissementForDb,
+            'statut' => $formData['statut'],
             'domaine_etudes' => $finalDomaineEtudesForDb,
             'niveau_etudes' => $finalNiveauEtudesForDb,
             'telephone' => $formData['telephone'],
