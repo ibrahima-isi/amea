@@ -115,7 +115,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'niveau_etudes' => 'Le niveau d\'études est requis.',
         'telephone' => 'Le téléphone est requis.',
         'email' => 'L\'email est requis.',
-        'type_logement' => 'Le type de logement est requis.'
+        'type_logement' => 'Le type de logement est requis.',
+        'nationalites' => 'La nationalité est requise.'
     ];
 
     foreach ($requiredFields as $field => $message) {
@@ -489,6 +490,8 @@ $replacements = [
     '{{is_invalid_domaine_etudes}}' => isset($errors['domaine_etudes']) ? 'is-invalid' : '',
     '{{is_invalid_niveau_etudes}}' => isset($errors['niveau_etudes']) ? 'is-invalid' : '',
     '{{is_invalid_type_logement}}' => isset($errors['type_logement']) ? 'is-invalid' : '',
+    '{{error_nationalites}}' => $errors['nationalites'] ?? '',
+    '{{is_invalid_nationalites}}' => isset($errors['nationalites']) ? 'is-invalid' : '',
     '{{error_cv}}' => $errors['cv'] ?? '', // Add this line
     '{{is_invalid_cv}}' => isset($errors['cv']) ? 'is-invalid' : '', // Add this line
     '{{current_identite_display}}' => $currentIdentiteDisplay,

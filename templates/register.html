@@ -71,9 +71,10 @@
                                 </div>
                                 
                                 <div class="col-md-12 mb-3">
-                                    <label for="nationalites" class="form-label">Nationalité</label>
-                                    <input name="nationalites" id="nationalites" class="form-control" placeholder="Nationalité (max 5)">
+                                    <label for="nationalites" class="form-label">Nationalité <span class="text-danger">*</span></label>
+                                    <input name="nationalites" id="nationalites" class="form-control {{is_invalid_nationalites}}" placeholder="Nationalité (max 5)" required>
                                     <div class="form-text">Tapez et sélectionnez parmi la liste.</div>
+                                    <div class="text-danger">{{error_nationalites}}</div>
                                 </div>
 
                                 <div class="col-md-6">
