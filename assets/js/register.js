@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
+    let tagify; // Variable to store Tagify instance
+
     // === Flatpickr Initialization for Date de naissance ===
     const dateNaissanceInput = document.getElementById('date_naissance');
     if (dateNaissanceInput) {
@@ -8,7 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
             altInput: true, // Show user-friendly date
             altFormat: 'j F, Y', // How the user-friendly date will look
             maxDate: dateNaissanceInput.dataset.maxDate || new Date(), // Set maxDate from data attribute, or today if not found
-            // You can add more options here like disable mobile, etc.
         });
     }
 
@@ -18,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('assets/json/countries.json')
             .then(response => response.json())
             .then(countries => {
-                new Tagify(input, {
+                tagify = new Tagify(input, {
                     whitelist: countries,
                     enforceWhitelist: true, // Prevent custom inputs
                     maxTags: 5,
@@ -27,6 +28,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         classname: "tags-look", // <- custom classname for this dropdown, so it could be targeted
                         enabled: 0,             // <- show suggestions on focus
                         closeOnSelect: false    // <- do not hide the suggestions dropdown once an item has been selected
+                    }
+                });
+                
+                // Clear error on change
+                tagify.on('change', function() {
+                    if (tagify.value.length > 0) {
+                        tagify.DOM.scope.classList.remove('is-invalid');
+                        input.setCustomValidity('');
                     }
                 });
             });
@@ -46,8 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const autreNiveauInput = document.getElementById('autre_niveau_etudes');
 
     const typeLogementSelect = document.getElementById('type_logement');
-    const precisionLogementDiv = document.getElementById('precision_logement_div');
-
+    
     const lieuResidenceSelect = document.getElementById('lieu_residence');
     const autreLieuResidenceDiv = document.getElementById('autre_lieu_residence_wrapper');
     const autreLieuResidenceInput = document.getElementById('autre_lieu_residence');
@@ -83,30 +91,4 @@ document.addEventListener('DOMContentLoaded', function() {
         lieuResidenceSelect.addEventListener('change', () => toggleOtherField(lieuResidenceSelect, autreLieuResidenceDiv, autreLieuResidenceInput));
         toggleOtherField(lieuResidenceSelect, autreLieuResidenceDiv, autreLieuResidenceInput);
     }
-
-
-    if (typeLogementSelect) {
-        typeLogementSelect.addEventListener('change', function() {
-            // Afficher le champ précision pour tous les choix sauf "En famille" (ou aucun) si désiré,
-            // ou bien seulement pour "Autre".
-            // Ici, supposons qu'on veut préciser l'adresse/quartier pour tout le monde sauf si vide.
-            // OU suivre la logique précédente. Le code PHP semble juste stocker.
-            // On va afficher 'precision_logement' tout le temps ou selon logique métier.
-            // Dans le doute, on laisse affiché tout le temps (display: block dans le HTML ?)
-            // Si le HTML a style="display:none", on le gère ici.
-            // Vérifions le template... il n'a pas de style display:none inline, donc visible par défaut.
-        });
-    }
-
-    // Validation Bootstrap
-    const forms = document.querySelectorAll('.needs-validation');
-    Array.prototype.slice.call(forms).forEach(function(form) {
-        form.addEventListener('submit', function(event) {
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-            form.classList.add('was-validated');
-        }, false);
-    });
 });

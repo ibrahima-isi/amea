@@ -193,3 +193,8 @@ h3, .h3 { font-size: 1.25rem; }
     h2, .h2 { font-size: 2rem; }
     h3, .h3 { font-size: 1.75rem; }
 }
+
+/* Tagify Validation Style */
+.tagify.is-invalid {
+    border-color: var(--brand-danger); /* Use brand danger color (Red) */
+}
