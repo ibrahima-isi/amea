@@ -17,8 +17,10 @@ if (!isset($_SESSION['registration_student_id'])) {
 $student_id = $_SESSION['registration_student_id'];
 $action = $_GET['action'] ?? 'view';
 
-// Handle "Finish" action
+// Handle "Finish" action — lock the record so the student can no longer self-edit
 if ($action === 'finish') {
+    $lockStmt = $conn->prepare("UPDATE personnes SET is_locked = 1 WHERE id_personne = ?");
+    $lockStmt->execute([$student_id]);
     unset($_SESSION['registration_student_id']);
     header('Location: index.php');
     exit();
@@ -33,6 +35,13 @@ if (!$student) {
     // Should not happen, but safe fallback
     unset($_SESSION['registration_student_id']);
     header('Location: index.php');
+    exit();
+}
+
+// If the record is already locked, redirect edit attempts back to view
+if ($student['is_locked'] && ($action === 'edit' || $_SERVER['REQUEST_METHOD'] === 'POST')) {
+    setFlashMessage('error', 'Votre dossier a été finalisé et ne peut plus être modifié.');
+    header('Location: registration-details.php');
     exit();
 }
 

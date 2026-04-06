@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS `personnes` (
     `date_enregistrement` datetime DEFAULT current_timestamp(),
     `consent_privacy` tinyint(1) NOT NULL DEFAULT 0,
     `consent_privacy_date` datetime DEFAULT NULL,
+    `is_locked` tinyint(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id_personne`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

@@ -1,3 +1,9 @@
+# Block access to .git directory
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^\.git(/.*)?$ - [F,L]
+</IfModule>
+
 <IfModule mod_expires.c>
     ExpiresActive On
     

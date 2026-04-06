@@ -7,9 +7,14 @@
 
 require_once 'config/session.php';
 
-// Vérifier si l'utilisateur est connecté
+// Vérifier si l'utilisateur est connecté et est administrateur
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['username'])) {
     header("Location: login.php");
+    exit();
+}
+if ($_SESSION['role'] !== 'admin') {
+    http_response_code(403);
+    header("Location: dashboard.php");
     exit();
 }
 
