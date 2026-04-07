@@ -1,0 +1,31 @@
+name: Deploy to Namecheap
+
+on:
+  push:
+    branches:
+      - main  # Vérifiez si votre branche s'appelle 'main' ou 'master'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: aeessqgf
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 21098
+          script: |
+            echo "Début du déploiement..."
+            cd ~/repositories/amea
+            git pull origin main
+
+            # Synchronisation vers public_html (exclut les fichiers inutiles)
+            rsync -av --delete --exclude='.git' --exclude='.github' ~/repositories/amea/ ~/public_html/
+
+            # Réparation automatique des permissions
+            find ~/public_html -type d -exec chmod 755 {} \;
+            find ~/public_html -type f -exec chmod 644 {} \;
+
+            echo "Déploiement terminé avec succès !"
