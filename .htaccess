@@ -11,6 +11,12 @@
     RewriteRule ^\.git(/.*)?$ - [F,L]
 </IfModule>
 
+# Block direct access to sensitive file types
+<FilesMatch "\.(sql|yml|yaml|md)$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
+
 # Security headers
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
