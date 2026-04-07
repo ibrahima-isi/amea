@@ -8,35 +8,58 @@
   body { margin: 0; padding: 0; background: #f4f4f4; font-family: Arial, sans-serif; }
   .wrapper { max-width: 600px; margin: 30px auto; background: #ffffff; border-radius: 8px; overflow: hidden; }
   .header { background: #1a3c6e; padding: 30px; text-align: center; }
-  .header h1 { color: #ffffff; margin: 0; font-size: 22px; }
-  .body { padding: 30px; color: #333333; line-height: 1.6; }
+  .header h1 { color: #ffffff; margin: 0; font-size: 22px; letter-spacing: 1px; }
+  .header p { color: #c8d8f0; margin: 8px 0 0; font-size: 13px; }
+  .body { padding: 30px; color: #333333; line-height: 1.7; }
   .body h2 { color: #1a3c6e; margin-top: 0; }
-  .info-box { background: #f0f4fb; border-left: 4px solid #1a3c6e; padding: 15px 20px; margin: 20px 0; border-radius: 4px; }
-  .info-box p { margin: 5px 0; }
+  .intro { margin-bottom: 20px; }
+  .info-box { background: #f0f4fb; border-left: 4px solid #1a3c6e; padding: 18px 20px; margin: 20px 0; border-radius: 4px; }
+  .info-box table { width: 100%; border-collapse: collapse; }
+  .info-box td { padding: 5px 0; font-size: 14px; vertical-align: top; }
+  .info-box td.label { color: #555; width: 45%; font-weight: bold; }
+  .info-box td.value { color: #222; }
+  .dossier-badge { display: inline-block; background: #1a3c6e; color: #fff; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: bold; margin: 10px 0; }
+  .note { background: #fffbe6; border-left: 4px solid #f0c040; padding: 12px 16px; border-radius: 4px; font-size: 13px; color: #555; margin-top: 20px; }
   .footer { background: #f4f4f4; padding: 20px 30px; text-align: center; font-size: 12px; color: #999999; }
 </style>
 </head>
 <body>
 <div class="wrapper">
   <div class="header">
-    <h1>AEESGS – Inscription reçue</h1>
+    <h1>AEESGS</h1>
+    <p>Association des Étudiants et Élèves Sénégalais en Guinée et Sous-région</p>
   </div>
   <div class="body">
     <h2>Bonjour {{prenom}} {{nom}},</h2>
-    <p>Nous avons bien reçu votre inscription sur la plateforme AEESGS. Votre dossier est en cours de traitement.</p>
+    <p class="intro">Nous avons bien reçu votre inscription sur la plateforme AEESGS. Voici un récapitulatif de votre dossier :</p>
+
     <div class="info-box">
-      <p><strong>Nom complet :</strong> {{prenom}} {{nom}}</p>
-      <p><strong>Email :</strong> {{email}}</p>
-      <p><strong>Téléphone :</strong> {{telephone}}</p>
-      <p><strong>Établissement :</strong> {{etablissement}}</p>
-      <p><strong>Numéro de dossier :</strong> #{{id_personne}}</p>
+      <table>
+        <tr>
+          <td class="label">Numéro de dossier</td>
+          <td class="value"><span class="dossier-badge">#{{id_personne}}</span></td>
+        </tr>
+        <tr><td class="label">Nom complet</td><td class="value">{{prenom}} {{nom}}</td></tr>
+        <tr><td class="label">Statut</td><td class="value">{{statut}}</td></tr>
+        <tr><td class="label">Établissement</td><td class="value">{{etablissement}}</td></tr>
+        <tr><td class="label">Domaine d'études</td><td class="value">{{domaine_etudes}}</td></tr>
+        <tr><td class="label">Niveau d'études</td><td class="value">{{niveau_etudes}}</td></tr>
+        <tr><td class="label">Lieu de résidence</td><td class="value">{{lieu_residence}}</td></tr>
+        <tr><td class="label">Type de logement</td><td class="value">{{type_logement}}</td></tr>
+        <tr><td class="label">Email</td><td class="value">{{email}}</td></tr>
+        <tr><td class="label">Téléphone</td><td class="value">{{telephone}}</td></tr>
+      </table>
     </div>
-    <p>Vous pouvez toujours consulter ou modifier votre dossier en vous connectant à votre espace.</p>
-    <p>Cordialement,<br><strong>L'équipe AEESGS</strong></p>
+
+    <div class="note">
+      Vous pouvez encore modifier votre dossier avant de le finaliser. Une fois finalisé, aucune modification ne sera possible.
+    </div>
+
+    <p style="margin-top: 24px;">Cordialement,<br><strong>L'équipe AEESGS</strong></p>
   </div>
   <div class="footer">
-    <p>AEESGS – Association des Étudiants et Élèves Sénégalais en Guinée et Sous-région</p>
-    <p>Ce message est automatique, merci de ne pas y répondre.</p>
+    <p>Ce message est automatique, merci de ne pas y répondre directement.</p>
+    <p>Pour toute question : <a href="mailto:contact@aeesgs.org">contact@aeesgs.org</a></p>
   </div>
 </div>
 </body>

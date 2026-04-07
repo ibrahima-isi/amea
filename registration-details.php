@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $lockStmt->execute([$student_id]);
 
     // Send finalized confirmation email to student
-    $finStmt = $conn->prepare("SELECT id_personne, prenom, nom, email FROM personnes WHERE id_personne = ?");
+    $finStmt = $conn->prepare("SELECT id_personne, prenom, nom, email, statut, etablissement, niveau_etudes, type_logement FROM personnes WHERE id_personne = ?");
     $finStmt->execute([$student_id]);
     $finStudent = $finStmt->fetch(PDO::FETCH_ASSOC);
     if ($finStudent) {

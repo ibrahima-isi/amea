@@ -289,12 +289,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Send confirmation email to student
         $emailData = [
-            'id_personne'  => $newStudentId,
-            'prenom'       => $formData['prenom'],
-            'nom'          => $formData['nom'],
-            'email'        => $formData['email'],
-            'telephone'    => $formData['telephone'],
-            'etablissement'=> $finalEtablissementForDb,
+            'id_personne'   => $newStudentId,
+            'prenom'        => $formData['prenom'],
+            'nom'           => $formData['nom'],
+            'email'         => $formData['email'],
+            'telephone'     => $formData['telephone'],
+            'statut'        => $formData['statut'],
+            'etablissement' => $finalEtablissementForDb,
+            'domaine_etudes'=> $finalDomaineEtudesForDb,
+            'niveau_etudes' => $finalNiveauEtudesForDb,
+            'lieu_residence'=> $finalLieuResidenceForDb,
+            'type_logement' => $formData['type_logement'],
         ];
         $studentBody = renderEmailTemplate(__DIR__ . '/templates/emails/registration-confirmation.html', $emailData);
         sendMail($formData['email'], 'Confirmation de votre inscription – AEESGS', $studentBody);
@@ -302,8 +307,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Send alert email to admin
         $adminEmail = getSetting('contact_email', 'admin@aeesgs.org');
         $adminData = array_merge($emailData, [
-            'statut'          => $formData['statut'],
-            'date_inscription'=> date('d/m/Y H:i'),
+            'date_inscription' => date('d/m/Y à H:i'),
         ]);
         $adminBody = renderEmailTemplate(__DIR__ . '/templates/emails/new-registration-admin.html', $adminData);
         sendMail($adminEmail, 'Nouvelle inscription – ' . $formData['prenom'] . ' ' . $formData['nom'], $adminBody);

@@ -8,6 +8,7 @@
 require_once 'config/session.php';
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
+require_once 'functions/email-service.php';
 
 // Authentication and Authorization — admin only
 if (!isset($_SESSION['user_id'])) {
@@ -346,6 +347,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                  $stmtPivot->execute([$student_id, $pid]);
              }
         }
+
+        // Notify student that an admin updated their record
+        $notifBody = renderEmailTemplate(__DIR__ . '/templates/emails/admin-update-notification.html', [
+            'id_personne'    => $student_id,
+            'prenom'         => $formData['prenom'],
+            'nom'            => $formData['nom'],
+            'email'          => $formData['email'],
+            'telephone'      => $formData['telephone'],
+            'statut'         => $formData['statut'],
+            'etablissement'  => $finalEtablissementForDb,
+            'domaine_etudes' => $finalDomaineEtudesForDb,
+            'niveau_etudes'  => $finalNiveauEtudesForDb,
+            'lieu_residence' => $finalLieuResidenceForDb,
+            'type_logement'  => $formData['type_logement'],
+            'date_mise_a_jour' => date('d/m/Y à H:i'),
+        ]);
+        sendMail($formData['email'], 'Votre dossier a été mis à jour – AEESGS', $notifBody);
 
         setFlashMessage('success', 'Informations modifiées avec succès');
         header('Location: students.php');
