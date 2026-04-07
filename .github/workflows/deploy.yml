@@ -16,16 +16,29 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
+          envs: DB_HOST,DB_NAME,DB_USER,DB_PASS,APP_URL
           script: |
             echo "Début du déploiement..."
             cd ~/repositories/amea
             git pull origin main
 
             # Synchronisation vers public_html
-            rsync -av --delete --exclude='.git' --exclude='.github' --exclude='uploads/' ~/repositories/amea/ ~/public_html/
+            rsync -av --delete --exclude='.git' --exclude='.github' --exclude='uploads/' --exclude='.env' ~/repositories/amea/ ~/public_html/
+
+            # Écriture sécurisée du fichier .env depuis les secrets GitHub
+            cat > ~/public_html/.env << EOF
+            DB_HOST=$DB_HOST
+            DB_NAME=$DB_NAME
+            DB_USER=$DB_USER
+            DB_PASS=$DB_PASS
+            APP_URL=$APP_URL
+            EOF
+
+            # Permissions strictes sur .env (lisible uniquement par le propriétaire)
+            chmod 600 ~/public_html/.env
 
             # Réparation automatique des permissions
             find ~/public_html -type d -exec chmod 755 {} \;
-            find ~/public_html -type f -exec chmod 644 {} \;
+            find ~/public_html -type f -not -name '.env' -exec chmod 644 {} \;
 
             echo "Déploiement terminé avec succès !"
