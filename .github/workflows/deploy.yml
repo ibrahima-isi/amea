@@ -32,13 +32,7 @@ jobs:
             rsync -av --delete --exclude='.git' --exclude='.github' --exclude='uploads/' --exclude='.env' ~/repositories/amea/ ~/public_html/
 
             # Écriture sécurisée du fichier .env depuis les secrets GitHub
-            cat > ~/public_html/.env << EOF
-            DB_HOST=$DB_HOST
-            DB_NAME=$DB_NAME
-            DB_USER=$DB_USER
-            DB_PASS=$DB_PASS
-            APP_URL=$APP_URL
-            EOF
+            printf "DB_HOST=%s\nDB_NAME=%s\nDB_USER=%s\nDB_PASS=%s\nAPP_URL=%s\n" "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" "$APP_URL" > ~/public_html/.env
 
             # Permissions strictes sur .env (lisible uniquement par le propriétaire)
             chmod 600 ~/public_html/.env
