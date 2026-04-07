@@ -108,7 +108,7 @@ if (!empty($identitePath)) {
         if (file_exists($identitePath)) {
             $actualFile = $identitePath;
         } else {
-            $matches = glob($identitePath . '.*');
+            $matches = glob($identitePath . '*');
             if (!empty($matches)) {
                 $actualFile = $matches[0];
                 $identitePath = $actualFile; // use the real path for src
