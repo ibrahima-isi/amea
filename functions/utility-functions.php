@@ -299,6 +299,23 @@ function cleanData($data) {
 }
 
 /**
+ * Safely deletes a file only if it is inside the uploads/ directory.
+ * Prevents path traversal attacks via database-stored paths.
+ *
+ * @param string|null $filePath The path to delete.
+ * @return bool True if deleted, false otherwise.
+ */
+function safeUnlink(?string $filePath): bool {
+    if (empty($filePath)) return false;
+    $uploadsDir = realpath(__DIR__ . '/../uploads');
+    $realFile   = realpath($filePath);
+    if ($uploadsDir === false || $realFile === false) return false;
+    if (strpos($realFile, $uploadsDir) !== 0) return false;
+    if (!is_file($realFile)) return false;
+    return unlink($realFile);
+}
+
+/**
  * Handles file upload, validates, and moves it.
  *
  * @param array $file_input The $_FILES input array for the file.
@@ -324,6 +341,23 @@ function handleFileUpload($file_input, $allowed_extensions, $max_size, $upload_d
     // Validate extension
     if (!in_array($file_ext, $allowed_extensions)) {
         return ['success' => false, 'message' => "File extension not allowed. Accepted extensions: " . implode(', ', $allowed_extensions)];
+    }
+
+    // Validate MIME type against the actual file content
+    $allowedMimes = [
+        'jpg'  => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png'  => 'image/png',
+        'gif'  => 'image/gif',
+        'pdf'  => 'application/pdf',
+    ];
+    if (isset($allowedMimes[$file_ext])) {
+        $finfo    = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $file_tmp);
+        finfo_close($finfo);
+        if ($mimeType !== $allowedMimes[$file_ext]) {
+            return ['success' => false, 'message' => "File content does not match its extension."];
+        }
     }
 
     // Validate size

@@ -292,8 +292,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
 
     } catch (PDOException $e) {
-        logError("Erreur lors de l'inscription : " . $e->getMessage());
-        logError("Données envoyées : " . json_encode($bindings));
+        logError("Erreur lors de l'inscription", $e);
 
         http_response_code(500);
         echo '<!DOCTYPE html>

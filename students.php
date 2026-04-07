@@ -44,9 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $deleteStmt->execute([$student_id_to_delete]);
 
         // Delete the photo file if it exists
-        if ($identite_to_delete && file_exists($identite_to_delete)) {
-            unlink($identite_to_delete);
-        }
+        safeUnlink($identite_to_delete);
 
         // Redirect to the same page to see the changes
         $queryParams = http_build_query([
@@ -222,16 +220,16 @@ if ($totalPages > 1) {
         return '?page=' . $p . '&perPage=' . $perPage . '&search=' . urlencode($search) . '&sexe=' . urlencode($sexeFilter) . '&statut=' . urlencode($statutFilter) . '&etablissement=' . urlencode($etablissementFilter) . '&nationality=' . urlencode($nationalityFilter);
     };
     $paginationHtml .= '<nav aria-label="Page navigation"><ul class="pagination justify-content-center">';
-    $paginationHtml .= '<li class="page-item ' . ($page <= 1 ? 'disabled' : '') . '"><a class="page-link" href="' . $buildLink($page - 1) . '">Précédent</a></li>';
+    $paginationHtml .= '<li class="page-item ' . ($page <= 1 ? 'disabled' : '') . '"><a class="page-link" href="' . htmlspecialchars($buildLink($page - 1), ENT_QUOTES, 'UTF-8') . '">Précédent</a></li>';
     for ($i = 1; $i <= $totalPages; $i++) {
         if ($i == 1 || $i == $totalPages || ($i >= $page - 2 && $i <= $page + 2)) {
             $paginationHtml .= '<li class="page-item ' . ($page == $i ? 'active' : '') . '">';
-            $paginationHtml .= '<a class="page-link" href="' . $buildLink($i) . '">' . $i . '</a></li>';
+            $paginationHtml .= '<a class="page-link" href="' . htmlspecialchars($buildLink($i), ENT_QUOTES, 'UTF-8') . '">' . $i . '</a></li>';
         } elseif ($i == $page - 3 || $i == $page + 3) {
             $paginationHtml .= '<li class="page-item disabled"><a class="page-link">...</a></li>';
         }
     }
-    $paginationHtml .= '<li class="page-item ' . ($page >= $totalPages ? 'disabled' : '') . '"><a class="page-link" href="' . $buildLink($page + 1) . '">Suivant</a></li>';
+    $paginationHtml .= '<li class="page-item ' . ($page >= $totalPages ? 'disabled' : '') . '"><a class="page-link" href="' . htmlspecialchars($buildLink($page + 1), ENT_QUOTES, 'UTF-8') . '">Suivant</a></li>';
     $paginationHtml .= '</ul></nav>';
 }
 

@@ -8,9 +8,14 @@
 // Démarrer la session
 require_once 'config/session.php';
 
-// Vérifier si l'utilisateur est connecté
+// Vérifier si l'utilisateur est connecté et est administrateur
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['username'])) {
     header("Location: login.php");
+    exit();
+}
+if ($_SESSION['role'] !== 'admin') {
+    http_response_code(403);
+    header("Location: dashboard.php");
     exit();
 }
 
@@ -51,7 +56,8 @@ try {
     $student = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     // En cas d'erreur, afficher un message d'erreur
-    setFlashMessage('error', 'Erreur lors de la récupération des détails de l\'étudiant: ' . $e->getMessage());
+    logError('Erreur lors de la récupération des détails de l\'étudiant', $e);
+    setFlashMessage('error', 'Une erreur est survenue. Veuillez réessayer.');
     header("Location: dashboard.php");
     exit();
 }

@@ -9,6 +9,11 @@ ini_set('session.cookie_lifetime', 0);
 // Configure server-side session lifetime
 ini_set('session.gc_maxlifetime', $session_lifetime);
 
+// Harden session cookie flags
+ini_set('session.cookie_httponly', 1);  // Deny JS access to session cookie
+ini_set('session.cookie_secure', 1);    // HTTPS only
+ini_set('session.cookie_samesite', 'Strict'); // Block cross-site requests
+
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();

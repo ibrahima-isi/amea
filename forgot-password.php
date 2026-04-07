@@ -31,7 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $expires = new DateTime('+1 hour');
                 $expires_at = $expires->format('Y-m-d H:i:s');
 
-                // Store the token in the database
+                // Invalidate any existing tokens for this email before creating a new one
+                $stmt = $conn->prepare("DELETE FROM password_resets WHERE email = ?");
+                $stmt->execute([$email]);
+
+                // Store the new token in the database
                 $stmt = $conn->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)");
                 $stmt->execute([$email, $token, $expires_at]);
 

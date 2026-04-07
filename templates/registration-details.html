@@ -134,9 +134,13 @@
                         <a href="registration-details.php?action=edit" class="btn btn-warning btn-lg">
                             <i class="fas fa-edit"></i> Modifier mes informations
                         </a>
-                        <a href="registration-details.php?action=finish" class="btn btn-success btn-lg">
-                            <i class="fas fa-check"></i> Confirmer et Terminer
-                        </a>
+                        <form method="POST" action="registration-details.php" class="d-inline">
+                            <input type="hidden" name="action" value="finish">
+                            <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check"></i> Confirmer et Terminer
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>

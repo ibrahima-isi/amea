@@ -18,7 +18,12 @@ $student_id = $_SESSION['registration_student_id'];
 $action = $_GET['action'] ?? 'view';
 
 // Handle "Finish" action — lock the record so the student can no longer self-edit
-if ($action === 'finish') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'finish') {
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        setFlashMessage('error', 'La session a expiré. Veuillez réessayer.');
+        header('Location: registration-details.php');
+        exit();
+    }
     $lockStmt = $conn->prepare("UPDATE personnes SET is_locked = 1 WHERE id_personne = ?");
     $lockStmt->execute([$student_id]);
     unset($_SESSION['registration_student_id']);
@@ -171,8 +176,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } else {
         // If a new file was uploaded, delete the old one if it exists
-        if ($identiteUploadResult['filepath'] !== null && $identitePath && file_exists($identitePath)) {
-            unlink($identitePath);
+        if ($identiteUploadResult['filepath'] !== null) {
+            safeUnlink($identitePath);
         }
         $identitePath = $identiteUploadResult['filepath'];
     }
@@ -186,8 +191,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } else {
         // If a new file was uploaded, delete the old one if it exists
-        if ($cvUploadResult['filepath'] !== null && $cvPath && file_exists($cvPath)) {
-            unlink($cvPath);
+        if ($cvUploadResult['filepath'] !== null) {
+            safeUnlink($cvPath);
         }
         $cvPath = $cvUploadResult['filepath'];
     }
@@ -416,6 +421,7 @@ $replacements = [
     '{{header}}' => $headerHtml,
     '{{footer}}' => $footerTpl,
     '{{flash_json}}' => $flash_json,
+    '{{csrf_token}}' => generateCsrfToken(),
     // Data
     '{{nom}}' => htmlspecialchars($student['nom']),
     '{{prenom}}' => htmlspecialchars($student['prenom']),

@@ -252,8 +252,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } else {
         // If a new file was uploaded, delete the old one if it exists
-        if ($identiteUploadResult['filepath'] !== null && $identitePath && file_exists($identitePath)) {
-            unlink($identitePath);
+        if ($identiteUploadResult['filepath'] !== null) {
+            safeUnlink($identitePath);
         }
         $identitePath = $identiteUploadResult['filepath'];
     }
@@ -267,8 +267,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } else {
         // If a new file was uploaded, delete the old one if it exists
-        if ($cvUploadResult['filepath'] !== null && $cvPath && file_exists($cvPath)) {
-            unlink($cvPath);
+        if ($cvUploadResult['filepath'] !== null) {
+            safeUnlink($cvPath);
         }
         $cvPath = $cvUploadResult['filepath'];
     }
