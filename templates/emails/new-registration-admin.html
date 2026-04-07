@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nouvelle inscription – AEESGS Admin</title>
+<style>
+  body { margin: 0; padding: 0; background: #f4f4f4; font-family: Arial, sans-serif; }
+  .wrapper { max-width: 600px; margin: 30px auto; background: #ffffff; border-radius: 8px; overflow: hidden; }
+  .header { background: #6e1a1a; padding: 30px; text-align: center; }
+  .header h1 { color: #ffffff; margin: 0; font-size: 22px; }
+  .body { padding: 30px; color: #333333; line-height: 1.6; }
+  .body h2 { color: #6e1a1a; margin-top: 0; }
+  .info-box { background: #fdf0f0; border-left: 4px solid #6e1a1a; padding: 15px 20px; margin: 20px 0; border-radius: 4px; }
+  .info-box p { margin: 5px 0; }
+  .footer { background: #f4f4f4; padding: 20px 30px; text-align: center; font-size: 12px; color: #999999; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <h1>AEESGS – Nouvelle inscription</h1>
+  </div>
+  <div class="body">
+    <h2>Un nouvel étudiant vient de s'inscrire.</h2>
+    <div class="info-box">
+      <p><strong>Nom complet :</strong> {{prenom}} {{nom}}</p>
+      <p><strong>Email :</strong> {{email}}</p>
+      <p><strong>Téléphone :</strong> {{telephone}}</p>
+      <p><strong>Établissement :</strong> {{etablissement}}</p>
+      <p><strong>Statut :</strong> {{statut}}</p>
+      <p><strong>Numéro de dossier :</strong> #{{id_personne}}</p>
+      <p><strong>Date d'inscription :</strong> {{date_inscription}}</p>
+    </div>
+    <p>Connectez-vous au panneau d'administration pour consulter le dossier complet.</p>
+  </div>
+  <div class="footer">
+    <p>Notification automatique – Plateforme AEESGS</p>
+  </div>
+</div>
+</body>
+</html>

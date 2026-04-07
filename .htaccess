@@ -11,11 +11,22 @@
     RewriteRule ^\.git(/.*)?$ - [F,L]
 </IfModule>
 
+# Block direct access to sensitive files
+<FilesMatch "(^\.env|^\.htaccess|composer\.(json|lock))$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
+
 # Block direct access to sensitive file types
 <FilesMatch "\.(sql|yml|yaml|md)$">
     Order Deny,Allow
     Deny from all
 </FilesMatch>
+
+# Block direct HTTP access to sensitive directories
+<IfModule mod_rewrite.c>
+    RewriteRule ^(vendor|templates|functions|config|logs|migrations|database)(/.*)?$ - [F,L]
+</IfModule>
 
 # Security headers
 <IfModule mod_headers.c>

@@ -9,4 +9,5 @@ data.sql
 .viminfo
 .lesshst
 init-admin.php
-uploads/
+uploads/*
+!uploads/.htaccess

@@ -8,6 +8,7 @@
 // Inclure la configuration de la base de données
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
+require_once 'functions/email-service.php';
 
 require_once 'config/session.php';
 
@@ -285,7 +286,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         // Set session variable for the details page
         $_SESSION['registration_student_id'] = $newStudentId;
-        
+
+        // Send confirmation email to student
+        $emailData = [
+            'id_personne'  => $newStudentId,
+            'prenom'       => $formData['prenom'],
+            'nom'          => $formData['nom'],
+            'email'        => $formData['email'],
+            'telephone'    => $formData['telephone'],
+            'etablissement'=> $finalEtablissementForDb,
+        ];
+        $studentBody = renderEmailTemplate(__DIR__ . '/templates/emails/registration-confirmation.html', $emailData);
+        sendMail($formData['email'], 'Confirmation de votre inscription – AEESGS', $studentBody);
+
+        // Send alert email to admin
+        $adminEmail = getSetting('contact_email', 'admin@aeesgs.org');
+        $adminData = array_merge($emailData, [
+            'statut'          => $formData['statut'],
+            'date_inscription'=> date('d/m/Y H:i'),
+        ]);
+        $adminBody = renderEmailTemplate(__DIR__ . '/templates/emails/new-registration-admin.html', $adminData);
+        sendMail($adminEmail, 'Nouvelle inscription – ' . $formData['prenom'] . ' ' . $formData['nom'], $adminBody);
+
         setFlashMessage('success', 'Vous êtes inscrit avec succès');
         session_write_close();
         header('Location: registration-details.php');

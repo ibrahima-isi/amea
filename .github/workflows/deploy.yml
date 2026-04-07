@@ -17,22 +17,27 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASS: ${{ secrets.DB_PASS }}
           APP_URL: ${{ secrets.APP_URL }}
+          MAIL_USER: ${{ secrets.MAIL_USER }}
+          MAIL_PASS: ${{ secrets.MAIL_PASS }}
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          envs: DB_HOST,DB_NAME,DB_USER,DB_PASS,APP_URL
+          envs: DB_HOST,DB_NAME,DB_USER,DB_PASS,APP_URL,MAIL_USER,MAIL_PASS
           script: |
             echo "Début du déploiement..."
             cd ~/repositories/amea
             git pull origin main
 
+            # Installation des dépendances Composer
+            composer install --no-dev --optimize-autoloader
+
             # Synchronisation vers public_html
             rsync -av --delete --exclude='.git' --exclude='.github' --exclude='uploads/' --exclude='.env' ~/repositories/amea/ ~/public_html/
 
             # Écriture sécurisée du fichier .env depuis les secrets GitHub
-            printf "DB_HOST=%s\nDB_NAME=%s\nDB_USER=%s\nDB_PASS=%s\nAPP_URL=%s\n" "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" "$APP_URL" > ~/public_html/.env
+            printf "DB_HOST=%s\nDB_NAME=%s\nDB_USER=%s\nDB_PASS=%s\nAPP_URL=%s\nMAIL_USER=%s\nMAIL_PASS=%s\n" "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" "$APP_URL" "$MAIL_USER" "$MAIL_PASS" > ~/public_html/.env
 
             # Permissions strictes sur .env (lisible uniquement par le propriétaire)
             chmod 600 ~/public_html/.env

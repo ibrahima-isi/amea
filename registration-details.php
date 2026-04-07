@@ -7,6 +7,7 @@
 require_once 'config/session.php';
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
+require_once 'functions/email-service.php';
 
 // Check if we have a valid registration session
 if (!isset($_SESSION['registration_student_id'])) {
@@ -26,6 +27,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     $lockStmt = $conn->prepare("UPDATE personnes SET is_locked = 1 WHERE id_personne = ?");
     $lockStmt->execute([$student_id]);
+
+    // Send finalized confirmation email to student
+    $finStmt = $conn->prepare("SELECT id_personne, prenom, nom, email FROM personnes WHERE id_personne = ?");
+    $finStmt->execute([$student_id]);
+    $finStudent = $finStmt->fetch(PDO::FETCH_ASSOC);
+    if ($finStudent) {
+        $finalizedBody = renderEmailTemplate(__DIR__ . '/templates/emails/registration-finalized.html', $finStudent);
+        sendMail($finStudent['email'], 'Votre dossier a été finalisé – AEESGS', $finalizedBody);
+    }
+
     unset($_SESSION['registration_student_id']);
     header('Location: index.php');
     exit();
