@@ -102,6 +102,15 @@ if (!empty($identitePath)) {
     $isPdf = ($fileExtension === 'pdf');
     $isImage = in_array($fileExtension, ['png', 'jpg', 'jpeg', 'gif']);
 
+    // Fallback: detect MIME type from file content when stored without extension
+    if (!$isPdf && !$isImage && file_exists($identitePath)) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $identitePath);
+        finfo_close($finfo);
+        $isPdf = ($mimeType === 'application/pdf');
+        $isImage = (strncmp($mimeType, 'image/', 6) === 0);
+    }
+
     if ($isImage) {
         $detailsHtml .= '<a href="#" data-bs-toggle="modal" data-bs-target="#' . $modalId . '">';
         $detailsHtml .= '<img src="' . htmlspecialchars($identitePath) . '" alt="Photo de profil" class="rounded-circle img-thumbnail mb-3" style="width: 150px; height: 150px; object-fit: cover;">';
