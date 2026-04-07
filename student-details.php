@@ -102,13 +102,25 @@ if (!empty($identitePath)) {
     $isPdf = ($fileExtension === 'pdf');
     $isImage = in_array($fileExtension, ['png', 'jpg', 'jpeg', 'gif']);
 
-    // Fallback: detect MIME type from file content when stored without extension
-    if (!$isPdf && !$isImage && file_exists($identitePath)) {
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $identitePath);
-        finfo_close($finfo);
-        $isPdf = ($mimeType === 'application/pdf');
-        $isImage = (strncmp($mimeType, 'image/', 6) === 0);
+    // Fallback: path stored without extension — find the actual file on disk
+    if (!$isPdf && !$isImage) {
+        $actualFile = null;
+        if (file_exists($identitePath)) {
+            $actualFile = $identitePath;
+        } else {
+            $matches = glob($identitePath . '.*');
+            if (!empty($matches)) {
+                $actualFile = $matches[0];
+                $identitePath = $actualFile; // use the real path for src
+            }
+        }
+        if ($actualFile !== null) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mimeType = finfo_file($finfo, $actualFile);
+            finfo_close($finfo);
+            $isPdf = ($mimeType === 'application/pdf');
+            $isImage = (strncmp($mimeType, 'image/', 6) === 0);
+        }
     }
 
     if ($isImage) {
