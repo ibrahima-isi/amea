@@ -33,6 +33,7 @@ jobs:
 
             # Installation des dépendances Composer
             composer install --no-dev --optimize-autoloader
+            printf "Order Deny,Allow\nDeny from all\n" > ~/repositories/amea/vendor/.htaccess
 
             # Synchronisation vers public_html
             rsync -av --delete --exclude='.git' --exclude='.github' --exclude='uploads/' --exclude='.env' ~/repositories/amea/ ~/public_html/

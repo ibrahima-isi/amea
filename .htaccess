@@ -23,10 +23,6 @@
     Deny from all
 </FilesMatch>
 
-# Block direct HTTP access to sensitive directories
-<IfModule mod_rewrite.c>
-    RewriteRule ^(vendor|templates|functions|config|logs|migrations|database)(/.*)?$ - [F,L]
-</IfModule>
 
 # Security headers
 <IfModule mod_headers.c>
