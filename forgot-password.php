@@ -56,8 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     setFlashMessage('error', 'Impossible d\'envoyer l\'e-mail de réinitialisation. Veuillez contacter un administrateur.');
                 }
             } else {
-                // To prevent user enumeration, show the same message whether the user exists or not.
-                setFlashMessage('success', 'Si un compte avec cette adresse e-mail existe, un lien de réinitialisation de mot de passe a été envoyé.');
+                setFlashMessage('error', 'Aucun compte n\'est associé à cette adresse e-mail.');
             }
         }
     }
