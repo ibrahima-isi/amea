@@ -1,34 +1,47 @@
 # Désactiver le listing des dossiers
 Options -Indexes
 
-# Force HTTPS
+# Supprimer la signature serveur
+ServerSignature Off
+
+# Convertir les 403 et 404 en une réponse 404 générique (évite de confirmer l'existence des fichiers)
+ErrorDocument 403 /404-handler.php
+ErrorDocument 404 /404-handler.php
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
+
+    # Bloquer l'accès aux répertoires de versioning
+    RewriteRule ^\.git(/.*)?$  - [F,L]
+    RewriteRule ^\.svn(/.*)?$  - [F,L]
+    RewriteRule ^svn(/.*)?$    - [F,L]
+
+    # Bloquer les paths d'attaque courants → 404 direct avant tout redirect
+    RewriteRule ^(admin|adm|administrator|wp-admin|wp-login\.php|phpmyadmin|pma|myadmin)(/.*)?$ /404-handler.php [L]
+    RewriteRule ^(amanda|apache|bin|ftp|guest|http|log|shell|backup|cgi-bin|cgi|test|old|tmp|temp|web|www|cpanel|webmail|roundcube|plesk)(/.*)?$ /404-handler.php [L]
+
+    # Forcer HTTPS
     RewriteCond %{HTTPS} off
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
 </IfModule>
 
-# Block access to .git directory
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteRule ^\.git(/.*)?$ - [F,L]
-</IfModule>
-
-# Block direct access to sensitive files
-<FilesMatch "(^\.env|^\.htaccess|composer\.(json|lock))$">
+# Bloquer l'accès direct aux fichiers sensibles
+<FilesMatch "(^\.env|^\.htaccess|^\.htpasswd|^\.hta|composer\.(json|lock))$">
     Order Deny,Allow
     Deny from all
 </FilesMatch>
 
-# Block direct access to sensitive file types
+# Bloquer l'accès aux types de fichiers sensibles
 <FilesMatch "\.(sql|yml|yaml|md)$">
     Order Deny,Allow
     Deny from all
 </FilesMatch>
 
-
-# Security headers
+# Headers de sécurité
 <IfModule mod_headers.c>
+    Header unset Server
+    Header unset X-Powered-By
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set X-XSS-Protection "1; mode=block"
@@ -39,19 +52,17 @@ Options -Indexes
 
 <IfModule mod_expires.c>
     ExpiresActive On
-    
-    # CSS, JavaScript, Images: 1 week
-    ExpiresByType text/css "access plus 1 week"
-    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType text/css                 "access plus 1 week"
+    ExpiresByType application/javascript   "access plus 1 week"
     ExpiresByType application/x-javascript "access plus 1 week"
-    ExpiresByType text/javascript "access plus 1 week"
-    ExpiresByType image/jpg "access plus 1 week"
-    ExpiresByType image/jpeg "access plus 1 week"
-    ExpiresByType image/gif "access plus 1 week"
-    ExpiresByType image/png "access plus 1 week"
-    ExpiresByType image/webp "access plus 1 week"
-    ExpiresByType image/svg+xml "access plus 1 week"
-    ExpiresByType image/x-icon "access plus 1 week"
+    ExpiresByType text/javascript          "access plus 1 week"
+    ExpiresByType image/jpg                "access plus 1 week"
+    ExpiresByType image/jpeg               "access plus 1 week"
+    ExpiresByType image/gif                "access plus 1 week"
+    ExpiresByType image/png                "access plus 1 week"
+    ExpiresByType image/webp               "access plus 1 week"
+    ExpiresByType image/svg+xml            "access plus 1 week"
+    ExpiresByType image/x-icon             "access plus 1 week"
 </IfModule>
 
 <IfModule mod_headers.c>

@@ -39,9 +39,14 @@ jobs:
               --exclude='.env' \
               ~/repositories/amea/ ~/public_html/
 
-            # Protéger vendor/ et uploads/ contre le listing
-            printf "Order Deny,Allow\nDeny from all\n" > ~/public_html/vendor/.htaccess
-            printf "Options -Indexes\n" > ~/public_html/uploads/.htaccess
+            # S'assurer que .git n'est jamais dans public_html
+            rm -rf ~/public_html/.git
+
+            # Déployer le .htaccess de uploads/ (exclu du rsync pour préserver les fichiers uploadés)
+            cp ~/repositories/amea/uploads/.htaccess ~/public_html/uploads/.htaccess
+
+            # Protéger vendor/ (généré par composer, absent du repo)
+            printf "Options -Indexes\nOrder Deny,Allow\nDeny from all\n" > ~/public_html/vendor/.htaccess
 
             # Écriture du .env depuis les secrets GitHub
             printf "DB_HOST=%s\nDB_NAME=%s\nDB_USER=%s\nDB_PASS=%s\nAPP_URL=%s\nMAIL_USER=%s\nMAIL_PASS=%s\n" \
