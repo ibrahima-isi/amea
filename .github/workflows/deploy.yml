@@ -26,29 +26,28 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           envs: DB_HOST,DB_NAME,DB_USER,DB_PASS,APP_URL,MAIL_USER,MAIL_PASS
           script: |
-            echo "Début du déploiement..."
             cd ~/repositories/amea
             git fetch origin main
             git reset --hard origin/main
 
-            # Installation des dépendances Composer
             composer install --no-dev --optimize-autoloader
-            printf "Order Deny,Allow\nDeny from all\n" > ~/repositories/amea/vendor/.htaccess
 
-            # Synchronisation vers public_html
-            rsync -av --delete --exclude='.git' --exclude='.github' --exclude='uploads/' --exclude='.env' ~/repositories/amea/ ~/public_html/
+            rsync -a --delete \
+              --exclude='.git' \
+              --exclude='.github' \
+              --exclude='uploads/' \
+              --exclude='.env' \
+              ~/repositories/amea/ ~/public_html/
 
-            # Désactiver le listing du dossier uploads/ sans bloquer l'accès aux fichiers
+            # Protéger vendor/ et uploads/ contre le listing
+            printf "Order Deny,Allow\nDeny from all\n" > ~/public_html/vendor/.htaccess
             printf "Options -Indexes\n" > ~/public_html/uploads/.htaccess
 
-            # Écriture sécurisée du fichier .env depuis les secrets GitHub
-            printf "DB_HOST=%s\nDB_NAME=%s\nDB_USER=%s\nDB_PASS=%s\nAPP_URL=%s\nMAIL_USER=%s\nMAIL_PASS=%s\n" "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" "$APP_URL" "$MAIL_USER" "$MAIL_PASS" > ~/public_html/.env
-
-            # Permissions strictes sur .env (lisible uniquement par le propriétaire)
+            # Écriture du .env depuis les secrets GitHub
+            printf "DB_HOST=%s\nDB_NAME=%s\nDB_USER=%s\nDB_PASS=%s\nAPP_URL=%s\nMAIL_USER=%s\nMAIL_PASS=%s\n" \
+              "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" "$APP_URL" "$MAIL_USER" "$MAIL_PASS" \
+              > ~/public_html/.env
             chmod 600 ~/public_html/.env
 
-            # Réparation automatique des permissions
             find ~/public_html -type d -exec chmod 755 {} \;
             find ~/public_html -type f -not -name '.env' -exec chmod 644 {} \;
-
-            echo "Déploiement terminé avec succès !"
