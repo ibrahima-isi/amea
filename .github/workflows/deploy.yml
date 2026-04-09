@@ -38,8 +38,8 @@ jobs:
             # Synchronisation vers public_html
             rsync -av --delete --exclude='.git' --exclude='.github' --exclude='uploads/' --exclude='.env' ~/repositories/amea/ ~/public_html/
 
-            # Supprimer tout .htaccess parasite dans uploads/ (peut bloquer les images)
-            rm -f ~/public_html/uploads/.htaccess
+            # Désactiver le listing du dossier uploads/ sans bloquer l'accès aux fichiers
+            printf "Options -Indexes\n" > ~/public_html/uploads/.htaccess
 
             # Écriture sécurisée du fichier .env depuis les secrets GitHub
             printf "DB_HOST=%s\nDB_NAME=%s\nDB_USER=%s\nDB_PASS=%s\nAPP_URL=%s\nMAIL_USER=%s\nMAIL_PASS=%s\n" "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" "$APP_URL" "$MAIL_USER" "$MAIL_PASS" > ~/public_html/.env

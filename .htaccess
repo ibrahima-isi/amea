@@ -1,3 +1,6 @@
+# Désactiver le listing des dossiers
+Options -Indexes
+
 # Force HTTPS
 <IfModule mod_rewrite.c>
     RewriteEngine On
