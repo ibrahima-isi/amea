@@ -65,6 +65,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 setFlashMessage('danger', "Une erreur est survenue lors de la mise à jour du profil. Veuillez réessayer plus tard.");
             }
         }
+    } elseif (isset($_POST['change_password'])) {
+        $currentPassword = $_POST['current_password'] ?? '';
+        $newPassword = $_POST['new_password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
+
+        if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
+            setFlashMessage('error', "Tous les champs de mot de passe sont obligatoires.");
+        } elseif ($newPassword !== $confirmPassword) {
+            setFlashMessage('error', "Le nouveau mot de passe et sa confirmation ne correspondent pas.");
+        } elseif (strlen($newPassword) < 8) {
+            setFlashMessage('error', "Le nouveau mot de passe doit contenir au moins 8 caractères.");
+        } else {
+            try {
+                $stmt = $conn->prepare("SELECT password FROM users WHERE id_user = :id_user");
+                $stmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
+                $stmt->execute();
+                $user_password = $stmt->fetchColumn();
+
+                if (password_verify($currentPassword, $user_password)) {
+                    $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+                    $updateStmt = $conn->prepare("UPDATE users SET password = :password WHERE id_user = :id_user");
+                    $updateStmt->bindParam(':password', $hashedPassword);
+                    $updateStmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
+                    $updateStmt->execute();
+                    setFlashMessage('success', 'Votre mot de passe a été changé avec succès.');
+                } else {
+                    setFlashMessage('error', "Le mot de passe actuel est incorrect.");
+                }
+            } catch (PDOException $e) {
+                logError("Erreur lors du changement de mot de passe", $e);
+                setFlashMessage('danger', "Une erreur est survenue. Veuillez réessayer plus tard.");
+            }
+        }
     } elseif (isset($_POST['request_password_reset'])) {
         require_once 'functions/email-service.php';
 
