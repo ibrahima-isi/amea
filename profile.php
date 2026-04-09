@@ -65,42 +65,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 setFlashMessage('danger', "Une erreur est survenue lors de la mise à jour du profil. Veuillez réessayer plus tard.");
             }
         }
-    } elseif (isset($_POST['change_password'])) {
-        $currentPassword = $_POST['current_password'] ?? '';
-        $newPassword = $_POST['new_password'] ?? '';
-        $confirmPassword = $_POST['confirm_password'] ?? '';
+    } elseif (isset($_POST['request_password_reset'])) {
+        require_once 'functions/email-service.php';
 
-        if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
-            setFlashMessage('error', "Tous les champs de mot de passe sont obligatoires.");
-        } elseif ($newPassword !== $confirmPassword) {
-            setFlashMessage('error', "Le nouveau mot de passe et sa confirmation ne correspondent pas.");
-        } elseif (strlen($newPassword) < 8) {
-            setFlashMessage('error', "Le nouveau mot de passe doit contenir au moins 8 caractères.");
-        } else {
-            try {
-                $sql = "SELECT password FROM users WHERE id_user = :id_user";
-                $stmt = $conn->prepare($sql);
-                $stmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
-                $stmt->execute();
-                $user_password = $stmt->fetchColumn();
+        try {
+            $stmt = $conn->prepare("SELECT email, prenom, nom FROM users WHERE id_user = ?");
+            $stmt->execute([$user_id]);
+            $userInfo = $stmt->fetch();
 
-                if (password_verify($currentPassword, $user_password)) {
-                    $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+            $token = bin2hex(random_bytes(50));
+            $expires_at = (new DateTime('+1 hour'))->format('Y-m-d H:i:s');
 
-                    $updateSql = "UPDATE users SET password = :password WHERE id_user = :id_user";
-                    $updateStmt = $conn->prepare($updateSql);
-                    $updateStmt->bindParam(':password', $hashedPassword);
-                    $updateStmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
-                    $updateStmt->execute();
+            $conn->prepare("DELETE FROM password_resets WHERE email = ?")->execute([$userInfo['email']]);
+            $conn->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)")
+                 ->execute([$userInfo['email'], $token, $expires_at]);
 
-                    setFlashMessage('success', 'Votre mot de passe a été changé avec succès.');
-                } else {
-                    setFlashMessage('error', "Le mot de passe actuel est incorrect.");
-                }
-            } catch (PDOException $e) {
-                logError("Erreur lors du changement de mot de passe", $e);
-                setFlashMessage('danger', "Une erreur est survenue lors du changement de mot de passe. Veuillez réessayer plus tard.");
+            $resetLink = env('APP_URL', 'http://localhost') . '/reset-password.php?token=' . $token;
+            $emailBody = renderEmailTemplate(__DIR__ . '/templates/emails/password-reset-email.html', [
+                '{{prenom}}'     => htmlspecialchars($userInfo['prenom']),
+                '{{nom}}'        => htmlspecialchars($userInfo['nom']),
+                '{{reset_link}}' => $resetLink,
+                '{{expires_in}}' => '1 heure',
+            ]);
+
+            if (sendMail($userInfo['email'], 'Réinitialisation de votre mot de passe', $emailBody)) {
+                setFlashMessage('success', 'Un lien de réinitialisation a été envoyé à ' . htmlspecialchars($userInfo['email']) . '.');
+            } else {
+                $conn->prepare("DELETE FROM password_resets WHERE token = ?")->execute([$token]);
+                setFlashMessage('error', "Impossible d'envoyer l'e-mail. Veuillez réessayer plus tard.");
             }
+        } catch (PDOException $e) {
+            logError("Erreur lors de la demande de réinitialisation de mot de passe", $e);
+            setFlashMessage('danger', "Une erreur est survenue. Veuillez réessayer plus tard.");
         }
     }
     header('Location: profile.php');

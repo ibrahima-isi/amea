@@ -8,6 +8,7 @@
 require_once 'config/session.php';
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
+require_once 'functions/email-service.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
@@ -41,18 +42,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Send the email
                 $resetLink = env('APP_URL', 'http://localhost') . '/reset-password.php?token=' . $token;
-                $subject = 'Réinitialisation de votre mot de passe';
-                $emailBody = "<h1>Réinitialisation de votre mot de passe</h1>";
-                $emailBody .= "<p>Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe:</p>";
-                $emailBody .= "<a href='{$resetLink}'>{$resetLink}</a>";
+                $emailBody = renderEmailTemplate(__DIR__ . '/templates/emails/password-reset-email.html', [
+                    '{{prenom}}'     => htmlspecialchars($user['prenom']),
+                    '{{nom}}'        => htmlspecialchars($user['nom']),
+                    '{{reset_link}}' => $resetLink,
+                    '{{expires_in}}' => '1 heure',
+                ]);
 
-                $headers = "MIME-Version: 1.0" . "\r\n";
-                $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-                $headers .= 'From: no-reply@aeesgs.org' . "\r\n";
-
-                if (mail($email, $subject, $emailBody, $headers)) {
+                if (sendMail($email, 'Réinitialisation de votre mot de passe', $emailBody)) {
                     setFlashMessage('success', 'Un lien de réinitialisation de mot de passe a été envoyé à votre adresse e-mail.');
                 } else {
+                    $conn->prepare("DELETE FROM password_resets WHERE token = ?")->execute([$token]);
                     setFlashMessage('error', 'Impossible d\'envoyer l\'e-mail de réinitialisation. Veuillez contacter un administrateur.');
                 }
             } else {
