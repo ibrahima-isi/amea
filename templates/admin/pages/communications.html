@@ -48,6 +48,15 @@
       </div>
     </div>
   </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(206,17,38,0.1);color:#CE1126;"><i class="fas fa-trash-alt"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{count_deletion_requests}}</div>
+        <div class="stat-label">Demandes de suppression</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Tabs -->
@@ -60,6 +69,11 @@
   <li class="nav-item" role="presentation">
     <button class="nav-link {{active_tab_bulk}}" id="tab-bulk" data-bs-toggle="tab" data-bs-target="#panel-bulk" type="button" role="tab">
       <i class="fas fa-envelope-open-text me-2"></i>Communication libre
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link {{active_tab_deletion}}" id="tab-deletion" data-bs-toggle="tab" data-bs-target="#panel-deletion" type="button" role="tab">
+      <i class="fas fa-trash-alt me-2"></i>Suppressions{{deletion_badge}}
     </button>
   </li>
   <li class="nav-item" role="presentation">
@@ -104,8 +118,25 @@
         <form method="POST" action="communications.php" id="cguForm">
           <input type="hidden" name="csrf_token" value="{{csrf_token}}">
           <input type="hidden" name="action" value="send_cgu">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Destinataires</label>
+            <div class="d-flex flex-column gap-1">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="cgu_scope" id="scope_pending" value="not_consented" checked>
+                <label class="form-check-label" for="scope_pending">
+                  Uniquement les membres <strong>sans consentement</strong> ({{count_not_consented}} membres)
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="cgu_scope" id="scope_all" value="all">
+                <label class="form-check-label" for="scope_all">
+                  <strong>Tous les membres</strong> — y compris ceux qui ont déjà accepté (mise à jour des CGU)
+                </label>
+              </div>
+            </div>
+          </div>
           <button type="submit" class="btn btn-primary" {{cgu_btn_disabled}}>
-            <i class="fas fa-paper-plane me-2"></i>Envoyer le rappel CGU à tous les membres en attente
+            <i class="fas fa-paper-plane me-2"></i>Envoyer
           </button>
         </form>
       </div>
@@ -180,7 +211,35 @@
 
   </div>
 
-  <!-- ── History tab ───────────────────────────────────────────────���─────── -->
+  <!-- ── Deletion requests tab ──────────────────────────────────────────── -->
+  <div class="tab-pane fade {{active_deletion}}" id="panel-deletion" role="tabpanel">
+    <div class="card shadow mb-4">
+      <div class="card-header">
+        <span class="chart-card-header"><i class="fas fa-trash-alt me-2"></i>Demandes de suppression de données ({{count_deletion_requests}})</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="alert alert-danger d-flex gap-2 align-items-start m-3 mb-0">
+          <i class="fas fa-exclamation-circle mt-1"></i>
+          <span>Ces membres ont refusé les CGU et demandé la suppression de leurs données personnelles. Traitez chaque demande conformément au RGPD puis supprimez manuellement le dossier.</span>
+        </div>
+        <div class="table-responsive mt-3">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Demande le</th>
+                <th>Dossier</th>
+              </tr>
+            </thead>
+            <tbody>{{deletion_rows}}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── History tab ──────────────────────────────────────────────────────── -->
   <div class="tab-pane fade" id="panel-history" role="tabpanel">
     <div class="card shadow mb-4">
       <div class="card-header">
@@ -210,9 +269,13 @@
 // CGU confirmation
 document.getElementById('cguForm')?.addEventListener('submit', function(e) {
   e.preventDefault();
+  var scopeAll = document.getElementById('scope_all')?.checked;
+  var msg = scopeAll
+    ? 'Un email de mise à jour des CGU sera envoyé à <strong>tous les membres</strong> (y compris ceux qui avaient déjà accepté). Continuer ?'
+    : 'Un email de rappel sera envoyé aux membres <strong>sans consentement</strong> uniquement. Continuer ?';
   Swal.fire({
     title: 'Envoyer les rappels CGU',
-    text: 'Un email avec un lien d\'acceptation unique sera envoyé à chaque membre en attente. Continuer ?',
+    html: msg,
     icon: 'question',
     showCancelButton: true,
     confirmButtonColor: '#009460',

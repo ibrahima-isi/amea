@@ -18,8 +18,10 @@ $prenom = $_SESSION['prenom'];
 $nom    = $_SESSION['nom'];
 
 // ─── Self-healing schema ───────────────────────────────────────────────────────
-try { $conn->exec("ALTER TABLE personnes ADD COLUMN cgu_token VARCHAR(64) NULL"); } catch (PDOException $e) {}
-try { $conn->exec("ALTER TABLE personnes ADD COLUMN cgu_reminder_sent_at DATETIME NULL"); } catch (PDOException $e) {}
+try { $conn->exec("ALTER TABLE personnes ADD COLUMN cgu_token VARCHAR(64) NULL"); }             catch (PDOException $e) {}
+try { $conn->exec("ALTER TABLE personnes ADD COLUMN cgu_reminder_sent_at DATETIME NULL"); }     catch (PDOException $e) {}
+try { $conn->exec("ALTER TABLE personnes ADD COLUMN consent_refused_at DATETIME NULL"); }       catch (PDOException $e) {}
+try { $conn->exec("ALTER TABLE personnes ADD COLUMN deletion_requested_at DATETIME NULL"); }    catch (PDOException $e) {}
 try {
     $conn->exec("CREATE TABLE IF NOT EXISTS communications (
         id              INT AUTO_INCREMENT PRIMARY KEY,
@@ -49,12 +51,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ── CGU reminder campaign ─────────────────────────────────────────────────
     if ($action === 'send_cgu') {
-        $stmt = $conn->query(
-            "SELECT id_personne, nom, prenom, email
-             FROM personnes
-             WHERE (consent_privacy = 0 OR consent_privacy IS NULL)
-             AND email IS NOT NULL AND email != ''"
-        );
+        // 'all' = include members who already accepted (CGU update); 'not_consented' = only those pending
+        $scope = $_POST['cgu_scope'] ?? 'not_consented';
+
+        if ($scope === 'all') {
+            $stmt = $conn->query(
+                "SELECT id_personne, nom, prenom, email, consent_privacy
+                 FROM personnes
+                 WHERE email IS NOT NULL AND email != ''"
+            );
+        } else {
+            $stmt = $conn->query(
+                "SELECT id_personne, nom, prenom, email, consent_privacy
+                 FROM personnes
+                 WHERE (consent_privacy = 0 OR consent_privacy IS NULL)
+                 AND email IS NOT NULL AND email != ''"
+            );
+        }
         $targets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $sent = 0; $errors = 0;
@@ -178,6 +191,16 @@ $notConsentedList = $conn->query(
      ORDER BY nom, prenom"
 )->fetchAll(PDO::FETCH_ASSOC);
 
+// Pending deletion requests
+$deletionRequests = $conn->query(
+    "SELECT id_personne, nom, prenom, email, deletion_requested_at
+     FROM personnes
+     WHERE deletion_requested_at IS NOT NULL
+     ORDER BY deletion_requested_at DESC"
+)->fetchAll(PDO::FETCH_ASSOC);
+
+$countDeletionRequests = count($deletionRequests);
+
 // Recent communications history
 $recentComms = $conn->query(
     "SELECT c.subject, c.sent_count, c.recipient_count, c.sent_at,
@@ -204,6 +227,22 @@ foreach ($notConsentedList as $s) {
 }
 if (empty($notConsentedRows)) {
     $notConsentedRows = '<tr><td colspan="4" class="text-center text-muted fst-italic py-3">Tous les membres ont accepté les CGU.</td></tr>';
+}
+
+$deletionRows = '';
+foreach ($deletionRequests as $d) {
+    $deletionRows .= '<tr>'
+        . '<td>' . htmlspecialchars($d['prenom'] . ' ' . $d['nom'], ENT_QUOTES, 'UTF-8') . '</td>'
+        . '<td>' . htmlspecialchars($d['email'] ?? '—', ENT_QUOTES, 'UTF-8') . '</td>'
+        . '<td>' . date('d/m/Y H:i', strtotime($d['deletion_requested_at'])) . '</td>'
+        . '<td>'
+        . '<a href="student-details.php?id=' . (int)$d['id_personne'] . '" class="btn btn-sm btn-outline-primary me-1">'
+        . '<i class="fas fa-eye"></i></a>'
+        . '</td>'
+        . '</tr>';
+}
+if (empty($deletionRows)) {
+    $deletionRows = '<tr><td colspan="4" class="text-center text-muted fst-italic py-3">Aucune demande de suppression en attente.</td></tr>';
 }
 
 $historyRows = '';
@@ -238,24 +277,33 @@ if ($result) {
         . '</div>';
 }
 
-$activeTab = ($result['tab'] ?? 'cgu') === 'bulk' ? 'bulk' : 'cgu';
 $csrfToken = generateCsrfToken();
 
 $contentTpl  = file_get_contents($contentPath);
+$activeTab = ($result['tab'] ?? 'cgu') === 'bulk' ? 'bulk'
+           : (($result['tab'] ?? 'cgu') === 'deletion' ? 'deletion' : 'cgu');
+
 $contentHtml = strtr($contentTpl, [
-    '{{result_html}}'       => $resultHtml,
-    '{{active_cgu}}'        => $activeTab === 'cgu'  ? 'show active' : '',
-    '{{active_bulk}}'       => $activeTab === 'bulk' ? 'show active' : '',
-    '{{active_tab_cgu}}'    => $activeTab === 'cgu'  ? 'active' : '',
-    '{{active_tab_bulk}}'   => $activeTab === 'bulk' ? 'active' : '',
-    '{{count_consented}}'   => (int)$cguStats['consented'],
-    '{{count_not_consented}}' => (int)$cguStats['not_consented'],
-    '{{count_reminder_sent}}' => (int)$cguStats['reminder_sent'],
-    '{{total_students}}'    => $totalStudents,
-    '{{not_consented_rows}}' => $notConsentedRows,
-    '{{history_rows}}'      => $historyRows,
-    '{{cgu_btn_disabled}}'  => (int)$cguStats['not_consented'] === 0 ? 'disabled' : '',
-    '{{csrf_token}}'        => htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'),
+    '{{result_html}}'              => $resultHtml,
+    '{{active_cgu}}'               => $activeTab === 'cgu'      ? 'show active' : '',
+    '{{active_bulk}}'              => $activeTab === 'bulk'     ? 'show active' : '',
+    '{{active_deletion}}'          => $activeTab === 'deletion' ? 'show active' : '',
+    '{{active_tab_cgu}}'           => $activeTab === 'cgu'      ? 'active' : '',
+    '{{active_tab_bulk}}'          => $activeTab === 'bulk'     ? 'active' : '',
+    '{{active_tab_deletion}}'      => $activeTab === 'deletion' ? 'active' : '',
+    '{{count_consented}}'          => (int)$cguStats['consented'],
+    '{{count_not_consented}}'      => (int)$cguStats['not_consented'],
+    '{{count_reminder_sent}}'      => (int)$cguStats['reminder_sent'],
+    '{{count_deletion_requests}}'  => $countDeletionRequests,
+    '{{total_students}}'           => $totalStudents,
+    '{{not_consented_rows}}'       => $notConsentedRows,
+    '{{deletion_rows}}'            => $deletionRows,
+    '{{history_rows}}'             => $historyRows,
+    '{{cgu_btn_disabled}}'         => $totalStudents === 0 ? 'disabled' : '',
+    '{{deletion_badge}}'           => $countDeletionRequests > 0
+        ? '<span class="badge bg-danger ms-2">' . $countDeletionRequests . '</span>'
+        : '',
+    '{{csrf_token}}'               => htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'),
 ]);
 
 $layoutTpl = file_get_contents($layoutPath);
