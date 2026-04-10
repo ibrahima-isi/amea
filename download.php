@@ -43,17 +43,18 @@ if (empty($filePath)) {
 // Resolve path — stored as relative from project root
 $absolutePath = __DIR__ . '/' . ltrim($filePath, '/');
 
-// Security: must be inside uploads/
+// 404 first: if the file simply doesn't exist on disk
+if (!is_file($absolutePath)) {
+    http_response_code(404);
+    exit('Fichier introuvable.');
+}
+
+// Security: resolved path must be inside uploads/ (prevents path traversal)
 $uploadsDir = realpath(__DIR__ . '/uploads');
 $realFile   = realpath($absolutePath);
 if ($uploadsDir === false || $realFile === false || strpos($realFile, $uploadsDir) !== 0) {
     http_response_code(403);
     exit('Accès interdit.');
-}
-
-if (!is_file($realFile)) {
-    http_response_code(404);
-    exit('Fichier introuvable.');
 }
 
 // Detect MIME type from actual content

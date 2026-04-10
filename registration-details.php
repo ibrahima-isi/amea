@@ -186,11 +186,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              $errors['identite'] = $identiteUploadResult['message'];
         }
     } else {
-        // If a new file was uploaded, delete the old one if it exists
+        // Only replace path when a new file was actually uploaded
         if ($identiteUploadResult['filepath'] !== null) {
             safeUnlink($identitePath);
+            $identitePath = $identiteUploadResult['filepath'];
         }
-        $identitePath = $identiteUploadResult['filepath'];
     }
     $formData['identite'] = $identitePath;
 
@@ -201,11 +201,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              $errors['cv'] = $cvUploadResult['message'];
         }
     } else {
-        // If a new file was uploaded, delete the old one if it exists
+        // Only replace path when a new file was actually uploaded
         if ($cvUploadResult['filepath'] !== null) {
             safeUnlink($cvPath);
+            $cvPath = $cvUploadResult['filepath'];
         }
-        $cvPath = $cvUploadResult['filepath'];
     }
     $formData['cv_path'] = $cvPath;
 
@@ -395,7 +395,7 @@ if (!empty($student['cv_path'])) {
     $cvDownloadLink = '<div class="detail-row"><span class="detail-label">CV:</span><span class="detail-value">';
     
     // Download
-    $cvDownloadLink .= '<a href="download.php?id=' . $student_id . '&type=cv" class="btn btn-sm btn-info me-2"><i class="fas fa-download"></i> Télécharger</a>';
+    $cvDownloadLink .= '<a href="' . htmlspecialchars($cvPath) . '" download target="_blank" class="btn btn-sm btn-info me-2"><i class="fas fa-download"></i> Télécharger</a>';
     
     if ($isCvPdf || $isCvImage) {
         // View
