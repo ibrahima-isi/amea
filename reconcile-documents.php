@@ -196,7 +196,8 @@ foreach ($orphaned as $file) {
     $fileUrl  = htmlspecialchars($file, ENT_QUOTES, 'UTF-8');
 
     // Decode upload timestamp from filename prefix (uniqid format: 8 hex chars = seconds)
-    $uploadTs   = (strlen($basename) >= 8) ? hexdec(substr($basename, 0, 8)) : 0;
+    $hexPrefix  = substr($basename, 0, 8);
+    $uploadTs   = (strlen($basename) >= 8 && ctype_xdigit($hexPrefix)) ? hexdec($hexPrefix) : 0;
     $uploadDate = ($uploadTs > 0) ? date('d/m/Y', $uploadTs) : '';
 
     // Split students into "suggested" (registered ±14 days) vs rest
