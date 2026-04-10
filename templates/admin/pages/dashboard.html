@@ -1,93 +1,84 @@
-<div class="row mb-4">
-  <div class="col">
-    <h1 class="h3">Tableau de Bord</h1>
-    <p class="text-muted">Bienvenue, {{user_fullname}} ! Vous êtes connecté en tant que {{role_label}}.</p>
+<!-- Page header -->
+<div class="dash-header">
+  <div>
+    <h1 class="mb-1">Tableau de bord</h1>
+    <p class="dash-subtitle">Bienvenue, <strong>{{user_fullname}}</strong> &middot; {{role_label}}</p>
   </div>
-  <div class="col-12"></div>
-</div>
-
-<!-- Cartes de statistiques -->
-<div class="row mb-4">
-  <div class="col-xl-3 col-md-6 mb-4">
-    <a href="students.php" class="text-decoration-none d-block">
-    <div class="card border-left-primary shadow h-100 py-2">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total des étudiants</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">{{stats_total}}</div>
-          </div>
-          <div class="col-auto">
-            <i class="fas fa-users fa-2x text-gray-300"></i>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="students.php" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-user-graduate me-1"></i> Étudiants
     </a>
-  </div>
-
-  <div class="col-xl-3 col-md-6 mb-4">
-    <a href="students.php" class="text-decoration-none d-block">
-    <div class="card border-left-success shadow h-100 py-2">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Hommes / Femmes</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">{{stats_hommes}} / {{stats_femmes}}</div>
-          </div>
-          <div class="col-auto">
-            <i class="fas fa-venus-mars fa-2x text-gray-300"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-    </a>
-  </div>
-
-  <div class="col-xl-3 col-md-6 mb-4">
-    <a href="students.php" class="text-decoration-none d-block">
-    <div class="card border-left-info shadow h-100 py-2">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Statut (Étudiant)</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">{{stats_etudiants}}</div>
-          </div>
-          <div class="col-auto">
-            <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-    </a>
-  </div>
-
-  <div class="col-xl-3 col-md-6 mb-4">
-    <a href="students.php" class="text-decoration-none d-block">
-    <div class="card border-left-warning shadow h-100 py-2">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Derniers ajouts</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">{{recent_week}}</div>
-            <div class="text-xs text-muted">(7 derniers jours)</div>
-          </div>
-          <div class="col-auto">
-            <i class="fas fa-calendar fa-2x text-gray-300"></i>
-          </div>
-        </div>
-      </div>
-    </div>
+    <a href="export.php" class="btn btn-primary btn-sm">
+      <i class="fas fa-file-export me-1"></i> Exporter
     </a>
   </div>
 </div>
 
-<!-- Graphiques -->
-<div class="row mb-4">
-  <div class="col-xl-6 mb-4">
-    <div class="card shadow">
+<!-- Stat cards -->
+<div class="row g-3 mb-4">
+
+  <div class="col-xl-3 col-md-6">
+    <a href="students.php" class="stat-card">
+      <div class="stat-icon stat-icon-green">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="stat-body">
+        <div class="stat-value">{{stats_total}}</div>
+        <div class="stat-label">Total inscrits</div>
+        <div class="stat-sub"><i class="fas fa-arrow-up fa-xs"></i> {{recent_week}} cette semaine</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-xl-3 col-md-6">
+    <a href="students.php" class="stat-card">
+      <div class="stat-icon stat-icon-yellow">
+        <i class="fas fa-calendar-plus"></i>
+      </div>
+      <div class="stat-body">
+        <div class="stat-value">{{recent_month}}</div>
+        <div class="stat-label">Nouveaux (30 jours)</div>
+        <div class="stat-sub"><i class="fas fa-clock fa-xs"></i> Derniers 30 jours</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-xl-3 col-md-6">
+    <a href="students.php" class="stat-card">
+      <div class="stat-icon stat-icon-dark">
+        <i class="fas fa-venus-mars"></i>
+      </div>
+      <div class="stat-body">
+        <div class="stat-value">{{stats_hommes}}&thinsp;/&thinsp;{{stats_femmes}}</div>
+        <div class="stat-label">Hommes / Femmes</div>
+        <div class="stat-sub"><i class="fas fa-mars fa-xs"></i> {{stats_hommes}} &nbsp;<i class="fas fa-venus fa-xs"></i> {{stats_femmes}}</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-xl-3 col-md-6">
+    <a href="students.php" class="stat-card">
+      <div class="stat-icon stat-icon-red">
+        <i class="fas fa-layer-group"></i>
+      </div>
+      <div class="stat-body">
+        <div class="stat-value">{{stats_etudiants}}</div>
+        <div class="stat-label">Étudiants</div>
+        <div class="stat-sub">Él.&thinsp;{{stats_eleves}} &middot; St.&thinsp;{{stats_stagiaires}}</div>
+      </div>
+    </a>
+  </div>
+
+</div>
+
+<!-- Charts row 1 -->
+<div class="row g-3 mb-3">
+  <div class="col-xl-6">
+    <div class="card shadow-sm h-100">
       <div class="card-header">
-        <h6 class="m-0 font-weight-bold">Répartition par sexe</h6>
+        <span class="chart-card-header">
+          <i class="fas fa-chart-pie"></i> Répartition par sexe
+        </span>
       </div>
       <div class="card-body">
         <div class="chart-container">
@@ -96,10 +87,12 @@
       </div>
     </div>
   </div>
-  <div class="col-xl-6 mb-4">
-    <div class="card shadow">
+  <div class="col-xl-6">
+    <div class="card shadow-sm h-100">
       <div class="card-header">
-        <h6 class="m-0 font-weight-bold">Répartition par statut</h6>
+        <span class="chart-card-header">
+          <i class="fas fa-chart-donut"></i> Répartition par statut
+        </span>
       </div>
       <div class="card-body">
         <div class="chart-container">
@@ -110,11 +103,14 @@
   </div>
 </div>
 
-<div class="row mb-4">
-  <div class="col-lg-12">
-    <div class="card shadow">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold">Top 5 des établissements</h6>
+<!-- Charts row 2 -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="card shadow-sm">
+      <div class="card-header">
+        <span class="chart-card-header">
+          <i class="fas fa-building-columns"></i> Top 5 des établissements
+        </span>
       </div>
       <div class="card-body">
         <div class="chart-container">
@@ -125,30 +121,60 @@
   </div>
 </div>
 
-
-
 <script>
-  // Chart.js - Graphique par sexe
-  var genderCtx = document.getElementById('genderChart').getContext('2d');
-  var genderChart = new Chart(genderCtx, {
-    type: 'pie',
-    data: { labels: ['Masculin', 'Féminin'], datasets: [{ data: [{{stats_hommes}}, {{stats_femmes}}], backgroundColor: ['#547792', '#94B4C1'], hoverBackgroundColor: ['#213448', '#7999A8'], hoverBorderColor: "#ECEFCA" }] },
-    options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } } }
-  });
+  var brandGreen  = '#009460';
+  var brandDark   = '#1B4D3E';
+  var brandYellow = '#FCD116';
+  var brandRed    = '#CE1126';
 
-  // Chart.js - Graphique par statut
-  var statusCtx = document.getElementById('statusChart').getContext('2d');
-  var statusChart = new Chart(statusCtx, {
+  // Gender — donut
+  new Chart(document.getElementById('genderChart').getContext('2d'), {
     type: 'doughnut',
-    data: { labels: ['Étudiants', 'Élèves', 'Stagiaires'], datasets: [{ data: [{{stats_etudiants}}, {{stats_eleves}}, {{stats_stagiaires}}], backgroundColor: ['#547792', '#94B4C1', '#ECEFCA'], hoverBackgroundColor: ['#213448', '#7999A8', '#D9DCB8'], hoverBorderColor: "#FFFFFF" }] },
+    data: {
+      labels: ['Masculin', 'Féminin'],
+      datasets: [{
+        data: [{{stats_hommes}}, {{stats_femmes}}],
+        backgroundColor: [brandGreen, brandYellow],
+        hoverBackgroundColor: [brandDark, '#b8940a'],
+        borderWidth: 2, borderColor: '#fff'
+      }]
+    },
     options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } } }
   });
 
-  // Chart.js - Graphique des établissements
-  var schoolCtx = document.getElementById('schoolChart').getContext('2d');
-  var schoolChart = new Chart(schoolCtx, {
+  // Status — donut
+  new Chart(document.getElementById('statusChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Étudiants', 'Élèves', 'Stagiaires'],
+      datasets: [{
+        data: [{{stats_etudiants}}, {{stats_eleves}}, {{stats_stagiaires}}],
+        backgroundColor: [brandGreen, brandYellow, brandRed],
+        hoverBackgroundColor: [brandDark, '#b8940a', '#a00d1f'],
+        borderWidth: 2, borderColor: '#fff'
+      }]
+    },
+    options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } } }
+  });
+
+  // Schools — bar
+  new Chart(document.getElementById('schoolChart').getContext('2d'), {
     type: 'bar',
-    data: { labels: [{{school_labels}}], datasets: [{ label: "Nombre d'étudiants", data: [{{school_values}}], backgroundColor: '#547792', hoverBackgroundColor: '#213448', borderColor: '#547792', borderWidth: 1 }] },
-    options: { maintainAspectRatio: false, responsive: true, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+    data: {
+      labels: [{{school_labels}}],
+      datasets: [{
+        label: "Inscrits",
+        data: [{{school_values}}],
+        backgroundColor: brandGreen,
+        hoverBackgroundColor: brandDark,
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      maintainAspectRatio: false, responsive: true,
+      scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } },
+      plugins: { legend: { display: false } }
+    }
   });
 </script>
