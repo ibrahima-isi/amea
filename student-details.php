@@ -68,7 +68,6 @@ ob_start(); include 'includes/sidebar.php'; $sidebarHtml = ob_get_clean();
 $flash      = getFlashMessage();
 $flash_json = $flash ? json_encode($flash) : '';
 
-$validation_script = '';
 $template = file_get_contents($contentPath);
 
 // =====================================================================
@@ -138,12 +137,17 @@ $detailsHtml .= '<h4 class="card-title mb-1">' . htmlspecialchars(($student['pre
 
 $statusColor = 'secondary';
 $statut = $student['statut'] ?? '';
-if (in_array($statut, ['Étudiant', 'ETUDIANT']))   $statusColor = 'primary';
-elseif (in_array($statut, ['Élève', 'ELEVE']))      $statusColor = 'info';
+if (in_array($statut, ['Étudiant', 'ETUDIANT']))       $statusColor = 'primary';
+elseif (in_array($statut, ['Élève', 'ELEVE']))         $statusColor = 'info';
 elseif (in_array($statut, ['Stagiaire', 'STAGIAIRE'])) $statusColor = 'warning';
+elseif (in_array($statut, ['Diplômé', 'DIPLOME']))     $statusColor = 'success';
 
 $detailsHtml .= '<div class="mb-2">';
 $detailsHtml .= '<span class="badge bg-' . $statusColor . ' me-1">' . htmlspecialchars($statut ?: 'Inconnu') . '</span>';
+if (in_array($statut, ['Diplômé', 'DIPLOME']) && !empty($student['date_diplomation'])) {
+    $promoYear = date('Y', strtotime($student['date_diplomation']));
+    $detailsHtml .= '<span class="badge bg-warning text-dark me-1"><i class="fas fa-graduation-cap me-1"></i>Promo ' . $promoYear . '</span>';
+}
 $detailsHtml .= '<span class="badge ' . ($isLocked ? 'bg-success' : 'bg-warning text-dark') . '">';
 $detailsHtml .= '<i class="fas ' . ($isLocked ? 'fa-lock' : 'fa-lock-open') . ' me-1"></i>';
 $detailsHtml .= ($isLocked ? 'Finalisé' : 'En attente') . '</span>';
@@ -171,6 +175,9 @@ $detailsHtml .= '<div class="card-body"><ul class="list-unstyled mb-0">';
 $detailsHtml .= '<li class="mb-3"><span class="d-block small text-muted">Enregistré le</span><span class="fw-bold">' . formatDateFr($student['date_enregistrement'], true) . '</span></li>';
 $detailsHtml .= '<li class="mb-3"><span class="d-block small text-muted">Statut du dossier</span>';
 $detailsHtml .= '<span class="badge ' . ($isLocked ? 'bg-success' : 'bg-warning text-dark') . '">' . ($isLocked ? 'Finalisé' : 'En cours') . '</span></li>';
+if (in_array($statut, ['Diplômé', 'DIPLOME']) && !empty($student['date_diplomation'])) {
+    $detailsHtml .= '<li class="mb-3"><span class="d-block small text-muted">Date de diplomation</span><span class="fw-bold text-success">' . formatDateFr($student['date_diplomation']) . '</span></li>';
+}
 $hasConsent = !empty($student['consent_privacy']);
 $detailsHtml .= '<li><span class="d-block small text-muted">Consentement RGPD</span>';
 if ($hasConsent) {
@@ -336,7 +343,6 @@ $output = strtr($layoutTpl, [
         '{{user_fullname}}' => htmlspecialchars($prenom . ' ' . $nom, ENT_QUOTES, 'UTF-8'),
     ]),
     '{{content}}' => $contentHtml,
-    '{{validation_script}}' => $validation_script,
     '{{admin_footer}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/footer.html'), getFooterReplacements()),
 ]);
 

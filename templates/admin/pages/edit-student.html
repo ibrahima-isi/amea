@@ -148,9 +148,24 @@
                                 <option value="Élève" {{statut_sel_Élève}}>Élève</option>
                                 <option value="Étudiant" {{statut_sel_Étudiant}}>Étudiant</option>
                                 <option value="Stagiaire" {{statut_sel_Stagiaire}}>Stagiaire</option>
+                                <option value="Diplômé" {{statut_sel_Diplômé}}>Diplômé</option>
                             </select>
                             <div class="text-danger">{{error_statut}}</div>
                         </div>
+                        <div class="col-md-6" id="date_diplomation_wrapper" style="display:none;">
+                            <label for="date_diplomation" class="form-label">Date de diplomation</label>
+                            <input type="date" class="form-control" id="date_diplomation" name="date_diplomation" value="{{date_diplomation}}">
+                            <div class="form-text">Laissez vide pour utiliser la date d'aujourd'hui.</div>
+                        </div>
+                        <script>
+                        (function() {
+                            var sel = document.getElementById('statut');
+                            var wrap = document.getElementById('date_diplomation_wrapper');
+                            function toggle() { wrap.style.display = sel.value === 'Diplômé' ? 'block' : 'none'; }
+                            sel.addEventListener('change', toggle);
+                            toggle();
+                        })();
+                        </script>
                         <div class="col-md-6">
                             <label for="domaine_etudes" class="form-label">Domaine d'études <span class="text-danger">*</span></label>
                             <select class="form-select {{is_invalid_domaine_etudes}}" id="domaine_etudes" name="domaine_etudes" required>

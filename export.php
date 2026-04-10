@@ -52,7 +52,8 @@ $allowedExportFields = [
     'precision_logement' => '`precision_logement`',
     'annee_arrivee' => '`annee_arrivee`',
     'projet_apres_formation' => '`projet_apres_formation`',
-    'date_enregistrement' => '`date_enregistrement`'
+    'date_enregistrement' => '`date_enregistrement`',
+    'date_diplomation' => '`date_diplomation`',
 ];
 
 // Traitement de l'exportation
@@ -220,31 +221,13 @@ $contentHtml = strtr($contentTpl, [
 ]);
 
 $flash = getFlashMessage();
-$flash_script = '';
-if ($flash) {
-    $flash_script = "
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({
-                    icon: '{$flash['type']}',
-                    title: 'Notification',
-                    text: '{$flash['message']}',
-                });
-            });
-        </script>
-    ";
-}
-
-$validation_script = '';
-if (!empty($error)) {
-    $validation_script = "<script>const validationErrors = " . json_encode(['form' => $error]) . ";</script>";
-}
+$flash_json = $flash ? json_encode($flash) : '';
 
 // Layout
 $layoutTpl = file_get_contents($layoutPath);
 $output = strtr($layoutTpl, [
-    '{{flash_script}}' => $flash_script,
-    '{{validation_script}}' => $validation_script,
+    '{{flash_json}}' => $flash_json,
+    '{{validation_errors_json}}' => '',
     '{{title}}' => 'AEESGS - Exporter les données',
     '{{sidebar}}' => $sidebarHtml,
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [

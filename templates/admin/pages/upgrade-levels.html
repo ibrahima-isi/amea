@@ -14,10 +14,10 @@
 <div class="row g-3 mb-4">
   <div class="col-md-4">
     <div class="stat-card">
-      <div class="stat-icon stat-icon-green"><i class="fas fa-arrow-up"></i></div>
+      <div class="stat-icon stat-icon-green"><i class="fas fa-users"></i></div>
       <div class="stat-body">
         <div class="stat-value">{{total}}</div>
-        <div class="stat-label">Étudiants à mettre à niveau</div>
+        <div class="stat-label">Éligibles à la mise à niveau</div>
       </div>
     </div>
   </div>
@@ -41,95 +41,118 @@
   </div>
 </div>
 
-<!-- Action card -->
-<div class="card shadow mb-4">
-  <div class="card-header">
-    <span class="chart-card-header"><i class="fas fa-graduation-cap"></i> Déclencher la mise à niveau</span>
-  </div>
-  <div class="card-body">
-    <p class="text-muted mb-4">
-      Choisissez entre une mise à niveau immédiate ou l'envoi d'e-mails aux étudiants pour qu'ils confirment leur nouveau niveau.
-    </p>
-    <div class="d-flex flex-wrap gap-3">
-      <form method="POST" action="upgrade-levels.php" class="d-inline" id="autoUpgradeForm">
-        <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-        <input type="hidden" name="action" value="auto_upgrade">
-        <button type="submit" class="btn btn-primary" id="btnAutoUpgrade">
+<!-- Single unified form -->
+<form method="POST" action="upgrade-levels.php" id="upgradeForm">
+  <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+  <input type="hidden" name="action" value="" id="formAction">
+
+  <div class="card shadow">
+    <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <span class="chart-card-header"><i class="fas fa-graduation-cap"></i> Étudiants — sélectionnez et choisissez le nouveau niveau</span>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnSelectAll">
+          <i class="fas fa-check-square me-1"></i>Tout sélectionner
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnDeselectAll">
+          <i class="fas fa-square me-1"></i>Tout désélectionner
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" id="upgradeTable">
+          <thead class="table-light">
+            <tr>
+              <th style="width:40px;"></th>
+              <th>Étudiant</th>
+              <th>Niveau actuel</th>
+              <th>Statut</th>
+              <th>Nouveau niveau</th>
+              <th>E-mail</th>
+            </tr>
+          </thead>
+          <tbody>{{student_rows}}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <div class="alert alert-warning d-flex align-items-start gap-2 mb-3">
+        <i class="fas fa-triangle-exclamation mt-1"></i>
+        <div>
+          Seuls les étudiants inscrits depuis plus d'1 an et n'ayant pas été mis à niveau dans les 12 derniers mois apparaissent ici (les diplômés sont exclus).<br>
+          Cochez les étudiants à mettre à niveau et choisissez leur nouveau niveau.<br>
+          <strong>Mise à niveau automatique</strong> : applique immédiatement. Action irréversible.<br>
+          <strong>E-mails de confirmation</strong> : envoie un lien valable 7 jours ; le niveau ne change qu'après confirmation de l'étudiant.
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-3">
+        <button type="button" class="btn btn-primary" id="btnAutoUpgrade">
           <i class="fas fa-bolt me-2"></i>Mise à niveau automatique
         </button>
-      </form>
-      <form method="POST" action="upgrade-levels.php" class="d-inline" id="emailForm">
-        <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-        <input type="hidden" name="action" value="send_emails">
-        <button type="submit" class="btn btn-outline-primary" id="btnSendEmails">
+        <button type="button" class="btn btn-outline-primary" id="btnSendEmails">
           <i class="fas fa-envelope me-2"></i>Envoyer e-mails de confirmation
         </button>
-      </form>
-    </div>
-    <div class="alert alert-warning d-flex align-items-start gap-2 mt-4 mb-0">
-      <i class="fas fa-triangle-exclamation mt-1"></i>
-      <div>
-        <strong>Mise à niveau automatique</strong> : applique immédiatement le niveau supérieur à tous les étudiants listés. L'action est irréversible.<br>
-        <strong>E-mails de confirmation</strong> : envoie un lien de confirmation à chaque étudiant (valable 7 jours). Le niveau ne change qu'après confirmation.
       </div>
     </div>
   </div>
-</div>
-
-<!-- Students table -->
-<div class="card shadow">
-  <div class="card-header">
-    <span class="chart-card-header"><i class="fas fa-list"></i> Étudiants concernés ({{total}})</span>
-  </div>
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-          <tr>
-            <th>Étudiant</th>
-            <th>Niveau actuel</th>
-            <th>Prochain niveau</th>
-            <th>E-mail</th>
-          </tr>
-        </thead>
-        <tbody>{{student_rows}}</tbody>
-      </table>
-    </div>
-  </div>
-</div>
+</form>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('autoUpgradeForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    Swal.fire({
-      title: 'Mise à niveau automatique',
-      text: 'Cette action va immédiatement mettre à jour le niveau de tous les étudiants listés. Continuer ?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#009460',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Oui, mettre à niveau',
-      cancelButtonText: 'Annuler'
-    }).then(function(result) {
-      if (result.isConfirmed) { document.getElementById('autoUpgradeForm').submit(); }
-    });
+document.addEventListener('DOMContentLoaded', function () {
+  var form       = document.getElementById('upgradeForm');
+  var actionField = document.getElementById('formAction');
+
+  // Select / deselect all
+  document.getElementById('btnSelectAll').addEventListener('click', function () {
+    document.querySelectorAll('.student-checkbox').forEach(function (cb) { cb.checked = true; });
+  });
+  document.getElementById('btnDeselectAll').addEventListener('click', function () {
+    document.querySelectorAll('.student-checkbox').forEach(function (cb) { cb.checked = false; });
   });
 
-  document.getElementById('emailForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+  function countSelected() {
+    return document.querySelectorAll('.student-checkbox:checked').length;
+  }
+
+  function submit(action, title, text, icon, confirmText) {
+    var n = countSelected();
+    if (n === 0) {
+      Swal.fire({ title: 'Aucun étudiant sélectionné', text: 'Cochez au moins un étudiant avant de continuer.', icon: 'info', confirmButtonColor: '#009460' });
+      return;
+    }
     Swal.fire({
-      title: 'Envoyer les e-mails',
-      text: 'Un e-mail de confirmation sera envoyé à chaque étudiant. Continuer ?',
-      icon: 'question',
+      title: title,
+      text: n + ' étudiant(s) sélectionné(s). ' + text,
+      icon: icon,
       showCancelButton: true,
       confirmButtonColor: '#009460',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Envoyer',
+      confirmButtonText: confirmText,
       cancelButtonText: 'Annuler'
-    }).then(function(result) {
-      if (result.isConfirmed) { document.getElementById('emailForm').submit(); }
+    }).then(function (result) {
+      if (result.isConfirmed) {
+        actionField.value = action;
+        form.submit();
+      }
     });
+  }
+
+  document.getElementById('btnAutoUpgrade').addEventListener('click', function () {
+    submit('auto_upgrade',
+      'Mise à niveau automatique',
+      'Leur niveau sera mis à jour immédiatement. Cette action est irréversible.',
+      'warning',
+      'Oui, mettre à niveau');
+  });
+
+  document.getElementById('btnSendEmails').addEventListener('click', function () {
+    submit('send_emails',
+      'Envoyer les e-mails',
+      'Un e-mail de confirmation leur sera envoyé (valable 7 jours).',
+      'question',
+      'Envoyer');
   });
 });
 </script>

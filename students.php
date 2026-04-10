@@ -9,6 +9,9 @@ require_once 'config/session.php';
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
 
+// Ensure date_diplomation column exists (one-time migration)
+try { $conn->exec("ALTER TABLE personnes ADD COLUMN date_diplomation DATE NULL"); } catch (PDOException $e) {}
+
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
@@ -78,6 +81,9 @@ if (!empty($sexeFilter)) {
 if (!empty($statutFilter)) {
     $whereClauses[] = "statut = :statut";
     $params[':statut'] = $statutFilter;
+} else {
+    // By default, exclude diplômés — they appear only when explicitly filtered
+    $whereClauses[] = "statut NOT IN ('Diplômé', 'DIPLOME')";
 }
 
 if (!empty($etablissementFilter)) {
@@ -168,8 +174,9 @@ $rowsHtml = '';
 if (count($students) > 0) {
     foreach ($students as $student) {
         $badgeClass = 'warning';
-        if ($student['statut'] == 'Étudiant') $badgeClass = 'primary';
-        elseif ($student['statut'] == 'Élève') $badgeClass = 'info';
+        if (in_array($student['statut'], ['Étudiant', 'ETUDIANT'])) $badgeClass = 'primary';
+        elseif (in_array($student['statut'], ['Élève', 'ELEVE'])) $badgeClass = 'info';
+        elseif (in_array($student['statut'], ['Diplômé', 'DIPLOME'])) $badgeClass = 'success';
         
         $rowsHtml .= '<tr class="align-middle">'
             . '<td>' . htmlspecialchars($student['nom'], ENT_QUOTES, 'UTF-8') . '</td>'
@@ -191,9 +198,15 @@ if (count($students) > 0) {
                  }
             }
         }
+        $statutCell = '<span class="badge bg-' . $badgeClass . '">' . htmlspecialchars($student['statut'], ENT_QUOTES, 'UTF-8') . '</span>';
+        if (in_array($student['statut'], ['Diplômé', 'DIPLOME']) && !empty($student['date_diplomation'])) {
+            $promoYear = date('Y', strtotime($student['date_diplomation']));
+            $statutCell .= '<br><small class="text-muted">Promo ' . $promoYear . '</small>';
+        }
+
         $rowsHtml .= '<td>' . $natHtml . '</td>'
             . '<td>' . htmlspecialchars($student['etablissement'], ENT_QUOTES, 'UTF-8') . '</td>'
-            . '<td><span class="badge bg-' . $badgeClass . '">' . htmlspecialchars($student['statut'], ENT_QUOTES, 'UTF-8') . '</span></td>'
+            . '<td>' . $statutCell . '</td>'
             . '<td class="text-nowrap">'
                 . '<a href="student-details.php?id=' . (int)$student['id_personne'] . '" class="btn btn-sm btn-outline-primary" title="Voir détails">'
                 . '<i class="fas fa-eye"></i></a>'
@@ -273,10 +286,11 @@ $contentTpl = file_get_contents($contentPath);
 $contentHtml = strtr($contentTpl, [
     '{{search}}' => htmlspecialchars($search, ENT_QUOTES, 'UTF-8'),
     '{{sexe_filter_Masculin}}' => ($sexeFilter == 'Masculin') ? 'selected' : '',
-    '{{sexe_filter_Féminin}}' => ($sexeFilter == 'Féminin') ? 'selected' : '',
+    '{{sexe_filter_Feminin}}' => ($sexeFilter == 'Feminin') ? 'selected' : '',
     '{{statut_filter_Élève}}' => ($statutFilter == 'Élève') ? 'selected' : '',
     '{{statut_filter_Étudiant}}' => ($statutFilter == 'Étudiant') ? 'selected' : '',
     '{{statut_filter_Stagiaire}}' => ($statutFilter == 'Stagiaire') ? 'selected' : '',
+    '{{statut_filter_Diplômé}}' => ($statutFilter == 'Diplômé') ? 'selected' : '',
     '{{etablissement_options}}' => $etabOptions,
     '{{nationality_options}}' => $natOptions,
     '{{students_rows}}' => $rowsHtml,

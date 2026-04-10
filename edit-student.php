@@ -21,6 +21,9 @@ if ($_SESSION['role'] !== 'admin') {
     exit();
 }
 
+// Ensure date_diplomation column exists (one-time migration)
+try { $conn->exec("ALTER TABLE personnes ADD COLUMN date_diplomation DATE NULL"); } catch (PDOException $e) {}
+
 // Get student ID from URL
 $student_id = $_GET['id'] ?? null;
 if (!$student_id) {
@@ -136,6 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'projet_apres_formation' => trim($_POST['projet_apres_formation'] ?? ''),
         'autre_lieu_residence' => trim($_POST['autre_lieu_residence'] ?? ''),
         'nationalites' => $_POST['nationalites'] ?? '',
+        'date_diplomation' => trim($_POST['date_diplomation'] ?? ''),
         'cv_path' => $student['cv_path'] ?? null // Keep existing CV path
     ];
 
@@ -300,14 +304,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        $sql = "UPDATE personnes SET 
-            nom = :nom, prenom = :prenom, numero_identite = :numero_identite, sexe = :sexe, 
-            date_naissance = :date_naissance, lieu_residence = :lieu_residence, etablissement = :etablissement, 
-            statut = :statut, domaine_etudes = :domaine_etudes, niveau_etudes = :niveau_etudes, 
-            telephone = :telephone, email = :email, annee_arrivee = :annee_arrivee, 
-            type_logement = :type_logement, precision_logement = :precision_logement, 
+        // Handle date_diplomation: set to today if Diplômé and no date given; null if not Diplômé
+        $finalDateDiplomation = null;
+        if ($formData['statut'] === 'Diplômé') {
+            $finalDateDiplomation = !empty($formData['date_diplomation'])
+                ? $formData['date_diplomation']
+                : date('Y-m-d');
+        }
+
+        $sql = "UPDATE personnes SET
+            nom = :nom, prenom = :prenom, numero_identite = :numero_identite, sexe = :sexe,
+            date_naissance = :date_naissance, lieu_residence = :lieu_residence, etablissement = :etablissement,
+            statut = :statut, domaine_etudes = :domaine_etudes, niveau_etudes = :niveau_etudes,
+            telephone = :telephone, email = :email, annee_arrivee = :annee_arrivee,
+            type_logement = :type_logement, precision_logement = :precision_logement,
             projet_apres_formation = :projet_apres_formation, identite = :identite,
-            nationalites = :nationalites, cv_path = :cv_path
+            nationalites = :nationalites, cv_path = :cv_path,
+            date_diplomation = :date_diplomation
             WHERE id_personne = :id_personne";
 
         $params = [
@@ -329,7 +342,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'projet_apres_formation' => $formData['projet_apres_formation'],
             'identite' => $formData['identite'],
             'nationalites' => $nationalites_json,
-            'cv_path' => $formData['cv_path'], // Added cv_path
+            'cv_path' => $formData['cv_path'],
+            'date_diplomation' => $finalDateDiplomation,
             'id_personne' => $student_id
         ];
 
@@ -467,7 +481,7 @@ $replacements = [
     '{{domaine_etudes_options}}' => $domaineOptions,
     '{{niveau_etudes_options}}' => $niveauOptions,
     '{{sexe_checked_Masculin}}' => $checked($formData['sexe'], 'Masculin'),
-    '{{sexe_checked_Feminin}}' => $checked($formData['sexe'], 'Féminin'),
+    '{{sexe_checked_Feminin}}' => $checked($formData['sexe'], 'Feminin'),
     '{{type_logement_sel_Colocation}}' => $sel($formData['type_logement'], 'Colocation'),
     '{{type_logement_sel_Famille}}' => $sel($formData['type_logement'], 'Famille'),
     '{{type_logement_sel_Hébergement temporaire}}' => $sel($formData['type_logement'], 'Hébergement temporaire'),
@@ -477,6 +491,8 @@ $replacements = [
     '{{statut_sel_Élève}}' => $sel($formData['statut'], 'Élève'),
     '{{statut_sel_Étudiant}}' => $sel($formData['statut'], 'Étudiant'),
     '{{statut_sel_Stagiaire}}' => $sel($formData['statut'], 'Stagiaire'),
+    '{{statut_sel_Diplômé}}' => $sel($formData['statut'], 'Diplômé'),
+    '{{date_diplomation}}' => htmlspecialchars($formData['date_diplomation'] ?? ($student['date_diplomation'] ?? ''), ENT_QUOTES, 'UTF-8'),
     '{{nationalites_value}}' => htmlspecialchars($nationalites_value, ENT_QUOTES, 'UTF-8'),
     '{{current_cv_display}}' => $currentCvDisplay,
     '{{autre_lieu_residence}}' => htmlspecialchars($formData['autre_lieu_residence'] ?? '', ENT_QUOTES, 'UTF-8'),
