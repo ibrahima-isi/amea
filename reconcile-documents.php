@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ─── Analyse current state ────────────────────────────────────────────────────
 $students = $conn->query(
-    "SELECT id_personne, nom, prenom, identite, cv_path FROM personnes ORDER BY nom, prenom"
+    "SELECT id_personne, nom, prenom, identite, cv_path, date_enregistrement FROM personnes ORDER BY nom, prenom"
 )->fetchAll(PDO::FETCH_ASSOC);
 
 $allDbPaths  = array_merge(
@@ -181,14 +181,10 @@ if (empty($missingRows)) {
     $missingRows = '<tr><td colspan="3" class="text-center text-muted fst-italic py-3">Aucun document manquant.</td></tr>';
 }
 
-// Build orphaned files table
-// Also build student select options (for manual assignment)
-$studentOptions = '<option value="">— Choisir un étudiant —</option>';
-foreach ($students as $s) {
-    $studentOptions .= '<option value="' . (int)$s['id_personne'] . '">'
-        . htmlspecialchars($s['prenom'] . ' ' . $s['nom'], ENT_QUOTES, 'UTF-8')
-        . '</option>';
-}
+// ─── Build orphaned files table ───────────────────────────────────────────────
+// For each orphaned file we extract the upload timestamp encoded in its uniqid
+// filename (first 8 hex chars = Unix seconds) and suggest students whose
+// date_enregistrement falls within ±14 days of that upload.
 
 $orphanRows = '';
 foreach ($orphaned as $file) {
@@ -196,33 +192,74 @@ foreach ($orphaned as $file) {
     $ext      = strtolower(pathinfo($basename, PATHINFO_EXTENSION));
     $isImage  = in_array($ext, ['jpg', 'jpeg', 'png', 'gif']);
     $isPdf    = ($ext === 'pdf');
-    $typeIcon = $isPdf ? 'fa-file-pdf text-danger' : ($isImage ? 'fa-file-image text-primary' : 'fa-file text-secondary');
     $fieldSuggestion = $isPdf ? 'cv_path' : 'identite';
     $fileUrl  = htmlspecialchars($file, ENT_QUOTES, 'UTF-8');
 
-    // Preview cell: thumbnail for images, open-link for PDFs
+    // Decode upload timestamp from filename prefix (uniqid format: 8 hex chars = seconds)
+    $uploadTs   = (strlen($basename) >= 8) ? hexdec(substr($basename, 0, 8)) : 0;
+    $uploadDate = ($uploadTs > 0) ? date('d/m/Y', $uploadTs) : '';
+
+    // Split students into "suggested" (registered ±14 days) vs rest
+    $suggested = [];
+    $others    = [];
+    foreach ($students as $s) {
+        if ($uploadTs > 0 && !empty($s['date_enregistrement'])) {
+            $diff = abs(strtotime($s['date_enregistrement']) - $uploadTs);
+            if ($diff <= 14 * 86400) {
+                $suggested[] = $s;
+                continue;
+            }
+        }
+        $others[] = $s;
+    }
+
+    // Build per-file select — suggested group first
+    $opts = '<option value="">— Choisir —</option>';
+    if (!empty($suggested)) {
+        $opts .= '<optgroup label="Suggestions (±14 jours)">';
+        foreach ($suggested as $s) {
+            $opts .= '<option value="' . (int)$s['id_personne'] . '">'
+                . htmlspecialchars($s['prenom'] . ' ' . $s['nom'], ENT_QUOTES, 'UTF-8')
+                . '</option>';
+        }
+        $opts .= '</optgroup><optgroup label="Tous les étudiants">';
+    }
+    foreach ($others as $s) {
+        $opts .= '<option value="' . (int)$s['id_personne'] . '">'
+            . htmlspecialchars($s['prenom'] . ' ' . $s['nom'], ENT_QUOTES, 'UTF-8')
+            . '</option>';
+    }
+    if (!empty($suggested)) {
+        $opts .= '</optgroup>';
+    }
+
+    // Preview cell
     if ($isImage) {
         $previewCell = '<img src="' . $fileUrl . '" alt="" style="height:56px;width:56px;object-fit:cover;border-radius:4px;cursor:pointer;" '
             . 'data-bs-toggle="modal" data-bs-target="#previewModal" '
-            . 'data-preview-src="' . $fileUrl . '" data-preview-type="image" '
+            . 'data-preview-src="' . $fileUrl . '" '
             . 'title="Cliquer pour agrandir">';
     } elseif ($isPdf) {
         $previewCell = '<a href="' . $fileUrl . '" target="_blank" class="btn btn-sm btn-outline-danger">'
-            . '<i class="fas fa-file-pdf me-1"></i>Ouvrir PDF</a>';
+            . '<i class="fas fa-file-pdf me-1"></i>Ouvrir</a>';
     } else {
         $previewCell = '<span class="text-muted small">—</span>';
     }
 
+    $dateLabel = $uploadDate
+        ? '<br><span class="text-muted small">Déposé le ' . $uploadDate . '</span>'
+        : '';
+
     $orphanRows .= '<tr>'
         . '<td style="width:70px;">' . $previewCell . '</td>'
-        . '<td><span class="font-monospace small">' . htmlspecialchars($basename, ENT_QUOTES, 'UTF-8') . '</span></td>'
+        . '<td><span class="font-monospace small">' . htmlspecialchars($basename, ENT_QUOTES, 'UTF-8') . '</span>' . $dateLabel . '</td>'
         . '<td>'
         . '<form method="POST" action="reconcile-documents.php" class="d-flex flex-wrap gap-2 align-items-center">'
         . '<input type="hidden" name="csrf_token" value="{{csrf_token}}">'
         . '<input type="hidden" name="action" value="assign_file">'
         . '<input type="hidden" name="file_path" value="' . htmlspecialchars($file, ENT_QUOTES, 'UTF-8') . '">'
-        . '<select name="student_id" class="form-select form-select-sm" style="max-width:220px;" required>'
-        . $studentOptions
+        . '<select name="student_id" class="form-select form-select-sm" style="max-width:240px;" required>'
+        . $opts
         . '</select>'
         . '<select name="field" class="form-select form-select-sm" style="max-width:120px;">'
         . '<option value="identite"' . ($fieldSuggestion === 'identite' ? ' selected' : '') . '>Identité</option>'
