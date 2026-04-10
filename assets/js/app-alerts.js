@@ -12,6 +12,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 icon: flashData.type,
                 title: title,
                 html: flashData.message,
+            }).then(function() {
+                if (flashData.redirect) {
+                    window.location.href = flashData.redirect;
+                }
             });
         }
     }

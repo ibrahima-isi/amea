@@ -55,11 +55,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$hashedPassword, $reset['email']]);
 
             // Delete the token
-            $stmt = $conn->prepare("DELETE FROM password_resets WHERE token = ?");
-            $stmt->execute([$token]);
+            $conn->prepare("DELETE FROM password_resets WHERE token = ?")->execute([$token]);
 
-            setFlashMessage('success', 'Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.');
-            header('Location: login.php');
+            // Auto-login: fetch user with active check
+            $stmt = $conn->prepare("SELECT * FROM users WHERE email = ? AND est_actif = 1");
+            $stmt->execute([$reset['email']]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($user) {
+                session_regenerate_id(true);
+                $_SESSION['user_id']      = $user['id_user'];
+                $_SESSION['username']     = $user['username'];
+                $_SESSION['role']         = $user['role'];
+                $_SESSION['nom']          = $user['nom'];
+                $_SESSION['prenom']       = $user['prenom'];
+                $_SESSION['csrf_token']   = bin2hex(random_bytes(32));
+                $_SESSION['last_activity'] = time();
+
+                $conn->prepare("UPDATE users SET derniere_connexion = NOW() WHERE id_user = ?")
+                     ->execute([$user['id_user']]);
+
+                session_write_close();
+                header('Location: dashboard.php');
+            } else {
+                setFlashMessage('error', 'Ce compte est désactivé. Veuillez contacter un administrateur.');
+                header('Location: login.php');
+            }
             exit();
         }
     }

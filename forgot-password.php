@@ -51,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if (sendMail($email, 'Réinitialisation de votre mot de passe', $emailBody)) {
                     setFlashMessage('success', 'Un lien de réinitialisation de mot de passe a été envoyé à votre adresse e-mail.');
+                    $_SESSION['flash_message']['redirect'] = 'login.php';
                 } else {
                     $conn->prepare("DELETE FROM password_resets WHERE token = ?")->execute([$token]);
                     setFlashMessage('error', 'Impossible d\'envoyer l\'e-mail de réinitialisation. Veuillez contacter un administrateur.');
