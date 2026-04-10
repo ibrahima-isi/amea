@@ -113,7 +113,7 @@
     <div class="table-responsive mt-3">
       <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
-          <tr><th>Fichier</th><th>Assigner à</th></tr>
+          <tr><th style="width:70px;">Aperçu</th><th>Fichier</th><th>Assigner à</th></tr>
         </thead>
         <tbody>{{orphan_rows}}</tbody>
       </table>
@@ -121,7 +121,38 @@
   </div>
 </div>
 
+<!-- Lightbox modal for image preview -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Aperçu du document</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body text-center p-2">
+        <img id="previewModalImg" src="" alt="Aperçu" class="img-fluid" style="max-height:80vh;">
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
+// Lightbox: populate modal image from thumbnail click
+document.addEventListener('DOMContentLoaded', function() {
+  var modal = document.getElementById('previewModal');
+  if (modal) {
+    modal.addEventListener('show.bs.modal', function(e) {
+      var trigger = e.relatedTarget;
+      if (trigger && trigger.dataset.previewSrc) {
+        document.getElementById('previewModalImg').src = trigger.dataset.previewSrc;
+      }
+    });
+    modal.addEventListener('hidden.bs.modal', function() {
+      document.getElementById('previewModalImg').src = '';
+    });
+  }
+});
+
 document.getElementById('fixPathsForm')?.addEventListener('submit', function(e) {
   e.preventDefault();
   Swal.fire({

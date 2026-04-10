@@ -198,9 +198,24 @@ foreach ($orphaned as $file) {
     $isPdf    = ($ext === 'pdf');
     $typeIcon = $isPdf ? 'fa-file-pdf text-danger' : ($isImage ? 'fa-file-image text-primary' : 'fa-file text-secondary');
     $fieldSuggestion = $isPdf ? 'cv_path' : 'identite';
+    $fileUrl  = htmlspecialchars($file, ENT_QUOTES, 'UTF-8');
+
+    // Preview cell: thumbnail for images, open-link for PDFs
+    if ($isImage) {
+        $previewCell = '<img src="' . $fileUrl . '" alt="" style="height:56px;width:56px;object-fit:cover;border-radius:4px;cursor:pointer;" '
+            . 'data-bs-toggle="modal" data-bs-target="#previewModal" '
+            . 'data-preview-src="' . $fileUrl . '" data-preview-type="image" '
+            . 'title="Cliquer pour agrandir">';
+    } elseif ($isPdf) {
+        $previewCell = '<a href="' . $fileUrl . '" target="_blank" class="btn btn-sm btn-outline-danger">'
+            . '<i class="fas fa-file-pdf me-1"></i>Ouvrir PDF</a>';
+    } else {
+        $previewCell = '<span class="text-muted small">—</span>';
+    }
 
     $orphanRows .= '<tr>'
-        . '<td><i class="fas ' . $typeIcon . ' me-2"></i><span class="font-monospace small">' . htmlspecialchars($basename) . '</span></td>'
+        . '<td style="width:70px;">' . $previewCell . '</td>'
+        . '<td><span class="font-monospace small">' . htmlspecialchars($basename, ENT_QUOTES, 'UTF-8') . '</span></td>'
         . '<td>'
         . '<form method="POST" action="reconcile-documents.php" class="d-flex flex-wrap gap-2 align-items-center">'
         . '<input type="hidden" name="csrf_token" value="{{csrf_token}}">'
@@ -219,7 +234,7 @@ foreach ($orphaned as $file) {
         . '</tr>';
 }
 if (empty($orphanRows)) {
-    $orphanRows = '<tr><td colspan="2" class="text-center text-muted fst-italic py-3">Aucun fichier orphelin détecté.</td></tr>';
+    $orphanRows = '<tr><td colspan="3" class="text-center text-muted fst-italic py-3">Aucun fichier orphelin détecté.</td></tr>';
 }
 
 // ─── Render ───────────────────────────────────────────────────────────────────
