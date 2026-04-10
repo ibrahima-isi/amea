@@ -1,0 +1,263 @@
+<div class="page-header">
+  <div>
+    <h1>Communications</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Communications</li>
+    </ol></nav>
+  </div>
+</div>
+
+{{result_html}}
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-green"><i class="fas fa-users"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{total_students}}</div>
+        <div class="stat-label">Membres inscrits</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-green"><i class="fas fa-check-circle"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{count_consented}}</div>
+        <div class="stat-label">CGU acceptées</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-yellow"><i class="fas fa-clock"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{count_not_consented}}</div>
+        <div class="stat-label">En attente de consentement</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-dark"><i class="fas fa-paper-plane"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{count_reminder_sent}}</div>
+        <div class="stat-label">Rappels CGU envoyés</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-4" id="commTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link {{active_tab_cgu}}" id="tab-cgu" data-bs-toggle="tab" data-bs-target="#panel-cgu" type="button" role="tab">
+      <i class="fas fa-file-signature me-2"></i>Consentement CGU
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link {{active_tab_bulk}}" id="tab-bulk" data-bs-toggle="tab" data-bs-target="#panel-bulk" type="button" role="tab">
+      <i class="fas fa-envelope-open-text me-2"></i>Communication libre
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-history" data-bs-toggle="tab" data-bs-target="#panel-history" type="button" role="tab">
+      <i class="fas fa-history me-2"></i>Historique
+    </button>
+  </li>
+</ul>
+
+<div class="tab-content">
+
+  <!-- ── CGU tab ───��─────────────────────────────────────────────────────── -->
+  <div class="tab-pane fade {{active_cgu}}" id="panel-cgu" role="tabpanel">
+
+    <div class="card shadow mb-4">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <span class="chart-card-header"><i class="fas fa-file-signature me-2"></i>Membres en attente de consentement ({{count_not_consented}})</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="alert alert-info d-flex gap-2 align-items-start m-3 mb-0">
+          <i class="fas fa-info-circle mt-1"></i>
+          <span>
+            Un email personnalisé avec un lien d'acceptation unique sera envoyé à chaque membre listé ci-dessous.
+            En cliquant sur le lien, le membre confirme son accord avec les CGU et la politique de confidentialité.
+          </span>
+        </div>
+        <div class="table-responsive mt-3">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Inscrit le</th>
+                <th>Statut rappel</th>
+              </tr>
+            </thead>
+            <tbody>{{not_consented_rows}}</tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer">
+        <form method="POST" action="communications.php" id="cguForm">
+          <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+          <input type="hidden" name="action" value="send_cgu">
+          <button type="submit" class="btn btn-primary" {{cgu_btn_disabled}}>
+            <i class="fas fa-paper-plane me-2"></i>Envoyer le rappel CGU à tous les membres en attente
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Bulk email tab ───────────────────────────��──────────────────────── -->
+  <div class="tab-pane fade {{active_bulk}}" id="panel-bulk" role="tabpanel">
+
+    <div class="card shadow mb-4">
+      <div class="card-header">
+        <span class="chart-card-header"><i class="fas fa-envelope-open-text me-2"></i>Envoyer un message</span>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="communications.php" id="bulkForm">
+          <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+          <input type="hidden" name="action" value="send_bulk">
+
+          <!-- Filters row -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Statut</label>
+              <select name="statut_filter" class="form-select">
+                <option value="">Tous les statuts</option>
+                <option value="ELEVE">Élève</option>
+                <option value="ETUDIANT">Étudiant</option>
+                <option value="STAGIAIRE">Stagiaire</option>
+                <option value="Diplômé">Diplômé</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Consentement CGU</label>
+              <select name="consent_filter" class="form-select">
+                <option value="">Tous</option>
+                <option value="consented">A accepté les CGU</option>
+                <option value="not_consented">N'a pas encore accepté</option>
+              </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+              <button type="button" class="btn btn-outline-secondary w-100" id="btnPreviewCount">
+                <i class="fas fa-eye me-1"></i>Aperçu des destinataires
+              </button>
+            </div>
+          </div>
+          <div id="recipientPreview" class="alert alert-secondary d-none mb-3"></div>
+
+          <!-- Subject -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Sujet <span class="text-danger">*</span></label>
+            <input type="text" name="subject" class="form-control" placeholder="Objet du message" required maxlength="255">
+          </div>
+
+          <!-- Body -->
+          <div class="mb-1">
+            <label class="form-label fw-semibold">Message <span class="text-danger">*</span></label>
+            <textarea name="body" class="form-control" rows="10" placeholder="Rédigez votre message ici..." required></textarea>
+          </div>
+          <div class="mb-4">
+            <small class="text-muted">
+              <i class="fas fa-magic me-1"></i>
+              Vous pouvez utiliser <code>{{prenom}}</code> et <code>{{nom}}</code> pour personnaliser le message.
+            </small>
+          </div>
+
+          <button type="submit" class="btn btn-success" id="btnSendBulk">
+            <i class="fas fa-paper-plane me-2"></i>Envoyer
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── History tab ───────────────────────────────────────────────���─────── -->
+  <div class="tab-pane fade" id="panel-history" role="tabpanel">
+    <div class="card shadow mb-4">
+      <div class="card-header">
+        <span class="chart-card-header"><i class="fas fa-history me-2"></i>Historique des communications (10 dernières)</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Sujet</th>
+                <th>Envoyés / Destinataires</th>
+                <th>Date</th>
+                <th>Par</th>
+              </tr>
+            </thead>
+            <tbody>{{history_rows}}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /tab-content -->
+
+<script>
+// CGU confirmation
+document.getElementById('cguForm')?.addEventListener('submit', function(e) {
+  e.preventDefault();
+  Swal.fire({
+    title: 'Envoyer les rappels CGU',
+    text: 'Un email avec un lien d\'acceptation unique sera envoyé à chaque membre en attente. Continuer ?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#009460',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Oui, envoyer',
+    cancelButtonText: 'Annuler'
+  }).then(function(r) { if (r.isConfirmed) document.getElementById('cguForm').submit(); });
+});
+
+// Bulk email confirmation
+document.getElementById('bulkForm')?.addEventListener('submit', function(e) {
+  e.preventDefault();
+  var subject = document.querySelector('[name="subject"]').value.trim();
+  if (!subject) return;
+  Swal.fire({
+    title: 'Confirmer l\'envoi',
+    html: 'Le message <strong>"' + subject.replace(/</g,'&lt;') + '"</strong> sera envoyé aux destinataires filtrés. Continuer ?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#009460',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Oui, envoyer',
+    cancelButtonText: 'Annuler'
+  }).then(function(r) { if (r.isConfirmed) document.getElementById('bulkForm').submit(); });
+});
+
+// Recipient count preview (client-side approximate)
+document.getElementById('btnPreviewCount')?.addEventListener('click', function() {
+  var div = document.getElementById('recipientPreview');
+  div.classList.remove('d-none');
+  div.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Chargement...';
+
+  var params = new URLSearchParams({
+    action: 'count_recipients',
+    statut_filter:  document.querySelector('[name="statut_filter"]').value,
+    consent_filter: document.querySelector('[name="consent_filter"]').value,
+  });
+
+  fetch('communications-count.php?' + params.toString())
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      div.innerHTML = '<i class="fas fa-users me-2"></i><strong>' + d.count + '</strong> destinataire(s) corresponde(nt) aux filtres sélectionnés.';
+    })
+    .catch(function() {
+      div.classList.add('d-none');
+    });
+});
+</script>

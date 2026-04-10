@@ -55,6 +55,11 @@ function sidebarActive(array $pages): string {
             <span>Documents</span>
         </a>
 
+        <a href="communications.php" class="sidebar-link <?= sidebarActive(['communications.php']) ?>">
+            <i class="fas fa-envelope-open-text"></i>
+            <span>Communications</span>
+        </a>
+
         <a href="settings.php" class="sidebar-link <?= sidebarActive(['settings.php']) ?>">
             <i class="fas fa-sliders-h"></i>
             <span>Paramètres</span>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEESGS – Acceptation des CGU</title>
+<style>
+  body { margin:0; padding:0; background:#f4f4f4; font-family:Arial,sans-serif; }
+  .wrapper { max-width:600px; margin:30px auto; background:#ffffff; border-radius:8px; overflow:hidden; }
+  .header { background:#009460; padding:30px; text-align:center; }
+  .header h1 { color:#ffffff; margin:0; font-size:22px; letter-spacing:1px; }
+  .header p { color:rgba(255,255,255,0.8); margin:8px 0 0; font-size:13px; }
+  .body { padding:30px; color:#333333; line-height:1.7; }
+  .body h2 { color:#009460; margin-top:0; }
+  .note { background:#f0f9f4; border-left:4px solid #009460; padding:14px 18px; border-radius:4px; font-size:14px; margin:20px 0; }
+  .btn-wrap { text-align:center; margin:28px 0; }
+  .btn { display:inline-block; background:#009460; color:#ffffff !important; padding:14px 36px; border-radius:6px; text-decoration:none; font-size:16px; font-weight:bold; }
+  .footer { background:#f4f4f4; padding:20px 30px; text-align:center; font-size:12px; color:#999999; }
+  .footer a { color:#009460; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <h1>AEESGS</h1>
+    <p>Association des Étudiants et Élèves Sénégalais en Guinée et Sous-région</p>
+  </div>
+  <div class="body">
+    <h2>Bonjour {{prenom}} {{nom}},</h2>
+    <p>
+      Dans le cadre de la mise en conformité de notre plateforme, nous vous invitons à accepter
+      nos <strong>Conditions Générales d'Utilisation (CGU)</strong> et notre
+      <strong>politique de confidentialité</strong>.
+    </p>
+    <div class="note">
+      Ces documents précisent comment vos données personnelles sont collectées, utilisées et protégées
+      par l'AEESGS. Votre consentement est nécessaire pour maintenir votre dossier actif.
+    </div>
+    <p>Cliquez sur le bouton ci-dessous pour consulter les documents et confirmer votre accord :</p>
+    <div class="btn-wrap">
+      <a href="{{accept_url}}" class="btn">J'accepte les CGU</a>
+    </div>
+    <p style="font-size:13px;color:#777;">
+      Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>
+      <a href="{{accept_url}}" style="color:#009460;word-break:break-all;">{{accept_url}}</a>
+    </p>
+    <p style="margin-top:24px;">Cordialement,<br><strong>L'équipe AEESGS</strong></p>
+  </div>
+  <div class="footer">
+    <p>Ce message est automatique, merci de ne pas y répondre directement.</p>
+    <p>Pour toute question : <a href="mailto:contact@aeesgs.org">contact@aeesgs.org</a></p>
+  </div>
+</div>
+</body>
+</html>
