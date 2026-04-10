@@ -16,6 +16,22 @@ require_once 'functions/email-service.php';
 $prenom = $_SESSION['prenom'];
 $nom    = $_SESSION['nom'];
 
+// ─── Ensure table exists (runs once, no-op if already there) ─────────────
+$conn->exec("CREATE TABLE IF NOT EXISTS pending_level_upgrades (
+    id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    personne_id   INT NOT NULL,
+    ancien_niveau VARCHAR(100) NOT NULL,
+    nouveau_niveau VARCHAR(100) NOT NULL,
+    token         VARCHAR(100) NOT NULL UNIQUE,
+    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at    DATETIME NOT NULL,
+    confirmed_at  DATETIME NULL,
+    INDEX idx_token    (token),
+    INDEX idx_personne (personne_id),
+    CONSTRAINT fk_plu_personne FOREIGN KEY (personne_id)
+        REFERENCES personnes(id_personne) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
 // ─── Level progression map ────────────────────────────────────────────────
 const GRADE_NEXT = [
     'Seconde'                                         => 'Première',
