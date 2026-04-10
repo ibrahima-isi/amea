@@ -205,7 +205,7 @@ foreach ($orphaned as $file) {
     foreach ($students as $s) {
         if ($uploadTs > 0 && !empty($s['date_enregistrement'])) {
             $diff = abs(strtotime($s['date_enregistrement']) - $uploadTs);
-            if ($diff <= 14 * 86400) {
+            if ($diff <= 5 * 60) {
                 $suggested[] = $s;
                 continue;
             }
@@ -216,7 +216,7 @@ foreach ($orphaned as $file) {
     // Build per-file select — suggested group first
     $opts = '<option value="">— Choisir —</option>';
     if (!empty($suggested)) {
-        $opts .= '<optgroup label="Suggestions (±14 jours)">';
+        $opts .= '<optgroup label="Suggestions (±5 min)">';
         foreach ($suggested as $s) {
             $opts .= '<option value="' . (int)$s['id_personne'] . '">'
                 . htmlspecialchars($s['prenom'] . ' ' . $s['nom'], ENT_QUOTES, 'UTF-8')
