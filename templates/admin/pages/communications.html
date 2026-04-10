@@ -133,8 +133,31 @@
                   <strong>Tous les membres</strong> — y compris ceux qui ont déjà accepté (mise à jour des CGU)
                 </label>
               </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="cgu_scope" id="scope_selected" value="selected">
+                <label class="form-check-label" for="scope_selected">
+                  <strong>Sélectionner des membres spécifiques</strong>
+                </label>
+              </div>
             </div>
           </div>
+
+          <!-- Checkbox list — shown only when "selected" is chosen -->
+          <div id="selectedStudentsPanel" class="mb-3" style="display:none;">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <label class="form-label fw-semibold mb-0">Membres à contacter</label>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="btnSelectAll">Tout sélectionner</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="btnSelectNone">Tout désélectionner</button>
+              </div>
+            </div>
+            <input type="text" class="form-control form-control-sm mb-2" id="studentSearch" placeholder="Rechercher un membre…">
+            <div id="studentCheckboxList" style="max-height:320px;overflow-y:auto;border:1px solid #dee2e6;border-radius:6px;">
+              {{student_checkboxes}}
+            </div>
+            <small class="text-muted mt-1 d-block"><span id="selectedCount">0</span> membre(s) sélectionné(s)</small>
+          </div>
+
           <button type="submit" class="btn btn-primary" {{cgu_btn_disabled}}>
             <i class="fas fa-paper-plane me-2"></i>Envoyer
           </button>
@@ -266,13 +289,59 @@
 </div><!-- /tab-content -->
 
 <script>
+// Show/hide the student selection panel based on radio choice
+document.querySelectorAll('[name="cgu_scope"]').forEach(function(radio) {
+  radio.addEventListener('change', function() {
+    document.getElementById('selectedStudentsPanel').style.display =
+      this.value === 'selected' ? 'block' : 'none';
+  });
+});
+
+// Live search filter
+document.getElementById('studentSearch')?.addEventListener('input', function() {
+  var q = this.value.toLowerCase();
+  document.querySelectorAll('.student-checkbox-item').forEach(function(el) {
+    el.style.display = el.dataset.name.includes(q) ? '' : 'none';
+  });
+});
+
+// Select all / none (visible only)
+document.getElementById('btnSelectAll')?.addEventListener('click', function() {
+  document.querySelectorAll('.student-checkbox-item:not([style*="none"]) input[type=checkbox]')
+    .forEach(function(cb) { cb.checked = true; });
+  updateCount();
+});
+document.getElementById('btnSelectNone')?.addEventListener('click', function() {
+  document.querySelectorAll('.student-checkbox-item input[type=checkbox]')
+    .forEach(function(cb) { cb.checked = false; });
+  updateCount();
+});
+
+function updateCount() {
+  var n = document.querySelectorAll('#studentCheckboxList input[type=checkbox]:checked').length;
+  var el = document.getElementById('selectedCount');
+  if (el) el.textContent = n;
+}
+document.getElementById('studentCheckboxList')?.addEventListener('change', updateCount);
+
 // CGU confirmation
 document.getElementById('cguForm')?.addEventListener('submit', function(e) {
   e.preventDefault();
-  var scopeAll = document.getElementById('scope_all')?.checked;
+  var scopeAll      = document.getElementById('scope_all')?.checked;
+  var scopeSelected = document.getElementById('scope_selected')?.checked;
+  var selectedCount = document.querySelectorAll('#studentCheckboxList input[type=checkbox]:checked').length;
+
+  if (scopeSelected && selectedCount === 0) {
+    Swal.fire({ title: 'Aucun membre sélectionné', text: 'Veuillez cocher au moins un membre.', icon: 'warning', confirmButtonColor: '#009460' });
+    return;
+  }
+
   var msg = scopeAll
     ? 'Un email de mise à jour des CGU sera envoyé à <strong>tous les membres</strong> (y compris ceux qui avaient déjà accepté). Continuer ?'
-    : 'Un email de rappel sera envoyé aux membres <strong>sans consentement</strong> uniquement. Continuer ?';
+    : scopeSelected
+      ? 'Un email CGU sera envoyé aux <strong>' + selectedCount + ' membre(s) sélectionné(s)</strong>. Continuer ?'
+      : 'Un email de rappel sera envoyé aux membres <strong>sans consentement</strong> uniquement. Continuer ?';
+
   Swal.fire({
     title: 'Envoyer les rappels CGU',
     html: msg,

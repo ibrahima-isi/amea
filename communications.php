@@ -54,7 +54,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 'all' = include members who already accepted (CGU update); 'not_consented' = only those pending
         $scope = $_POST['cgu_scope'] ?? 'not_consented';
 
-        if ($scope === 'all') {
+        if ($scope === 'selected') {
+            $rawIds = array_filter(array_map('intval', (array)($_POST['selected_ids'] ?? [])), fn($id) => $id > 0);
+            if (empty($rawIds)) {
+                $result = ['type' => 'error', 'message' => 'Aucun membre sélectionné.', 'tab' => 'cgu'];
+                goto render;
+            }
+            $placeholders = implode(',', array_fill(0, count($rawIds), '?'));
+            $stmt = $conn->prepare(
+                "SELECT id_personne, nom, prenom, email, consent_privacy
+                 FROM personnes
+                 WHERE id_personne IN ($placeholders)
+                 AND email IS NOT NULL AND email != ''"
+            );
+            $stmt->execute(array_values($rawIds));
+        } elseif ($scope === 'all') {
             $stmt = $conn->query(
                 "SELECT id_personne, nom, prenom, email, consent_privacy
                  FROM personnes
@@ -172,6 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+render:
 // ─── Stats ─────────────────────────────────────────────────────────────────────
 $cguStats = $conn->query(
     "SELECT
@@ -201,6 +216,12 @@ $deletionRequests = $conn->query(
 
 $countDeletionRequests = count($deletionRequests);
 
+// All students for the selection checkbox list
+$allStudentsForSelect = $conn->query(
+    "SELECT id_personne, nom, prenom, email, consent_privacy
+     FROM personnes ORDER BY nom, prenom"
+)->fetchAll(PDO::FETCH_ASSOC);
+
 // Recent communications history
 $recentComms = $conn->query(
     "SELECT c.subject, c.sent_count, c.recipient_count, c.sent_at,
@@ -227,6 +248,24 @@ foreach ($notConsentedList as $s) {
 }
 if (empty($notConsentedRows)) {
     $notConsentedRows = '<tr><td colspan="4" class="text-center text-muted fst-italic py-3">Tous les membres ont accepté les CGU.</td></tr>';
+}
+
+// Student checkboxes for manual CGU selection
+$studentCheckboxes = '';
+foreach ($allStudentsForSelect as $s) {
+    $consentBadge = $s['consent_privacy'] == 1
+        ? '<span class="badge bg-success ms-2">CGU acceptées</span>'
+        : '<span class="badge bg-warning text-dark ms-2">En attente</span>';
+    $studentCheckboxes .= '<div class="student-checkbox-item d-flex align-items-center gap-2 px-3 py-2 border-bottom"'
+        . ' data-name="' . htmlspecialchars(strtolower($s['prenom'] . ' ' . $s['nom']), ENT_QUOTES, 'UTF-8') . '">'
+        . '<input class="form-check-input flex-shrink-0 mt-0" type="checkbox" name="selected_ids[]"'
+        . ' value="' . (int)$s['id_personne'] . '" id="cgu_std_' . (int)$s['id_personne'] . '">'
+        . '<label class="form-check-label flex-grow-1" for="cgu_std_' . (int)$s['id_personne'] . '">'
+        . '<span class="fw-semibold">' . htmlspecialchars($s['prenom'] . ' ' . $s['nom'], ENT_QUOTES, 'UTF-8') . '</span>'
+        . $consentBadge
+        . '<br><small class="text-muted">' . htmlspecialchars($s['email'] ?? '—', ENT_QUOTES, 'UTF-8') . '</small>'
+        . '</label>'
+        . '</div>';
 }
 
 $deletionRows = '';
@@ -297,6 +336,7 @@ $contentHtml = strtr($contentTpl, [
     '{{count_deletion_requests}}'  => $countDeletionRequests,
     '{{total_students}}'           => $totalStudents,
     '{{not_consented_rows}}'       => $notConsentedRows,
+    '{{student_checkboxes}}'       => $studentCheckboxes,
     '{{deletion_rows}}'            => $deletionRows,
     '{{history_rows}}'             => $historyRows,
     '{{cgu_btn_disabled}}'         => $totalStudents === 0 ? 'disabled' : '',
