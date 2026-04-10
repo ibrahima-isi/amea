@@ -1,3 +1,6 @@
+/* Inter — enterprise-grade font used across the whole site */
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap');
+
 /* Custom color palette - Professional Guinea Theme */
 :root {
     --brand-dark: #1B4D3E;   /* Deep Forest Green */
@@ -6,6 +9,9 @@
     --brand-danger: #CE1126;  /* Guinea Red */
     --brand-light: #FFFDE7;   /* Pale Cream/Yellow */
     --brand-subtle: #E8F5E9;  /* Light Green Tint */
+    --font-base: 'Inter', system-ui, -apple-system, sans-serif;
+    --bs-body-font-family: var(--font-base);
+    --bs-font-sans-serif: var(--font-base);
 }
 
 /* Override Bootstrap colors */
@@ -162,7 +168,8 @@ footer a.text-white:hover {
 
 /* General responsive improvements */
 body {
-    font-size: 1rem;
+    font-family: var(--font-base);
+    font-size: 0.9375rem; /* 15px — compact and consistent with sidebar */
     background-color: #Fdfdfd;
 }
 
@@ -185,10 +192,6 @@ h2, .h2 { font-size: 1.5rem; }
 h3, .h3 { font-size: 1.25rem; }
 
 @media (min-width: 768px) {
-    body {
-        font-size: 1.1rem;
-    }
-
     h1, .h1 { font-size: 2.5rem; }
     h2, .h2 { font-size: 2rem; }
     h3, .h3 { font-size: 1.75rem; }
