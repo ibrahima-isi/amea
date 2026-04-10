@@ -1,34 +1,66 @@
-<!-- Sidebar -->
-<div class="border-end bg-dark" id="sidebar-wrapper">
-    <div class="sidebar-heading border-bottom text-white">
-        <i class="fas fa-graduation-cap"></i> AEESGS Admin
+<?php
+$role   = $_SESSION['role']   ?? '';
+$prenom = htmlspecialchars($_SESSION['prenom'] ?? '', ENT_QUOTES, 'UTF-8');
+$nom    = htmlspecialchars($_SESSION['nom']    ?? '', ENT_QUOTES, 'UTF-8');
+
+function sidebarActive(array $pages): string {
+    return in_array(basename($_SERVER['PHP_SELF']), $pages) ? 'active' : '';
+}
+?>
+<div id="sidebar-wrapper">
+
+    <div class="sidebar-brand">
+        <i class="fas fa-graduation-cap"></i>
+        <span class="sidebar-brand-text">AEESGS Admin</span>
     </div>
-    <div class="list-group list-group-flush">
-        <a href="dashboard.php" class="list-group-item list-group-item-action bg-dark text-white <?php echo (basename($_SERVER['PHP_SELF']) == 'dashboard.php') ? 'active' : ''; ?>">
-            <i class="fas fa-tachometer-alt me-2"></i> Tableau de bord
+
+    <nav class="sidebar-nav">
+        <div class="sidebar-section-label">Navigation</div>
+
+        <a href="dashboard.php" class="sidebar-link <?= sidebarActive(['dashboard.php']) ?>">
+            <i class="fas fa-chart-line"></i>
+            <span>Tableau de bord</span>
         </a>
-        <a href="students.php" class="list-group-item list-group-item-action bg-dark text-white <?php echo (basename($_SERVER['PHP_SELF']) == 'students.php' || basename($_SERVER['PHP_SELF']) == 'student-details.php' || basename($_SERVER['PHP_SELF']) == 'edit-student.php') ? 'active' : ''; ?>">
-            <i class="fas fa-user-graduate me-2"></i> Étudiants
+
+        <a href="students.php" class="sidebar-link <?= sidebarActive(['students.php', 'student-details.php', 'edit-student.php']) ?>">
+            <i class="fas fa-user-graduate"></i>
+            <span>Étudiants</span>
         </a>
-        <a href="profile.php" class="list-group-item list-group-item-action bg-dark text-white <?php echo (basename($_SERVER['PHP_SELF']) == 'profile.php') ? 'active' : ''; ?>">
-            <i class="fas fa-user-cog me-2"></i> Profil
+
+        <a href="export.php" class="sidebar-link <?= sidebarActive(['export.php']) ?>">
+            <i class="fas fa-file-export"></i>
+            <span>Export</span>
         </a>
-        <?php if ($role == 'admin'): ?>
-            <a href="users.php" class="list-group-item list-group-item-action bg-dark text-white <?php echo (basename($_SERVER['PHP_SELF']) == 'users.php' || basename($_SERVER['PHP_SELF']) == 'add-user.php' || basename($_SERVER['PHP_SELF']) == 'edit-user.php') ? 'active' : ''; ?>">
-                <i class="fas fa-users-cog me-2"></i> Utilisateurs
-            </a>
-            <a href="manage-slider.php" class="list-group-item list-group-item-action bg-dark text-white <?php echo (basename($_SERVER['PHP_SELF']) == 'manage-slider.php') ? 'active' : ''; ?>">
-                <i class="fas fa-images me-2"></i> Gérer le carrousel
-            </a>
-            <a href="settings.php" class="list-group-item list-group-item-action bg-dark text-white <?php echo (basename($_SERVER['PHP_SELF']) == 'settings.php') ? 'active' : ''; ?>">
-                <i class="fas fa-cogs me-2"></i> Paramètres
-            </a>
+
+        <?php if ($role === 'admin'): ?>
+        <div class="sidebar-section-label">Administration</div>
+
+        <a href="users.php" class="sidebar-link <?= sidebarActive(['users.php', 'add-user.php', 'edit-user.php']) ?>">
+            <i class="fas fa-users"></i>
+            <span>Utilisateurs</span>
+        </a>
+
+        <a href="manage-slider.php" class="sidebar-link <?= sidebarActive(['manage-slider.php']) ?>">
+            <i class="fas fa-images"></i>
+            <span>Carrousel</span>
+        </a>
+
+        <a href="settings.php" class="sidebar-link <?= sidebarActive(['settings.php']) ?>">
+            <i class="fas fa-sliders-h"></i>
+            <span>Paramètres</span>
+        </a>
         <?php endif; ?>
-        <a href="export.php" class="list-group-item list-group-item-action bg-dark text-white <?php echo (basename($_SERVER['PHP_SELF']) == 'export.php') ? 'active' : ''; ?>">
-            <i class="fas fa-file-export me-2"></i> Export
+    </nav>
+
+    <div class="sidebar-footer">
+        <a href="profile.php" class="sidebar-link <?= sidebarActive(['profile.php']) ?>">
+            <i class="fas fa-user-circle"></i>
+            <span><?= $prenom ?> <?= $nom ?></span>
         </a>
-        <a href="logout.php" class="list-group-item list-group-item-action bg-dark text-white <?php echo (basename($_SERVER['PHP_SELF']) == 'logout.php') ? 'active' : ''; ?>">
-            <i class="fas fa-sign-out-alt me-2"></i> Déconnexion
+        <a href="logout.php" class="sidebar-link sidebar-link-logout">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Déconnexion</span>
         </a>
     </div>
+
 </div>

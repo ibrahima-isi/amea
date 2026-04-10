@@ -21,11 +21,17 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var btn = document.getElementById('sidebarToggle');
+            var overlay = document.getElementById('sidebar-overlay');
+            var wrap = document.getElementById('wrapper');
             if (btn) {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    var wrap = document.getElementById('wrapper');
                     if (wrap) wrap.classList.toggle('toggled');
+                });
+            }
+            if (overlay) {
+                overlay.addEventListener('click', function() {
+                    if (wrap) wrap.classList.remove('toggled');
                 });
             }
         });
