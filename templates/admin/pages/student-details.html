@@ -1,27 +1,20 @@
-<div class="row mb-4">
-  <div class="col-md-8">
-    <h1 class="h3">Détails de l'étudiant</h1>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Détails de l'étudiant</li>
-      </ol>
-    </nav>
+<div class="page-header">
+  <div>
+    <h1>Détails de l'étudiant</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+      <li class="breadcrumb-item"><a href="students.php">Étudiants</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Détails</li>
+    </ol></nav>
   </div>
-  <div class="col-md-4 text-end">
-    <a href="students.php" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Retour
-    </a>
-    <a href="edit-student.php?id={{student_id}}" class="btn btn-primary">
-      <i class="fas fa-edit"></i> Modifier
-    </a>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="students.php" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i> Retour</a>
+    <a href="edit-student.php?id={{student_id}}" class="btn btn-primary btn-sm"><i class="fas fa-edit me-1"></i> Modifier</a>
     <form action="students.php" method="POST" class="d-inline">
       <input type="hidden" name="action" value="delete">
       <input type="hidden" name="id" value="{{student_id}}">
       <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-      <button type="submit" class="btn btn-danger btn-delete-student">
-          <i class="fas fa-trash"></i> Supprimer
-      </button>
+      <button type="submit" class="btn btn-danger btn-sm btn-delete-student"><i class="fas fa-trash me-1"></i> Supprimer</button>
     </form>
   </div>
 </div>

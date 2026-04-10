@@ -1,14 +1,11 @@
-<div class="row mb-4">
-  <div class="col">
-    <h1 class="h3">Profil Administrateur</h1>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Profil</li>
-      </ol>
-    </nav>
+<div class="page-header">
+  <div>
+    <h1>Profil Administrateur</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Profil</li>
+    </ol></nav>
   </div>
-  <div class="col-12"></div>
 </div>
 
 {{error_block}}
@@ -18,14 +15,14 @@
   <div class="col-md-4 mb-4">
     <div class="card shadow">
       <div class="card-header">
-        <h5 class="m-0 font-weight-bold">Informations du compte</h5>
+        <span class="chart-card-header"><i class="fas fa-id-card"></i> Informations du compte</span>
       </div>
       <div class="card-body">
         <div class="text-center mb-4">
           <div class="avatar-placeholder rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center avatar-lg">
             {{avatar_initials}}
           </div>
-          <h4 class="font-weight-bold">{{display_name}}</h4>
+          <h4 class="fw-bold">{{display_name}}</h4>
           <p class="mb-1 text-muted">Utilisateur: <strong>{{username}}</strong></p>
           <span class="badge bg-primary">Rôle: {{role}}</span>
         </div>
@@ -38,7 +35,7 @@
   <div class="col-md-8 mb-4">
     <div class="card shadow mb-4">
       <div class="card-header">
-        <h5 class="m-0 font-weight-bold">Mettre à jour le profil</h5>
+        <span class="chart-card-header"><i class="fas fa-user-pen"></i> Mettre à jour le profil</span>
       </div>
       <div class="card-body">
         <form method="POST" action="{{form_action}}">
@@ -68,7 +65,7 @@
 
     <div class="card shadow">
       <div class="card-header">
-        <h5 class="m-0 font-weight-bold">Changer le mot de passe</h5>
+        <span class="chart-card-header"><i class="fas fa-lock"></i> Changer le mot de passe</span>
       </div>
       <div class="card-body">
         <form method="POST" action="{{form_action}}" id="passwordForm">

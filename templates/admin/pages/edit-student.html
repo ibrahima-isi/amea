@@ -1,15 +1,13 @@
-<div class="row mb-4">
-    <link rel="stylesheet" href="assets/css/tagify.css">
-    <div class="col">
-        <h1 class="h3">Modifier l'étudiant</h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
-                <li class="breadcrumb-item"><a href="students.php">Gestion des étudiants</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Modifier l'étudiant</li>
-            </ol>
-        </nav>
-    </div>
+<link rel="stylesheet" href="assets/css/tagify.css">
+<div class="page-header">
+  <div>
+    <h1>Modifier l'étudiant</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+      <li class="breadcrumb-item"><a href="students.php">Étudiants</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Modifier</li>
+    </ol></nav>
+  </div>
 </div>
 
 {{feedback_block}}
@@ -18,7 +16,7 @@
     <div class="col-lg-10 mx-auto">
         <div class="card shadow">
             <div class="card-header">
-                <h5 class="m-0 font-weight-bold">Mettez à jour les informations de l'étudiant</h5>
+                <span class="chart-card-header"><i class="fas fa-user-edit"></i> Mettez à jour les informations de l'étudiant</span>
             </div>
             <div class="card-body">
                 <form action="{{form_action}}" method="POST" id="editStudentForm" enctype="multipart/form-data" novalidate>

@@ -1,15 +1,21 @@
-<div class="row mb-3">
-  <div class="col">
-    <h1 class="h3">Gestion des utilisateurs</h1>
+<div class="page-header">
+  <div>
+    <h1>Gestion des utilisateurs</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Utilisateurs</li>
+    </ol></nav>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="add-user.php" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i> Ajouter un utilisateur</a>
   </div>
 </div>
 
 {{message_block}}
 
 <div class="card shadow">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <h5 class="m-0">Liste des utilisateurs</h5>
-    <a href="add-user.php" class="btn btn-primary"><i class="fas fa-plus"></i> Ajouter un utilisateur</a>
+  <div class="card-header">
+    <span class="chart-card-header"><i class="fas fa-users"></i> Liste des utilisateurs</span>
   </div>
   <div class="card-body">
     <div class="table-responsive">

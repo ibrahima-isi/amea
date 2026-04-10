@@ -1,12 +1,10 @@
-<div class="row mb-4">
-  <div class="col">
-    <h1 class="h3">Exporter les données</h1>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Exporter les données</li>
-      </ol>
-    </nav>
+<div class="page-header">
+  <div>
+    <h1>Exporter les données</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Exporter</li>
+    </ol></nav>
   </div>
 </div>
 
@@ -15,7 +13,7 @@
 
 <div class="card shadow mb-4">
   <div class="card-header">
-    <h5 class="m-0 font-weight-bold">Exporter les données des étudiants</h5>
+    <span class="chart-card-header"><i class="fas fa-file-export"></i> Exporter les données des étudiants</span>
   </div>
   <div class="card-body">
     <form method="POST" action="{{form_action}}">
@@ -23,8 +21,8 @@
       <div class="row mb-4">
         <div class="col-lg-6">
           <div class="card h-100">
-            <div class="card-header bg-light">
-              <h6 class="m-0">Champs à exporter</h6>
+            <div class="card-header">
+              <span class="chart-card-header"><i class="fas fa-list-check"></i> Champs à exporter</span>
             </div>
             <div class="card-body">
               <div class="mb-3">
@@ -68,8 +66,8 @@
 
         <div class="col-lg-6">
           <div class="card h-100">
-            <div class="card-header bg-light">
-              <h6 class="m-0">Filtres et format d'exportation</h6>
+            <div class="card-header">
+              <span class="chart-card-header"><i class="fas fa-sliders"></i> Filtres et format d'exportation</span>
             </div>
             <div class="card-body">
               <div class="mb-4">

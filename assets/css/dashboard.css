@@ -13,9 +13,10 @@
 }
 
 /* ═══════════════════════════════════════
-   DASHBOARD — Page header
+   ADMIN — Page headers (all pages)
 ═══════════════════════════════════════ */
-.dash-header {
+.dash-header,
+.page-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -25,7 +26,10 @@
     padding-bottom: 1.25rem;
     border-bottom: 1px solid rgba(0,0,0,0.07);
 }
-.dash-header h1 { font-size: 1.35rem; font-weight: 700; margin-bottom: 2px; }
+.dash-header h1,
+.page-header h1 { font-size: 1.35rem; font-weight: 700; margin-bottom: 2px; }
+.dash-subtitle,
+.page-header .breadcrumb { font-size: 0.8rem; margin: 0; }
 .dash-subtitle { font-size: 0.85rem; color: #888; margin: 0; }
 
 /* ═══════════════════════════════════════

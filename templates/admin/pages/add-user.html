@@ -1,13 +1,11 @@
-<div class="row mb-4">
-  <div class="col">
-    <h1 class="h3">Ajouter un utilisateur</h1>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
-        <li class="breadcrumb-item"><a href="users.php">Gestion des utilisateurs</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Ajouter un utilisateur</li>
-      </ol>
-    </nav>
+<div class="page-header">
+  <div>
+    <h1>Ajouter un utilisateur</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+      <li class="breadcrumb-item"><a href="users.php">Utilisateurs</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Ajouter</li>
+    </ol></nav>
   </div>
 </div>
 
@@ -17,7 +15,7 @@
   <div class="col-md-8 mx-auto">
     <div class="card shadow">
       <div class="card-header">
-        <h5 class="m-0 font-weight-bold">Informations de l'utilisateur</h5>
+        <span class="chart-card-header"><i class="fas fa-user-plus"></i> Informations de l'utilisateur</span>
       </div>
       <div class="card-body">
         <form method="POST" action="{{form_action}}" novalidate>

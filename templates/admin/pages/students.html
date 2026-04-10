@@ -1,10 +1,20 @@
+<div class="page-header">
+  <div>
+    <h1>Gestion des étudiants</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Étudiants</li>
+    </ol></nav>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="export.php" class="btn btn-outline-secondary btn-sm"><i class="fas fa-file-export me-1"></i> Exporter</a>
+  </div>
+</div>
+
 <!-- Filtres et liste des étudiants -->
 <div class="card shadow mb-4">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <h6 class="m-0 font-weight-bold">Liste des étudiants</h6>
-    <a href="export.php" class="btn btn-outline-light btn-sm">
-      <i class="fas fa-file-export"></i> Exporter
-    </a>
+  <div class="card-header">
+    <span class="chart-card-header"><i class="fas fa-user-graduate"></i> Liste des étudiants</span>
   </div>
   <div class="card-body">
     <form method="GET" action="students.php" class="mb-4" id="filterForm">
