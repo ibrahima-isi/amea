@@ -115,10 +115,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             $resetLink = env('APP_URL', 'http://localhost') . '/reset-password.php?token=' . $token;
             $emailBody = renderEmailTemplate(__DIR__ . '/templates/emails/password-reset-email.html', [
-                '{{prenom}}'     => htmlspecialchars($userInfo['prenom']),
-                '{{nom}}'        => htmlspecialchars($userInfo['nom']),
-                '{{reset_link}}' => $resetLink,
-                '{{expires_in}}' => '1 heure',
+                'prenom'     => htmlspecialchars($userInfo['prenom']),
+                'nom'        => htmlspecialchars($userInfo['nom']),
+                'reset_link' => $resetLink,
+                'expires_in' => '1 heure',
             ]);
 
             if (sendMail($userInfo['email'], 'Réinitialisation de votre mot de passe', $emailBody)) {
