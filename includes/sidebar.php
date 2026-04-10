@@ -50,6 +50,11 @@ function sidebarActive(array $pages): string {
             <span>Mise à niveau</span>
         </a>
 
+        <a href="reconcile-documents.php" class="sidebar-link <?= sidebarActive(['reconcile-documents.php']) ?>">
+            <i class="fas fa-folder-open"></i>
+            <span>Documents</span>
+        </a>
+
         <a href="settings.php" class="sidebar-link <?= sidebarActive(['settings.php']) ?>">
             <i class="fas fa-sliders-h"></i>
             <span>Paramètres</span>

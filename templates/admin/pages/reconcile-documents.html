@@ -1,0 +1,138 @@
+<div class="page-header">
+  <div>
+    <h1>Réconciliation des documents</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Documents</li>
+    </ol></nav>
+  </div>
+</div>
+
+{{result_html}}
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-green"><i class="fas fa-check-circle"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{count_ok}}</div>
+        <div class="stat-label">Chemins valides</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-yellow"><i class="fas fa-wrench"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{count_fixable}}</div>
+        <div class="stat-label">Corrigeables auto.</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(206,17,38,0.1);color:#CE1126;"><i class="fas fa-times-circle"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{count_missing}}</div>
+        <div class="stat-label">Fichiers introuvables</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-dark"><i class="fas fa-unlink"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{count_orphan}}</div>
+        <div class="stat-label">Fichiers orphelins</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Section 1: Auto-fixable path issues -->
+<div class="card shadow mb-4">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span class="chart-card-header"><i class="fas fa-wrench"></i> Chemins corrigeables automatiquement ({{count_fixable}})</span>
+    {{count_fixable_nonzero}}
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Étudiant</th>
+            <th>Type</th>
+            <th>Chemin en base</th>
+            <th>Fichier trouvé à</th>
+          </tr>
+        </thead>
+        <tbody>{{fixable_rows}}</tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card-footer">
+    <form method="POST" action="reconcile-documents.php" id="fixPathsForm">
+      <input type="hidden" name="csrf_token" value="{{csrf_token}}">
+      <input type="hidden" name="action" value="fix_paths">
+      <button type="submit" class="btn btn-warning" id="btnFixPaths" {{fix_btn_disabled}}>
+        <i class="fas fa-magic me-2"></i>Corriger tous les chemins automatiquement
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Section 2: Truly missing -->
+<div class="card shadow mb-4">
+  <div class="card-header">
+    <span class="chart-card-header"><i class="fas fa-times-circle"></i> Documents introuvables ({{count_missing}})</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr><th>Étudiant</th><th>Type</th><th>Chemin en base</th></tr>
+        </thead>
+        <tbody>{{missing_rows}}</tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Section 3: Orphaned files -->
+<div class="card shadow mb-4">
+  <div class="card-header">
+    <span class="chart-card-header"><i class="fas fa-unlink"></i> Fichiers non liés dans uploads/ ({{count_orphan}})</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="alert alert-info d-flex gap-2 align-items-start m-3 mb-0">
+      <i class="fas fa-info-circle mt-1"></i>
+      Ces fichiers existent dans les dossiers d'upload mais ne sont référencés par aucun étudiant.
+      Sélectionnez l'étudiant concerné et le type de document, puis cliquez <strong>Assigner</strong>.
+    </div>
+    <div class="table-responsive mt-3">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr><th>Fichier</th><th>Assigner à</th></tr>
+        </thead>
+        <tbody>{{orphan_rows}}</tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('fixPathsForm')?.addEventListener('submit', function(e) {
+  e.preventDefault();
+  Swal.fire({
+    title: 'Corriger les chemins',
+    text: 'Les chemins incorrects en base seront mis à jour pour pointer vers les fichiers trouvés. Continuer ?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#009460',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Oui, corriger',
+    cancelButtonText: 'Annuler'
+  }).then(function(r) { if (r.isConfirmed) document.getElementById('fixPathsForm').submit(); });
+});
+</script>
