@@ -252,11 +252,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              $errors['identite'] = $identiteUploadResult['message'];
         }
     } else {
-        // If a new file was uploaded, delete the old one if it exists
+        // Only replace path when a new file was actually uploaded
         if ($identiteUploadResult['filepath'] !== null) {
             safeUnlink($identitePath);
+            $identitePath = $identiteUploadResult['filepath'];
         }
-        $identitePath = $identiteUploadResult['filepath'];
     }
     $formData['identite'] = $identitePath;
 
@@ -267,11 +267,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              $errors['cv'] = $cvUploadResult['message'];
         }
     } else {
-        // If a new file was uploaded, delete the old one if it exists
+        // Only replace path when a new file was actually uploaded
         if ($cvUploadResult['filepath'] !== null) {
             safeUnlink($cvPath);
+            $cvPath = $cvUploadResult['filepath'];
         }
-        $cvPath = $cvUploadResult['filepath'];
     }
     $formData['cv_path'] = $cvPath;
 

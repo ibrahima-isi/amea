@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mise à jour de votre niveau d'études – AEESGS</title>
+<style>
+  body { margin: 0; padding: 0; background: #f4f4f4; font-family: Arial, sans-serif; }
+  .wrapper { max-width: 600px; margin: 30px auto; background: #ffffff; border-radius: 8px; overflow: hidden; }
+  .header { background: #009460; padding: 30px; text-align: center; }
+  .header h1 { color: #ffffff; margin: 0; font-size: 22px; letter-spacing: 1px; }
+  .header p { color: #b2e4cd; margin: 8px 0 0; font-size: 13px; }
+  .body { padding: 30px; color: #333333; line-height: 1.7; }
+  .body h2 { color: #1B4D3E; margin-top: 0; }
+  .level-box { display: flex; align-items: center; justify-content: center; gap: 20px; background: #f0faf5; border: 1px solid #b2e4cd; border-radius: 8px; padding: 18px 24px; margin: 24px 0; text-align: center; }
+  .level-item .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 4px; }
+  .level-item .value { font-size: 16px; font-weight: bold; color: #1B4D3E; }
+  .arrow { font-size: 24px; color: #009460; }
+  .btn-confirm { display: inline-block; background: #009460; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 15px; font-weight: bold; margin: 24px 0; }
+  .note { background: #fffbe6; border-left: 4px solid #FCD116; padding: 12px 16px; border-radius: 4px; font-size: 13px; color: #555; margin-top: 20px; }
+  .link-fallback { font-size: 12px; color: #888; word-break: break-all; margin-top: 8px; }
+  .footer { background: #f4f4f4; padding: 20px 30px; text-align: center; font-size: 12px; color: #999999; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <h1>AEESGS</h1>
+    <p>Association des Étudiants et Élèves Sénégalais en Guinée et Sous-région</p>
+  </div>
+  <div class="body">
+    <h2>Bonjour {{prenom}} {{nom}},</h2>
+    <p>L'équipe AEESGS vous informe que votre niveau d'études a été mis à jour pour la nouvelle année scolaire.</p>
+
+    <div class="level-box">
+      <div class="level-item">
+        <div class="label">Ancien niveau</div>
+        <div class="value">{{ancien_niveau}}</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="level-item">
+        <div class="label">Nouveau niveau</div>
+        <div class="value">{{nouveau_niveau}}</div>
+      </div>
+    </div>
+
+    <p>Veuillez confirmer ce changement en cliquant sur le bouton ci-dessous :</p>
+
+    <div style="text-align:center;">
+      <a href="{{confirm_link}}" class="btn-confirm">Confirmer ma mise à niveau</a>
+    </div>
+
+    <div class="note">
+      <strong>⚠ Ce lien expire dans {{expires_in}}.</strong><br>
+      Si vous n'êtes plus étudiant(e) ou si ce changement ne vous concerne pas, ignorez cet e-mail.
+    </div>
+
+    <p class="link-fallback">Lien de confirmation :<br><a href="{{confirm_link}}">{{confirm_link}}</a></p>
+  </div>
+  <div class="footer">
+    AEESGS — Dakar, Sénégal &bull; <a href="mailto:contact@aeesgs.org" style="color:#009460;">contact@aeesgs.org</a>
+  </div>
+</div>
+</body>
+</html>

@@ -245,7 +245,7 @@ $detailsHtml .= '<div class="mb-4">';
 $detailsHtml .= '<strong class="d-block text-muted small mb-2"><i class="fas fa-id-card me-1"></i>Pièce d\'identité / Photo</strong>';
 if ($hasIdentityDoc) {
     $detailsHtml .= '<div class="d-flex flex-wrap gap-2">';
-    $detailsHtml .= '<a href="' . htmlspecialchars($resolvedIdentity) . '" download target="_blank" class="btn btn-sm btn-info"><i class="fas fa-download me-1"></i>Télécharger</a>';
+    $detailsHtml .= '<a href="download.php?id=' . $student['id_personne'] . '&type=identite" class="btn btn-sm btn-info"><i class="fas fa-download me-1"></i>Télécharger</a>';
     $detailsHtml .= '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#' . $identiteModalId . '"><i class="fas fa-eye me-1"></i>Voir</button>';
     $detailsHtml .= '</div>';
     if ($identityIsImage) {
@@ -268,7 +268,7 @@ if (!empty($student['cv_path'])) {
     $isCvImage = in_array($cvExt, ['png', 'jpg', 'jpeg', 'gif']);
     $cvModalId = 'cvModal' . $student['id_personne'];
     $detailsHtml .= '<div class="d-flex flex-wrap gap-2">';
-    $detailsHtml .= '<a href="' . htmlspecialchars($cvPath) . '" download target="_blank" class="btn btn-sm btn-info"><i class="fas fa-download me-1"></i>Télécharger</a>';
+    $detailsHtml .= '<a href="download.php?id=' . $student['id_personne'] . '&type=cv" class="btn btn-sm btn-info"><i class="fas fa-download me-1"></i>Télécharger</a>';
     if ($isCvPdf || $isCvImage) {
         $detailsHtml .= '<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#' . $cvModalId . '"><i class="fas fa-eye me-1"></i>Voir</button>';
         if ($isCvPdf) {

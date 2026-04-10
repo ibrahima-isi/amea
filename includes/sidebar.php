@@ -45,6 +45,11 @@ function sidebarActive(array $pages): string {
             <span>Carrousel</span>
         </a>
 
+        <a href="upgrade-levels.php" class="sidebar-link <?= sidebarActive(['upgrade-levels.php']) ?>">
+            <i class="fas fa-arrow-up-right-dots"></i>
+            <span>Mise à niveau</span>
+        </a>
+
         <a href="settings.php" class="sidebar-link <?= sidebarActive(['settings.php']) ?>">
             <i class="fas fa-sliders-h"></i>
             <span>Paramètres</span>

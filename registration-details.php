@@ -395,7 +395,7 @@ if (!empty($student['cv_path'])) {
     $cvDownloadLink = '<div class="detail-row"><span class="detail-label">CV:</span><span class="detail-value">';
     
     // Download
-    $cvDownloadLink .= '<a href="' . htmlspecialchars($cvPath) . '" download target="_blank" class="btn btn-sm btn-info me-2"><i class="fas fa-download"></i> Télécharger</a>';
+    $cvDownloadLink .= '<a href="download.php?id=' . $student_id . '&type=cv" class="btn btn-sm btn-info me-2"><i class="fas fa-download"></i> Télécharger</a>';
     
     if ($isCvPdf || $isCvImage) {
         // View
