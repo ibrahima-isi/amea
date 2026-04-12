@@ -1,6 +1,6 @@
 # AMEA — Plateforme de gestion AEESGS
 
-Plateforme web de gestion des membres de l'**Association des Étudiants et Élèves Sénégalais en Guinée et Sous-région (AEESGS)**. Elle couvre l'inscription des membres, la gestion des dossiers, les communications, les exports et les outils d'administration.
+Plateforme web de gestion des membres de l'**Amicale des Élèves, Étudiants et Stagiaires Guinéens au Sénégal (AEESGS)**. Elle couvre l'inscription des membres, la gestion des dossiers, les communications, les exports et les outils d'administration.
 
 ---
 
