@@ -288,6 +288,44 @@ if ($sessionsOk) {
     expect('POST without CSRF token → 302 redirect', $code === 302);
 }
 
+// 10. settings.php: unauthenticated request redirects to login.php (not dashboard)
+echo "\nsettings.php auth check order\n";
+
+[$code, $location] = http('GET', '/settings.php');
+expect('Unauthenticated GET settings.php → 302',         $code === 302);
+expect('Redirects to login.php (auth check runs first)', str_contains($location, 'login.php'));
+
+// 11. Permission whitelist: injected module name must not appear in DB
+echo "\nPermission whitelist on edit-user.php\n";
+
+if ($sessionsOk) {
+    [, , $body] = http('GET', "/edit-user.php?id=$restrictedId", [], $fullAdminCookie);
+    $csrf = '';
+    if (preg_match('/name="csrf_token"\s+value="([^"]+)"/', $body, $m)) {
+        $csrf = $m[1];
+    }
+
+    if ($csrf !== '') {
+        http('POST', "/edit-user.php?id=$restrictedId", [
+            'csrf_token'  => $csrf,
+            'username'    => '_test_restricted',
+            'email'       => '_test_restricted@test.local',
+            'role'        => 'admin',
+            'est_actif'   => '1',
+            'permissions' => ['documents', '../../etc/passwd', 'injected_module'],
+        ], $fullAdminCookie);
+
+        $check = $conn->prepare("SELECT permissions FROM users WHERE id_user = ?");
+        $check->execute([$restrictedId]);
+        $stored = json_decode($check->fetchColumn(), true) ?? [];
+        expect('injected_module not stored in DB',      !in_array('injected_module', $stored));
+        expect('../../etc/passwd not stored in DB',     !in_array('../../etc/passwd', $stored));
+        expect('legitimate "documents" is preserved',   in_array('documents', $stored));
+    } else {
+        expect('SKIP: could not extract CSRF for whitelist test', false);
+    }
+}
+
 // ─── Teardown ─────────────────────────────────────────────────────────────────
 $conn->exec("DELETE FROM users WHERE username IN ('_test_fulladmin','_test_restricted')");
 

@@ -141,6 +141,35 @@ expect('returns false for empty module name',      !hasPermission(''));
 expect('returns false for SQL-like module name',   !hasPermission("' OR '1'='1"));
 expect('returns false for wildcard module name',   !hasPermission('*'));
 
+// ─── 10. Per-request static cache ─────────────────────────────────────────────
+// Call hasPermission() twice for the same user — second call must hit the cache
+// (no way to inspect the cache directly, but we verify the result is consistent).
+echo "\nPer-request static cache (ID 2)\n";
+
+setSession(2);
+$first  = hasPermission('students');
+$second = hasPermission('students');
+expect('cached result matches first call (true)',  $first  === true  && $second === true);
+
+$firstNo  = hasPermission('settings');
+$secondNo = hasPermission('settings');
+expect('cached result matches first call (false)', $firstNo === false && $secondNo === false);
+
+// ─── 11. Session-based permissions (no DB hit) ────────────────────────────────
+echo "\nSession-cached permissions (\$_SESSION[\"permissions\"])\n";
+
+// Simulate a login that stored permissions in session (as login.php does)
+$_SESSION = [
+    'user_id'     => 99,
+    'role'        => 'admin',
+    'permissions' => json_encode(['slider', 'upgrade']),
+];
+// User 99 does not exist in the SQLite DB — hasPermission must use the session value
+expect('returns true for "slider" from session cache',      hasPermission('slider'));
+expect('returns true for "upgrade" from session cache',     hasPermission('upgrade'));
+expect('returns false for "students" not in session cache', !hasPermission('students'));
+expect('returns false for "users" not in session cache',    !hasPermission('users'));
+
 // ─── Summary ─────────────────────────────────────────────────────────────────
 echo "\n";
 $total = $passed + $failed;

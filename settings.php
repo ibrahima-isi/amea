@@ -9,15 +9,15 @@ require_once 'config/session.php';
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
 
-if (!hasPermission('settings')) {
-    setFlashMessage('error', 'Accès refusé : vous n\'avez pas la permission de modifier les paramètres.');
-    header('Location: dashboard.php'); exit();
-}
-
 // Vérifier si l'utilisateur est connecté et est un administrateur
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header('Location: login.php');
     exit();
+}
+
+if (!hasPermission('settings')) {
+    setFlashMessage('error', 'Accès refusé : vous n\'avez pas la permission de modifier les paramètres.');
+    header('Location: dashboard.php'); exit();
 }
 
 $nom = $_SESSION['nom'];

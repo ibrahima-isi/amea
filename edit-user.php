@@ -83,14 +83,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        // Convert permissions to JSON string for storage
+        // Convert permissions to JSON string for storage.
+        // Whitelist submitted values against known modules to prevent arbitrary strings
+        // from being persisted in the DB.
+        $knownModules = ['students','export','users','slider','upgrade','documents','communications','settings'];
         $permissionsJson = null;
         if ($formData['role'] === 'admin') {
             // Non-super-admins cannot modify their own permissions (privilege escalation prevention)
             if ($is_editing_self && !$is_super_admin_session) {
                 $permissionsJson = $user['permissions']; // restore from DB, ignore POST
             } else {
-                $permissionsJson = json_encode($formData['permissions']);
+                $permissionsJson = json_encode(array_values(array_intersect($formData['permissions'], $knownModules)));
             }
         }
 

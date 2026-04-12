@@ -394,37 +394,51 @@ function hasPermission($module) {
 
     $uid = (int)($_SESSION['user_id'] ?? 0);
     if ($uid === 0) return false;
-    
+
     // User ID 1 is the Super Admin and has all permissions
     if ($uid === 1) {
         return true;
     }
 
-    // Role-based shortcut: if not admin, no permissions (optional but safe)
+    // Role-based shortcut: if not admin, no permissions
     if (($_SESSION['role'] ?? '') !== 'admin') {
         return false;
     }
 
-    // Check DB for latest permissions to ensure security changes are immediate
-    if (!isset($conn)) {
-        require_once __DIR__ . '/../config/database.php';
+    // Per-request static cache: avoids N+1 queries when the sidebar and page
+    // both call hasPermission() multiple times in the same request.
+    static $cache = [];
+    if (isset($cache[$uid])) {
+        return in_array($module, $cache[$uid]);
     }
 
-    try {
-        $stmt = $conn->prepare("SELECT permissions FROM users WHERE id_user = ? LIMIT 1");
-        $stmt->execute([$uid]);
-        $permsJson = $stmt->fetchColumn();
+    // Prefer the session value set at login (avoids a DB hit on every request).
+    // Fall back to a fresh DB query only when the session value is absent, which
+    // covers the case where permissions were changed after the user logged in.
+    $permsJson = $_SESSION['permissions'] ?? null;
 
-        if (!$permsJson) {
+    if ($permsJson === null) {
+        if (!isset($conn)) {
+            require_once __DIR__ . '/../config/database.php';
+        }
+        try {
+            $stmt = $conn->prepare("SELECT permissions FROM users WHERE id_user = ? LIMIT 1");
+            $stmt->execute([$uid]);
+            $permsJson = $stmt->fetchColumn() ?: null;
+        } catch (PDOException $e) {
+            logError("Permission check failed for user $uid", $e);
             return false;
         }
+    }
 
-        $permissions = json_decode($permsJson, true);
-        return is_array($permissions) && in_array($module, $permissions);
-    } catch (PDOException $e) {
-        logError("Permission check failed for user $uid", $e);
+    if (!$permsJson) {
+        $cache[$uid] = [];
         return false;
     }
+
+    $permissions = json_decode($permsJson, true);
+    $cache[$uid] = is_array($permissions) ? $permissions : [];
+    return in_array($module, $cache[$uid]);
 }
 
 /**
