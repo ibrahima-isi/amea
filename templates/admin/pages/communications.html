@@ -299,9 +299,10 @@ document.querySelectorAll('[name="cgu_scope"]').forEach(function(radio) {
 
 // Live search filter
 document.getElementById('studentSearch')?.addEventListener('input', function() {
-  var q = this.value.toLowerCase();
+  var q = this.value.toLowerCase().trim();
   document.querySelectorAll('.student-checkbox-item').forEach(function(el) {
-    el.style.display = el.dataset.name.includes(q) ? '' : 'none';
+    var name = el.dataset.name || '';
+    el.style.display = name.indexOf(q) !== -1 ? 'flex' : 'none';
   });
 });
 

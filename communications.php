@@ -256,8 +256,9 @@ foreach ($allStudentsForSelect as $s) {
     $consentBadge = $s['consent_privacy'] == 1
         ? '<span class="badge bg-success ms-2">CGU acceptées</span>'
         : '<span class="badge bg-warning text-dark ms-2">En attente</span>';
+    $searchData = strtolower($s['prenom'] . ' ' . $s['nom'] . ' ' . ($s['email'] ?? ''));
     $studentCheckboxes .= '<div class="student-checkbox-item d-flex align-items-center gap-2 px-3 py-2 border-bottom"'
-        . ' data-name="' . htmlspecialchars(strtolower($s['prenom'] . ' ' . $s['nom']), ENT_QUOTES, 'UTF-8') . '">'
+        . ' data-name="' . htmlspecialchars($searchData, ENT_QUOTES, 'UTF-8') . '">'
         . '<input class="form-check-input flex-shrink-0 mt-0" type="checkbox" name="selected_ids[]"'
         . ' value="' . (int)$s['id_personne'] . '" id="cgu_std_' . (int)$s['id_personne'] . '">'
         . '<label class="form-check-label flex-grow-1" for="cgu_std_' . (int)$s['id_personne'] . '">'
