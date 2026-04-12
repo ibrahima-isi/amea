@@ -54,6 +54,7 @@ jobs:
 
             # Exécuter les migrations DB (idempotentes — sans risque de ré-exécution)
             php ~/repositories/amea/migrations/migration_fix_role_enum.php
+            php ~/repositories/amea/migrations/migration_grant_default_permissions.php
 
             rsync -a --delete \
               --exclude='.git' \
