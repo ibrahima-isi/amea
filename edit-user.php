@@ -38,12 +38,22 @@ if (!$user) {
     exit();
 }
 
+if (!hasPermission('users')) {
+    setFlashMessage('error', 'Accès refusé : vous n\'avez pas la permission de modifier les utilisateurs.');
+    header('Location: dashboard.php');
+    exit();
+}
+
 // Security: Only Super Admin (ID 1) can edit Super Admin (ID 1)
 if ((int)$user_id_to_edit === 1 && (int)$_SESSION['user_id'] !== 1) {
     setFlashMessage('error', 'Accès refusé : seul le Super Administrateur peut modifier son propre compte.');
     header('Location: users.php');
     exit();
 }
+
+// Security: Non-super-admins cannot modify their own permissions (privilege escalation prevention)
+$is_editing_self = ((int)$user_id_to_edit === (int)$_SESSION['user_id']);
+$is_super_admin_session = ((int)$_SESSION['user_id'] === 1);
 
 $errors = [];
 $formData = [];
@@ -76,7 +86,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Convert permissions to JSON string for storage
         $permissionsJson = null;
         if ($formData['role'] === 'admin') {
-            $permissionsJson = json_encode($formData['permissions']);
+            // Non-super-admins cannot modify their own permissions (privilege escalation prevention)
+            if ($is_editing_self && !$is_super_admin_session) {
+                $permissionsJson = $user['permissions']; // restore from DB, ignore POST
+            } else {
+                $permissionsJson = json_encode($formData['permissions']);
+            }
         }
 
         // Safety: ensure User ID 1 (Super Admin) always has all permissions in the DB
