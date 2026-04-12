@@ -85,14 +85,18 @@
 
 <div class="tab-content">
 
-  <!-- ── CGU tab ───��─────────────────────────────────────────────────────── -->
+  <!-- --- CGU tab -------------------------------------------------------- -->
   <div class="tab-pane fade {{active_cgu}}" id="panel-cgu" role="tabpanel">
 
     <div class="card shadow mb-4">
       <div class="card-header d-flex align-items-center justify-content-between">
         <span class="chart-card-header"><i class="fas fa-file-signature me-2"></i>Membres en attente de consentement ({{count_not_consented}})</span>
+        <button class="btn btn-sm btn-link text-dark p-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNotConsented">
+          <i class="fas fa-chevron-down"></i>
+        </button>
       </div>
-      <div class="card-body p-0">
+      <div class="collapse show" id="collapseNotConsented">
+        <div class="card-body p-0">
         <div class="alert alert-info d-flex gap-2 align-items-start m-3 mb-0">
           <i class="fas fa-info-circle mt-1"></i>
           <span>
@@ -113,6 +117,7 @@
             <tbody>{{not_consented_rows}}</tbody>
           </table>
         </div>
+      </div>
       </div>
       <div class="card-footer">
         <form method="POST" action="communications.php" id="cguForm">
@@ -149,13 +154,18 @@
               <div class="d-flex gap-2">
                 <button type="button" class="btn btn-sm btn-outline-secondary" id="btnSelectAll">Tout sélectionner</button>
                 <button type="button" class="btn btn-sm btn-outline-secondary" id="btnSelectNone">Tout désélectionner</button>
+                <button class="btn btn-sm btn-link text-dark p-0 ms-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMembresSelect">
+                  <i class="fas fa-chevron-down"></i>
+                </button>
               </div>
             </div>
-            <input type="text" class="form-control form-control-sm mb-2" id="studentSearch" placeholder="Rechercher un membre…">
-            <div id="studentCheckboxList" style="max-height:320px;overflow-y:auto;border:1px solid #dee2e6;border-radius:6px;">
-              {{student_checkboxes}}
+            <div class="collapse show" id="collapseMembresSelect">
+              <input type="text" class="form-control form-control-sm mb-2" id="studentSearch" placeholder="Rechercher un membre…">
+              <div id="studentCheckboxList" style="max-height:320px;overflow-y:auto;border:1px solid #dee2e6;border-radius:6px;">
+                {{student_checkboxes}}
+              </div>
+              <small class="text-muted mt-1 d-block"><span id="selectedCount">0</span> membre(s) sélectionné(s)</small>
             </div>
-            <small class="text-muted mt-1 d-block"><span id="selectedCount">0</span> membre(s) sélectionné(s)</small>
           </div>
 
           <button type="submit" class="btn btn-primary" {{cgu_btn_disabled}}>
@@ -171,10 +181,14 @@
   <div class="tab-pane fade {{active_bulk}}" id="panel-bulk" role="tabpanel">
 
     <div class="card shadow mb-4">
-      <div class="card-header">
+      <div class="card-header d-flex align-items-center justify-content-between">
         <span class="chart-card-header"><i class="fas fa-envelope-open-text me-2"></i>Envoyer un message</span>
+        <button class="btn btn-sm btn-link text-dark p-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBulk">
+          <i class="fas fa-chevron-down"></i>
+        </button>
       </div>
-      <div class="card-body">
+      <div class="collapse show" id="collapseBulk">
+        <div class="card-body">
         <form method="POST" action="communications.php" id="bulkForm">
           <input type="hidden" name="csrf_token" value="{{csrf_token}}">
           <input type="hidden" name="action" value="send_bulk">
@@ -230,6 +244,7 @@
           </button>
         </form>
       </div>
+      </div>
     </div>
 
   </div>
@@ -237,10 +252,14 @@
   <!-- ── Deletion requests tab ──────────────────────────────────────────── -->
   <div class="tab-pane fade {{active_deletion}}" id="panel-deletion" role="tabpanel">
     <div class="card shadow mb-4">
-      <div class="card-header">
+      <div class="card-header d-flex align-items-center justify-content-between">
         <span class="chart-card-header"><i class="fas fa-trash-alt me-2"></i>Demandes de suppression de données ({{count_deletion_requests}})</span>
+        <button class="btn btn-sm btn-link text-dark p-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDeletion">
+          <i class="fas fa-chevron-down"></i>
+        </button>
       </div>
-      <div class="card-body p-0">
+      <div class="collapse show" id="collapseDeletion">
+        <div class="card-body p-0">
         <div class="alert alert-danger d-flex gap-2 align-items-start m-3 mb-0">
           <i class="fas fa-exclamation-circle mt-1"></i>
           <span>Ces membres ont refusé les CGU et demandé la suppression de leurs données personnelles. Traitez chaque demande conformément au RGPD puis supprimez manuellement le dossier.</span>
@@ -259,16 +278,21 @@
           </table>
         </div>
       </div>
+      </div>
     </div>
   </div>
 
-  <!-- ── History tab ──────────────────────────────────────────────────────── -->
+  <!-- --- History tab ---------------------------------------------------- -->
   <div class="tab-pane fade" id="panel-history" role="tabpanel">
     <div class="card shadow mb-4">
-      <div class="card-header">
+      <div class="card-header d-flex align-items-center justify-content-between">
         <span class="chart-card-header"><i class="fas fa-history me-2"></i>Historique des communications (10 dernières)</span>
+        <button class="btn btn-sm btn-link text-dark p-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHistory">
+          <i class="fas fa-chevron-down"></i>
+        </button>
       </div>
-      <div class="card-body p-0">
+      <div class="collapse show" id="collapseHistory">
+        <div class="card-body p-0">
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
@@ -282,6 +306,7 @@
             <tbody>{{history_rows}}</tbody>
           </table>
         </div>
+      </div>
       </div>
     </div>
   </div>
@@ -391,6 +416,10 @@ document.getElementById('btnPreviewCount')?.addEventListener('click', function()
     })
     .catch(function() {
       div.classList.add('d-none');
+    });
+});
+</script>
+');
     });
 });
 </script>
