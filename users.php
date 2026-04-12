@@ -22,6 +22,11 @@ if ($_SESSION['role'] !== 'admin') {
 
 $role = $_SESSION['role'];
 
+if (!hasPermission('users')) {
+    setFlashMessage('error', 'Accès refusé : vous n\'avez pas la permission de gérer les utilisateurs.');
+    header('Location: dashboard.php'); exit();
+}
+
 // Inclure la configuration de la base de données
 require_once 'config/database.php';
 
@@ -81,7 +86,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
 
             case 'delete':
-                if ($userId !== (int)$_SESSION['user_id']) {
+                if ($userId === 1) {
+                    setFlashMessage('error', "Le Super Administrateur ne peut pas être supprimé.");
+                } elseif ($userId !== (int)$_SESSION['user_id']) {
                     try {
                         $sql = "DELETE FROM users WHERE id_user = :id_user";
                         $stmt = $conn->prepare($sql);
@@ -101,7 +108,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $currentStatus = isset($_POST['status']) ? (int)$_POST['status'] : 0;
                 $newStatus = $currentStatus ? 0 : 1;
 
-                if ($userId !== (int)$_SESSION['user_id'] || $newStatus === 1) {
+                if ($userId === 1 && $newStatus === 0) {
+                    setFlashMessage('error', "Le Super Administrateur ne peut pas être désactivé.");
+                } elseif ($userId !== (int)$_SESSION['user_id'] || $newStatus === 1) {
                     try {
                         $sql = "UPDATE users SET est_actif = :est_actif WHERE id_user = :id_user";
                         $stmt = $conn->prepare($sql);

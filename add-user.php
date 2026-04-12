@@ -19,6 +19,11 @@ if ($_SESSION['role'] !== 'admin') {
     exit();
 }
 
+if (!hasPermission('users')) {
+    setFlashMessage('error', 'Accès refusé : vous n\'avez pas la permission de gérer les utilisateurs.');
+    header('Location: dashboard.php'); exit();
+}
+
 require_once 'config/database.php';
 
 $errors = [];
@@ -39,7 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'password' => $_POST['password'] ?? '',
             'confirm_password' => $_POST['confirm_password'] ?? '',
             'role' => $_POST['role'] ?? 'user',
-            'est_actif' => $_POST['est_actif'] ?? 0
+            'est_actif' => $_POST['est_actif'] ?? 0,
+            'permissions' => $_POST['permissions'] ?? []
         ];
 
         // Validation
@@ -82,7 +88,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Hash password
                 $hashedPassword = password_hash($formData['password'], PASSWORD_DEFAULT);
 
-                $sql = "INSERT INTO users (username, email, nom, prenom, password, role, est_actif, date_creation) VALUES (:username, :email, :nom, :prenom, :password, :role, :est_actif, NOW())";
+                // Convert permissions to JSON string for storage
+                $permissionsJson = null;
+                if ($formData['role'] === 'admin') {
+                    $permissionsJson = json_encode($formData['permissions']);
+                }
+
+                $sql = "INSERT INTO users (username, email, nom, prenom, password, role, permissions, est_actif, date_creation) 
+                        VALUES (:username, :email, :nom, :prenom, :password, :role, :permissions, :est_actif, NOW())";
 
                 $stmt = $conn->prepare($sql);
                 $stmt->execute([
@@ -92,6 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'prenom' => $formData['prenom'],
                     'password' => $hashedPassword,
                     'role' => $formData['role'],
+                    'permissions' => $permissionsJson,
                     'est_actif' => $formData['est_actif']
                 ]);
 
@@ -159,6 +173,15 @@ $contentHtml = strtr($template, [
     '{{is_invalid_prenom}}' => isset($errors['prenom']) ? 'is-invalid' : '',
     '{{is_invalid_password}}' => isset($errors['password']) ? 'is-invalid' : '',
     '{{is_invalid_confirm_password}}' => isset($errors['confirm_password']) ? 'is-invalid' : '',
+    '{{permissions_display}}' => ($formData['role'] ?? 'user') === 'admin' ? 'block' : 'none',
+    '{{perm_students_checked}}' => in_array('students', $formData['permissions'] ?? []) ? 'checked' : '',
+    '{{perm_export_checked}}' => in_array('export', $formData['permissions'] ?? []) ? 'checked' : '',
+    '{{perm_users_checked}}' => in_array('users', $formData['permissions'] ?? []) ? 'checked' : '',
+    '{{perm_slider_checked}}' => in_array('slider', $formData['permissions'] ?? []) ? 'checked' : '',
+    '{{perm_upgrade_checked}}' => in_array('upgrade', $formData['permissions'] ?? []) ? 'checked' : '',
+    '{{perm_documents_checked}}' => in_array('documents', $formData['permissions'] ?? []) ? 'checked' : '',
+    '{{perm_communications_checked}}' => in_array('communications', $formData['permissions'] ?? []) ? 'checked' : '',
+    '{{perm_settings_checked}}' => in_array('settings', $formData['permissions'] ?? []) ? 'checked' : '',
 ]);
 
 $flash = getFlashMessage();

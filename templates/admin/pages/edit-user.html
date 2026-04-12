@@ -46,6 +46,68 @@
               </select>
             </div>
           </div>
+
+          <!-- Permissions section (visible only if role is admin) -->
+          <div id="permissionsSection" class="mt-4 border-top pt-3" style="display: {{permissions_display}};">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+               <h5 class="h6 mb-0"><i class="fas fa-lock me-2"></i>Permissions d'accès aux modules</h5>
+               {{super_admin_badge}}
+            </div>
+            <div class="row g-2">
+              <div class="col-md-4">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="permissions[]" value="students" id="perm_students" {{perm_students_checked}} {{permissions_disabled}}>
+                  <label class="form-check-label" for="perm_students">Étudiants</label>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="permissions[]" value="export" id="perm_export" {{perm_export_checked}} {{permissions_disabled}}>
+                  <label class="form-check-label" for="perm_export">Export</label>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="permissions[]" value="users" id="perm_users" {{perm_users_checked}} {{permissions_disabled}}>
+                  <label class="form-check-label" for="perm_users">Utilisateurs</label>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="permissions[]" value="slider" id="perm_slider" {{perm_slider_checked}} {{permissions_disabled}}>
+                  <label class="form-check-label" for="perm_slider">Carrousel</label>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="permissions[]" value="upgrade" id="perm_upgrade" {{perm_upgrade_checked}} {{permissions_disabled}}>
+                  <label class="form-check-label" for="perm_upgrade">Mise à niveau</label>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="permissions[]" value="documents" id="perm_documents" {{perm_documents_checked}} {{permissions_disabled}}>
+                  <label class="form-check-label" for="perm_documents">Documents</label>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="permissions[]" value="communications" id="perm_communications" {{perm_communications_checked}} {{permissions_disabled}}>
+                  <label class="form-check-label" for="perm_communications">Communications</label>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="permissions[]" value="settings" id="perm_settings" {{perm_settings_checked}} {{permissions_disabled}}>
+                  <label class="form-check-label" for="perm_settings">Paramètres</label>
+                </div>
+              </div>
+            </div>
+            <small class="text-muted d-block mt-2">
+              <i class="fas fa-info-circle me-1"></i>L'utilisateur avec l'ID 1 est le Super Admin et possède toutes les permissions par défaut.
+            </small>
+          </div>
+
           <div class="mt-3 text-end">
             <a href="users.php" class="btn btn-secondary">Annuler</a>
             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Enregistrer</button>
@@ -55,3 +117,14 @@
     </div>
   </div>
 </div>
+
+<script>
+document.getElementById('role').addEventListener('change', function() {
+    const permissionsSection = document.getElementById('permissionsSection');
+    if (this.value === 'admin') {
+        permissionsSection.style.display = 'block';
+    } else {
+        permissionsSection.style.display = 'none';
+    }
+});
+</script>

@@ -12,6 +12,12 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
+
+if (!hasPermission('communications')) {
+    setFlashMessage('error', 'Accès refusé : vous n\'avez pas la permission d\'accéder aux communications.');
+    header('Location: dashboard.php'); exit();
+}
+
 require_once 'functions/email-service.php';
 
 $prenom = $_SESSION['prenom'];

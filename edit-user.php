@@ -38,6 +38,13 @@ if (!$user) {
     exit();
 }
 
+// Security: Only Super Admin (ID 1) can edit Super Admin (ID 1)
+if ((int)$user_id_to_edit === 1 && (int)$_SESSION['user_id'] !== 1) {
+    setFlashMessage('error', 'Accès refusé : seul le Super Administrateur peut modifier son propre compte.');
+    header('Location: users.php');
+    exit();
+}
+
 $errors = [];
 $formData = [];
 
@@ -51,7 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'username' => trim($_POST['username'] ?? ''),
         'email' => trim($_POST['email'] ?? ''),
         'role' => $_POST['role'] ?? 'user',
-        'est_actif' => $_POST['est_actif'] ?? 0
+        'est_actif' => $_POST['est_actif'] ?? 0,
+        'permissions' => $_POST['permissions'] ?? []
     ];
 
     if (empty($formData['username'])) {
@@ -65,15 +73,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
+        // Convert permissions to JSON string for storage
+        $permissionsJson = null;
+        if ($formData['role'] === 'admin') {
+            $permissionsJson = json_encode($formData['permissions']);
+        }
+
+        // Safety: ensure User ID 1 (Super Admin) always has all permissions in the DB
+        if ((int)$user_id_to_edit === 1) {
+            $permissionsJson = json_encode(["students", "export", "users", "slider", "upgrade", "documents", "communications", "settings"]);
+        }
+
         $sql = "UPDATE users SET 
             username = :username, 
             email = :email, 
             role = :role, 
+            permissions = :permissions,
             est_actif = :est_actif
         WHERE id_user = :id_user";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge($formData, ['id_user' => $user_id_to_edit]));
+        $stmt->execute([
+            'username' => $formData['username'],
+            'email' => $formData['email'],
+            'role' => $formData['role'],
+            'permissions' => $permissionsJson,
+            'est_actif' => $formData['est_actif'],
+            'id_user' => $user_id_to_edit
+        ]);
 
         setFlashMessage('success', 'Les informations de l\'utilisateur ont été mises à jour avec succès.');
         header('Location: users.php');
@@ -108,6 +135,9 @@ if (!empty($errors)) {
     $validation_errors_json = json_encode($errors);
 }
 
+$userPermissions = $formData['permissions'] ?? json_decode($user['permissions'] ?? '[]', true) ?? [];
+$isSuperAdmin = ((int)$user_id_to_edit === 1);
+
 $contentHtml = strtr($template, [
     '{{feedback_block}}' => '',
     '{{form_action}}' => 'edit-user.php?id=' . $user_id_to_edit,
@@ -122,6 +152,17 @@ $contentHtml = strtr($template, [
     '{{error_email}}' => $errors['email'] ?? '',
     '{{is_invalid_username}}' => isset($errors['username']) ? 'is-invalid' : '',
     '{{is_invalid_email}}' => isset($errors['email']) ? 'is-invalid' : '',
+    '{{permissions_display}}' => ($formData['role'] ?? $user['role']) === 'admin' ? 'block' : 'none',
+    '{{perm_students_checked}}' => in_array('students', $userPermissions) ? 'checked' : '',
+    '{{perm_export_checked}}' => in_array('export', $userPermissions) ? 'checked' : '',
+    '{{perm_users_checked}}' => in_array('users', $userPermissions) ? 'checked' : '',
+    '{{perm_slider_checked}}' => in_array('slider', $userPermissions) ? 'checked' : '',
+    '{{perm_upgrade_checked}}' => in_array('upgrade', $userPermissions) ? 'checked' : '',
+    '{{perm_documents_checked}}' => in_array('documents', $userPermissions) ? 'checked' : '',
+    '{{perm_communications_checked}}' => in_array('communications', $userPermissions) ? 'checked' : '',
+    '{{perm_settings_checked}}' => in_array('settings', $userPermissions) ? 'checked' : '',
+    '{{permissions_disabled}}' => $isSuperAdmin ? 'disabled onclick="return false;"' : '',
+    '{{super_admin_badge}}' => $isSuperAdmin ? '<span class="badge bg-danger">Super Admin</span>' : '',
 ]);
 
 $flash = getFlashMessage();

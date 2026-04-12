@@ -11,6 +11,12 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
+
+if (!hasPermission('documents')) {
+    setFlashMessage('error', 'Accès refusé : vous n\'avez pas la permission d\'accéder au module de documents.');
+    header('Location: dashboard.php'); exit();
+}
+
 require_once 'functions/document-reconcile.php';
 
 $prenom = $_SESSION['prenom'];

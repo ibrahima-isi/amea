@@ -22,6 +22,11 @@ if ($_SESSION['role'] !== 'admin') {
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
 
+if (!hasPermission('export')) {
+    setFlashMessage('error', 'Accès refusé : vous n\'avez pas la permission d\'exporter des données.');
+    header('Location: dashboard.php'); exit();
+}
+
 // Récupérer les informations de l'utilisateur connecté
 $user_id = $_SESSION['user_id'];
 $username = $_SESSION['username'];

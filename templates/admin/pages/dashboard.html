@@ -5,12 +5,8 @@
     <p class="dash-subtitle">Bienvenue, <strong>{{user_fullname}}</strong> &middot; {{role_label}}</p>
   </div>
   <div class="d-flex gap-2 flex-wrap">
-    <a href="students.php" class="btn btn-outline-secondary btn-sm">
-      <i class="fas fa-user-graduate me-1"></i> Étudiants
-    </a>
-    <a href="export.php" class="btn btn-primary btn-sm">
-      <i class="fas fa-file-export me-1"></i> Exporter
-    </a>
+    {{students_btn}}
+    {{export_btn}}
   </div>
 </div>
 

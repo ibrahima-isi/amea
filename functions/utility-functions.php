@@ -381,6 +381,53 @@ function handleFileUpload($file_input, $allowed_extensions, $max_size, $upload_d
 }
 
 /**
+ * Checks if the current user has permission for a specific module.
+ *
+ * @param string $module Module name (e.g., 'documents', 'users').
+ * @return boolean True if the user has permission, false otherwise.
+ */
+function hasPermission($module) {
+    global $conn;
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
+
+    $uid = (int)($_SESSION['user_id'] ?? 0);
+    if ($uid === 0) return false;
+    
+    // User ID 1 is the Super Admin and has all permissions
+    if ($uid === 1) {
+        return true;
+    }
+
+    // Role-based shortcut: if not admin, no permissions (optional but safe)
+    if (($_SESSION['role'] ?? '') !== 'admin') {
+        return false;
+    }
+
+    // Check DB for latest permissions to ensure security changes are immediate
+    if (!isset($conn)) {
+        require_once __DIR__ . '/../config/database.php';
+    }
+
+    try {
+        $stmt = $conn->prepare("SELECT permissions FROM users WHERE id_user = ? LIMIT 1");
+        $stmt->execute([$uid]);
+        $permsJson = $stmt->fetchColumn();
+
+        if (!$permsJson) {
+            return false;
+        }
+
+        $permissions = json_decode($permsJson, true);
+        return is_array($permissions) && in_array($module, $permissions);
+    } catch (PDOException $e) {
+        logError("Permission check failed for user $uid", $e);
+        return false;
+    }
+}
+
+/**
  * Appends a version parameter to asset URLs (CSS, JS) in HTML content.
  * The version is based on the file modification time to bust browser cache.
  *

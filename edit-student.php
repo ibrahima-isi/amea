@@ -21,6 +21,11 @@ if ($_SESSION['role'] !== 'admin') {
     exit();
 }
 
+if (!hasPermission('students')) {
+    setFlashMessage('error', 'Accès refusé : vous n\'avez pas la permission de modifier les membres.');
+    header('Location: dashboard.php'); exit();
+}
+
 // Ensure date_diplomation column exists (one-time migration)
 try { $conn->exec("ALTER TABLE personnes ADD COLUMN date_diplomation DATE NULL"); } catch (PDOException $e) {}
 

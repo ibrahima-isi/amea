@@ -63,9 +63,19 @@ if (!is_file($layoutPath) || !is_file($contentPath)) {
 ob_start(); include 'includes/sidebar.php'; $sidebarHtml = ob_get_clean();
 
 $contentTpl  = file_get_contents($contentPath);
+
+$studentsBtn = hasPermission('students') 
+    ? '<a href="students.php" class="btn btn-outline-secondary btn-sm"><i class="fas fa-user-graduate me-1"></i> Étudiants</a>' 
+    : '';
+$exportBtn = hasPermission('export') 
+    ? '<a href="export.php" class="btn btn-primary btn-sm"><i class="fas fa-file-export me-1"></i> Exporter</a>' 
+    : '';
+
 $contentHtml = strtr($contentTpl, [
     '{{user_fullname}}'    => htmlspecialchars($prenom . ' ' . $nom, ENT_QUOTES, 'UTF-8'),
     '{{role_label}}'       => $role === 'admin' ? 'Administrateur' : 'Utilisateur',
+    '{{students_btn}}'     => $studentsBtn,
+    '{{export_btn}}'       => $exportBtn,
     '{{stats_total}}'      => number_format((int)$stats['total'], 0, ',', "\u{202F}"),
     '{{stats_hommes}}'     => (string)$stats['hommes'],
     '{{stats_femmes}}'     => (string)$stats['femmes'],

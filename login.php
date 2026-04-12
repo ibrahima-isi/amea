@@ -48,6 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $_SESSION['role'] = $user['role'];
                         $_SESSION['nom'] = $user['nom'];
                         $_SESSION['prenom'] = $user['prenom'];
+                        $_SESSION['permissions'] = $user['permissions'];
                         
                         // Regenerate CSRF token for the new authenticated session
                         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));

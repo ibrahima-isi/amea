@@ -19,9 +19,15 @@ if ($_SESSION['role'] !== 'admin') {
     exit();
 }
 
+require_once 'functions/utility-functions.php';
+
+if (!hasPermission('students')) {
+    setFlashMessage('error', 'Accès refusé : vous n\'avez pas la permission de voir les détails des membres.');
+    header('Location: dashboard.php'); exit();
+}
+
 // Inclure la configuration de la base de données
 require_once 'config/database.php';
-require_once 'functions/utility-functions.php';
 
 // Récupérer les informations de l'utilisateur connecté
 $user_id = $_SESSION['user_id'];

@@ -19,6 +19,11 @@ if ($_SESSION['role'] !== 'admin') {
     exit();
 }
 
+if (!hasPermission('slider')) {
+    setFlashMessage('error', 'Accès refusé : vous n\'avez pas la permission de gérer le carrousel.');
+    header('Location: dashboard.php'); exit();
+}
+
 require_once 'config/database.php';
 
 $uploadDir = 'uploads/slider/';

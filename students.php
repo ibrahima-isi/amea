@@ -13,8 +13,12 @@ require_once 'functions/utility-functions.php';
 try { $conn->exec("ALTER TABLE personnes ADD COLUMN date_diplomation DATE NULL"); } catch (PDOException $e) {}
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit();
+    header('Location: login.php'); exit();
+}
+
+if (!hasPermission('students')) {
+    setFlashMessage('error', 'Accès refusé : vous n\'avez pas la permission de consulter la liste des membres.');
+    header('Location: dashboard.php'); exit();
 }
 
 $role = $_SESSION['role'];
@@ -34,6 +38,11 @@ $etablissementFilter = isset($_GET['etablissement']) ? $_GET['etablissement'] : 
 $nationalityFilter = isset($_GET['nationality']) ? $_GET['nationality'] : '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        setFlashMessage('error', 'Session expirée. Veuillez réessayer.');
+        header("Location: students.php");
+        exit();
+    }
     if (isset($_POST['id']) && is_numeric($_POST['id'])) {
         $student_id_to_delete = (int)$_POST['id'];
 
@@ -213,6 +222,7 @@ if (count($students) > 0) {
                 . '<a href="edit-student.php?id=' . (int)$student['id_personne'] . '" class="btn btn-sm btn-outline-secondary ms-1" title="Modifier">'
                 . '<i class="fas fa-edit"></i></a>'
                 . '<form method="POST" action="students.php?page=' . $page . '&perPage=' . $perPage . '" class="d-inline">'
+                . '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') . '">'
                 . '<input type="hidden" name="action" value="delete">'
                 . '<input type="hidden" name="id" value="' . (int)$student['id_personne'] . '">'
                 . '<button type="submit" class="btn btn-sm btn-outline-danger ms-1 btn-delete-student" title="Supprimer">'
