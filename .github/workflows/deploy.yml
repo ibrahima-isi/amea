@@ -6,7 +6,27 @@ on:
       - main
 
 jobs:
+  # ── Unit tests run on the GitHub Actions runner (no external DB needed) ──────
+  # The test suite uses SQLite in-memory, so it works without any secrets.
+  # If any test fails the deploy job is skipped entirely.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@728c6c6b8cf02c2e48117716a91ee48313958a19 # v2
+        with:
+          php-version: '8.0'
+          extensions: pdo, pdo_sqlite
+
+      - name: Run unit tests
+        run: php tests/test_permissions_unit.php
+
+  # ── Deploy only when tests pass ───────────────────────────────────────────────
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Deploy via SSH
@@ -31,6 +51,9 @@ jobs:
             git reset --hard origin/main
 
             composer install --no-dev --optimize-autoloader
+
+            # Exécuter les migrations DB (idempotentes — sans risque de ré-exécution)
+            php ~/repositories/amea/migrations/migration_fix_role_enum.php
 
             rsync -a --delete \
               --exclude='.git' \

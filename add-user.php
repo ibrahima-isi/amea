@@ -89,12 +89,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $hashedPassword = password_hash($formData['password'], PASSWORD_DEFAULT);
 
                 // Convert permissions to JSON string for storage.
-                // Whitelist submitted values against known modules to prevent arbitrary strings
+                // Whitelist against PERMISSION_MODULES to prevent arbitrary strings
                 // from being persisted in the DB.
                 $permissionsJson = null;
                 if ($formData['role'] === 'admin') {
-                    $knownModules = ['students','export','users','slider','upgrade','documents','communications','settings'];
-                    $permissionsJson = json_encode(array_values(array_intersect($formData['permissions'], $knownModules)));
+                    $permissionsJson = json_encode(array_values(array_intersect($formData['permissions'], PERMISSION_MODULES)));
                 }
 
                 $sql = "INSERT INTO users (username, email, nom, prenom, password, role, permissions, est_actif, date_creation) 

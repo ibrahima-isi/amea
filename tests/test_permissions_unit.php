@@ -144,6 +144,12 @@ expect('returns false for wildcard module name',   !hasPermission('*'));
 // ─── 10. Per-request static cache ─────────────────────────────────────────────
 // Call hasPermission() twice for the same user — second call must hit the cache
 // (no way to inspect the cache directly, but we verify the result is consistent).
+//
+// IMPORTANT — UID isolation:
+// hasPermission() uses a static $cache keyed by user ID that persists for the
+// entire PHP process lifetime. Each test group MUST use a distinct user ID.
+// Re-using a UID that was already exercised in a previous group will hit the
+// cache and return stale results, causing misleading test failures or passes.
 echo "\nPer-request static cache (ID 2)\n";
 
 setSession(2);
@@ -155,20 +161,32 @@ $firstNo  = hasPermission('settings');
 $secondNo = hasPermission('settings');
 expect('cached result matches first call (false)', $firstNo === false && $secondNo === false);
 
-// ─── 11. Session-based permissions (no DB hit) ────────────────────────────────
-echo "\nSession-cached permissions (\$_SESSION[\"permissions\"])\n";
+// ─── 11. PERMISSION_MODULES constant ─────────────────────────────────────────
+echo "\nPERMISSION_MODULES constant\n";
 
-// Simulate a login that stored permissions in session (as login.php does)
+expect('constant is defined',                   defined('PERMISSION_MODULES'));
+expect('contains exactly 8 modules',            count(PERMISSION_MODULES) === 8);
+expect('contains "students"',                   in_array('students',       PERMISSION_MODULES));
+expect('contains "export"',                     in_array('export',         PERMISSION_MODULES));
+expect('contains "users"',                      in_array('users',          PERMISSION_MODULES));
+expect('contains "slider"',                     in_array('slider',         PERMISSION_MODULES));
+expect('contains "upgrade"',                    in_array('upgrade',        PERMISSION_MODULES));
+expect('contains "documents"',                  in_array('documents',      PERMISSION_MODULES));
+expect('contains "communications"',             in_array('communications', PERMISSION_MODULES));
+expect('contains "settings"',                   in_array('settings',       PERMISSION_MODULES));
+
+// ─── 12. DB is authoritative — $_SESSION['permissions'] is NOT used ───────────
+echo "\nDB is authoritative (session shortcut removed)\n";
+
+// User 99 is NOT in the SQLite DB. Even with $_SESSION['permissions'] set,
+// hasPermission() must query the DB and return false (user not found).
 $_SESSION = [
     'user_id'     => 99,
     'role'        => 'admin',
-    'permissions' => json_encode(['slider', 'upgrade']),
+    'permissions' => json_encode(['slider', 'upgrade']), // would grant access if session were used
 ];
-// User 99 does not exist in the SQLite DB — hasPermission must use the session value
-expect('returns true for "slider" from session cache',      hasPermission('slider'));
-expect('returns true for "upgrade" from session cache',     hasPermission('upgrade'));
-expect('returns false for "students" not in session cache', !hasPermission('students'));
-expect('returns false for "users" not in session cache',    !hasPermission('users'));
+expect('returns false for "slider" — user not in DB, session value ignored',  !hasPermission('slider'));
+expect('returns false for "upgrade" — user not in DB, session value ignored', !hasPermission('upgrade'));
 
 // ─── Summary ─────────────────────────────────────────────────────────────────
 echo "\n";

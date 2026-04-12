@@ -21,9 +21,9 @@ if ($_SESSION['role'] !== 'admin') {
 
 require_once 'config/database.php';
 
-$user_id_to_edit = $_GET['id'] ?? null;
+$user_id_to_edit = (int)($_GET['id'] ?? 0);
 
-if (!$user_id_to_edit) {
+if ($user_id_to_edit <= 0) {
     header('Location: users.php');
     exit();
 }
@@ -84,16 +84,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         // Convert permissions to JSON string for storage.
-        // Whitelist submitted values against known modules to prevent arbitrary strings
+        // Whitelist against PERMISSION_MODULES to prevent arbitrary strings
         // from being persisted in the DB.
-        $knownModules = ['students','export','users','slider','upgrade','documents','communications','settings'];
         $permissionsJson = null;
         if ($formData['role'] === 'admin') {
             // Non-super-admins cannot modify their own permissions (privilege escalation prevention)
             if ($is_editing_self && !$is_super_admin_session) {
                 $permissionsJson = $user['permissions']; // restore from DB, ignore POST
             } else {
-                $permissionsJson = json_encode(array_values(array_intersect($formData['permissions'], $knownModules)));
+                $permissionsJson = json_encode(array_values(array_intersect($formData['permissions'], PERMISSION_MODULES)));
             }
         }
 
@@ -120,7 +119,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'id_user' => $user_id_to_edit
         ]);
 
-        setFlashMessage('success', 'Les informations de l\'utilisateur ont été mises à jour avec succès.');
+        // Warn when an admin is demoted to user: permissions are cleared and not recoverable automatically
+        $roleDemoted = ($user['role'] === 'admin' && $formData['role'] === 'user');
+        if ($roleDemoted) {
+            setFlashMessage('warning', 'Les informations ont été mises à jour. Le rôle a été changé en Utilisateur — toutes les permissions de ce compte ont été effacées.');
+        } else {
+            setFlashMessage('success', 'Les informations de l\'utilisateur ont été mises à jour avec succès.');
+        }
         header('Location: users.php');
         exit();
     }

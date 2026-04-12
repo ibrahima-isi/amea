@@ -381,9 +381,20 @@ function handleFileUpload($file_input, $allowed_extensions, $max_size, $upload_d
 }
 
 /**
+ * The canonical list of permission module keys.
+ * Used for whitelisting submitted values and building the permission UI.
+ */
+define('PERMISSION_MODULES', ['students','export','users','slider','upgrade','documents','communications','settings']);
+
+/**
  * Checks if the current user has permission for a specific module.
  *
- * @param string $module Module name (e.g., 'documents', 'users').
+ * The DB is always the authoritative source so that permission revocations
+ * take effect on the next request without requiring a re-login.
+ * A per-request static cache eliminates N+1 queries within a single page load
+ * (the sidebar alone calls this function 8 times).
+ *
+ * @param string $module Module name — must be one of PERMISSION_MODULES.
  * @return boolean True if the user has permission, false otherwise.
  */
 function hasPermission($module) {
@@ -400,35 +411,29 @@ function hasPermission($module) {
         return true;
     }
 
-    // Role-based shortcut: if not admin, no permissions
+    // Role-based shortcut: non-admin users never have module permissions
     if (($_SESSION['role'] ?? '') !== 'admin') {
         return false;
     }
 
-    // Per-request static cache: avoids N+1 queries when the sidebar and page
-    // both call hasPermission() multiple times in the same request.
+    // Per-request static cache: populated once per user per request from the DB.
+    // Eliminates N+1 queries without introducing session staleness.
     static $cache = [];
     if (isset($cache[$uid])) {
         return in_array($module, $cache[$uid]);
     }
 
-    // Prefer the session value set at login (avoids a DB hit on every request).
-    // Fall back to a fresh DB query only when the session value is absent, which
-    // covers the case where permissions were changed after the user logged in.
-    $permsJson = $_SESSION['permissions'] ?? null;
+    if (!isset($conn)) {
+        require_once __DIR__ . '/../config/database.php';
+    }
 
-    if ($permsJson === null) {
-        if (!isset($conn)) {
-            require_once __DIR__ . '/../config/database.php';
-        }
-        try {
-            $stmt = $conn->prepare("SELECT permissions FROM users WHERE id_user = ? LIMIT 1");
-            $stmt->execute([$uid]);
-            $permsJson = $stmt->fetchColumn() ?: null;
-        } catch (PDOException $e) {
-            logError("Permission check failed for user $uid", $e);
-            return false;
-        }
+    try {
+        $stmt = $conn->prepare("SELECT permissions FROM users WHERE id_user = ? LIMIT 1");
+        $stmt->execute([$uid]);
+        $permsJson = $stmt->fetchColumn() ?: null;
+    } catch (PDOException $e) {
+        logError("Permission check failed for user $uid", $e);
+        return false;
     }
 
     if (!$permsJson) {
