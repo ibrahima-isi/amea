@@ -1,5 +1,13 @@
 {
     "require": {
         "phpmailer/phpmailer": "^6.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "Amea\\": "src/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
     }
 }

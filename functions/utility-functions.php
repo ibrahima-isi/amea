@@ -1,493 +1,189 @@
 <?php
 /**
- * Utility functions for the AMEA platform.
- * File: functions/utility-functions.php
+ * functions/utility-functions.php — backward-compat wrappers
+ *
+ * All implementations live in src/. These wrappers preserve the old function
+ * signatures so that controllers not yet migrated to OOP continue to work.
+ * Remove a wrapper only after every caller has been migrated.
  */
 
-/**
- * Get environment variable value.
- *
- * @param string $key Environment variable name.
- * @param mixed $default Default value if not found.
- * @return mixed The environment variable value or the default.
- */
-function env($key, $default = null)
+require_once __DIR__ . '/../vendor/autoload.php';
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+if (!defined('PERMISSION_MODULES')) {
+    define('PERMISSION_MODULES', \Amea\Service\UserService::MODULES);
+}
+
+// ─── Env ──────────────────────────────────────────────────────────────────────
+function env(string $key, mixed $default = null): mixed
 {
     return $_ENV[$key] ?? $default;
 }
 
-/**
- * Generates a random string of the specified length.
- *
- * @param int $length Length of the random string.
- * @return string The generated random string.
- */
-function generateRandomString($length = 10) {
-    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    $charactersLength = strlen($characters);
-    $randomString = '';
+// ─── Strings / validation ─────────────────────────────────────────────────────
+function generateRandomString(int $length = 10): string
+{
+    $chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $s = '';
     for ($i = 0; $i < $length; $i++) {
-        $randomString .= $characters[random_int(0, $charactersLength - 1)];
+        $s .= $chars[random_int(0, strlen($chars) - 1)];
     }
-    return $randomString;
+    return $s;
 }
 
-/**
- * Calculates age from a date of birth.
- *
- * @param string $dateNaissance Date of birth in YYYY-MM-DD format.
- * @return int The calculated age.
- */
-function calculateAge($dateNaissance) {
-    $dateNaissanceObj = new DateTime($dateNaissance);
-    $today = new DateTime('today');
-    $age = $dateNaissanceObj->diff($today)->y;
-    return $age;
+function calculateAge(string $dateNaissance): int
+{
+    if (empty($dateNaissance)) return 0;
+    try {
+        return (int)(new DateTime($dateNaissance))->diff(new DateTime())->y;
+    } catch (Exception) {
+        return 0;
+    }
 }
 
-/**
- * Formats a date into French format.
- *
- * @param string $date Date in YYYY-MM-DD format.
- * @param boolean $includeTime Whether to include the time in the format.
- * @return string The formatted date.
- */
-function formatDateFr($date, $includeTime = false) {
-    if (empty($date)) {
+function formatDateFr(string $date, bool $includeTime = false): string
+{
+    if (empty($date) || $date === '0000-00-00') return '';
+    try {
+        return (new DateTime($date))->format($includeTime ? 'd/m/Y à H:i' : 'd/m/Y');
+    } catch (Exception) {
         return '';
     }
-    
-    $format = $includeTime ? 'd/m/Y à H:i' : 'd/m/Y';
-    $dateObj = new DateTime($date);
-    return $dateObj->format($format);
 }
 
-/**
- * Checks if the string is a valid email address.
- *
- * @param string $email The email address to check.
- * @return boolean True if the email is valid, false otherwise.
- */
-function isValidEmail($email) {
+function isValidEmail(string $email): bool
+{
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
-/**
- * Truncates a string to the specified length.
- *
- * @param string $string The string to truncate.
- * @param int $length The maximum desired length.
- * @param string $append Text to append if the string is truncated.
- * @return string The truncated string.
- */
-function truncateString($string, $length = 100, $append = '...') {
-    if (strlen($string) > $length) {
-        $string = substr($string, 0, $length) . $append;
-    }
-    return $string;
+function isValidPhone(string $phone): bool
+{
+    return strlen(preg_replace('/[^0-9]/', '', $phone)) === 9;
 }
 
-/**
- * Validates a phone number to ensure it contains exactly 9 digits.
- *
- * @param string $phone The phone number to validate.
- * @return boolean True if the number contains exactly 9 digits, false otherwise.
- */
-function isValidPhone($phone) {
-    // Remove all non-numeric characters
-    $digits = preg_replace('/[^0-9]/', '', $phone);
-    // Check if the number contains exactly 9 digits
-    return strlen($digits) === 9;
+function truncateString(string $string, int $length = 100, string $append = '...'): string
+{
+    return strlen($string) > $length ? substr($string, 0, $length) . $append : $string;
 }
 
-/**
- * Generates a CSRF token to secure forms.
- *
- * @return string The generated CSRF token.
- */
-function generateCsrfToken() {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        session_start();
+// ─── CSRF ─────────────────────────────────────────────────────────────────────
+function generateCsrfToken(): string
+{
+    static $guard = null;
+    if ($guard === null) {
+        $guard = new \Amea\Core\CsrfGuard(new \Amea\Core\Session());
     }
-
-    if (empty($_SESSION['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-    }
-
-    return $_SESSION['csrf_token'];
+    return $guard->getToken();
 }
 
-/**
- * Verifies if the submitted CSRF token is valid.
- *
- * @param string $token The CSRF token to verify.
- * @return boolean True if the token is valid, false otherwise.
- */
-function verifyCsrfToken($token) {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        session_start();
+function verifyCsrfToken(string $token): bool
+{
+    static $guard = null;
+    if ($guard === null) {
+        $guard = new \Amea\Core\CsrfGuard(new \Amea\Core\Session());
     }
-
-    if (empty($token) || empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
-        return false;
-    }
-
-    // Do NOT regenerate the token here. It should be stable for the session or form lifespan.
-    // Regeneration should happen on privilege escalation (login) or session rotation.
-
-    return true;
+    return $guard->verify($token);
 }
 
-/**
- * Logs an error in the default PHP error log.
- *
- * @param string $message Contextual error message.
- * @param \Throwable|null $exception Associated exception.
- * @return void
- */
-function logError($message, ?\Throwable $exception = null) {
-    $logMessage = '[' . date('c') . "] " . $message;
-
-    if ($exception !== null) {
-        $logMessage .= ' | ' . $exception->getMessage();
+// ─── Logging ──────────────────────────────────────────────────────────────────
+function logError(string $message, ?\Throwable $e = null): void
+{
+    $logFile = __DIR__ . '/../logs/error.log';
+    $entry   = '[' . date('c') . '] ' . $message;
+    if ($e) {
+        $entry .= ' | ' . get_class($e) . ': ' . $e->getMessage()
+               . ' in ' . $e->getFile() . ':' . $e->getLine();
     }
-
-    error_log($logMessage);
+    error_log($entry . PHP_EOL, 3, $logFile);
 }
 
-/**
- * Exports data to CSV format.
- *
- * @param array $data The data to export.
- * @param array $headers The column headers.
- * @param string $filename The name of the file to generate.
- * @return void
- */
-function exportToCsv($data, $headers, $filename = 'export.csv') {
-    header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="' . $filename . '"');
-    
-    $output = fopen('php://output', 'w');
-    
-    // Add UTF-8 BOM for Excel
-    fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-    
-    // Write headers
-    fputcsv($output, $headers, ';');
-    
-    // Write data
-    foreach ($data as $row) {
-        fputcsv($output, $row, ';');
+// ─── Flash messages ───────────────────────────────────────────────────────────
+function setFlashMessage(string $type, string $message): void
+{
+    static $flash = null;
+    if ($flash === null) {
+        $flash = new \Amea\Core\Flash(new \Amea\Core\Session());
     }
-    
-    fclose($output);
-    exit();
+    $flash->set($type, $message);
 }
 
-/**
- * Retrieves a configuration value from the database.
- *
- * @param string $key The configuration key.
- * @param string $default The default value if the key does not exist.
- * @return string The configuration value.
- */
-function getSetting($key, $default = '') {
+function getFlashMessage(): ?array
+{
+    static $flash = null;
+    if ($flash === null) {
+        $flash = new \Amea\Core\Flash(new \Amea\Core\Session());
+    }
+    return $flash->get();
+}
+
+function getFlashMessageClass(string $type): string
+{
+    static $flash = null;
+    if ($flash === null) {
+        $flash = new \Amea\Core\Flash(new \Amea\Core\Session());
+    }
+    return $flash->cssClass($type);
+}
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+function getSetting(string $key, string $default = ''): string
+{
     global $conn;
-    
-    // Ensure connection is available
-    if (!isset($conn)) {
-        require_once __DIR__ . '/../config/database.php';
+    static $repo = null;
+    if ($repo === null) {
+        $repo = new \Amea\Repository\SettingRepository($conn);
     }
-
-    try {
-        $stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = :key LIMIT 1");
-        $stmt->execute([':key' => $key]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($result) {
-            return $result['setting_value'];
-        }
-    } catch (PDOException $e) {
-        // Silently fail and return default in case of DB error to avoid breaking pages
-        logError("Error fetching setting '$key'", $e);
-    }
-
-    return $default;
+    return $repo->getValue($key, $default);
 }
 
-/**
- * Sets a flash message in the session.
- *
- * @param string $type The message type (e.g., success, error, warning).
- * @param string $message The message to display.
- * @return void
- */
-function setFlashMessage($type, $message) {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        session_start();
-    }
-    $_SESSION['flash_message'] = [
-        'type' => $type,
-        'message' => $message
-    ];
-}
-
-/**
- * Retrieves and clears the flash message from the session.
- *
- * @return array|null The flash message or null if none exists.
- */
-function getFlashMessage() {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        session_start();
-    }
-    if (isset($_SESSION['flash_message'])) {
-        $flash = $_SESSION['flash_message'];
-        unset($_SESSION['flash_message']);
-        return $flash;
-    }
-    return null;
-}
-
-/**
- * Returns the Bootstrap CSS class corresponding to the flash message type.
- *
- * @param string $type The message type.
- * @return string The CSS class.
- */
-function getFlashMessageClass($type) {
-    switch ($type) {
-        case 'success':
-            return 'alert-success';
-        case 'error':
-            return 'alert-danger';
-        case 'warning':
-            return 'alert-warning';
-        default:
-            return 'alert-info';
-    }
-}
-
-/**
- * Retrieves common replacements for the footer (email, phone, year).
- *
- * @return array The replacements for the template.
- */
-function getFooterReplacements() {
-    return [
-        '{{contact_email}}' => htmlspecialchars(getSetting('contact_email', 'admin@aeesgs.org')),
-        '{{contact_phone}}' => htmlspecialchars(getSetting('contact_phone', '+221 XX XXX XX XX')),
-        '{{year}}' => date('Y'),
-    ];
-}
-
-/**
- * Cleans a string for CSV export.
- *
- * @param string|null $data The string to clean.
- * @return string The cleaned string.
- */
-function cleanData($data) {
-    if ($data === null) {
-        return '';
-    }
-    // Remove line breaks and tabs
-    $data = str_replace(["\r", "\n", "\t"], ' ', $data);
-    // Escape double quotes
-    $data = str_replace('"', '""', $data);
-    return $data;
-}
-
-/**
- * Safely deletes a file only if it is inside the uploads/ directory.
- * Prevents path traversal attacks via database-stored paths.
- *
- * @param string|null $filePath The path to delete.
- * @return bool True if deleted, false otherwise.
- */
-function safeUnlink(?string $filePath): bool {
-    if (empty($filePath)) return false;
-    $uploadsDir = realpath(__DIR__ . '/../uploads');
-    $realFile   = realpath($filePath);
-    if ($uploadsDir === false || $realFile === false) return false;
-    if (strpos($realFile, $uploadsDir) !== 0) return false;
-    if (!is_file($realFile)) return false;
-    return unlink($realFile);
-}
-
-/**
- * Handles file upload, validates, and moves it.
- *
- * @param array $file_input The $_FILES input array for the file.
- * @param array $allowed_extensions Allowed file extensions (e.g., ['pdf', 'png']).
- * @param int $max_size Maximum allowed size in bytes (e.g., 5 * 1024 * 1024 for 5MB).
- * @param string $upload_dir The destination directory for the upload.
- * @return array An array containing 'success' (bool) and 'message' (string) or 'filepath' (string).
- */
-function handleFileUpload($file_input, $allowed_extensions, $max_size, $upload_dir) {
-    if (!isset($file_input) || $file_input['error'] === UPLOAD_ERR_NO_FILE) {
-        return ['success' => true, 'filepath' => null]; // No file uploaded is not an error for optional fields
-    }
-
-    if ($file_input['error'] !== UPLOAD_ERR_OK) {
-        return ['success' => false, 'message' => "Upload error: " . $file_input['error']];
-    }
-
-    $filename = $file_input['name'];
-    $file_size = $file_input['size'];
-    $file_tmp = $file_input['tmp_name'];
-    $file_ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-
-    // Validate extension
-    if (!in_array($file_ext, $allowed_extensions)) {
-        return ['success' => false, 'message' => "File extension not allowed. Accepted extensions: " . implode(', ', $allowed_extensions)];
-    }
-
-    // Validate MIME type against the actual file content
-    $allowedMimes = [
-        'jpg'  => 'image/jpeg',
-        'jpeg' => 'image/jpeg',
-        'png'  => 'image/png',
-        'gif'  => 'image/gif',
-        'pdf'  => 'application/pdf',
-    ];
-    if (isset($allowedMimes[$file_ext])) {
-        $finfo    = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $file_tmp);
-        finfo_close($finfo);
-        if ($mimeType !== $allowedMimes[$file_ext]) {
-            return ['success' => false, 'message' => "File content does not match its extension."];
-        }
-    }
-
-    // Validate size
-    if ($file_size > $max_size) {
-        return ['success' => false, 'message' => "File is too large. Maximum size: " . ($max_size / (1024 * 1024)) . "MB"];
-    }
-
-    // Generate unique filename and move
-    $new_file_name = uniqid('', true) . '.' . $file_ext;
-    $destination = rtrim($upload_dir, '/') . '/' . $new_file_name;
-
-    if (!is_dir($upload_dir)) {
-        mkdir($upload_dir, 0777, true); // Create directory if it doesn't exist
-    }
-
-    if (move_uploaded_file($file_tmp, $destination)) {
-        return ['success' => true, 'filepath' => $destination];
-    } else {
-        return ['success' => false, 'message' => "Error moving uploaded file."];
-    }
-}
-
-/**
- * The canonical list of permission module keys.
- * Used for whitelisting submitted values and building the permission UI.
- */
-define('PERMISSION_MODULES', ['students','export','users','slider','upgrade','documents','communications','settings']);
-
-/**
- * Checks if the current user has permission for a specific module.
- *
- * The DB is always the authoritative source so that permission revocations
- * take effect on the next request without requiring a re-login.
- * A per-request static cache eliminates N+1 queries within a single page load
- * (the sidebar alone calls this function 8 times).
- *
- * @param string $module Module name — must be one of PERMISSION_MODULES.
- * @return boolean True if the user has permission, false otherwise.
- */
-function hasPermission($module) {
+function getFooterReplacements(): array
+{
     global $conn;
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        session_start();
+    static $repo = null;
+    if ($repo === null) {
+        $repo = new \Amea\Repository\SettingRepository($conn);
     }
+    return $repo->getFooterReplacements();
+}
 
+// ─── Permissions ──────────────────────────────────────────────────────────────
+function hasPermission(string $module): bool
+{
+    global $conn;
+    static $cache = [];
     $uid = (int)($_SESSION['user_id'] ?? 0);
     if ($uid === 0) return false;
-
-    // User ID 1 is the Super Admin and has all permissions
-    if ($uid === 1) {
-        return true;
-    }
-
-    // Role-based shortcut: non-admin users never have module permissions
-    if (($_SESSION['role'] ?? '') !== 'admin') {
-        return false;
-    }
-
-    // Per-request static cache: populated once per user per request from the DB.
-    // Eliminates N+1 queries without introducing session staleness.
-    static $cache = [];
+    if ($uid === 1) return true;
+    if (($_SESSION['role'] ?? '') !== 'admin') return false;
     if (isset($cache[$uid])) {
-        return in_array($module, $cache[$uid]);
+        return in_array($module, $cache[$uid], true);
     }
-
-    if (!isset($conn)) {
-        require_once __DIR__ . '/../config/database.php';
-    }
-
-    try {
-        $stmt = $conn->prepare("SELECT permissions FROM users WHERE id_user = ? LIMIT 1");
-        $stmt->execute([$uid]);
-        $permsJson = $stmt->fetchColumn() ?: null;
-    } catch (PDOException $e) {
-        logError("Permission check failed for user $uid", $e);
-        return false;
-    }
-
-    if (!$permsJson) {
-        $cache[$uid] = [];
-        return false;
-    }
-
-    $permissions = json_decode($permsJson, true);
-    $cache[$uid] = is_array($permissions) ? $permissions : [];
-    return in_array($module, $cache[$uid]);
+    $repo        = new \Amea\Repository\UserRepository($conn);
+    $user        = $repo->findById($uid);
+    $cache[$uid] = $user ? $user->getPermissions() : [];
+    return in_array($module, $cache[$uid], true);
 }
 
-/**
- * Appends a version parameter to asset URLs (CSS, JS) in HTML content.
- * The version is based on the file modification time to bust browser cache.
- *
- * @param string $html The HTML content to process.
- * @return string The processed HTML with versioned asset URLs.
- */
-function addVersionToAssets($html) {
-    // Regex to find href="..." or src="..." pointing to assets/
-    // It captures:
-    // 1. The attribute (href or src)
-    // 2. The quote (" or ')
-    // 3. The path starting with assets/
-    // 4. The quote
-    return preg_replace_callback(
-        '/(href|src)=("|\')(assets\/[^"\']+)\2/i',
-        function ($matches) {
-            $attribute = $matches[1];
-            $quote = $matches[2];
-            $path = $matches[3];
+// ─── File handling ────────────────────────────────────────────────────────────
+function handleFileUpload(array $file, array $allowedExtensions, int $maxSize, string $uploadDir): array
+{
+    return (new \Amea\Core\FileUploader(__DIR__ . '/..'))->handle($file, $allowedExtensions, $maxSize, $uploadDir);
+}
 
-            // Resolve the real file path relative to the document root (current working dir)
-            // Assuming the script is running from the root or we can resolve it.
-            // In this project structure, 'assets/' is at the root.
-            $realPath = __DIR__ . '/../' . $path;
+function safeUnlink(?string $filePath): bool
+{
+    return (new \Amea\Core\FileUploader(__DIR__ . '/..'))->safeDelete($filePath);
+}
 
-            // Remove any existing query string from the path for checking file existence
-            $cleanPath = explode('?', $realPath)[0];
+// ─── CSV export ───────────────────────────────────────────────────────────────
+function cleanData(?string $data): string
+{
+    if ($data === null) return '';
+    return str_replace('"', '""', str_replace(["\r", "\n", "\t"], ' ', $data));
+}
 
-            if (file_exists($cleanPath)) {
-                $version = filemtime($cleanPath);
-                // Check if there is already a query string
-                if (strpos($path, '?') !== false) {
-                    $newPath = $path . '&v=' . $version;
-                } else {
-                    $newPath = $path . '?v=' . $version;
-                }
-                return $attribute . '=' . $quote . $newPath . $quote;
-            }
-
-            return $matches[0];
-        },
-        $html
-    );
+// ─── Asset versioning ─────────────────────────────────────────────────────────
+function addVersionToAssets(string $html): string
+{
+    return \Amea\Core\TemplateEngine::versionAssets($html, __DIR__ . '/..');
 }
