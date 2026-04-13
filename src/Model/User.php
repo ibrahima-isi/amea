@@ -32,9 +32,6 @@ class User
 
     public function getPermissions(): array
     {
-        if ($this->id === 1) {
-            return \Amea\Service\UserService::MODULES;
-        }
         if (empty($this->permissionsJson)) {
             return [];
         }

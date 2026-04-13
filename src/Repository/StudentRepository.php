@@ -35,15 +35,12 @@ class StudentRepository
         $countStmt->execute($params);
         $total = (int)$countStmt->fetchColumn();
 
-        $dataStmt = $this->pdo->prepare(
-            "SELECT * FROM personnes{$where} ORDER BY date_enregistrement DESC LIMIT :limit OFFSET :offset"
+        // Append LIMIT/OFFSET as positional params to avoid mixing named and positional
+        $allParams = array_merge($params, [$perPage, $offset]);
+        $dataStmt  = $this->pdo->prepare(
+            "SELECT * FROM personnes{$where} ORDER BY date_enregistrement DESC LIMIT ? OFFSET ?"
         );
-        foreach ($params as $key => $val) {
-            $dataStmt->bindValue(is_int($key) ? $key + 1 : $key, $val);
-        }
-        $dataStmt->bindValue(':limit',  $perPage, \PDO::PARAM_INT);
-        $dataStmt->bindValue(':offset', $offset,  \PDO::PARAM_INT);
-        $dataStmt->execute();
+        $dataStmt->execute($allParams);
 
         return [
             'items' => array_map(fn($row) => Student::fromRow($row), $dataStmt->fetchAll()),
@@ -71,25 +68,38 @@ class StudentRepository
                 (:nom, :prenom, :sexe, :date_naissance, :lieu_residence, :etablissement, :statut,
                  :domaine_etudes, :niveau_etudes, :telephone, :email, :annee_arrivee, :type_logement,
                  :precision_logement, :projet_apres_formation, :identite, :nationalites, :cv_path,
-                 NOW(), :consent_privacy)"
+                 CURRENT_TIMESTAMP, :consent_privacy)"
         );
         $stmt->execute($data);
         return (int)$this->pdo->lastInsertId();
     }
 
+    private const UPDATABLE_COLUMNS = [
+        'nom', 'prenom', 'sexe', 'date_naissance', 'lieu_residence', 'etablissement', 'statut',
+        'domaine_etudes', 'niveau_etudes', 'telephone', 'email', 'annee_arrivee', 'type_logement',
+        'precision_logement', 'projet_apres_formation', 'identite', 'nationalites', 'cv_path',
+        'date_diplomation', 'is_locked', 'consent_privacy',
+    ];
+
     public function update(int $id, array $data): bool
     {
-        $data['id_personne'] = $id;
-        $setClauses = [];
-        foreach (array_keys($data) as $key) {
-            if ($key !== 'id_personne') {
-                $setClauses[] = "{$key} = :{$key}";
+        $setClauses   = [];
+        $filteredData = [];
+        foreach ($data as $key => $val) {
+            if (!in_array($key, self::UPDATABLE_COLUMNS, true)) {
+                throw new \InvalidArgumentException("Column '{$key}' is not updatable.");
             }
+            $setClauses[]       = "{$key} = :{$key}";
+            $filteredData[$key] = $val;
         }
+        if (empty($setClauses)) {
+            return false;
+        }
+        $filteredData['id_personne'] = $id;
         $stmt = $this->pdo->prepare(
             "UPDATE personnes SET " . implode(', ', $setClauses) . " WHERE id_personne = :id_personne"
         );
-        return $stmt->execute($data);
+        return $stmt->execute($filteredData);
     }
 
     public function delete(int $id): bool

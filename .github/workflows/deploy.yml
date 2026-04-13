@@ -22,7 +22,10 @@ jobs:
           extensions: pdo, pdo_sqlite
 
       - name: Run unit tests
-        run: php tests/test_permissions_unit.php
+        run: |
+          php tests/test_permissions_unit.php
+          php tests/test_oop_unit.php
+          php tests/test_oop_integration.php
 
   # ── Deploy only when tests pass ───────────────────────────────────────────────
   deploy:

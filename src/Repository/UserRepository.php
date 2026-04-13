@@ -50,7 +50,7 @@ class UserRepository
     {
         $stmt = $this->pdo->prepare(
             "INSERT INTO users (username, email, nom, prenom, password, role, permissions, est_actif, date_creation)
-             VALUES (:username, :email, :nom, :prenom, :password, :role, :permissions, :est_actif, NOW())"
+             VALUES (:username, :email, :nom, :prenom, :password, :role, :permissions, :est_actif, CURRENT_TIMESTAMP)"
         );
         $stmt->execute($data);
         return (int)$this->pdo->lastInsertId();
@@ -74,7 +74,7 @@ class UserRepository
 
     public function updateLastLogin(int $id): bool
     {
-        $stmt = $this->pdo->prepare("UPDATE users SET derniere_connexion = NOW() WHERE id_user = ?");
+        $stmt = $this->pdo->prepare("UPDATE users SET derniere_connexion = CURRENT_TIMESTAMP WHERE id_user = ?");
         return $stmt->execute([$id]);
     }
 
