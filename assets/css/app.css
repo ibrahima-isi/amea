@@ -1,4 +1,4 @@
-/* Inter — enterprise-grade font used across the whole site */
+/* Claude text font stacks — display titles plus Styrene/Inter body fallbacks */
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap');
 
 /* Custom color palette - Professional Guinea Theme */
@@ -9,9 +9,12 @@
     --brand-danger: #CE1126;  /* Guinea Red */
     --brand-light: #FFFDE7;   /* Pale Cream/Yellow */
     --brand-subtle: #E8F5E9;  /* Light Green Tint */
-    --font-base: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-display: 'Copernicus', 'Tiempos Headline', Georgia, 'Times New Roman', serif;
+    --font-body: 'StyreneB', 'Styrene B', 'Inter', system-ui, -apple-system, sans-serif;
+    --font-base: var(--font-body);
     --bs-body-font-family: var(--font-base);
     --bs-font-sans-serif: var(--font-base);
+    --bs-font-serif: var(--font-display);
 }
 
 /* Override Bootstrap colors */
@@ -171,6 +174,19 @@ body {
     font-family: var(--font-base);
     font-size: 0.9375rem; /* 15px — compact and consistent with sidebar */
     background-color: #Fdfdfd;
+}
+
+h1, h2,
+.h1, .h2,
+.display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+    font-family: var(--font-display);
+}
+
+h3, h4, h5, h6,
+.h3, .h4, .h5, .h6,
+button, input, select, textarea,
+.btn, .form-control, .form-select, .navbar, .card {
+    font-family: var(--font-body);
 }
 
 /* Carousel Image Sizing for consistency */

@@ -75,6 +75,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // 3. Normalize nullable fields and calculate age
+    $nullableString = static function ($value): ?string {
+        $value = trim((string)($value ?? ''));
+        return $value === '' ? null : $value;
+    };
+
+    $finalLieuResidenceForDb = $nullableString($finalLieuResidenceForDb);
+    $finalEtablissementForDb = $nullableString($finalEtablissementForDb);
+    $finalDomaineEtudesForDb = $nullableString($finalDomaineEtudesForDb);
+    $finalNiveauEtudesForDb = $nullableString($finalNiveauEtudesForDb);
+    $formData['telephone'] = $nullableString($formData['telephone']);
+    $formData['email'] = $nullableString($formData['email']);
+    $formData['statut'] = $nullableString($formData['statut']);
+    $formData['type_logement'] = $nullableString($formData['type_logement']);
     $formData['annee_arrivee'] = ($formData['annee_arrivee'] === null || $formData['annee_arrivee'] === '') ? null : (int)$formData['annee_arrivee'];
     $formData['precision_logement'] = $formData['precision_logement'] === '' ? null : $formData['precision_logement'];
     $formData['projet_apres_formation'] = $formData['projet_apres_formation'] === '' ? null : $formData['projet_apres_formation'];
@@ -109,14 +122,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'prenom' => 'Le prénom est requis.',
         'sexe' => 'Le sexe est requis.',
         'date_naissance' => 'La date de naissance est requise.',
-        'lieu_residence' => 'Le lieu de résidence est requis.',
-        'etablissement' => 'L\'établissement est requis.',
-        'statut' => 'Le statut est requis.',
-        'domaine_etudes' => 'Le domaine d\'études est requis.',
-        'niveau_etudes' => 'Le niveau d\'études est requis.',
-        'telephone' => 'Le téléphone est requis.',
-        'email' => 'L\'email est requis.',
-        'type_logement' => 'Le type de logement est requis.',
         'nationalites' => 'La nationalité est requise.'
     ];
 
@@ -124,6 +129,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (empty($formData[$field])) {
             $errors[$field] = $message;
         }
+    }
+    if (empty($validNats)) {
+        $errors['nationalites'] = 'La nationalité est requise.';
     }
 
     if (empty($formData['numero_identite'])) {
@@ -136,11 +144,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    if (!isset($errors['email']) && !filter_var($formData['email'], FILTER_VALIDATE_EMAIL)) {
+    if ($formData['email'] !== null && !filter_var($formData['email'], FILTER_VALIDATE_EMAIL)) {
         $errors['email'] = "L'adresse email n'est pas valide.";
     }
 
-    if (!isset($errors['telephone']) && !isValidPhone($formData['telephone'])) {
+    if ($formData['telephone'] !== null && !isValidPhone($formData['telephone'])) {
         $errors['telephone'] = "Le numéro de téléphone doit contenir exactement 9 chiffres.";
     }
 
@@ -149,10 +157,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($formData['age'] < 15) {
             $errors['date_naissance'] = "L'âge doit être d'au moins 15 ans.";
         }
-    }
-
-    if ($formData['consent_privacy'] == 0) {
-        $errors['consent_privacy'] = 'Veuillez accepter les termes de confidentialité.';
     }
 
     // 5. Handle file uploads (Identité and CV)
@@ -211,30 +215,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     try {
-        $duplicateSql = "SELECT COUNT(*) FROM personnes WHERE email = :email";
-        $duplicateStmt = $conn->prepare($duplicateSql);
-        $duplicateStmt->bindParam(':email', $formData['email']);
-        $duplicateStmt->execute();
-        if ($duplicateStmt->fetchColumn() > 0) {
-            $errors['email'] = "Cette adresse email est déjà enregistrée.";
-            $_SESSION['form_data'] = $formData;
-            $_SESSION['form_errors'] = $errors;
-            setFlashMessage('error', 'Cette adresse email est déjà enregistrée.');
-            header('Location: register.php');
-            exit();
+        if ($formData['email'] !== null) {
+            $duplicateSql = "SELECT COUNT(*) FROM personnes WHERE email = :email";
+            $duplicateStmt = $conn->prepare($duplicateSql);
+            $duplicateStmt->bindParam(':email', $formData['email']);
+            $duplicateStmt->execute();
+            if ($duplicateStmt->fetchColumn() > 0) {
+                $errors['email'] = "Cette adresse email est déjà enregistrée.";
+                $_SESSION['form_data'] = $formData;
+                $_SESSION['form_errors'] = $errors;
+                setFlashMessage('error', 'Cette adresse email est déjà enregistrée.');
+                header('Location: register.php');
+                exit();
+            }
         }
 
-        $phoneSql = "SELECT COUNT(*) FROM personnes WHERE telephone = :telephone";
-        $phoneStmt = $conn->prepare($phoneSql);
-        $phoneStmt->bindParam(':telephone', $formData['telephone']);
-        $phoneStmt->execute();
-        if ($phoneStmt->fetchColumn() > 0) {
-            $errors['telephone'] = "Ce numéro de téléphone est déjà enregistré.";
-            $_SESSION['form_data'] = $formData;
-            $_SESSION['form_errors'] = $errors;
-            setFlashMessage('error', 'Ce numéro de téléphone est déjà enregistré.');
-            header('Location: register.php');
-            exit();
+        if ($formData['telephone'] !== null) {
+            $phoneSql = "SELECT COUNT(*) FROM personnes WHERE telephone = :telephone";
+            $phoneStmt = $conn->prepare($phoneSql);
+            $phoneStmt->bindParam(':telephone', $formData['telephone']);
+            $phoneStmt->execute();
+            if ($phoneStmt->fetchColumn() > 0) {
+                $errors['telephone'] = "Ce numéro de téléphone est déjà enregistré.";
+                $_SESSION['form_data'] = $formData;
+                $_SESSION['form_errors'] = $errors;
+                setFlashMessage('error', 'Ce numéro de téléphone est déjà enregistré.');
+                header('Location: register.php');
+                exit();
+            }
         }
 
         $sql = "INSERT INTO personnes (nom, prenom, numero_identite, sexe, age, date_naissance, lieu_residence,
@@ -301,8 +309,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             'lieu_residence'=> $finalLieuResidenceForDb,
             'type_logement' => $formData['type_logement'],
         ];
-        $studentBody = renderEmailTemplate(__DIR__ . '/templates/emails/registration-confirmation.html', $emailData);
-        sendMail($formData['email'], 'Confirmation de votre inscription – AEESGS', $studentBody);
+        if (!empty($formData['email'])) {
+            $studentBody = renderEmailTemplate(__DIR__ . '/templates/emails/registration-confirmation.html', $emailData);
+            sendMail($formData['email'], 'Confirmation de votre inscription – AEESGS', $studentBody);
+        }
 
         // Send alert email to admin
         $adminEmail = getSetting('contact_email', 'admin@aeesgs.org');
@@ -534,4 +544,3 @@ $output = strtr($tpl, $replacements);
 
 echo addVersionToAssets($output);
 ?>
-

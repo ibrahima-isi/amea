@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function toggleOtherField(selectElement, otherDiv, otherInput) {
         if (selectElement.value === 'Autre') {
             otherDiv.style.display = 'block';
-            otherInput.required = true;
+            otherInput.required = selectElement.required;
         } else {
             otherDiv.style.display = 'none';
             otherInput.required = false;
