@@ -1,8 +1,5 @@
 ---
 deployment:
-  on:
-    branch:
-      - main
   tasks:
     - export DEPLOYPATH="${HOME}/public_html"
     - /bin/mkdir -p "$DEPLOYPATH"
