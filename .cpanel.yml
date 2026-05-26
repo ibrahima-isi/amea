@@ -1,8 +1,11 @@
 ---
 deployment:
+  on:
+    branch:
+      - main
   tasks:
-    - export DEPLOYPATH=/home/aeessqgf/public_html/
-    - /bin/cp -R * $DEPLOYPATH
-    - /bin/chmod 755 $DEPLOYPATH
-    - /usr/bin/find $DEPLOYPATH -type d -exec chmod 755 {} \;
-    - /usr/bin/find $DEPLOYPATH -type f -exec chmod 644 {} \;
+    - export DEPLOYPATH="${HOME}/public_html"
+    - /bin/mkdir -p "$DEPLOYPATH"
+    - /bin/cp -a . "$DEPLOYPATH"
+    - /usr/bin/find "$DEPLOYPATH" -type d -exec /bin/chmod 755 {} \;
+    - /usr/bin/find "$DEPLOYPATH" -type f -exec /bin/chmod 644 {} \;
