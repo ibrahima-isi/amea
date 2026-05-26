@@ -100,7 +100,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $decoded = json_decode($formData['nationalites'], true);
         if (is_array($decoded)) {
             $names = array_map(fn($item) => $item['value'], $decoded);
-            
+
             // Validate against DB
             if (!empty($names)) {
                 $placeholders = implode(',', array_fill(0, count($names), '?'));
@@ -113,7 +113,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
     }
-    $formData['nationalites_json'] = !empty($validNats) ? json_encode($validNats, JSON_UNESCAPED_UNICODE) : null;
+    // Ensure unique values and enforce required default 'Guinée'
+    $validNats = array_values(array_unique($validNats));
+
+    // If Guinée is missing, try to resolve its id in the pays table and prepend it
+    $guineeNames = ['Guinée', 'Guinee', 'Guinea'];
+    $hasGuinee = false;
+    foreach ($validNats as $vn) {
+        if (in_array(mb_strtolower($vn, 'UTF-8'), array_map(function ($s) {
+            return mb_strtolower($s, 'UTF-8');
+        }, $guineeNames))) {
+            $hasGuinee = true;
+            break;
+        }
+    }
+    if (!$hasGuinee) {
+        // Try to find the Guinée entry in pays
+        $placeholders = implode(',', array_fill(0, count($guineeNames), '?'));
+        $stmtG = $conn->prepare("SELECT id_pays, nom_fr FROM pays WHERE nom_fr IN ($placeholders) LIMIT 1");
+        $stmtG->execute($guineeNames);
+        $g = $stmtG->fetch(PDO::FETCH_ASSOC);
+        if ($g) {
+            array_unshift($validNats, $g['nom_fr']);
+            array_unshift($validIds, $g['id_pays']);
+        } else {
+            // Add name even if id not found to ensure the JSON contains Guinée
+            array_unshift($validNats, 'Guinée');
+        }
+    }
+
+    $formData['nationalites_json'] = !empty($validNats) ? json_encode(array_slice($validNats, 0, 5), JSON_UNESCAPED_UNICODE) : null;
 
     // 4. Validation
     $errors = [];
@@ -122,7 +151,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'prenom' => 'Le prénom est requis.',
         'sexe' => 'Le sexe est requis.',
         'date_naissance' => 'La date de naissance est requise.',
-        'nationalites' => 'La nationalité est requise.'
+        'nationalites' => 'La nationalité est requise.',
+        'telephone' => 'Le numéro de téléphone est requis.',
+        'email' => 'L\'adresse email est requise.',
+        'consent_privacy' => 'Vous devez accepter les Conditions Générales d\'Utilisation et la Politique de Confidentialité.'
     ];
 
     foreach ($requiredFields as $field => $message) {
@@ -132,6 +164,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     if (empty($validNats)) {
         $errors['nationalites'] = 'La nationalité est requise.';
+    }
+
+    // Enforce max 5 nationalities (Guinée + up to 4 others)
+    if (!isset($errors['nationalites']) && count($validNats) > 5) {
+        $errors['nationalites'] = 'Vous pouvez ajouter au maximum 4 nationalités supplémentaires (5 au total).';
     }
 
     if (empty($formData['numero_identite'])) {
@@ -164,7 +201,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $identiteUploadResult = handleFileUpload($_FILES['photo'] ?? [], ['jpg', 'jpeg', 'png', 'gif', 'pdf'], 2 * 1024 * 1024, 'uploads/students');
     if (!$identiteUploadResult['success']) {
         if ($identiteUploadResult['filepath'] !== null) { // Only set error if a file was actually attempted to be uploaded
-             $errors['identite'] = $identiteUploadResult['message'];
+            $errors['identite'] = $identiteUploadResult['message'];
         }
     } else {
         $identitePath = $identiteUploadResult['filepath'];
@@ -175,7 +212,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $cvUploadResult = handleFileUpload($_FILES['cv_file'] ?? [], ['pdf', 'png'], 5 * 1024 * 1024, 'uploads/students/cvs');
     if (!$cvUploadResult['success']) {
         if ($cvUploadResult['filepath'] !== null) { // Only set error if a file was actually attempted to be uploaded
-             $errors['cv'] = $cvUploadResult['message'];
+            $errors['cv'] = $cvUploadResult['message'];
         }
     } else {
         $cvPath = $cvUploadResult['filepath'];
@@ -280,7 +317,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         ];
 
         $stmt->execute($bindings);
-        
+
         // Retrieve the last inserted ID
         $newStudentId = $conn->lastInsertId();
 
@@ -291,7 +328,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $stmtPivot->execute([$newStudentId, $pid]);
             }
         }
-        
+
         // Set session variable for the details page
         $_SESSION['registration_student_id'] = $newStudentId;
 
@@ -304,9 +341,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             'telephone'     => $formData['telephone'],
             'statut'        => $formData['statut'],
             'etablissement' => $finalEtablissementForDb,
-            'domaine_etudes'=> $finalDomaineEtudesForDb,
+            'domaine_etudes' => $finalDomaineEtudesForDb,
             'niveau_etudes' => $finalNiveauEtudesForDb,
-            'lieu_residence'=> $finalLieuResidenceForDb,
+            'lieu_residence' => $finalLieuResidenceForDb,
             'type_logement' => $formData['type_logement'],
         ];
         if (!empty($formData['email'])) {
@@ -326,7 +363,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         session_write_close();
         header('Location: registration-details.php');
         exit();
-
     } catch (PDOException $e) {
         logError("Erreur lors de l'inscription", $e);
 
@@ -543,4 +579,3 @@ $replacements = [
 $output = strtr($tpl, $replacements);
 
 echo addVersionToAssets($output);
-?>

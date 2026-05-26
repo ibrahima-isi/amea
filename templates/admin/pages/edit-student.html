@@ -1,248 +1,557 @@
-<link rel="stylesheet" href="assets/css/tagify.css">
+<link rel="stylesheet" href="assets/css/tagify.css" />
 <div class="page-header">
   <div>
     <h1>Modifier l'étudiant</h1>
-    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
-      <li class="breadcrumb-item"><a href="students.php">Étudiants</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Modifier</li>
-    </ol></nav>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item">
+          <a href="dashboard.php">Tableau de bord</a>
+        </li>
+        <li class="breadcrumb-item"><a href="students.php">Étudiants</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Modifier</li>
+      </ol>
+    </nav>
   </div>
 </div>
 
 {{feedback_block}}
 
 <div class="row">
-    <div class="col-lg-10 mx-auto">
-        <div class="card shadow">
-            <div class="card-header">
-                <span class="chart-card-header"><i class="fas fa-user-edit"></i> Mettez à jour les informations de l'étudiant</span>
+  <div class="col-lg-10 mx-auto">
+    <div class="card shadow">
+      <div class="card-header">
+        <span class="chart-card-header"
+          ><i class="fas fa-user-edit"></i> Mettez à jour les informations de
+          l'étudiant</span
+        >
+      </div>
+      <div class="card-body">
+        <form
+          action="{{form_action}}"
+          method="POST"
+          id="editStudentForm"
+          enctype="multipart/form-data"
+          novalidate
+        >
+          <input type="hidden" name="csrf_token" value="{{csrf_token}}" />
+          <!-- Informations personnelles -->
+          <h3 class="h5 mb-3">Informations personnelles</h3>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label for="nom" class="form-label"
+                >Nom <span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control {{is_invalid_nom}}"
+                id="nom"
+                name="nom"
+                value="{{nom}}"
+                required
+              />
+              <div class="text-danger">{{error_nom}}</div>
             </div>
-            <div class="card-body">
-                <form action="{{form_action}}" method="POST" id="editStudentForm" enctype="multipart/form-data" novalidate>
-                    <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-                    <!-- Informations personnelles -->
-                    <h3 class="h5 mb-3">Informations personnelles</h3>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label for="nom" class="form-label">Nom <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control {{is_invalid_nom}}" id="nom" name="nom" value="{{nom}}" required>
-                            <div class="text-danger">{{error_nom}}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="prenom" class="form-label">Prénom <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control {{is_invalid_prenom}}" id="prenom" name="prenom" value="{{prenom}}" required>
-                            <div class="text-danger">{{error_prenom}}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Sexe <span class="text-danger">*</span></label>
-                            <div class="form-check">
-                                <input class="form-check-input {{is_invalid_sexe}}" type="radio" name="sexe" id="sexeMasculin" value="Masculin" {{sexe_checked_Masculin}} required>
-                                <label class="form-check-label" for="sexeMasculin">Masculin</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input {{is_invalid_sexe}}" type="radio" name="sexe" id="sexeFeminin" value="Feminin" {{sexe_checked_Feminin}} required>
-                                <label class="form-check-label" for="sexeFeminin">Féminin</label>
-                            </div>
-                            <div class="text-danger">{{error_sexe}}</div>
-                        </div>
-                        
-                        <div class="col-md-12 mb-3">
-                            <label for="nationalites" class="form-label">Nationalité</label>
-                            <input name="nationalites" id="nationalites" class="form-control" placeholder="Nationalité (max 5)" value='{{nationalites_value}}'>
-                            <div class="form-text">Tapez et sélectionnez parmi la liste.</div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="date_naissance" class="form-label">Date de naissance <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control {{is_invalid_date_naissance}}" id="date_naissance" name="date_naissance" value="{{date_naissance}}" required data-max-date="{{max_birth_date}}" placeholder="JJ/MM/AAAA">
-                            <div class="text-danger">{{error_date_naissance}}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="numero_identite" class="form-label">Numéro d'ID ou Passeport <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control {{is_invalid_numero_identite}}" id="numero_identite" name="numero_identite" value="{{numero_identite}}" required placeholder="Ex: NNI ou Numéro de passeport">
-                            <div class="text-danger">{{error_numero_identite}}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="photo" class="form-label">ID ou Passeport</label>
-                            <input type="file" class="form-control {{is_invalid_identite}}" id="photo" name="photo" accept="image/*,application/pdf">
-                            <div class="text-danger">{{error_identite}}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="cv_file" class="form-label">Télécharger CV (PDF, PNG - max 5MB)</label>
-                            <input type="file" class="form-control {{is_invalid_cv}}" id="cv_file" name="cv_file" accept="application/pdf,image/png">
-                            <div class="text-danger">{{error_cv}}</div>
-                            {{current_cv_display}}
-                        </div>
-
-                    </div>
-
-                    <!-- Informations de contact et résidence -->
-                    <h3 class="h5 mb-3">Contact et résidence</h3>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label for="telephone" class="form-label">Téléphone <span class="text-danger">*</span></label>
-                            <input type="tel" class="form-control {{is_invalid_telephone}}" id="telephone" name="telephone" value="{{telephone}}" placeholder="Saisissez votre numero sans l'indicatif du pays (9 chiffres max)" required>
-                            <div class="text-danger">{{error_telephone}}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control {{is_invalid_email}}" id="email" name="email" value="{{email}}" required placeholder="nom.prenom@exemple.com">
-                            <div class="text-danger">{{error_email}}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="lieu_residence" class="form-label"><span class="text-danger">*</span> Lieu de résidence au Sénégal</label>
-                            <select class="form-select {{is_invalid_lieu_residence}}" id="lieu_residence" name="lieu_residence" required>
-                                {{lieu_residence_options}}
-                            </select>
-                            <div class="text-danger">{{error_lieu_residence}}</div>
-                        </div>
-                        <div class="col-md-6" id="autre_lieu_residence_wrapper" style="display: none;">
-                            <label for="autre_lieu_residence" class="form-label">Précisez le lieu de résidence <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="autre_lieu_residence" name="autre_lieu_residence" value="{{autre_lieu_residence}}">
-                            <script>if("{{autre_lieu_residence}}".trim() !== "") document.getElementById("autre_lieu_residence_wrapper").style.display = "block";</script>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="annee_arrivee" class="form-label">Année d'arrivée au Sénégal</label>
-                            <select class="form-select" id="annee_arrivee" name="annee_arrivee">
-                                {{annee_arrivee_options}}
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="type_logement" class="form-label">Type de logement <span class="text-danger">*</span></label>
-                            <select class="form-select {{is_invalid_type_logement}}" id="type_logement" name="type_logement" required>
-                            <option value="Colocation" {{type_logement_sel_Colocation}}>Colocation</option>
-                            <option value="Famille" {{type_logement_sel_Famille}}>Famille</option>
-                            <option value="Hébergement temporaire" {{type_logement_sel_Hébergement temporaire}}>Hébergement temporaire</option>
-                            <option value="Location" {{type_logement_sel_Location}}>Location</option>
-                            <option value="Résidence universitaire" {{type_logement_sel_Résidence universitaire}}>Résidence universitaire</option>
-                            <option value="Autre" {{type_logement_sel_Autre}}>Autre</option>
-                        </select>
-                            <div class="text-danger">{{error_type_logement}}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="precision_logement" class="form-label">Précisions sur le logement</label>
-                            <input type="text" class="form-control" id="precision_logement" name="precision_logement" value="{{precision_logement}}">
-                        </div>
-                    </div>
-
-                    <!-- Informations académiques -->
-                    <h3 class="h5 mb-3">Informations académiques</h3>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label for="etablissement" class="form-label">Établissement <span class="text-danger">*</span></label>
-                            <select class="form-select {{is_invalid_etablissement}}" id="etablissement" name="etablissement" required>
-                                {{etablissement_options}}
-                            </select>
-                            <div class="text-danger">{{error_etablissement}}</div>
-                        </div>
-                        <div class="col-md-6" id="autre_etablissement_wrapper" style="display: none;">
-                            <label for="autre_etablissement" class="form-label">Précisez l'établissement <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="autre_etablissement" name="autre_etablissement" value="{{autre_etablissement}}">
-                            <script>if("{{autre_etablissement}}".trim() !== "") document.getElementById("autre_etablissement_wrapper").style.display = "block";</script>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="statut" class="form-label">Statut <span class="text-danger">*</span></label>
-                            <select class="form-select {{is_invalid_statut}}" id="statut" name="statut" required>
-                                <option value="" disabled>Sélectionnez</option>
-                                <option value="Élève" {{statut_sel_Élève}}>Élève</option>
-                                <option value="Étudiant" {{statut_sel_Étudiant}}>Étudiant</option>
-                                <option value="Stagiaire" {{statut_sel_Stagiaire}}>Stagiaire</option>
-                                <option value="Diplômé" {{statut_sel_Diplômé}}>Diplômé</option>
-                            </select>
-                            <div class="text-danger">{{error_statut}}</div>
-                        </div>
-                        <div class="col-md-6" id="date_diplomation_wrapper" style="display:none;">
-                            <label for="date_diplomation" class="form-label">Date de diplomation</label>
-                            <input type="date" class="form-control" id="date_diplomation" name="date_diplomation" value="{{date_diplomation}}">
-                            <div class="form-text">Laissez vide pour utiliser la date d'aujourd'hui.</div>
-                        </div>
-                        <script>
-                        (function() {
-                            var sel = document.getElementById('statut');
-                            var wrap = document.getElementById('date_diplomation_wrapper');
-                            function toggle() { wrap.style.display = sel.value === 'Diplômé' ? 'block' : 'none'; }
-                            sel.addEventListener('change', toggle);
-                            toggle();
-                        })();
-                        </script>
-                        <div class="col-md-6">
-                            <label for="domaine_etudes" class="form-label">Domaine d'études <span class="text-danger">*</span></label>
-                            <select class="form-select {{is_invalid_domaine_etudes}}" id="domaine_etudes" name="domaine_etudes" required>
-                                {{domaine_etudes_options}}
-                            </select>
-                            <div class="text-danger">{{error_domaine_etudes}}</div>
-                        </div>
-                        <div class="col-md-6" id="autre_domaine_etudes_wrapper" style="display: none;">
-                            <label for="autre_domaine_etudes" class="form-label">Précisez le domaine d'études <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="autre_domaine_etudes" name="autre_domaine_etudes" value="{{autre_domaine_etudes}}">
-                            <script>if("{{autre_domaine_etudes}}".trim() !== "") document.getElementById("autre_domaine_etudes_wrapper").style.display = "block";</script>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="niveau_etudes" class="form-label">Niveau d'études <span class="text-danger">*</span></label>
-                            <select class="form-select {{is_invalid_niveau_etudes}}" id="niveau_etudes" name="niveau_etudes" required>
-                                {{niveau_etudes_options}}
-                            </select>
-                            <div class="text-danger">{{error_niveau_etudes}}</div>
-                        </div>
-                        <div class="col-md-6" id="autre_niveau_etudes_wrapper" style="display: none;">
-                            <label for="autre_niveau_etudes" class="form-label">Précisez le niveau d'études <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="autre_niveau_etudes" name="autre_niveau_etudes" value="{{autre_niveau_etudes}}">
-                            <script>if("{{autre_niveau_etudes}}".trim() !== "") document.getElementById("autre_niveau_etudes_wrapper").style.display = "block";</script>
-                        </div>
-                    </div>
-
-                    <!-- Projets futurs -->
-                    <h3 class="h5 mb-3">Projets futurs</h3>
-                    <div class="mb-4">
-                        <label for="projet_apres_formation" class="form-label">Projet après formation</label>
-                        <textarea class="form-control" id="projet_apres_formation" name="projet_apres_formation" rows="3" placeholder="Décrivez vos projets futurs...">{{projet_apres_formation}}</textarea>
-                    </div>
-
-                    <!-- Boutons de soumission -->
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="students.php" class="btn btn-secondary"><i class="fas fa-times"></i> Annuler</a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Enregistrer les modifications
-                        </button>
-                    </div>
-                </form>
+            <div class="col-md-6">
+              <label for="prenom" class="form-label"
+                >Prénom <span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control {{is_invalid_prenom}}"
+                id="prenom"
+                name="prenom"
+                value="{{prenom}}"
+                required
+              />
+              <div class="text-danger">{{error_prenom}}</div>
             </div>
-        </div>
+            <div class="col-md-6">
+              <label class="form-label"
+                >Sexe <span class="text-danger">*</span></label
+              >
+              <div class="form-check">
+                <input
+                  class="form-check-input {{is_invalid_sexe}}"
+                  type="radio"
+                  name="sexe"
+                  id="sexeMasculin"
+                  value="Masculin"
+                  {{sexe_checked_Masculin}}
+                  required
+                />
+                <label class="form-check-label" for="sexeMasculin"
+                  >Masculin</label
+                >
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input {{is_invalid_sexe}}"
+                  type="radio"
+                  name="sexe"
+                  id="sexeFeminin"
+                  value="Feminin"
+                  {{sexe_checked_Feminin}}
+                  required
+                />
+                <label class="form-check-label" for="sexeFeminin"
+                  >Féminin</label
+                >
+              </div>
+              <div class="text-danger">{{error_sexe}}</div>
+            </div>
+
+            <div class="col-md-12 mb-3">
+              <label for="nationalites" class="form-label">Nationalité</label>
+              <input
+                name="nationalites"
+                id="nationalites"
+                class="form-control"
+                placeholder="Nationalité (max 5)"
+                value="{{nationalites_value}}"
+              />
+              <div class="form-text">Tapez et sélectionnez parmi la liste.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="date_naissance" class="form-label"
+                >Date de naissance <span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control {{is_invalid_date_naissance}}"
+                id="date_naissance"
+                name="date_naissance"
+                value="{{date_naissance}}"
+                required
+                data-max-date="{{max_birth_date}}"
+                placeholder="JJ/MM/AAAA"
+              />
+              <div class="text-danger">{{error_date_naissance}}</div>
+            </div>
+            <div class="col-md-6">
+              <label for="numero_identite" class="form-label"
+                >Identité / Passeport <span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control {{is_invalid_numero_identite}}"
+                id="numero_identite"
+                name="numero_identite"
+                value="{{numero_identite}}"
+                required
+                placeholder="Ex: NNI, passeport ou carte d'identité"
+              />
+              <div class="text-danger">{{error_numero_identite}}</div>
+            </div>
+            <div class="col-md-6">
+              <label for="photo" class="form-label">ID ou Passeport</label>
+              <input
+                type="file"
+                class="form-control {{is_invalid_identite}}"
+                id="photo"
+                name="photo"
+                accept="image/*,application/pdf"
+              />
+              <div class="text-danger">{{error_identite}}</div>
+            </div>
+            <div class="col-md-6">
+              <label for="cv_file" class="form-label"
+                >Télécharger CV (PDF, PNG - max 5MB)</label
+              >
+              <input
+                type="file"
+                class="form-control {{is_invalid_cv}}"
+                id="cv_file"
+                name="cv_file"
+                accept="application/pdf,image/png"
+              />
+              <div class="text-danger">{{error_cv}}</div>
+              {{current_cv_display}}
+            </div>
+          </div>
+
+          <!-- Informations de contact et résidence -->
+          <h3 class="h5 mb-3">Contact et résidence</h3>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label for="telephone" class="form-label"
+                >Téléphone <span class="text-danger">*</span></label
+              >
+              <input
+                type="tel"
+                class="form-control {{is_invalid_telephone}}"
+                id="telephone"
+                name="telephone"
+                value="{{telephone}}"
+                placeholder="Saisissez votre numero sans l'indicatif du pays (9 chiffres max)"
+                required
+              />
+              <div class="text-danger">{{error_telephone}}</div>
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label"
+                >Email <span class="text-danger">*</span></label
+              >
+              <input
+                type="email"
+                class="form-control {{is_invalid_email}}"
+                id="email"
+                name="email"
+                value="{{email}}"
+                required
+                placeholder="nom.prenom@exemple.com"
+              />
+              <div class="text-danger">{{error_email}}</div>
+            </div>
+            <div class="col-md-6">
+              <label for="lieu_residence" class="form-label"
+                ><span class="text-danger">*</span> Lieu de résidence au
+                Sénégal</label
+              >
+              <select
+                class="form-select {{is_invalid_lieu_residence}}"
+                id="lieu_residence"
+                name="lieu_residence"
+                required
+              >
+                {{lieu_residence_options}}
+              </select>
+              <div class="text-danger">{{error_lieu_residence}}</div>
+            </div>
+            <div
+              class="col-md-6"
+              id="autre_lieu_residence_wrapper"
+              style="display: none"
+            >
+              <label for="autre_lieu_residence" class="form-label"
+                >Précisez le lieu de résidence
+                <span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="autre_lieu_residence"
+                name="autre_lieu_residence"
+                value="{{autre_lieu_residence}}"
+              />
+              <script>
+                if ("{{autre_lieu_residence}}".trim() !== "")
+                  document.getElementById(
+                    "autre_lieu_residence_wrapper",
+                  ).style.display = "block";
+              </script>
+            </div>
+            <div class="col-md-6">
+              <label for="annee_arrivee" class="form-label"
+                >Année d'arrivée au Sénégal</label
+              >
+              <select
+                class="form-select"
+                id="annee_arrivee"
+                name="annee_arrivee"
+              >
+                {{annee_arrivee_options}}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="type_logement" class="form-label"
+                >Type de logement <span class="text-danger">*</span></label
+              >
+              <select
+                class="form-select {{is_invalid_type_logement}}"
+                id="type_logement"
+                name="type_logement"
+                required
+              >
+                <option value="Colocation" {{type_logement_sel_Colocation}}>
+                  Colocation
+                </option>
+                <option value="Famille" {{type_logement_sel_Famille}}>
+                  Famille
+                </option>
+                <option
+                  value="Hébergement temporaire"
+                  {{type_logement_sel_Hébergement
+                  temporaire}}
+                >
+                  Hébergement temporaire
+                </option>
+                <option value="Location" {{type_logement_sel_Location}}>
+                  Location
+                </option>
+                <option
+                  value="Résidence universitaire"
+                  {{type_logement_sel_Résidence
+                  universitaire}}
+                >
+                  Résidence universitaire
+                </option>
+                <option value="Autre" {{type_logement_sel_Autre}}>Autre</option>
+              </select>
+              <div class="text-danger">{{error_type_logement}}</div>
+            </div>
+            <div class="col-md-6">
+              <label for="precision_logement" class="form-label"
+                >Précisions sur le logement</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="precision_logement"
+                name="precision_logement"
+                value="{{precision_logement}}"
+              />
+            </div>
+          </div>
+
+          <!-- Informations académiques -->
+          <h3 class="h5 mb-3">Informations académiques</h3>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label for="etablissement" class="form-label"
+                >Établissement <span class="text-danger">*</span></label
+              >
+              <select
+                class="form-select {{is_invalid_etablissement}}"
+                id="etablissement"
+                name="etablissement"
+                required
+              >
+                {{etablissement_options}}
+              </select>
+              <div class="text-danger">{{error_etablissement}}</div>
+            </div>
+            <div
+              class="col-md-6"
+              id="autre_etablissement_wrapper"
+              style="display: none"
+            >
+              <label for="autre_etablissement" class="form-label"
+                >Précisez l'établissement
+                <span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="autre_etablissement"
+                name="autre_etablissement"
+                value="{{autre_etablissement}}"
+              />
+              <script>
+                if ("{{autre_etablissement}}".trim() !== "")
+                  document.getElementById(
+                    "autre_etablissement_wrapper",
+                  ).style.display = "block";
+              </script>
+            </div>
+            <div class="col-md-6">
+              <label for="statut" class="form-label"
+                >Statut <span class="text-danger">*</span></label
+              >
+              <select
+                class="form-select {{is_invalid_statut}}"
+                id="statut"
+                name="statut"
+                required
+              >
+                <option value="" disabled>Sélectionnez</option>
+                <option value="Élève" {{statut_sel_Élève}}>Élève</option>
+                <option value="Étudiant" {{statut_sel_Étudiant}}>
+                  Étudiant
+                </option>
+                <option value="Stagiaire" {{statut_sel_Stagiaire}}>
+                  Stagiaire
+                </option>
+                <option value="Diplômé" {{statut_sel_Diplômé}}>Diplômé</option>
+              </select>
+              <div class="text-danger">{{error_statut}}</div>
+            </div>
+            <div
+              class="col-md-6"
+              id="date_diplomation_wrapper"
+              style="display: none"
+            >
+              <label for="date_diplomation" class="form-label"
+                >Date de diplomation</label
+              >
+              <input
+                type="date"
+                class="form-control"
+                id="date_diplomation"
+                name="date_diplomation"
+                value="{{date_diplomation}}"
+              />
+              <div class="form-text">
+                Laissez vide pour utiliser la date d'aujourd'hui.
+              </div>
+            </div>
+            <script>
+              (function () {
+                var sel = document.getElementById("statut");
+                var wrap = document.getElementById("date_diplomation_wrapper");
+                function toggle() {
+                  wrap.style.display =
+                    sel.value === "Diplômé" ? "block" : "none";
+                }
+                sel.addEventListener("change", toggle);
+                toggle();
+              })();
+            </script>
+            <div class="col-md-6">
+              <label for="domaine_etudes" class="form-label"
+                >Domaine d'études <span class="text-danger">*</span></label
+              >
+              <select
+                class="form-select {{is_invalid_domaine_etudes}}"
+                id="domaine_etudes"
+                name="domaine_etudes"
+                required
+              >
+                {{domaine_etudes_options}}
+              </select>
+              <div class="text-danger">{{error_domaine_etudes}}</div>
+            </div>
+            <div
+              class="col-md-6"
+              id="autre_domaine_etudes_wrapper"
+              style="display: none"
+            >
+              <label for="autre_domaine_etudes" class="form-label"
+                >Précisez le domaine d'études
+                <span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="autre_domaine_etudes"
+                name="autre_domaine_etudes"
+                value="{{autre_domaine_etudes}}"
+              />
+              <script>
+                if ("{{autre_domaine_etudes}}".trim() !== "")
+                  document.getElementById(
+                    "autre_domaine_etudes_wrapper",
+                  ).style.display = "block";
+              </script>
+            </div>
+            <div class="col-md-6">
+              <label for="niveau_etudes" class="form-label"
+                >Niveau d'études <span class="text-danger">*</span></label
+              >
+              <select
+                class="form-select {{is_invalid_niveau_etudes}}"
+                id="niveau_etudes"
+                name="niveau_etudes"
+                required
+              >
+                {{niveau_etudes_options}}
+              </select>
+              <div class="text-danger">{{error_niveau_etudes}}</div>
+            </div>
+            <div
+              class="col-md-6"
+              id="autre_niveau_etudes_wrapper"
+              style="display: none"
+            >
+              <label for="autre_niveau_etudes" class="form-label"
+                >Précisez le niveau d'études
+                <span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="autre_niveau_etudes"
+                name="autre_niveau_etudes"
+                value="{{autre_niveau_etudes}}"
+              />
+              <script>
+                if ("{{autre_niveau_etudes}}".trim() !== "")
+                  document.getElementById(
+                    "autre_niveau_etudes_wrapper",
+                  ).style.display = "block";
+              </script>
+            </div>
+          </div>
+
+          <!-- Projets futurs -->
+          <h3 class="h5 mb-3">Projets futurs</h3>
+          <div class="mb-4">
+            <label for="projet_apres_formation" class="form-label"
+              >Projet après formation</label
+            >
+            <textarea
+              class="form-control"
+              id="projet_apres_formation"
+              name="projet_apres_formation"
+              rows="3"
+              placeholder="Décrivez vos projets futurs..."
+            >
+{{projet_apres_formation}}</textarea
+            >
+          </div>
+
+          <!-- Boutons de soumission -->
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="students.php" class="btn btn-secondary"
+              ><i class="fas fa-times"></i> Annuler</a
+            >
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Enregistrer les modifications
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
 
 <script>
-    function setupOtherFieldListener(selectId, wrapperId, inputId) {
-        document.getElementById(selectId).addEventListener('change', function () {
-            var wrapper = document.getElementById(wrapperId);
-            var input = document.getElementById(inputId);
-            if (this.value === 'Autre') {
-                wrapper.style.display = 'block';
-                input.setAttribute('required', 'required');
-            } else {
-                wrapper.style.display = 'none';
-                input.removeAttribute('required');
-            }
-        });
-    }
+  function setupOtherFieldListener(selectId, wrapperId, inputId) {
+    document.getElementById(selectId).addEventListener("change", function () {
+      var wrapper = document.getElementById(wrapperId);
+      var input = document.getElementById(inputId);
+      if (this.value === "Autre") {
+        wrapper.style.display = "block";
+        input.setAttribute("required", "required");
+      } else {
+        wrapper.style.display = "none";
+        input.removeAttribute("required");
+      }
+    });
+  }
 
-    setupOtherFieldListener('etablissement', 'autre_etablissement_wrapper', 'autre_etablissement');
-    setupOtherFieldListener('domaine_etudes', 'autre_domaine_etudes_wrapper', 'autre_domaine_etudes');
-    setupOtherFieldListener('niveau_etudes', 'autre_niveau_etudes_wrapper', 'autre_niveau_etudes');
-    setupOtherFieldListener('lieu_residence', 'autre_lieu_residence_wrapper', 'autre_lieu_residence');
+  setupOtherFieldListener(
+    "etablissement",
+    "autre_etablissement_wrapper",
+    "autre_etablissement",
+  );
+  setupOtherFieldListener(
+    "domaine_etudes",
+    "autre_domaine_etudes_wrapper",
+    "autre_domaine_etudes",
+  );
+  setupOtherFieldListener(
+    "niveau_etudes",
+    "autre_niveau_etudes_wrapper",
+    "autre_niveau_etudes",
+  );
+  setupOtherFieldListener(
+    "lieu_residence",
+    "autre_lieu_residence_wrapper",
+    "autre_lieu_residence",
+  );
 
-    // Initialize flatpickr
-    const dateNaissanceInput = document.getElementById('date_naissance');
-    if (dateNaissanceInput) {
-        flatpickr(dateNaissanceInput, {
-            altInput: true,
-            altFormat: "j F Y",
-            dateFormat: "Y-m-d",
-            maxDate: dateNaissanceInput.dataset.maxDate || new Date(), // Get maxDate from data attribute
-            locale: "fr"
-        });
-    }
+  // Initialize flatpickr
+  const dateNaissanceInput = document.getElementById("date_naissance");
+  if (dateNaissanceInput) {
+    flatpickr(dateNaissanceInput, {
+      altInput: true,
+      altFormat: "j F Y",
+      dateFormat: "Y-m-d",
+      maxDate: dateNaissanceInput.dataset.maxDate || new Date(), // Get maxDate from data attribute
+      locale: "fr",
+    });
+  }
 </script>
 <script src="assets/js/tagify.min.js"></script>
 <script src="assets/js/edit-student.js"></script>

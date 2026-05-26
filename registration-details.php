@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Post-registration details page.
  * File: registration-details.php
@@ -74,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Reuse validation and update logic similar to register.php/edit-student.php
     // ... (This logic is duplicated from edit-student.php but simplified for self-update)
-    
+
     // 1. Sanitize
     $formData = [
         'nom' => trim($_POST['nom'] ?? ''),
@@ -132,20 +133,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($formData['nationalites'])) {
         $decoded = json_decode($formData['nationalites'], true);
         if (is_array($decoded)) {
-             // Handle Tagify format [{"value":"X"}] or simple array
-             if (isset($decoded[0]['value'])) {
-                 $list = array_column($decoded, 'value');
-                 $nationalites_json = json_encode($list, JSON_UNESCAPED_UNICODE);
-             } else {
-                 $nationalites_json = json_encode($decoded, JSON_UNESCAPED_UNICODE);
-             }
+            // Handle Tagify format [{"value":"X"}] or simple array
+            if (isset($decoded[0]['value'])) {
+                $list = array_column($decoded, 'value');
+            } else {
+                $list = $decoded;
+            }
+
+            // Normalize unique values and ensure Guinée is present
+            $list = array_values(array_unique($list));
+            $guineeNames = ['Guinée', 'Guinee', 'Guinea'];
+            $hasGuinee = false;
+            foreach ($list as $v) {
+                if (in_array(mb_strtolower($v, 'UTF-8'), array_map(function ($s) {
+                    return mb_strtolower($s, 'UTF-8');
+                }, $guineeNames))) {
+                    $hasGuinee = true;
+                    break;
+                }
+            }
+            if (!$hasGuinee) array_unshift($list, 'Guinée');
+
+            // Enforce max 5 total (Guinée + up to 4 others)
+            if (count($list) > 5) {
+                $errors['nationalites'] = 'Vous pouvez ajouter au maximum 4 nationalités supplémentaires (5 au total).';
+            }
+
+            $nationalites_json = json_encode(array_slice($list, 0, 5), JSON_UNESCAPED_UNICODE);
         }
     }
-    
+
     // Validation
     $requiredFields = [
-        'nom' => 'Le nom est requis.', 'prenom' => 'Le prénom est requis.', 'sexe' => 'Le sexe est requis.',
-        'date_naissance' => 'La date de naissance est requise.', 'nationalites' => 'La nationalité est requise.'
+        'nom' => 'Le nom est requis.',
+        'prenom' => 'Le prénom est requis.',
+        'sexe' => 'Le sexe est requis.',
+        'date_naissance' => 'La date de naissance est requise.',
+        'nationalites' => 'La nationalité est requise.',
+        'telephone' => 'Le numéro de téléphone est requis.',
+        'email' => 'L\'adresse email est requise.'
     ];
 
     foreach ($requiredFields as $field => $message) {
@@ -192,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $identiteUploadResult = handleFileUpload($_FILES['photo'] ?? [], ['jpg', 'jpeg', 'png', 'gif', 'pdf'], 2 * 1024 * 1024, 'uploads/students');
     if (!$identiteUploadResult['success']) {
         if ($identiteUploadResult['filepath'] !== null) { // Only set error if a file was actually attempted to be uploaded
-             $errors['identite'] = $identiteUploadResult['message'];
+            $errors['identite'] = $identiteUploadResult['message'];
         }
     } else {
         // Only replace path when a new file was actually uploaded
@@ -207,7 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cvUploadResult = handleFileUpload($_FILES['cv_file'] ?? [], ['pdf', 'png'], 5 * 1024 * 1024, 'uploads/students/cvs');
     if (!$cvUploadResult['success']) {
         if ($cvUploadResult['filepath'] !== null) { // Only set error if a file was actually attempted to be uploaded
-             $errors['cv'] = $cvUploadResult['message'];
+            $errors['cv'] = $cvUploadResult['message'];
         }
     } else {
         // Only replace path when a new file was actually uploaded
@@ -229,26 +255,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             projet_apres_formation = :projet_apres_formation, identite = :identite,
             nationalites = :nationalites, cv_path = :cv_path, consent_privacy = :consent_privacy, consent_privacy_date = :consent_privacy_date
             WHERE id_personne = :id_personne";
-        
+
         $params = [
-            ':nom' => $formData['nom'], ':prenom' => $formData['prenom'], ':numero_identite' => $formData['numero_identite'],
-            ':sexe' => $formData['sexe'], ':age' => $formData['age'], ':date_naissance' => $formData['date_naissance'],
-            ':lieu_residence' => $formData['lieu_residence'], ':etablissement' => $formData['etablissement'],
-            ':statut' => $formData['statut'], ':domaine_etudes' => $formData['domaine_etudes'],
-            ':niveau_etudes' => $formData['niveau_etudes'], ':telephone' => $formData['telephone'],
-            ':email' => $formData['email'], ':annee_arrivee' => $formData['annee_arrivee'],
-            ':type_logement' => $formData['type_logement'], ':precision_logement' => $formData['precision_logement'],
-            ':projet_apres_formation' => $formData['projet_apres_formation'], ':identite' => $formData['identite'],
+            ':nom' => $formData['nom'],
+            ':prenom' => $formData['prenom'],
+            ':numero_identite' => $formData['numero_identite'],
+            ':sexe' => $formData['sexe'],
+            ':age' => $formData['age'],
+            ':date_naissance' => $formData['date_naissance'],
+            ':lieu_residence' => $formData['lieu_residence'],
+            ':etablissement' => $formData['etablissement'],
+            ':statut' => $formData['statut'],
+            ':domaine_etudes' => $formData['domaine_etudes'],
+            ':niveau_etudes' => $formData['niveau_etudes'],
+            ':telephone' => $formData['telephone'],
+            ':email' => $formData['email'],
+            ':annee_arrivee' => $formData['annee_arrivee'],
+            ':type_logement' => $formData['type_logement'],
+            ':precision_logement' => $formData['precision_logement'],
+            ':projet_apres_formation' => $formData['projet_apres_formation'],
+            ':identite' => $formData['identite'],
             ':nationalites' => $nationalites_json,
             ':cv_path' => $formData['cv_path'],
             ':consent_privacy' => $formData['consent_privacy'],
             ':consent_privacy_date' => $formData['consent_privacy'] ? date('Y-m-d H:i:s') : null,
             ':id_personne' => $student_id
         ];
-        
+
         $stmt = $conn->prepare($sql);
         $stmt->execute($params);
-        
+
         setFlashMessage('success', 'Vos informations ont été mises à jour.');
         header('Location: registration-details.php'); // Go back to view
         exit();
@@ -276,38 +312,44 @@ $flash_json = $flash ? json_encode($flash) : '';
 if ($action === 'edit') {
     // Reuse most logic from register.php to populate dropdowns
     $stmt = $conn->query("SELECT nom FROM etablissements ORDER BY nom ASC");
-    $schools = $stmt->fetchAll(PDO::FETCH_COLUMN); $schools[] = 'Autre';
-    
+    $schools = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $schools[] = 'Autre';
+
     $stmt = $conn->query("SELECT nom FROM domaines_etudes ORDER BY nom ASC");
-    $domaines = $stmt->fetchAll(PDO::FETCH_COLUMN); $domaines[] = 'Autre';
-    
+    $domaines = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $domaines[] = 'Autre';
+
     $stmt = $conn->query("SELECT nom FROM niveaux_etudes ORDER BY nom ASC");
-    $niveaux = $stmt->fetchAll(PDO::FETCH_COLUMN); $niveaux[] = 'Autre';
-    
+    $niveaux = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $niveaux[] = 'Autre';
+
     $stmt = $conn->query("SELECT region, name FROM locations ORDER BY CASE WHEN region LIKE 'Dakar%' THEN 0 ELSE 1 END, region ASC, name ASC");
     $locations = $stmt->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_COLUMN);
-    
+
     // Build Options HTML (reusing loops from register.php logic essentially)
     $sel = fn($v, $o) => $v === $o ? 'selected' : '';
     $chk = fn($v, $o) => $v === $o ? 'checked' : '';
-    
-    $etablissementOptions = ''; foreach ($schools as $s) $etablissementOptions .= "<option value=\"$s\" " . $sel($formData['etablissement'] ?? '', $s) . ">$s</option>";
-    $domaineOptions = ''; foreach ($domaines as $d) $domaineOptions .= "<option value=\"$d\" " . $sel($formData['domaine_etudes'] ?? '', $d) . ">$d</option>";
-    $niveauOptions = ''; foreach ($niveaux as $n) $niveauOptions .= "<option value=\"$n\" " . $sel($formData['niveau_etudes'] ?? '', $n) . ">$n</option>";
-    
+
+    $etablissementOptions = '';
+    foreach ($schools as $s) $etablissementOptions .= "<option value=\"$s\" " . $sel($formData['etablissement'] ?? '', $s) . ">$s</option>";
+    $domaineOptions = '';
+    foreach ($domaines as $d) $domaineOptions .= "<option value=\"$d\" " . $sel($formData['domaine_etudes'] ?? '', $d) . ">$d</option>";
+    $niveauOptions = '';
+    foreach ($niveaux as $n) $niveauOptions .= "<option value=\"$n\" " . $sel($formData['niveau_etudes'] ?? '', $n) . ">$n</option>";
+
     $lieuResidenceOptions = '<option value="">Sélectionnez</option>';
     foreach ($locations as $reg => $cities) {
         $lieuResidenceOptions .= "<optgroup label=\"$reg\">";
         foreach ($cities as $c) $lieuResidenceOptions .= "<option value=\"$c\" " . $sel($formData['lieu_residence'] ?? '', $c) . ">$c</option>";
         $lieuResidenceOptions .= "</optgroup>";
     }
-    $lieuResidenceOptions .= '<option value="Autre" '.$sel($formData['lieu_residence'] ?? '', 'Autre').'>Autre</option>';
-    
+    $lieuResidenceOptions .= '<option value="Autre" ' . $sel($formData['lieu_residence'] ?? '', 'Autre') . '>Autre</option>';
+
     $anneeArriveeOptions = '<option value="">Sélectionnez</option>';
     for ($y = date('Y'); $y >= 1990; $y--) $anneeArriveeOptions .= "<option value=\"$y\" " . $sel($formData['annee_arrivee'] ?? '', $y) . ">$y</option>";
 
     $template = file_get_contents(__DIR__ . '/templates/registration-edit.html');
-    
+
     // Prepare Nationalities Value
     $nat_val = $formData['nationalites'] ?? '';
     // If it's the raw JSON from DB update, we might need to be careful, but the template expects value=""
@@ -315,26 +357,31 @@ if ($action === 'edit') {
     // The Tagify input expects a CSV string or JSON string. 
     // In edit-student.php we used $nationalites_value
     if (is_array($formData['nationalites'] ?? null)) {
-         // It came from POST array, tagify needs a string
-         // Actually Tagify sends JSON string in POST usually? 
-         // Let's ensure it's a string for the value attribute
+        // It came from POST array, tagify needs a string
+        // Actually Tagify sends JSON string in POST usually? 
+        // Let's ensure it's a string for the value attribute
     }
 
     $currentCvDisplay = '';
     if (!empty($formData['cv_path'])) {
         $currentCvDisplay = '<div class="mt-2">CV actuel: <a href="' . htmlspecialchars($formData['cv_path']) . '" target="_blank" class="btn btn-sm btn-info"><i class="fas fa-download"></i> Télécharger</a></div>';
     }
-    
+
     $replacements = [
-        '{{header}}' => $headerHtml, '{{footer}}' => $footerTpl, '{{flash_json}}' => $flash_json,
+        '{{header}}' => $headerHtml,
+        '{{footer}}' => $footerTpl,
+        '{{flash_json}}' => $flash_json,
         '{{validation_errors_json}}' => json_encode($errors),
         '{{csrf_token}}' => generateCsrfToken(),
         '{{form_action}}' => 'registration-details.php', // POST back to self
         // Field Values
-        '{{nom}}' => htmlspecialchars($formData['nom'] ?? ''), '{{prenom}}' => htmlspecialchars($formData['prenom'] ?? ''),
+        '{{nom}}' => htmlspecialchars($formData['nom'] ?? ''),
+        '{{prenom}}' => htmlspecialchars($formData['prenom'] ?? ''),
         '{{numero_identite}}' => htmlspecialchars($formData['numero_identite'] ?? ''),
-        '{{date_naissance}}' => htmlspecialchars($formData['date_naissance'] ?? ''), '{{max_birth_date}}' => (date('Y')-15).'-12-31',
-        '{{telephone}}' => htmlspecialchars($formData['telephone'] ?? ''), '{{email}}' => htmlspecialchars($formData['email'] ?? ''),
+        '{{date_naissance}}' => htmlspecialchars($formData['date_naissance'] ?? ''),
+        '{{max_birth_date}}' => (date('Y') - 15) . '-12-31',
+        '{{telephone}}' => htmlspecialchars($formData['telephone'] ?? ''),
+        '{{email}}' => htmlspecialchars($formData['email'] ?? ''),
         '{{precision_logement}}' => htmlspecialchars($formData['precision_logement'] ?? ''),
         '{{projet_apres_formation}}' => htmlspecialchars($formData['projet_apres_formation'] ?? ''),
         // Options
@@ -365,7 +412,7 @@ if ($action === 'edit') {
         '{{error_consent_privacy}}' => $errors['consent_privacy'] ?? '',
         '{{is_invalid_consent_privacy}}' => isset($errors['consent_privacy']) ? 'is-invalid' : '',
     ];
-    
+
     // Errors
     $fields = ['nom', 'prenom', 'numero_identite', 'sexe', 'date_naissance', 'identite', 'nationalites', 'telephone', 'email', 'lieu_residence', 'etablissement', 'statut', 'domaine_etudes', 'niveau_etudes', 'type_logement', 'cv', 'consent_privacy']; // Added 'cv' and 'consent_privacy'
     foreach ($fields as $f) {
@@ -400,19 +447,19 @@ if (!empty($student['cv_path'])) {
     $isCvPdf = ($cvExt === 'pdf');
     $isCvImage = in_array($cvExt, ['png', 'jpg', 'jpeg', 'gif']);
     $cvModalId = 'cvModalReg';
-    
+
     $cvDownloadLink = '<div class="detail-row"><span class="detail-label">CV:</span><span class="detail-value">';
-    
+
     // Download
     $cvDownloadLink .= '<a href="' . htmlspecialchars($cvPath) . '" download target="_blank" class="btn btn-sm btn-info me-2"><i class="fas fa-download"></i> Télécharger</a>';
-    
+
     if ($isCvPdf || $isCvImage) {
         // View
         $cvDownloadLink .= '<button type="button" class="btn btn-sm btn-secondary me-2" data-bs-toggle="modal" data-bs-target="#' . $cvModalId . '"><i class="fas fa-eye"></i> Voir</button>';
-        
+
         // Print (PDF)
         if ($isCvPdf) {
-             $cvDownloadLink .= '<button type="button" class="btn btn-sm btn-warning" onclick="printPdf(\'' . htmlspecialchars($cvPath) . '\')"><i class="fas fa-print"></i> Imprimer</button>';
+            $cvDownloadLink .= '<button type="button" class="btn btn-sm btn-warning" onclick="printPdf(\'' . htmlspecialchars($cvPath) . '\')"><i class="fas fa-print"></i> Imprimer</button>';
         }
 
         // Modal
@@ -428,12 +475,12 @@ if (!empty($student['cv_path'])) {
         }
         $modalsHtml .= '</div></div></div></div>';
     }
-    
+
     $cvDownloadLink .= '</span></div>';
-    
+
     // Add print script if needed (only once)
     if ($isCvPdf) {
-         $modalsHtml .= '<script>function printPdf(url){var i=document.createElement("iframe");i.style.display="none";i.src=url;document.body.appendChild(i);i.onload=function(){i.contentWindow.focus();i.contentWindow.print();setTimeout(function(){document.body.removeChild(i)},1000);}}</script>';
+        $modalsHtml .= '<script>function printPdf(url){var i=document.createElement("iframe");i.style.display="none";i.src=url;document.body.appendChild(i);i.onload=function(){i.contentWindow.focus();i.contentWindow.print();setTimeout(function(){document.body.removeChild(i)},1000);}}</script>';
     }
 }
 
@@ -476,4 +523,3 @@ $replacements = [
 ];
 
 echo addVersionToAssets(strtr($template, $replacements));
-?>
