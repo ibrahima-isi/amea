@@ -22,13 +22,13 @@ if ($_SESSION['role'] !== 'admin') {
 
 $role = $_SESSION['role'];
 
+// Inclure la configuration de la base de données
+require_once 'config/database.php';
+
 if (!hasPermission('users')) {
     setFlashMessage('error', 'Accès refusé : vous n\'avez pas la permission de gérer les utilisateurs.');
     header('Location: dashboard.php'); exit();
 }
-
-// Inclure la configuration de la base de données
-require_once 'config/database.php';
 
 // Fonction pour obtenir la liste des utilisateurs
 function getUsers($conn)
@@ -221,6 +221,7 @@ $output = strtr($layoutTpl, [
     '{{title}}' => 'AEESGS - Gestion des utilisateurs',
     '{{sidebar}}' => $sidebarHtml,
     '{{flash_json}}' => $flash_json,
+    '{{validation_errors_json}}' => '',
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [
         '{{user_fullname}}' => htmlspecialchars($_SESSION['prenom'] . ' ' . $_SESSION['nom'], ENT_QUOTES, 'UTF-8'),
     ]),

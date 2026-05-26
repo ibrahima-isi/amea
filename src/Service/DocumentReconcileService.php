@@ -12,19 +12,36 @@ class DocumentReconcileService
 
     public function dbPathExists(string $dbPath): bool
     {
-        $absolute = realpath(rtrim($this->projectRoot, '/') . '/' . ltrim($dbPath, '/'));
-        return $absolute !== false && is_file($absolute);
+        if ($dbPath === '') {
+            return false;
+        }
+
+        return is_file($this->absolutePath($dbPath));
     }
 
     public function findAlternativePath(string $dbPath, array $searchDirs): ?string
     {
+        if ($dbPath === '') {
+            return null;
+        }
+
         $filename = basename($dbPath);
+        $normalizedDbPath = $this->normalizeRelativePath($dbPath);
+
         foreach ($searchDirs as $dir) {
-            $candidate = rtrim($this->projectRoot, '/') . '/' . ltrim($dir, '/') . '/' . $filename;
-            if (is_file($candidate)) {
-                return ltrim($dir, '/') . '/' . $filename;
+            $relativePath = $this->normalizeRelativePath(
+                $this->normalizeDirectory($dir) . '/' . $filename
+            );
+
+            if ($relativePath === $normalizedDbPath) {
+                continue;
+            }
+
+            if (is_file($this->absolutePath($relativePath))) {
+                return $relativePath;
             }
         }
+
         return null;
     }
 
@@ -33,28 +50,36 @@ class DocumentReconcileService
     {
         $files = [];
         foreach ($dirs as $dir) {
-            $absolute = rtrim($this->projectRoot, '/') . '/' . ltrim($dir, '/');
-            if (!is_dir($absolute)) continue;
-            $iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($absolute, \FilesystemIterator::SKIP_DOTS)
-            );
-            foreach ($iterator as $file) {
-                if ($file->isFile()) {
-                    $files[] = ltrim($dir, '/') . '/' . $file->getFilename();
+            $normalizedDir = $this->normalizeDirectory($dir);
+            $absolute = $this->absolutePath($normalizedDir);
+
+            if (!is_dir($absolute)) {
+                continue;
+            }
+
+            foreach (scandir($absolute) ?: [] as $entry) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+
+                $relativePath = $normalizedDir . '/' . $entry;
+                if (is_file($this->absolutePath($relativePath))) {
+                    $files[] = $relativePath;
                 }
             }
         }
+
         return $files;
     }
 
     /** @return string[] files on disk not referenced in DB */
     public function findOrphanedFiles(array $uploadFiles, array $dbPaths): array
     {
-        $dbBasenames = array_map('basename', $dbPaths);
-        return array_filter(
+        $dbBasenames = array_map('basename', array_filter($dbPaths, fn($p) => !empty($p)));
+        return array_values(array_filter(
             $uploadFiles,
             fn($f) => !in_array(basename($f), $dbBasenames, true)
-        );
+        ));
     }
 
     /**
@@ -73,5 +98,20 @@ class DocumentReconcileService
             return ['status' => 'fixable', 'found_at' => $alt];
         }
         return ['status' => 'missing', 'found_at' => null];
+    }
+
+    private function absolutePath(string $relativePath): string
+    {
+        return rtrim($this->projectRoot, '/') . '/' . $this->normalizeRelativePath($relativePath);
+    }
+
+    private function normalizeDirectory(string $dir): string
+    {
+        return trim($dir, '/');
+    }
+
+    private function normalizeRelativePath(string $path): string
+    {
+        return ltrim(preg_replace('#/+#', '/', $path) ?? $path, '/');
     }
 }

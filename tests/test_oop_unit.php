@@ -11,6 +11,10 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+if (PHP_SAPI === 'cli' && ob_get_level() === 0) {
+    ob_start();
+}
+
 // ─── Tiny test runner ─────────────────────────────────────────────────────────
 $passed = 0;
 $failed = 0;

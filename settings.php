@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
 
         try {
-            $stmt = $conn->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (:key, :value) ON DUPLICATE KEY UPDATE setting_value = :value");
+            $stmt = $conn->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (:key, :value) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
             
             foreach ($settingsToUpdate as $key => $value) {
                 $stmt->execute([':key' => $key, ':value' => $value]);
@@ -86,6 +86,7 @@ $output = strtr($layoutTpl, [
     '{{title}}' => 'Paramètres - AEESGS',
     '{{sidebar}}' => $sidebarHtml,
     '{{flash_json}}' => $flash_json,
+    '{{validation_errors_json}}' => '',
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [
         '{{user_fullname}}' => htmlspecialchars($prenom . ' ' . $nom),
     ]),

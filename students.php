@@ -24,6 +24,7 @@ if (!hasPermission('students')) {
 $role = $_SESSION['role'];
 $nom = $_SESSION['nom'];
 $prenom = $_SESSION['prenom'];
+$csrfToken = generateCsrfToken();
 
 // Paramètres de pagination
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -319,6 +320,7 @@ $output = strtr($layoutTpl, [
     '{{title}}' => 'AEESGS - Liste des étudiants',
     '{{sidebar}}' => $sidebarHtml,
     '{{flash_json}}' => $flash_json,
+    '{{validation_errors_json}}' => '',
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [
         '{{user_fullname}}' => htmlspecialchars($prenom . ' ' . $nom, ENT_QUOTES, 'UTF-8'),
     ]),

@@ -176,6 +176,7 @@ if ($flash) {
 $layoutTpl = file_get_contents($layoutPath);
 $output = strtr($layoutTpl, [
     '{{flash_json}}' => $flash_json,
+    '{{validation_errors_json}}' => '',
     '{{title}}' => 'AEESGS - Gérer le carrousel',
     '{{sidebar}}' => $sidebarHtml,
     '{{admin_topbar}}' => strtr(file_get_contents(__DIR__ . '/templates/admin/partials/topbar.html'), [
