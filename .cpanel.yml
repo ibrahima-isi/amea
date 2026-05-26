@@ -3,6 +3,6 @@ deployment:
   tasks:
     - export DEPLOYPATH="${HOME}/public_html"
     - /bin/mkdir -p "$DEPLOYPATH"
-    - /bin/cp -a . "$DEPLOYPATH"
+    - /usr/bin/find . -maxdepth 1 -mindepth 1 ! -name '.git' ! -name '.cpanel.yml' -exec /bin/cp -R {} "$DEPLOYPATH" \;
     - /usr/bin/find "$DEPLOYPATH" -type d -exec /bin/chmod 755 {} \;
     - /usr/bin/find "$DEPLOYPATH" -type f -exec /bin/chmod 644 {} \;
