@@ -40,7 +40,9 @@
                               novalidate>
                             <input type="hidden" name="csrf_token" value="{{csrf_token}}">
                             <!-- Informations personnelles -->
-                            <h3 class="h5 mb-3">Informations personnelles</h3>
+                            <h3 class="registration-section-heading">
+                                <span class="registration-section-title">Informations personnelles</span>
+                            </h3>
                             <div class="row g-3 mb-4">
                                 <div class="col-md-6">
                                     <label for="nom" class="form-label">Nom <span class="text-danger">*</span></label>
@@ -109,139 +111,167 @@
                             </div>
 
                             <!-- Informations de contact et résidence -->
-                            <h3 class="h5 mb-3">Contact et résidence <span class="text-muted fw-normal">(optionnel)</span></h3>
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-6">
-                                    <label for="telephone" class="form-label">Téléphone</label>
-                                    <input type="tel" class="form-control {{is_invalid_telephone}}" id="telephone"
-                                           name="telephone" value="{{telephone}}"
-                                           placeholder="Saisissez votre numero sans l'indicatif du pays (9 chiffres max)">
-                                    <div class="text-danger">{{error_telephone}}</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="email" class="form-label">Email</label>
-                                    <input type="email" class="form-control {{is_invalid_email}}" id="email"
-                                           name="email" value="{{email}}" placeholder="nom.prenom@exemple.com">
-                                    <div class="text-danger">{{error_email}}</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="lieu_residence" class="form-label">Lieu de résidence au Sénégal</label>
-                                    <select class="form-select {{is_invalid_lieu_residence}}" id="lieu_residence"
-                                            name="lieu_residence">
-                                        {{lieu_residence_options}}
-                                    </select>
-                                    <div class="text-danger">{{error_lieu_residence}}</div>
-                                </div>
-                                <div class="col-md-6" id="autre_lieu_residence_wrapper" style="display: none;">
-                                    <label for="autre_lieu_residence" class="form-label">Précisez le lieu de résidence</label>
-                                    <input type="text" class="form-control" id="autre_lieu_residence"
-                                           name="autre_lieu_residence" value="{{autre_lieu_residence}}">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="annee_arrivee" class="form-label">Année d'arrivée au Sénégal</label>
-                                    <select class="form-select" id="annee_arrivee" name="annee_arrivee">
-                                        {{annee_arrivee_options}}
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="type_logement" class="form-label">Type de logement</label>
-                                    <select class="form-select {{is_invalid_type_logement}}" id="type_logement"
-                                            name="type_logement">
-                                        <option value="" disabled {{type_logement_sel_none}}>Sélectionnez</option>
-                                        <option value="Colocation" {{type_logement_sel_Colocation}}>Colocation</option>
-                                        <option value="Famille" {{type_logement_sel_Famille}}>Famille</option>
-                                        <option value="Hébergement temporaire" {{type_logement_sel_Hébergement temporaire}}>Hébergement temporaire</option>
-                                        <option value="Location" {{type_logement_sel_Location}}>Location</option>
-                                        <option value="Résidence universitaire" {{type_logement_sel_Résidence universitaire}}>Résidence universitaire</option>
-                                        <option value="Autre" {{type_logement_sel_Autre}}>Autre</option>
-                                    </select>
-                                    <div class="text-danger">{{error_type_logement}}</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="precision_logement" class="form-label">Précisions sur le
-                                        logement</label>
-                                    <input type="text" class="form-control" id="precision_logement"
-                                           name="precision_logement" value="{{precision_logement}}">
+                            <h3 class="mb-0">
+                                <button type="button" class="registration-section-heading registration-section-toggle" aria-expanded="false" aria-controls="contactResidenceSection">
+                                    <span class="registration-section-title">Contact et résidence <span class="registration-section-badge">(optionnel)</span></span>
+                                    <span class="registration-toggle-meta"><span class="registration-toggle-label">Déplier</span><i class="fas fa-chevron-down" aria-hidden="true"></i></span>
+                                </button>
+                            </h3>
+                            <div id="contactResidenceSection" class="registration-section-panel" data-registration-section-panel>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="telephone" class="form-label">Téléphone</label>
+                                        <input type="tel" class="form-control {{is_invalid_telephone}}" id="telephone"
+                                               name="telephone" value="{{telephone}}"
+                                               placeholder="Saisissez votre numero sans l'indicatif du pays (9 chiffres max)">
+                                        <div class="text-danger">{{error_telephone}}</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" class="form-control {{is_invalid_email}}" id="email"
+                                               name="email" value="{{email}}" placeholder="nom.prenom@exemple.com">
+                                        <div class="text-danger">{{error_email}}</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="lieu_residence" class="form-label">Lieu de résidence au Sénégal</label>
+                                        <select class="form-select {{is_invalid_lieu_residence}}" id="lieu_residence"
+                                                name="lieu_residence">
+                                            {{lieu_residence_options}}
+                                        </select>
+                                        <div class="text-danger">{{error_lieu_residence}}</div>
+                                    </div>
+                                    <div class="col-md-6" id="autre_lieu_residence_wrapper" style="display: none;">
+                                        <label for="autre_lieu_residence" class="form-label">Précisez le lieu de résidence</label>
+                                        <input type="text" class="form-control" id="autre_lieu_residence"
+                                               name="autre_lieu_residence" value="{{autre_lieu_residence}}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="annee_arrivee" class="form-label">Année d'arrivée au Sénégal</label>
+                                        <select class="form-select" id="annee_arrivee" name="annee_arrivee">
+                                            {{annee_arrivee_options}}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="type_logement" class="form-label">Type de logement</label>
+                                        <select class="form-select {{is_invalid_type_logement}}" id="type_logement"
+                                                name="type_logement">
+                                            <option value="" disabled {{type_logement_sel_none}}>Sélectionnez</option>
+                                            <option value="Colocation" {{type_logement_sel_Colocation}}>Colocation</option>
+                                            <option value="Famille" {{type_logement_sel_Famille}}>Famille</option>
+                                            <option value="Hébergement temporaire" {{type_logement_sel_Hébergement temporaire}}>Hébergement temporaire</option>
+                                            <option value="Location" {{type_logement_sel_Location}}>Location</option>
+                                            <option value="Résidence universitaire" {{type_logement_sel_Résidence universitaire}}>Résidence universitaire</option>
+                                            <option value="Autre" {{type_logement_sel_Autre}}>Autre</option>
+                                        </select>
+                                        <div class="text-danger">{{error_type_logement}}</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="precision_logement" class="form-label">Précisions sur le
+                                            logement</label>
+                                        <input type="text" class="form-control" id="precision_logement"
+                                               name="precision_logement" value="{{precision_logement}}">
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Informations académiques -->
-                            <h3 class="h5 mb-3">Informations académiques <span class="text-muted fw-normal">(optionnel)</span></h3>
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-6">
-                                    <label for="etablissement" class="form-label">Établissement</label>
-                                    <select class="form-select {{is_invalid_etablissement}}" id="etablissement"
-                                            name="etablissement">
-                                        <option value="" disabled selected>Sélectionnez votre établissement</option>
-                                        {{etablissement_options}}
-                                    </select>
-                                    <div class="text-danger">{{error_etablissement}}</div>
-                                </div>
-                                <div class="col-md-6" id="autre_etablissement_wrapper" style="display: none;">
-                                    <label for="autre_etablissement" class="form-label">Précisez l'établissement</label>
-                                    <input type="text" class="form-control" id="autre_etablissement"
-                                           name="autre_etablissement" value="{{autre_etablissement}}">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="statut" class="form-label">Statut</label>
-                                    <select class="form-select {{is_invalid_statut}}" id="statut" name="statut">
-                                        <option value="" disabled {{statut_sel_none}}>Sélectionnez</option>
-                                        <option value="Élève" {{statut_sel_Élève}}>Élève</option>
-                                        <option value="Étudiant" {{statut_sel_Étudiant}}>Étudiant</option>
-                                        <option value="Stagiaire" {{statut_sel_Stagiaire}}>Stagiaire</option>
-                                    </select>
-                                    <div class="text-danger">{{error_statut}}</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="domaine_etudes" class="form-label">Domaine d'études</label>
-                                    <select class="form-select {{is_invalid_domaine_etudes}}" id="domaine_etudes"
-                                            name="domaine_etudes">
-                                        <option value="" disabled selected>Sélectionnez votre domaine d'études</option>
-                                        {{domaine_etudes_options}}
-                                    </select>
-                                    <div class="text-danger">{{error_domaine_etudes}}</div>
-                                </div>
-                                <div class="col-md-6" id="autre_domaine_etudes_wrapper" style="display: none;">
-                                    <label for="autre_domaine_etudes" class="form-label">Précisez le domaine d'études</label>
-                                    <input type="text" class="form-control" id="autre_domaine_etudes"
-                                           name="autre_domaine_etudes" value="{{autre_domaine_etudes}}">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="niveau_etudes" class="form-label">Niveau d'études</label>
-                                    <select class="form-select {{is_invalid_niveau_etudes}}" id="niveau_etudes"
-                                            name="niveau_etudes">
-                                        <option value="" disabled selected>Sélectionnez votre niveau d'études</option>
-                                        {{niveau_etudes_options}}
-                                    </select>
-                                    <div class="text-danger">{{error_niveau_etudes}}</div>
-                                </div>
-                                <div class="col-md-6" id="autre_niveau_etudes_wrapper" style="display: none;">
-                                    <label for="autre_niveau_etudes" class="form-label">Précisez le niveau d'études</label>
-                                    <input type="text" class="form-control" id="autre_niveau_etudes"
-                                           name="autre_niveau_etudes" value="{{autre_niveau_etudes}}">
+                            <h3 class="mb-0">
+                                <button type="button" class="registration-section-heading registration-section-toggle" aria-expanded="false" aria-controls="academicSection">
+                                    <span class="registration-section-title">Informations académiques <span class="registration-section-badge">(optionnel)</span></span>
+                                    <span class="registration-toggle-meta"><span class="registration-toggle-label">Déplier</span><i class="fas fa-chevron-down" aria-hidden="true"></i></span>
+                                </button>
+                            </h3>
+                            <div id="academicSection" class="registration-section-panel" data-registration-section-panel>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="etablissement" class="form-label">Établissement</label>
+                                        <select class="form-select {{is_invalid_etablissement}}" id="etablissement"
+                                                name="etablissement">
+                                            <option value="" disabled selected>Sélectionnez votre établissement</option>
+                                            {{etablissement_options}}
+                                        </select>
+                                        <div class="text-danger">{{error_etablissement}}</div>
+                                    </div>
+                                    <div class="col-md-6" id="autre_etablissement_wrapper" style="display: none;">
+                                        <label for="autre_etablissement" class="form-label">Précisez l'établissement</label>
+                                        <input type="text" class="form-control" id="autre_etablissement"
+                                               name="autre_etablissement" value="{{autre_etablissement}}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="statut" class="form-label">Statut</label>
+                                        <select class="form-select {{is_invalid_statut}}" id="statut" name="statut">
+                                            <option value="" disabled {{statut_sel_none}}>Sélectionnez</option>
+                                            <option value="Élève" {{statut_sel_Élève}}>Élève</option>
+                                            <option value="Étudiant" {{statut_sel_Étudiant}}>Étudiant</option>
+                                            <option value="Stagiaire" {{statut_sel_Stagiaire}}>Stagiaire</option>
+                                        </select>
+                                        <div class="text-danger">{{error_statut}}</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="domaine_etudes" class="form-label">Domaine d'études</label>
+                                        <select class="form-select {{is_invalid_domaine_etudes}}" id="domaine_etudes"
+                                                name="domaine_etudes">
+                                            <option value="" disabled selected>Sélectionnez votre domaine d'études</option>
+                                            {{domaine_etudes_options}}
+                                        </select>
+                                        <div class="text-danger">{{error_domaine_etudes}}</div>
+                                    </div>
+                                    <div class="col-md-6" id="autre_domaine_etudes_wrapper" style="display: none;">
+                                        <label for="autre_domaine_etudes" class="form-label">Précisez le domaine d'études</label>
+                                        <input type="text" class="form-control" id="autre_domaine_etudes"
+                                               name="autre_domaine_etudes" value="{{autre_domaine_etudes}}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="niveau_etudes" class="form-label">Niveau d'études</label>
+                                        <select class="form-select {{is_invalid_niveau_etudes}}" id="niveau_etudes"
+                                                name="niveau_etudes">
+                                            <option value="" disabled selected>Sélectionnez votre niveau d'études</option>
+                                            {{niveau_etudes_options}}
+                                        </select>
+                                        <div class="text-danger">{{error_niveau_etudes}}</div>
+                                    </div>
+                                    <div class="col-md-6" id="autre_niveau_etudes_wrapper" style="display: none;">
+                                        <label for="autre_niveau_etudes" class="form-label">Précisez le niveau d'études</label>
+                                        <input type="text" class="form-control" id="autre_niveau_etudes"
+                                               name="autre_niveau_etudes" value="{{autre_niveau_etudes}}">
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Projets futurs -->
-                            <h3 class="h5 mb-3">Projets futurs <span class="text-muted fw-normal">(optionnel)</span></h3>
-                            <div class="mb-4">
-                                <label for="projet_apres_formation" class="form-label">Projet après formation</label>
-                                <textarea class="form-control" id="projet_apres_formation" name="projet_apres_formation"
-                                          rows="3" placeholder="Décrivez vos projets futurs...">{{projet_apres_formation}}</textarea>
+                            <h3 class="mb-0">
+                                <button type="button" class="registration-section-heading registration-section-toggle" aria-expanded="false" aria-controls="futureProjectSection">
+                                    <span class="registration-section-title">Projets futurs <span class="registration-section-badge">(optionnel)</span></span>
+                                    <span class="registration-toggle-meta"><span class="registration-toggle-label">Déplier</span><i class="fas fa-chevron-down" aria-hidden="true"></i></span>
+                                </button>
+                            </h3>
+                            <div id="futureProjectSection" class="registration-section-panel" data-registration-section-panel>
+                                <div class="mb-4">
+                                    <label for="projet_apres_formation" class="form-label">Projet après formation</label>
+                                    <textarea class="form-control" id="projet_apres_formation" name="projet_apres_formation"
+                                              rows="3" placeholder="Décrivez vos projets futurs...">{{projet_apres_formation}}</textarea>
+                                </div>
                             </div>
 
                             <!-- Mentions légales et consentement -->
-                            <h3 class="h5 mb-3">Mentions légales et consentement <span class="text-muted fw-normal">(optionnel)</span></h3>
-                            <div class="mb-4">
-                                <div class="form-check {{is_invalid_consent_privacy}}">
-                                    <input class="form-check-input" type="checkbox" name="consent_privacy" id="consentPrivacy" value="1" {{consent_checked}}>
-                                    <label class="form-check-label" for="consentPrivacy">
-                                        J'accepte les <a href="legal-notice.php" target="_blank" class="text-decoration-underline">Conditions Générales d'Utilisation</a> et la <a href="legal-notice.php#privacy" target="_blank" class="text-decoration-underline">Politique de Confidentialité</a>.
-                                        <div class="form-text text-muted mt-1">
-                                            En cochant cette case, vous acceptez le traitement de vos données conformément à la loi n° 2008-12 et renoncez à toute poursuite en cas d'incident indépendant de notre volonté.
-                                        </div>
-                                    </label>
-                                    <div class="text-danger">{{error_consent_privacy}}</div>
+                            <h3 class="mb-0">
+                                <button type="button" class="registration-section-heading registration-section-toggle" aria-expanded="false" aria-controls="legalConsentSection">
+                                    <span class="registration-section-title">Mentions légales et consentement <span class="registration-section-badge">(optionnel)</span></span>
+                                    <span class="registration-toggle-meta"><span class="registration-toggle-label">Déplier</span><i class="fas fa-chevron-down" aria-hidden="true"></i></span>
+                                </button>
+                            </h3>
+                            <div id="legalConsentSection" class="registration-section-panel" data-registration-section-panel>
+                                <div class="mb-4">
+                                    <div class="form-check {{is_invalid_consent_privacy}}">
+                                        <input class="form-check-input" type="checkbox" name="consent_privacy" id="consentPrivacy" value="1" {{consent_checked}}>
+                                        <label class="form-check-label" for="consentPrivacy">
+                                            J'accepte les <a href="legal-notice.php" target="_blank" class="text-decoration-underline">Conditions Générales d'Utilisation</a> et la <a href="legal-notice.php#privacy" target="_blank" class="text-decoration-underline">Politique de Confidentialité</a>.
+                                            <div class="form-text text-muted mt-1">
+                                                En cochant cette case, vous acceptez le traitement de vos données conformément à la loi n° 2008-12 et renoncez à toute poursuite en cas d'incident indépendant de notre volonté.
+                                            </div>
+                                        </label>
+                                        <div class="text-danger">{{error_consent_privacy}}</div>
+                                    </div>
                                 </div>
                             </div>
 

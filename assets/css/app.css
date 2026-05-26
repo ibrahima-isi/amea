@@ -9,6 +9,7 @@
     --brand-danger: #CE1126;  /* Guinea Red */
     --brand-light: #FFFDE7;   /* Pale Cream/Yellow */
     --brand-subtle: #E8F5E9;  /* Light Green Tint */
+    --anthropic-orange: #D97757;
     --font-display: 'Copernicus', 'Tiempos Headline', Georgia, 'Times New Roman', serif;
     --font-body: 'StyreneB', 'Styrene B', 'Inter', system-ui, -apple-system, sans-serif;
     --font-base: var(--font-body);
@@ -216,6 +217,113 @@ h3, .h3 { font-size: 1.25rem; }
 /* Tagify Validation Style */
 .tagify.is-invalid {
     border-color: var(--brand-danger);
+}
+
+/* Registration form sections */
+.registration-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    min-height: 3.25rem;
+    padding: 0.75rem 0.95rem;
+    margin: 1.25rem 0 1rem;
+    border: 1px solid rgba(0, 148, 96, 0.2);
+    border-left: 0;
+    border-radius: 6px;
+    background:
+        linear-gradient(90deg, var(--brand-danger) 0 0.35rem, var(--brand-accent) 0.35rem 0.7rem, var(--brand-primary) 0.7rem 1.05rem, transparent 1.05rem),
+        linear-gradient(135deg, rgba(255, 253, 231, 0.95), rgba(232, 245, 233, 0.82));
+    color: var(--brand-dark);
+}
+
+.registration-section-title {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    padding-left: 0.9rem;
+    color: var(--anthropic-orange);
+    font-family: var(--font-display);
+    font-size: 1.08rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.registration-section-badge {
+    color: var(--brand-dark);
+    font-family: var(--font-body);
+    font-size: 0.76rem;
+    font-weight: 600;
+    text-transform: lowercase;
+}
+
+.registration-section-toggle {
+    appearance: none;
+    cursor: pointer;
+    text-align: left;
+}
+
+.registration-section-toggle:focus-visible {
+    outline: 3px solid rgba(217, 119, 87, 0.35);
+    outline-offset: 2px;
+}
+
+.registration-toggle-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--brand-dark);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.registration-toggle-meta i {
+    color: var(--anthropic-orange);
+    transition: transform 0.28s ease;
+}
+
+.registration-section-toggle[aria-expanded="true"] .registration-toggle-meta i {
+    transform: rotate(180deg);
+}
+
+.registration-section-panel {
+    overflow: hidden;
+    height: 0;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: height 0.36s ease, opacity 0.26s ease, transform 0.36s ease, margin-bottom 0.36s ease;
+}
+
+.registration-section-panel.is-open {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.registration-section-panel > .row,
+.registration-section-panel > .mb-4 {
+    margin-bottom: 1.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .registration-section-panel,
+    .registration-toggle-meta i {
+        transition: none;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .registration-section-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .registration-toggle-meta {
+        align-self: flex-end;
+    }
 }
 
 /* ═══════════════════════════════════════

@@ -91,4 +91,76 @@ document.addEventListener('DOMContentLoaded', function() {
         lieuResidenceSelect.addEventListener('change', () => toggleOtherField(lieuResidenceSelect, autreLieuResidenceDiv, autreLieuResidenceInput));
         toggleOtherField(lieuResidenceSelect, autreLieuResidenceDiv, autreLieuResidenceInput);
     }
+
+    const sectionToggles = document.querySelectorAll('.registration-section-toggle');
+
+    function panelHasUserData(panel) {
+        return Array.from(panel.querySelectorAll('input, select, textarea')).some(field => {
+            if (field.type === 'file' || field.type === 'hidden') {
+                return false;
+            }
+
+            if (field.type === 'checkbox' || field.type === 'radio') {
+                return field.checked;
+            }
+
+            return field.value.trim() !== '';
+        });
+    }
+
+    function panelHasErrors(panel) {
+        return panel.querySelector('.is-invalid, .text-danger:not(:empty)') !== null;
+    }
+
+    function setSectionState(toggle, panel, expanded, animate = true) {
+        const label = toggle.querySelector('.registration-toggle-label');
+        const startHeight = `${panel.scrollHeight}px`;
+
+        toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        panel.setAttribute('aria-hidden', expanded ? 'false' : 'true');
+        panel.inert = !expanded;
+        if (label) {
+            label.textContent = expanded ? 'Replier' : 'Déplier';
+        }
+
+        if (!animate) {
+            panel.classList.toggle('is-open', expanded);
+            panel.style.height = expanded ? 'auto' : '0px';
+            return;
+        }
+
+        panel.style.height = expanded ? '0px' : startHeight;
+        panel.classList.toggle('is-open', expanded);
+
+        requestAnimationFrame(() => {
+            panel.style.height = expanded ? `${panel.scrollHeight}px` : '0px';
+        });
+
+        const onTransitionEnd = event => {
+            if (event.propertyName !== 'height') {
+                return;
+            }
+
+            if (expanded) {
+                panel.style.height = 'auto';
+            }
+            panel.removeEventListener('transitionend', onTransitionEnd);
+        };
+        panel.addEventListener('transitionend', onTransitionEnd);
+    }
+
+    sectionToggles.forEach(toggle => {
+        const panel = document.getElementById(toggle.getAttribute('aria-controls'));
+        if (!panel) {
+            return;
+        }
+
+        const shouldOpen = panelHasUserData(panel) || panelHasErrors(panel);
+        setSectionState(toggle, panel, shouldOpen, false);
+
+        toggle.addEventListener('click', () => {
+            const expanded = toggle.getAttribute('aria-expanded') === 'true';
+            setSectionState(toggle, panel, !expanded);
+        });
+    });
 });
