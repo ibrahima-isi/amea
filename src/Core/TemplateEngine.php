@@ -14,7 +14,7 @@ class TemplateEngine
         if ($templatePath === '') {
             return '';
         }
-        $fullPath = rtrim($this->baseDir, '/') . '/' . ltrim($templatePath, '/');
+        $fullPath = $this->resolveTemplatePath($templatePath);
         if (!is_file($fullPath)) {
             throw new \RuntimeException("Template not found: {$fullPath}");
         }
@@ -72,5 +72,21 @@ class TemplateEngine
     private function applyAssetVersions(string $html): string
     {
         return self::versionAssets($html, $this->baseDir);
+    }
+
+    private function resolveTemplatePath(string $templatePath): string
+    {
+        if ($this->isAbsolutePath($templatePath)) {
+            return $templatePath;
+        }
+
+        return rtrim($this->baseDir, '/') . '/' . ltrim($templatePath, '/');
+    }
+
+    private function isAbsolutePath(string $path): bool
+    {
+        return str_starts_with($path, '/')
+            || (bool)preg_match('#^[A-Za-z]:[\\\\/]#', $path)
+            || str_starts_with($path, '\\\\');
     }
 }

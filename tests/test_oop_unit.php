@@ -599,6 +599,8 @@ $tplEngine = new TemplateEngine($tplDir);
 $out = $tplEngine->render($tplFile, ['name' => 'World', 'role' => 'admin']);
 expect('render() substitutes {{name}}',            str_contains($out, 'Hello World!'));
 expect('render() substitutes {{role}}',            str_contains($out, 'Role: admin'));
+$outAbsolute = $tplEngine->render($tmpTpl, ['name' => 'Absolute', 'role' => 'path']);
+expect('render() accepts absolute template paths', str_contains($outAbsolute, 'Hello Absolute! Role: path'));
 @unlink($tmpTpl);
 
 // render() with missing template throws RuntimeException
