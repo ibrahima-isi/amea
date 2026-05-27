@@ -27,7 +27,22 @@ class View
 
     public function render(string $template, array $data = []): string
     {
+        // Senior Fix: Handle legacy absolute paths during migration
+        $template = $this->normalizePath($template);
         return $this->twig->render($template, $data);
+    }
+
+    private function normalizePath(string $path): string
+    {
+        $templateDir = realpath($this->twig->getLoader()->getPaths()[0]);
+        $absolutePath = realpath($path) ?: $path;
+
+        if (str_starts_with($absolutePath, $templateDir)) {
+            $relative = ltrim(substr($absolutePath, strlen($templateDir)), DIRECTORY_SEPARATOR);
+            return $relative;
+        }
+
+        return $path;
     }
 
     private function addAssetFunction(string $projectRoot): void
