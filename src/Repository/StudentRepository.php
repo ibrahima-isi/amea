@@ -200,6 +200,78 @@ class StudentRepository
         return (bool)$stmt->fetchColumn();
     }
 
+    public function existsByIdentite(string $numeroIdentite, ?int $excludeId = null): bool
+    {
+        if ($excludeId !== null) {
+            $stmt = $this->pdo->prepare("SELECT 1 FROM personnes WHERE numero_identite = ? AND id_personne != ? LIMIT 1");
+            $stmt->execute([$numeroIdentite, $excludeId]);
+        } else {
+            $stmt = $this->pdo->prepare("SELECT 1 FROM personnes WHERE numero_identite = ? LIMIT 1");
+            $stmt->execute([$numeroIdentite]);
+        }
+        return (bool)$stmt->fetchColumn();
+    }
+
+    public function ensureEtablissementExists(string $nom): void
+    {
+        $stmt = $this->pdo->prepare("SELECT 1 FROM etablissements WHERE nom = ? LIMIT 1");
+        $stmt->execute([$nom]);
+        if (!$stmt->fetchColumn()) {
+            $this->pdo->prepare("INSERT INTO etablissements (nom) VALUES (?)")->execute([$nom]);
+        }
+    }
+
+    public function ensureDomaineExists(string $nom): void
+    {
+        $stmt = $this->pdo->prepare("SELECT 1 FROM domaines_etudes WHERE nom = ? LIMIT 1");
+        $stmt->execute([$nom]);
+        if (!$stmt->fetchColumn()) {
+            $this->pdo->prepare("INSERT INTO domaines_etudes (nom) VALUES (?)")->execute([$nom]);
+        }
+    }
+
+    public function ensureNiveauExists(string $nom): void
+    {
+        $stmt = $this->pdo->prepare("SELECT 1 FROM niveaux_etudes WHERE nom = ? LIMIT 1");
+        $stmt->execute([$nom]);
+        if (!$stmt->fetchColumn()) {
+            $this->pdo->prepare("INSERT INTO niveaux_etudes (nom) VALUES (?)")->execute([$nom]);
+        }
+    }
+
+    public function savePersonnePays(int $personneId, array $paysIds): void
+    {
+        $stmt = $this->pdo->prepare("INSERT IGNORE INTO personne_pays (id_personne, id_pays) VALUES (?, ?)");
+        foreach ($paysIds as $pid) {
+            $stmt->execute([$personneId, $pid]);
+        }
+    }
+
+    public function getPaysByName(array $names): array
+    {
+        if (empty($names)) return [];
+        $placeholders = implode(',', array_fill(0, count($names), '?'));
+        $stmt = $this->pdo->prepare("SELECT id_pays, nom_fr FROM pays WHERE nom_fr IN ($placeholders)");
+        $stmt->execute($names);
+        return $stmt->fetchAll();
+    }
+
+    public function getGuineeCountry(): ?array
+    {
+        $guineeNames = ['Guinée', 'Guinee', 'Guinea'];
+        $placeholders = implode(',', array_fill(0, count($guineeNames), '?'));
+        $stmt = $this->pdo->prepare("SELECT id_pays, nom_fr FROM pays WHERE nom_fr IN ($placeholders) LIMIT 1");
+        $stmt->execute($guineeNames);
+        $res = $stmt->fetch();
+        return $res ?: null;
+    }
+
+    public function getLocations(): array
+    {
+        $stmt = $this->pdo->query("SELECT region, name FROM locations ORDER BY CASE WHEN region LIKE 'Dakar%' THEN 0 ELSE 1 END, region ASC, name ASC");
+        return $stmt->fetchAll(\PDO::FETCH_GROUP | \PDO::FETCH_COLUMN);
+    }
+
     /** @return array<array{id_personne: int, field: string, db_path: string|null}> */
     public function getAllDocumentPaths(): array
     {

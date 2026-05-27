@@ -1,0 +1,389 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}AEESGS - Enregistrement{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/css/tagify.css') }}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+{% endblock %}
+
+{% block body %}
+    <main class="py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <div class="card shadow">
+              <div class="card-header">
+                <h2 class="h4 mb-0">
+                  Formulaire d'enregistrement des élèves, étudiants et
+                  stagiaires guinéens au Sénégal
+                </h2>
+              </div>
+              <div class="card-body">
+                <p class="text-muted mb-4">
+                  Veuillez remplir ce formulaire pour vous enregistrer dans la
+                  base de données des élèves, étudiants et stagiaires guinéens
+                  au Sénégal.
+                </p>
+
+                <form
+                  action="register.php"
+                  method="POST"
+                  id="registrationForm"
+                  enctype="multipart/form-data"
+                  novalidate
+                >
+                  <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token }}"
+                  />
+                  <!-- Informations personnelles -->
+                  <h3 class="registration-section-heading">
+                    <span class="registration-section-title">Informations personnelles</span>
+                  </h3>
+                  <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                      <label for="nom" class="form-label">Nom <span class="text-danger">*</span></label>
+                      <input
+                        type="text"
+                        class="form-control {{ errors.nom ? 'is-invalid' : '' }}"
+                        id="nom"
+                        name="nom"
+                        value="{{ formData.nom }}"
+                        required
+                      />
+                      <div class="text-danger">{{ errors.nom }}</div>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="prenom" class="form-label">Prénom <span class="text-danger">*</span></label>
+                      <input
+                        type="text"
+                        class="form-control {{ errors.prenom ? 'is-invalid' : '' }}"
+                        id="prenom"
+                        name="prenom"
+                        value="{{ formData.prenom }}"
+                        required
+                      />
+                      <div class="text-danger">{{ errors.prenom }}</div>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Sexe <span class="text-danger">*</span></label>
+                      <div class="form-check">
+                        <input
+                          class="form-check-input {{ errors.sexe ? 'is-invalid' : '' }}"
+                          type="radio"
+                          name="sexe"
+                          id="sexeMasculin"
+                          value="Masculin"
+                          {{ formData.sexe == 'Masculin' ? 'checked' : '' }}
+                          required
+                        />
+                        <label class="form-check-label" for="sexeMasculin">Masculin</label>
+                      </div>
+                      <div class="form-check">
+                        <input
+                          class="form-check-input {{ errors.sexe ? 'is-invalid' : '' }}"
+                          type="radio"
+                          name="sexe"
+                          id="sexeFeminin"
+                          value="Féminin"
+                          {{ formData.sexe == 'Féminin' ? 'checked' : '' }}
+                          required
+                        />
+                        <label class="form-check-label" for="sexeFeminin">Féminin</label>
+                      </div>
+                      <div class="text-danger">{{ errors.sexe }}</div>
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+                      <label for="nationalites" class="form-label">Nationalité <span class="text-danger">*</span></label>
+                      <input
+                        name="nationalites"
+                        id="nationalites"
+                        class="form-control {{ errors.nationalites ? 'is-invalid' : '' }}"
+                        placeholder="Nationalité (max 5)"
+                        value="{{ formData.nationalites }}"
+                        required
+                      />
+                      <div class="form-text">Tapez et sélectionnez parmi la liste.</div>
+                      <div class="text-danger">{{ errors.nationalites }}</div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <label for="date_naissance" class="form-label">Date de naissance<span class="text-danger">*</span></label>
+                      <input
+                        type="text"
+                        class="form-control {{ errors.date_naissance ? 'is-invalid' : '' }}"
+                        id="date_naissance"
+                        name="date_naissance"
+                        value="{{ formData.date_naissance }}"
+                        required
+                        data-max-date="{{ "now"|date_modify("-15 years")|date("Y-12-31") }}"
+                        placeholder="JJ/MM/AAAA"
+                      />
+                      <div class="text-danger">{{ errors.date_naissance }}</div>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="numero_identite" class="form-label">Identité / Passeport <span class="text-danger">*</span></label>
+                      <input
+                        type="text"
+                        class="form-control {{ errors.numero_identite ? 'is-invalid' : '' }}"
+                        id="numero_identite"
+                        name="numero_identite"
+                        value="{{ formData.numero_identite }}"
+                        required
+                        placeholder="Ex: NNI, passeport ou carte d'identité"
+                      />
+                      <div class="text-danger">{{ errors.numero_identite }}</div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <label for="telephone" class="form-label">Téléphone <span class="text-danger">*</span></label>
+                      <input
+                        type="tel"
+                        class="form-control {{ errors.telephone ? 'is-invalid' : '' }}"
+                        id="telephone"
+                        name="telephone"
+                        value="{{ formData.telephone }}"
+                        placeholder="Saisissez votre numero sans l'indicatif du pays (9 chiffres)"
+                        required
+                      />
+                      <div class="text-danger">{{ errors.telephone }}</div>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                      <input
+                        type="email"
+                        class="form-control {{ errors.email ? 'is-invalid' : '' }}"
+                        id="email"
+                        name="email"
+                        value="{{ formData.email }}"
+                        placeholder="nom.prenom@exemple.com"
+                        required
+                      />
+                      <div class="text-danger">{{ errors.email }}</div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <label for="photo" class="form-label">ID ou Passeport</label>
+                      <input
+                        type="file"
+                        class="form-control {{ errors.identite ? 'is-invalid' : '' }}"
+                        id="photo"
+                        name="photo"
+                        accept="image/*,application/pdf"
+                      />
+                      <div class="text-danger">{{ errors.identite }}</div>
+                    </div>
+                  </div>
+
+                  <!-- Informations de contact et résidence -->
+                  <h3 class="mb-0">
+                    <button
+                      type="button"
+                      class="registration-section-heading registration-section-toggle"
+                      aria-expanded="false"
+                      aria-controls="contactResidenceSection"
+                    >
+                      <span class="registration-section-title"
+                        >Contact et résidence
+                        <span class="registration-section-badge">(optionnel)</span></span
+                      >
+                      <span class="registration-toggle-meta"
+                        ><span class="registration-toggle-label">Déplier</span><i class="fas fa-chevron-down" aria-hidden="true"></i></span>
+                    </button>
+                  </h3>
+                  <div id="contactResidenceSection" class="registration-section-panel" data-registration-section-panel>
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label for="lieu_residence" class="form-label">Lieu de résidence au Sénégal</label>
+                        <select class="form-select {{ errors.lieu_residence ? 'is-invalid' : '' }}" id="lieu_residence" name="lieu_residence">
+                          <option value="">Sélectionnez un lieu</option>
+                          {% for region, cities in locations %}
+                            <optgroup label="{{ region }}">
+                              {% for city in cities %}
+                                <option value="{{ city }}" {{ formData.lieu_residence == city ? 'selected' : '' }}>{{ city }}</option>
+                              {% endfor %}
+                            </optgroup>
+                          {% endfor %}
+                          <option value="Autre" {{ formData.lieu_residence == 'Autre' ? 'selected' : '' }}>Autre</option>
+                        </select>
+                        <div class="text-danger">{{ errors.lieu_residence }}</div>
+                      </div>
+                      <div class="col-md-6" id="autre_lieu_residence_wrapper" style="{{ formData.lieu_residence == 'Autre' ? '' : 'display: none' }}">
+                        <label for="autre_lieu_residence" class="form-label">Précisez le lieu de résidence</label>
+                        <input type="text" class="form-control" id="autre_lieu_residence" name="autre_lieu_residence" value="{{ formData.autre_lieu_residence }}" />
+                      </div>
+                      <div class="col-md-6">
+                        <label for="annee_arrivee" class="form-label">Année d'arrivée au Sénégal</label>
+                        <select class="form-select" id="annee_arrivee" name="annee_arrivee">
+                          <option value="">Sélectionnez</option>
+                          {% for year in "now"|date("Y")..1990 %}
+                            <option value="{{ year }}" {{ formData.annee_arrivee == year ? 'selected' : '' }}>{{ year }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                      <div class="col-md-6">
+                        <label for="type_logement" class="form-label">Type de logement</label>
+                        <select class="form-select {{ errors.type_logement ? 'is-invalid' : '' }}" id="type_logement" name="type_logement">
+                          <option value="" {{ not formData.type_logement ? 'selected' : '' }}>Sélectionnez</option>
+                          {% for type in ['Colocation', 'Famille', 'Hébergement temporaire', 'Location', 'Résidence universitaire', 'Autre'] %}
+                            <option value="{{ type }}" {{ formData.type_logement == type ? 'selected' : '' }}>{{ type }}</option>
+                          {% endfor %}
+                        </select>
+                        <div class="text-danger">{{ errors.type_logement }}</div>
+                      </div>
+                      <div class="col-md-6">
+                        <label for="precision_logement" class="form-label">Précisions sur le logement</label>
+                        <input type="text" class="form-control" id="precision_logement" name="precision_logement" value="{{ formData.precision_logement }}" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Informations académiques -->
+                  <h3 class="mb-0">
+                    <button
+                      type="button"
+                      class="registration-section-heading registration-section-toggle"
+                      aria-expanded="false"
+                      aria-controls="academicSection"
+                    >
+                      <span class="registration-section-title"
+                        >Informations académiques
+                        <span class="registration-section-badge">(optionnel)</span></span
+                      >
+                      <span class="registration-toggle-meta"
+                        ><span class="registration-toggle-label">Déplier</span><i class="fas fa-chevron-down" aria-hidden="true"></i></span>
+                    </button>
+                  </h3>
+                  <div id="academicSection" class="registration-section-panel" data-registration-section-panel>
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label for="etablissement" class="form-label">Établissement</label>
+                        <select class="form-select {{ errors.etablissement ? 'is-invalid' : '' }}" id="etablissement" name="etablissement">
+                          <option value="">Sélectionnez votre établissement</option>
+                          {% for school in schools %}
+                            <option value="{{ school }}" {{ formData.etablissement == school ? 'selected' : '' }}>{{ school }}</option>
+                          {% endfor %}
+                          <option value="Autre" {{ formData.etablissement == 'Autre' ? 'selected' : '' }}>Autre</option>
+                        </select>
+                        <div class="text-danger">{{ errors.etablissement }}</div>
+                      </div>
+                      <div class="col-md-6" id="autre_etablissement_wrapper" style="{{ formData.etablissement == 'Autre' ? '' : 'display: none' }}">
+                        <label for="autre_etablissement" class="form-label">Précisez l'établissement</label>
+                        <input type="text" class="form-control" id="autre_etablissement" name="autre_etablissement" value="{{ formData.autre_etablissement }}" />
+                      </div>
+                      <div class="col-md-6">
+                        <label for="statut" class="form-label">Statut</label>
+                        <select class="form-select {{ errors.statut ? 'is-invalid' : '' }}" id="statut" name="statut">
+                          <option value="" {{ not formData.statut ? 'selected' : '' }}>Sélectionnez</option>
+                          {% for s in ['Élève', 'Étudiant', 'Stagiaire'] %}
+                            <option value="{{ s }}" {{ formData.statut == s ? 'selected' : '' }}>{{ s }}</option>
+                          {% endfor %}
+                        </select>
+                        <div class="text-danger">{{ errors.statut }}</div>
+                      </div>
+                      <div class="col-md-6">
+                        <label for="domaine_etudes" class="form-label">Domaine d'études</label>
+                        <select class="form-select {{ errors.domaine_etudes ? 'is-invalid' : '' }}" id="domaine_etudes" name="domaine_etudes">
+                          <option value="">Sélectionnez votre domaine d'études</option>
+                          {% for d in domaines %}
+                            <option value="{{ d }}" {{ formData.domaine_etudes == d ? 'selected' : '' }}>{{ d }}</option>
+                          {% endfor %}
+                          <option value="Autre" {{ formData.domaine_etudes == 'Autre' ? 'selected' : '' }}>Autre</option>
+                        </select>
+                        <div class="text-danger">{{ errors.domaine_etudes }}</div>
+                      </div>
+                      <div class="col-md-6" id="autre_domaine_etudes_wrapper" style="{{ formData.domaine_etudes == 'Autre' ? '' : 'display: none' }}">
+                        <label for="autre_domaine_etudes" class="form-label">Précisez le domaine d'études</label>
+                        <input type="text" class="form-control" id="autre_domaine_etudes" name="autre_domaine_etudes" value="{{ formData.autre_domaine_etudes }}" />
+                      </div>
+                      <div class="col-md-6">
+                        <label for="niveau_etudes" class="form-label">Niveau d'études</label>
+                        <select class="form-select {{ errors.niveau_etudes ? 'is-invalid' : '' }}" id="niveau_etudes" name="niveau_etudes">
+                          <option value="">Sélectionnez votre niveau d'études</option>
+                          {% for n in niveaux %}
+                            <option value="{{ n }}" {{ formData.niveau_etudes == n ? 'selected' : '' }}>{{ n }}</option>
+                          {% endfor %}
+                          <option value="Autre" {{ formData.niveau_etudes == 'Autre' ? 'selected' : '' }}>Autre</option>
+                        </select>
+                        <div class="text-danger">{{ errors.niveau_etudes }}</div>
+                      </div>
+                      <div class="col-md-6" id="autre_niveau_etudes_wrapper" style="{{ formData.niveau_etudes == 'Autre' ? '' : 'display: none' }}">
+                        <label for="autre_niveau_etudes" class="form-label">Précisez le niveau d'études</label>
+                        <input type="text" class="form-control" id="autre_niveau_etudes" name="autre_niveau_etudes" value="{{ formData.autre_niveau_etudes }}" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Projets futurs -->
+                  <h3 class="mb-0">
+                    <button
+                      type="button"
+                      class="registration-section-heading registration-section-toggle"
+                      aria-expanded="false"
+                      aria-controls="futureProjectSection"
+                    >
+                      <span class="registration-section-title"
+                        >Projets futurs
+                        <span class="registration-section-badge">(optionnel)</span></span
+                      >
+                      <span class="registration-toggle-meta"
+                        ><span class="registration-toggle-label">Déplier</span><i class="fas fa-chevron-down" aria-hidden="true"></i></span>
+                    </button>
+                  </h3>
+                  <div id="futureProjectSection" class="registration-section-panel" data-registration-section-panel>
+                    <div class="mb-4">
+                      <label for="projet_apres_formation" class="form-label">Projet après formation</label>
+                      <textarea class="form-control" id="projet_apres_formation" name="projet_apres_formation" rows="3" placeholder="Décrivez vos projets futurs...">{{ formData.projet_apres_formation }}</textarea>
+                    </div>
+                      <div class="mb-4">
+                        <label for="cv_file" class="form-label">Télécharger CV (PDF, PNG - max 5MB)</label>
+                        <input type="file" class="form-control {{ errors.cv ? 'is-invalid' : '' }}" id="cv_file" name="cv_file" accept="application/pdf,image/png">
+                        <div class="text-danger">{{ errors.cv }}</div>
+                      </div>
+                  </div>
+
+                  <!-- Mentions légales et consentement -->
+                  <h3 class="registration-section-heading">
+                    <span class="registration-section-title">Mentions légales et consentement <span class="registration-section-badge text-danger">(obligatoire)</span></span>
+                  </h3>
+                  <div id="legalConsentSection" class="registration-section-panel is-open" style="height:auto; opacity:1; transform:none;" aria-hidden="false">
+                    <div class="mb-4">
+                      <div class="form-check {{ errors.consent_privacy ? 'is-invalid' : '' }}">
+                        <input class="form-check-input" type="checkbox" name="consent_privacy" id="consentPrivacy" value="1" {{ formData.consent_privacy ? 'checked' : '' }} required />
+                        <label class="form-check-label" for="consentPrivacy">
+                          J'accepte les <a href="legal-notice.php" target="_blank" class="text-decoration-underline">Conditions Générales d'Utilisation</a>
+                          et la <a href="legal-notice.php#privacy" target="_blank" class="text-decoration-underline">Politique de Confidentialité</a>.
+                          <div class="form-text text-muted mt-1">
+                            En cochant cette case, vous acceptez le traitement de vos données conformément à la loi n° 2008-12.
+                          </div>
+                        </label>
+                        <div class="text-danger">{{ errors.consent_privacy }}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Boutons de soumission -->
+                  <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="/" class="btn btn-secondary"><i class="fas fa-times"></i> Annuler</a>
+                    <button type="reset" class="btn btn-outline-secondary"><i class="fas fa-undo"></i> Réinitialiser</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Enregistrer</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="https://npmcdn.com/flatpickr/dist/flatpickr.min.js"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/fr.js"></script>
+    <script src="{{ asset('assets/js/tagify.min.js') }}"></script>
+    <script src="{{ asset('assets/js/main.js') }}"></script>
+    <script src="{{ asset('assets/js/register.js') }}"></script>
+{% endblock %}
