@@ -55,11 +55,14 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           envs: DB_HOST,DB_NAME,DB_USER,DB_PASS,APP_URL,MAIL_USER,MAIL_PASS
           script: |
+            set -e
             cd ~/repositories/amea
             git fetch origin main
             git reset --hard origin/main
 
-            composer install --no-dev --optimize-autoloader
+            echo "Downloading latest composer.phar to ensure compatibility..."
+            wget -qO composer.phar https://getcomposer.org/composer-stable.phar
+            php composer.phar install --no-dev --optimize-autoloader
 
             rsync -a --delete \
               --exclude='.git' \
