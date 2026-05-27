@@ -20,6 +20,11 @@ class Router
         $method = $_SERVER['REQUEST_METHOD'];
         $path   = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
+        // Senior Normalization: Handle /index.php as root /
+        if ($path === '/index.php') {
+            $path = '/';
+        }
+
         // Very basic routing for now
         foreach ($this->routes as $route) {
             if ($route['method'] === $method && $route['path'] === $path) {
