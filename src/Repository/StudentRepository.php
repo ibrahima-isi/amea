@@ -73,14 +73,28 @@ class StudentRepository
                 (nom, prenom, sexe, date_naissance, lieu_residence, etablissement, statut,
                  domaine_etudes, niveau_etudes, telephone, email, annee_arrivee, type_logement,
                  precision_logement, projet_apres_formation, identite, nationalites, cv_path,
-                 date_enregistrement, consent_privacy)
+                 date_enregistrement, consent_privacy, kyc_status, review_token)
              VALUES
                 (:nom, :prenom, :sexe, :date_naissance, :lieu_residence, :etablissement, :statut,
                  :domaine_etudes, :niveau_etudes, :telephone, :email, :annee_arrivee, :type_logement,
                  :precision_logement, :projet_apres_formation, :identite, :nationalites, :cv_path,
-                 CURRENT_TIMESTAMP, :consent_privacy)"
+                 CURRENT_TIMESTAMP, :consent_privacy, :kyc_status, :review_token)"
         );
-        $stmt->execute($data);
+
+        // Ensure defaults for optional fields if not in array
+        $data['kyc_status'] = $data['kyc_status'] ?? 'PENDING_CONFIRMATION';
+        $data['review_token'] = $data['review_token'] ?? null;
+
+        // Filter data to only include keys that are in the statement
+        $allowed = [
+            'nom', 'prenom', 'sexe', 'date_naissance', 'lieu_residence', 'etablissement', 'statut',
+            'domaine_etudes', 'niveau_etudes', 'telephone', 'email', 'annee_arrivee', 'type_logement',
+            'precision_logement', 'projet_apres_formation', 'identite', 'nationalites', 'cv_path',
+            'consent_privacy', 'kyc_status', 'review_token'
+        ];
+        $filtered = array_intersect_key($data, array_flip($allowed));
+
+        $stmt->execute($filtered);
         return (int)$this->pdo->lastInsertId();
     }
 

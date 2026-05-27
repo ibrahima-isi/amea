@@ -4,7 +4,6 @@ namespace Amea\Controller;
 
 use Amea\Repository\StudentRepository;
 use Amea\Service\EmailService;
-use Amea\Core\TemplateEngine;
 
 class KYCController extends BaseController
 {

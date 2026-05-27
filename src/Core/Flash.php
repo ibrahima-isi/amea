@@ -19,6 +19,11 @@ class Flash
         $this->session->set(self::SESSION_KEY, ['type' => $type, 'message' => $message]);
     }
 
+    public function add(string $type, string $message): void
+    {
+        $this->set($type, $message);
+    }
+
     public function get(): ?array
     {
         $flash = $this->session->get(self::SESSION_KEY);

@@ -538,6 +538,15 @@ expect('get() returns correct type',               $msg['type'] === 'success');
 expect('get() returns correct message',            $msg['message'] === 'Saved!');
 expect('get() clears after read',                  $fl->get() === null);
 
+$hasFlashAdd = method_exists($fl, 'add');
+expect('add() method exists for controller compatibility', $hasFlashAdd);
+if ($hasFlashAdd) {
+    $fl->add('info', 'Queued!');
+    $msg = $fl->get();
+    expect('add() stores correct type',            $msg['type'] === 'info');
+    expect('add() stores correct message',         $msg['message'] === 'Queued!');
+}
+
 $fl->set('error', 'Oops');
 expect('cssClass(success) = alert-success',        $fl->cssClass('success') === 'alert-success');
 expect('cssClass(error) = alert-danger',           $fl->cssClass('error') === 'alert-danger');
@@ -616,7 +625,64 @@ try {
 }
 expect('render() throws RuntimeException for missing template', $threw);
 
-// ─── 13. Core\FileUploader ────────────────────────────────────────────────────
+// ─── 13. Service\EmailService ────────────────────────────────────────────────
+echo "\nService\\EmailService\n";
+
+class EmailServiceProbe extends \Amea\Service\EmailService
+{
+    public int $sendCalls = 0;
+
+    public function send(string $to, string $subject, string $body): bool
+    {
+        $this->sendCalls++;
+        return true;
+    }
+}
+
+$previousEnv = $_ENV['APP_ENV'] ?? null;
+$_ENV['APP_ENV'] = 'demo';
+
+$emailView = new \Amea\Core\View(__DIR__ . '/..');
+$emailSvc = new EmailServiceProbe(
+    'your_brevo_login@example.com',
+    'your_brevo_smtp_key',
+    'no-reply@test.local',
+    'AEESGS',
+    $emailView
+);
+
+$referencedEmailTemplates = [
+    'emails/registration-approved.html',
+    'emails/registration-clarification.html',
+    'emails/registration-received.html',
+    'emails/registration-rejected.html',
+];
+foreach ($referencedEmailTemplates as $template) {
+    expect("referenced email template exists: {$template}", is_file(__DIR__ . '/../templates/' . $template));
+}
+
+expect('sendAsync() method exists',                method_exists($emailSvc, 'sendAsync'));
+if (method_exists($emailSvc, 'sendAsync')) {
+    $queued = $emailSvc->sendAsync('student@test.local', 'Subject', '<p>Body</p>');
+    expect('sendAsync() skips SMTP outside production', $queued && $emailSvc->sendCalls === 0);
+}
+
+$emailSvc->sendCalls = 0;
+$templateQueued = $emailSvc->sendFromTemplate('student@test.local', 'Reset', 'emails/password-reset-email.html', [
+    'prenom' => 'Awa',
+    'nom' => 'Diallo',
+    'reset_link' => 'https://example.test/reset',
+    'expires_in' => '30 minutes',
+]);
+expect('sendFromTemplate() uses async dispatch outside production', $templateQueued && $emailSvc->sendCalls === 0);
+
+if ($previousEnv === null) {
+    unset($_ENV['APP_ENV']);
+} else {
+    $_ENV['APP_ENV'] = $previousEnv;
+}
+
+// ─── 14. Core\FileUploader ────────────────────────────────────────────────────
 echo "\nCore\\FileUploader\n";
 
 use Amea\Core\FileUploader;
@@ -653,7 +719,7 @@ $result = $uploader->handle(
 );
 expect('handle() rejects disallowed extension',         !$result['success']);
 
-// ─── 14. Service\ExportService ────────────────────────────────────────────────
+// ─── 15. Service\ExportService ────────────────────────────────────────────────
 echo "\nService\\ExportService\n";
 
 use Amea\Service\ExportService;
@@ -664,7 +730,7 @@ expect('cleanForCsv() strips newlines',             $exportSvc->cleanForCsv("a\n
 expect('cleanForCsv() strips tabs',                 $exportSvc->cleanForCsv("a\tb") === 'a b');
 expect('cleanForCsv() escapes double quotes',       $exportSvc->cleanForCsv('say "hi"') === 'say ""hi""');
 
-// ─── 15. Service\DocumentReconcileService ─────────────────────────────────────
+// ─── 16. Service\DocumentReconcileService ─────────────────────────────────────
 echo "\nService\\DocumentReconcileService\n";
 
 use Amea\Service\DocumentReconcileService;

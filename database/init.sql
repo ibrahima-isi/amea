@@ -46,6 +46,10 @@ CREATE TABLE IF NOT EXISTS `personnes` (
     `consent_privacy` tinyint(1) NOT NULL DEFAULT 0,
     `consent_privacy_date` datetime DEFAULT NULL,
     `is_locked` tinyint(1) NOT NULL DEFAULT 0,
+    `kyc_status` enum('PENDING_CONFIRMATION','UNDER_REVIEW','APPROVED','NEEDS_CLARIFICATION','REJECTED') NOT NULL DEFAULT 'PENDING_CONFIRMATION',
+    `kyc_notes` text DEFAULT NULL,
+    `review_token` varchar(64) DEFAULT NULL UNIQUE,
+    `kyc_updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id_personne`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

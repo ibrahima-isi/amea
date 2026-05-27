@@ -18,7 +18,7 @@ function sendMail(string $to, string $subject, string $body): bool
         'AEESGS',
         new View($projectRoot)
     );
-    return $svc->send($to, $subject, $body);
+    return $svc->sendAsync($to, $subject, $body);
 }
 
 function renderEmailTemplate(string $templatePath, array $data): string

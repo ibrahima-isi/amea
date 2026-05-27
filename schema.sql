@@ -19,6 +19,10 @@ CREATE TABLE IF NOT EXISTS `personnes`
     `precision_logement`     varchar(100) DEFAULT NULL,
     `projet_apres_formation` text         DEFAULT NULL,
     `identite`               varchar(255) DEFAULT NULL,
+    `kyc_status`             enum ('PENDING_CONFIRMATION','UNDER_REVIEW','APPROVED','NEEDS_CLARIFICATION','REJECTED') NOT NULL DEFAULT 'PENDING_CONFIRMATION',
+    `kyc_notes`              text         DEFAULT NULL,
+    `review_token`           varchar(64)  DEFAULT NULL UNIQUE,
+    `kyc_updated_at`         datetime     DEFAULT current_timestamp() ON UPDATE current_timestamp(),
     `date_enregistrement`    datetime     DEFAULT current_timestamp(),
     PRIMARY KEY (`id_personne`)
 ) ENGINE = InnoDB

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #004a99; margin-bottom: 5px;">AEESGS</h2>
+            <p style="font-size: 14px; color: #666; margin-top: 0;">Notification de dossier</p>
+        </div>
+
+        <p>Bonjour <strong>{{ student.prenom }} {{ student.nom }}</strong>,</p>
+
+        <p>Nous vous informons que votre dossier d'inscription sur la plateforme <strong>AEESGS</strong> n'a pas pu etre approuve.</p>
+
+        <div style="background-color: #fef2f2; padding: 15px; border-left: 4px solid #dc2626; margin: 20px 0;">
+            <p style="margin: 0; color: #dc2626;"><strong>Statut :</strong> Rejete</p>
+        </div>
+
+        {% if notes %}
+            <p><strong>Motif ou observation :</strong></p>
+            <p style="background-color: #f9fafb; padding: 12px; border-radius: 6px;">{{ notes }}</p>
+        {% endif %}
+
+        <p>Pour toute question, vous pouvez contacter l'equipe administrative de l'AEESGS.</p>
+
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+        <p style="font-size: 12px; color: #999; text-align: center;">
+            Ceci est un message automatique, merci de ne pas y repondre directement.
+        </p>
+    </div>
+</body>
+</html>
