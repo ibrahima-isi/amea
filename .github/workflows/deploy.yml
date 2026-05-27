@@ -1,5 +1,8 @@
 name: Deploy to Namecheap
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
     branches:
@@ -18,7 +21,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@728c6c6b8cf02c2e48117716a91ee48313958a19 # v2
         with:
-          php-version: '8.0'
+          php-version: '8.4'
           extensions: pdo, pdo_sqlite
 
       - name: Install dependencies
