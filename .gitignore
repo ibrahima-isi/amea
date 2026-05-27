@@ -10,3 +10,4 @@ data.sql
 .lesshst
 init-admin.php
 uploads/
+/storage/

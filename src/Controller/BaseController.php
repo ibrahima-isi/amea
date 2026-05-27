@@ -2,46 +2,49 @@
 
 namespace Amea\Controller;
 
-use Amea\Core\TemplateEngine;
+use Amea\Core\View;
 use Amea\Core\Session;
 use Amea\Core\Flash;
 
 abstract class BaseController
 {
-    protected TemplateEngine $templateEngine;
+    protected View $view;
     protected Session $session;
     protected Flash $flash;
 
     public function __construct()
     {
-        $this->templateEngine = new TemplateEngine(__DIR__ . '/../../');
+        $projectRoot = __DIR__ . '/../../';
+        $this->view = new View($projectRoot);
         $this->session = new Session();
         $this->session->start();
         $this->flash = new Flash($this->session);
+
+        $this->injectGlobalVariables();
     }
 
-    protected function render(string $templatePath, array $data = []): void
+    protected function render(string $template, array $data = []): void
     {
-        // Inject Flash message
-        $flash = $this->flash->get();
-        $data['flash_json'] = $flash ? json_encode($flash) : '';
+        echo $this->view->render($template, $data);
+    }
 
-        // Handle Header/Footer
-        $headerTpl = file_get_contents(__DIR__ . '/../../templates/partials/header.html');
-        $footerTpl = file_get_contents(__DIR__ . '/../../templates/partials/footer.html');
-
+    private function injectGlobalVariables(): void
+    {
+        $twig = $this->view->getTwig();
+        
+        // Settings
         $db = \Amea\Config\Database::fromEnv()->getConnection();
         $settingRepo = new \Amea\Repository\SettingRepository($db);
-        $footerReplacements = $settingRepo->getFooterReplacements();
         
-        $data['footer'] = strtr($footerTpl, $footerReplacements);
-        $data['header'] = strtr($headerTpl, [
-            '{{index_active}}' => $data['index_active'] ?? '',
-            '{{register_active}}' => $data['register_active'] ?? '',
-            '{{login_active}}' => $data['login_active'] ?? '',
+        $twig->addGlobal('session', $_SESSION);
+        $twig->addGlobal('flash', $this->flash->get());
+        $twig->addGlobal('csrf_token', \generateCsrfToken());
+        $twig->addGlobal('settings', [
+            'contact_email' => $settingRepo->getValue('contact_email'),
+            'contact_phone' => $settingRepo->getValue('contact_phone'),
+            'association_name' => $settingRepo->getValue('association_name', 'AEESGS'),
+            'year' => date('Y')
         ]);
-
-        echo $this->templateEngine->render($templatePath, $data);
     }
 
     protected function redirect(string $url): void
