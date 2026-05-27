@@ -75,6 +75,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // 3. Normalize nullable fields and calculate age
+    $nullableString = static function ($value): ?string {
+        $value = trim((string)($value ?? ''));
+        return $value === '' ? null : $value;
+    };
+
+    $finalLieuResidenceForDb = $nullableString($finalLieuResidenceForDb);
+    $finalEtablissementForDb = $nullableString($finalEtablissementForDb);
+    $finalDomaineEtudesForDb = $nullableString($finalDomaineEtudesForDb);
+    $finalNiveauEtudesForDb = $nullableString($finalNiveauEtudesForDb);
+    $formData['telephone'] = $nullableString($formData['telephone']);
+    $formData['email'] = $nullableString($formData['email']);
+    $formData['statut'] = $nullableString($formData['statut']);
+    $formData['type_logement'] = $nullableString($formData['type_logement']);
     $formData['annee_arrivee'] = ($formData['annee_arrivee'] === null || $formData['annee_arrivee'] === '') ? null : (int)$formData['annee_arrivee'];
     $formData['precision_logement'] = $formData['precision_logement'] === '' ? null : $formData['precision_logement'];
     $formData['projet_apres_formation'] = $formData['projet_apres_formation'] === '' ? null : $formData['projet_apres_formation'];
@@ -87,7 +100,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $decoded = json_decode($formData['nationalites'], true);
         if (is_array($decoded)) {
             $names = array_map(fn($item) => $item['value'], $decoded);
-            
+
             // Validate against DB
             if (!empty($names)) {
                 $placeholders = implode(',', array_fill(0, count($names), '?'));
@@ -100,7 +113,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
     }
-    $formData['nationalites_json'] = !empty($validNats) ? json_encode($validNats, JSON_UNESCAPED_UNICODE) : null;
+    // Ensure unique values and enforce required default 'Guinée'
+    $validNats = array_values(array_unique($validNats));
+
+    // If Guinée is missing, try to resolve its id in the pays table and prepend it
+    $guineeNames = ['Guinée', 'Guinee', 'Guinea'];
+    $hasGuinee = false;
+    foreach ($validNats as $vn) {
+        if (in_array(mb_strtolower($vn, 'UTF-8'), array_map(function ($s) {
+            return mb_strtolower($s, 'UTF-8');
+        }, $guineeNames))) {
+            $hasGuinee = true;
+            break;
+        }
+    }
+    if (!$hasGuinee) {
+        // Try to find the Guinée entry in pays
+        $placeholders = implode(',', array_fill(0, count($guineeNames), '?'));
+        $stmtG = $conn->prepare("SELECT id_pays, nom_fr FROM pays WHERE nom_fr IN ($placeholders) LIMIT 1");
+        $stmtG->execute($guineeNames);
+        $g = $stmtG->fetch(PDO::FETCH_ASSOC);
+        if ($g) {
+            array_unshift($validNats, $g['nom_fr']);
+            array_unshift($validIds, $g['id_pays']);
+        } else {
+            // Add name even if id not found to ensure the JSON contains Guinée
+            array_unshift($validNats, 'Guinée');
+        }
+    }
+
+    $formData['nationalites_json'] = !empty($validNats) ? json_encode(array_slice($validNats, 0, 5), JSON_UNESCAPED_UNICODE) : null;
 
     // 4. Validation
     $errors = [];
@@ -109,21 +151,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'prenom' => 'Le prénom est requis.',
         'sexe' => 'Le sexe est requis.',
         'date_naissance' => 'La date de naissance est requise.',
-        'lieu_residence' => 'Le lieu de résidence est requis.',
-        'etablissement' => 'L\'établissement est requis.',
-        'statut' => 'Le statut est requis.',
-        'domaine_etudes' => 'Le domaine d\'études est requis.',
-        'niveau_etudes' => 'Le niveau d\'études est requis.',
-        'telephone' => 'Le téléphone est requis.',
-        'email' => 'L\'email est requis.',
-        'type_logement' => 'Le type de logement est requis.',
-        'nationalites' => 'La nationalité est requise.'
+        'nationalites' => 'La nationalité est requise.',
+        'telephone' => 'Le numéro de téléphone est requis.',
+        'email' => 'L\'adresse email est requise.',
+        'consent_privacy' => 'Vous devez accepter les Conditions Générales d\'Utilisation et la Politique de Confidentialité.'
     ];
 
     foreach ($requiredFields as $field => $message) {
         if (empty($formData[$field])) {
             $errors[$field] = $message;
         }
+    }
+    if (empty($validNats)) {
+        $errors['nationalites'] = 'La nationalité est requise.';
+    }
+
+    // Enforce max 5 nationalities (Guinée + up to 4 others)
+    if (!isset($errors['nationalites']) && count($validNats) > 5) {
+        $errors['nationalites'] = 'Vous pouvez ajouter au maximum 4 nationalités supplémentaires (5 au total).';
     }
 
     if (empty($formData['numero_identite'])) {
@@ -136,11 +181,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    if (!isset($errors['email']) && !filter_var($formData['email'], FILTER_VALIDATE_EMAIL)) {
+    if ($formData['email'] !== null && !filter_var($formData['email'], FILTER_VALIDATE_EMAIL)) {
         $errors['email'] = "L'adresse email n'est pas valide.";
     }
 
-    if (!isset($errors['telephone']) && !isValidPhone($formData['telephone'])) {
+    if ($formData['telephone'] !== null && !isValidPhone($formData['telephone'])) {
         $errors['telephone'] = "Le numéro de téléphone doit contenir exactement 9 chiffres.";
     }
 
@@ -151,16 +196,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    if ($formData['consent_privacy'] == 0) {
-        $errors['consent_privacy'] = 'Veuillez accepter les termes de confidentialité.';
-    }
-
     // 5. Handle file uploads (Identité and CV)
     $identitePath = null;
     $identiteUploadResult = handleFileUpload($_FILES['photo'] ?? [], ['jpg', 'jpeg', 'png', 'gif', 'pdf'], 2 * 1024 * 1024, 'uploads/students');
     if (!$identiteUploadResult['success']) {
         if ($identiteUploadResult['filepath'] !== null) { // Only set error if a file was actually attempted to be uploaded
-             $errors['identite'] = $identiteUploadResult['message'];
+            $errors['identite'] = $identiteUploadResult['message'];
         }
     } else {
         $identitePath = $identiteUploadResult['filepath'];
@@ -171,7 +212,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $cvUploadResult = handleFileUpload($_FILES['cv_file'] ?? [], ['pdf', 'png'], 5 * 1024 * 1024, 'uploads/students/cvs');
     if (!$cvUploadResult['success']) {
         if ($cvUploadResult['filepath'] !== null) { // Only set error if a file was actually attempted to be uploaded
-             $errors['cv'] = $cvUploadResult['message'];
+            $errors['cv'] = $cvUploadResult['message'];
         }
     } else {
         $cvPath = $cvUploadResult['filepath'];
@@ -211,30 +252,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     try {
-        $duplicateSql = "SELECT COUNT(*) FROM personnes WHERE email = :email";
-        $duplicateStmt = $conn->prepare($duplicateSql);
-        $duplicateStmt->bindParam(':email', $formData['email']);
-        $duplicateStmt->execute();
-        if ($duplicateStmt->fetchColumn() > 0) {
-            $errors['email'] = "Cette adresse email est déjà enregistrée.";
-            $_SESSION['form_data'] = $formData;
-            $_SESSION['form_errors'] = $errors;
-            setFlashMessage('error', 'Cette adresse email est déjà enregistrée.');
-            header('Location: register.php');
-            exit();
+        if ($formData['email'] !== null) {
+            $duplicateSql = "SELECT COUNT(*) FROM personnes WHERE email = :email";
+            $duplicateStmt = $conn->prepare($duplicateSql);
+            $duplicateStmt->bindParam(':email', $formData['email']);
+            $duplicateStmt->execute();
+            if ($duplicateStmt->fetchColumn() > 0) {
+                $errors['email'] = "Cette adresse email est déjà enregistrée.";
+                $_SESSION['form_data'] = $formData;
+                $_SESSION['form_errors'] = $errors;
+                setFlashMessage('error', 'Cette adresse email est déjà enregistrée.');
+                header('Location: register.php');
+                exit();
+            }
         }
 
-        $phoneSql = "SELECT COUNT(*) FROM personnes WHERE telephone = :telephone";
-        $phoneStmt = $conn->prepare($phoneSql);
-        $phoneStmt->bindParam(':telephone', $formData['telephone']);
-        $phoneStmt->execute();
-        if ($phoneStmt->fetchColumn() > 0) {
-            $errors['telephone'] = "Ce numéro de téléphone est déjà enregistré.";
-            $_SESSION['form_data'] = $formData;
-            $_SESSION['form_errors'] = $errors;
-            setFlashMessage('error', 'Ce numéro de téléphone est déjà enregistré.');
-            header('Location: register.php');
-            exit();
+        if ($formData['telephone'] !== null) {
+            $phoneSql = "SELECT COUNT(*) FROM personnes WHERE telephone = :telephone";
+            $phoneStmt = $conn->prepare($phoneSql);
+            $phoneStmt->bindParam(':telephone', $formData['telephone']);
+            $phoneStmt->execute();
+            if ($phoneStmt->fetchColumn() > 0) {
+                $errors['telephone'] = "Ce numéro de téléphone est déjà enregistré.";
+                $_SESSION['form_data'] = $formData;
+                $_SESSION['form_errors'] = $errors;
+                setFlashMessage('error', 'Ce numéro de téléphone est déjà enregistré.');
+                header('Location: register.php');
+                exit();
+            }
         }
 
         $sql = "INSERT INTO personnes (nom, prenom, numero_identite, sexe, age, date_naissance, lieu_residence,
@@ -272,7 +317,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         ];
 
         $stmt->execute($bindings);
-        
+
         // Retrieve the last inserted ID
         $newStudentId = $conn->lastInsertId();
 
@@ -283,7 +328,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $stmtPivot->execute([$newStudentId, $pid]);
             }
         }
-        
+
         // Set session variable for the details page
         $_SESSION['registration_student_id'] = $newStudentId;
 
@@ -296,13 +341,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             'telephone'     => $formData['telephone'],
             'statut'        => $formData['statut'],
             'etablissement' => $finalEtablissementForDb,
-            'domaine_etudes'=> $finalDomaineEtudesForDb,
+            'domaine_etudes' => $finalDomaineEtudesForDb,
             'niveau_etudes' => $finalNiveauEtudesForDb,
-            'lieu_residence'=> $finalLieuResidenceForDb,
+            'lieu_residence' => $finalLieuResidenceForDb,
             'type_logement' => $formData['type_logement'],
         ];
-        $studentBody = renderEmailTemplate(__DIR__ . '/templates/emails/registration-confirmation.html', $emailData);
-        sendMail($formData['email'], 'Confirmation de votre inscription – AEESGS', $studentBody);
+        if (!empty($formData['email'])) {
+            $studentBody = renderEmailTemplate(__DIR__ . '/templates/emails/registration-confirmation.html', $emailData);
+            sendMail($formData['email'], 'Confirmation de votre inscription – AEESGS', $studentBody);
+        }
 
         // Send alert email to admin
         $adminEmail = getSetting('contact_email', 'admin@aeesgs.org');
@@ -316,7 +363,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         session_write_close();
         header('Location: registration-details.php');
         exit();
-
     } catch (PDOException $e) {
         logError("Erreur lors de l'inscription", $e);
 
@@ -533,5 +579,3 @@ $replacements = [
 $output = strtr($tpl, $replacements);
 
 echo addVersionToAssets($output);
-?>
-

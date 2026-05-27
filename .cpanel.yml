@@ -2,7 +2,6 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/aeessqgf/public_html/
-    - /bin/cp -R * $DEPLOYPATH
-    - /bin/chmod 755 $DEPLOYPATH
-    - /usr/bin/find $DEPLOYPATH -type d -exec chmod 755 {} \;
-    - /usr/bin/find $DEPLOYPATH -type f -exec chmod 644 {} \;
+    - /bin/rsync -a --exclude=".git" --exclude=".github" --exclude=".cpanel.yml" --exclude="uploads" . $DEPLOYPATH
+    - /usr/bin/find $DEPLOYPATH -type d -exec /bin/chmod 755 {} \;
+    - /usr/bin/find $DEPLOYPATH -type f -not -name ".env" -exec /bin/chmod 644 {} \;

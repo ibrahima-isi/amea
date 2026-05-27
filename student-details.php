@@ -23,7 +23,8 @@ require_once 'functions/utility-functions.php';
 
 if (!hasPermission('students')) {
     setFlashMessage('error', 'Accès refusé : vous n\'avez pas la permission de voir les détails des membres.');
-    header('Location: dashboard.php'); exit();
+    header('Location: dashboard.php');
+    exit();
 }
 
 // Inclure la configuration de la base de données
@@ -67,9 +68,14 @@ try {
 
 $layoutPath  = __DIR__ . '/templates/admin/layout.html';
 $contentPath = __DIR__ . '/templates/admin/pages/student-details.html';
-if (!is_file($layoutPath) || !is_file($contentPath)) { http_response_code(500); exit('Template introuvable.'); }
+if (!is_file($layoutPath) || !is_file($contentPath)) {
+    http_response_code(500);
+    exit('Template introuvable.');
+}
 
-ob_start(); include 'includes/sidebar.php'; $sidebarHtml = ob_get_clean();
+ob_start();
+include 'includes/sidebar.php';
+$sidebarHtml = ob_get_clean();
 
 $flash      = getFlashMessage();
 $flash_json = $flash ? json_encode($flash) : '';
@@ -241,7 +247,7 @@ if (!empty($nationalities)) {
 $detailsHtml .= '</div></div>';
 
 $detailsHtml .= '<div class="col-md-6"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Date de Naissance</small><span class="fw-bold text-dark">' . formatDateFr($student['date_naissance']) . '</span></div></div>';
-$detailsHtml .= '<div class="col-md-6"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Numéro ID / Passeport</small><span class="fw-bold text-dark">' . htmlspecialchars($student['numero_identite'] ?? 'N/A') . '</span></div></div>';
+$detailsHtml .= '<div class="col-md-6"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Identité / Passeport</small><span class="fw-bold text-dark">' . htmlspecialchars($student['numero_identite'] ?? 'N/A') . '</span></div></div>';
 $detailsHtml .= '<div class="col-md-6"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Type de Logement</small><span class="fw-bold text-dark">' . htmlspecialchars($student['type_logement'] ?? 'N/A') . '</span></div></div>';
 if (!empty($student['precision_logement'])) {
     $detailsHtml .= '<div class="col-12"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Précision Logement</small><span class="fw-bold text-dark">' . htmlspecialchars($student['precision_logement']) . '</span></div></div>';

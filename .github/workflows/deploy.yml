@@ -1,5 +1,8 @@
 name: Deploy to Namecheap
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
     branches:
@@ -18,8 +21,11 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@728c6c6b8cf02c2e48117716a91ee48313958a19 # v2
         with:
-          php-version: '8.0'
+          php-version: '8.4'
           extensions: pdo, pdo_sqlite
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
 
       - name: Run unit tests
         run: |
@@ -49,21 +55,27 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           envs: DB_HOST,DB_NAME,DB_USER,DB_PASS,APP_URL,MAIL_USER,MAIL_PASS
           script: |
+            set -e
             cd ~/repositories/amea
             git fetch origin main
             git reset --hard origin/main
 
-            composer install --no-dev --optimize-autoloader
+            echo "Downloading latest composer.phar to ensure compatibility..."
+            wget -qO composer.phar https://getcomposer.org/composer-stable.phar
+            php composer.phar install --no-dev --optimize-autoloader
 
             rsync -a --delete \
               --exclude='.git' \
               --exclude='.github' \
+              --exclude='.cpanel.yml' \
               --exclude='uploads/' \
               --exclude='.env' \
               ~/repositories/amea/ ~/public_html/
 
-            # S'assurer que .git n'est jamais dans public_html
+            # S'assurer que les fichiers de versioning ne sont jamais exposés
             rm -rf ~/public_html/.git
+            rm -rf ~/public_html/.github
+            rm -f ~/public_html/.cpanel.yml
 
             # Déployer le .htaccess de uploads/ (exclu du rsync pour préserver les fichiers uploadés)
             cp ~/repositories/amea/uploads/.htaccess ~/public_html/uploads/.htaccess
