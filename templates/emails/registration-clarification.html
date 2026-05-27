@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #004a99; margin-bottom: 5px;">AEESGS</h2>
+            <p style="font-size: 14px; color: #666; margin-top: 0;">Action requise</p>
+        </div>
+        
+        <p>Bonjour <strong>{{ student.prenom }} {{ student.nom }}</strong>,</p>
+        
+        <p>Notre administration a examiné votre dossier d'inscription. Pour finaliser votre validation, nous avons besoin de précisions ou de corrections sur certains éléments.</p>
+        
+        <div style="background-color: #fffbeb; padding: 15px; border-left: 4px solid #d97706; margin: 20px 0;">
+            <p style="margin: 0; color: #92400e;"><strong>Note de l'administrateur :</strong><br>{{ notes }}</p>
+        </div>
+        
+        <p>Veuillez cliquer sur le bouton ci-dessous pour accéder à votre formulaire et apporter les modifications demandées :</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ link }}" style="background-color: #004a99; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Modifier mon dossier</a>
+        </div>
+        
+        <p>Une fois vos modifications enregistrées, votre dossier sera à nouveau soumis à notre équipe pour validation.</p>
+        
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        
+        <p style="font-size: 12px; color: #999; text-align: center;">
+            Ceci est un message automatique, merci de ne pas y répondre directement.
+        </p>
+    </div>
+</body>
+</html>

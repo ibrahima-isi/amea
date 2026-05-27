@@ -1,0 +1,71 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Validation KYC - AEESGS{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Validation des dossiers (KYC)</h1>
+        <div class="badge bg-primary px-3 py-2">
+            {{ students|length }} dossier(s) en attente
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Dossiers sous révision</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" id="kycTable" width="100%" cellspacing="0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Étudiant</th>
+                            <th>Email / Tél</th>
+                            <th>Statut</th>
+                            <th>Date Inscription</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ student.identitePath ? asset(student.identitePath) : asset('assets/img/placeholder.png') }}" 
+                                         class="rounded-circle me-2" width="40" height="40" style="object-fit: cover;">
+                                    <div>
+                                        <div class="fw-bold">{{ student.prenom }} {{ student.nom }}</div>
+                                        <small class="text-muted text-uppercase">{{ student.statut }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{ student.email }}</div>
+                                <small class="text-muted">{{ student.telephone }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">SOUS RÉVISION</span>
+                            </td>
+                            <td>{{ student.dateEnregistrement|date('d/m/Y H:i') }}</td>
+                            <td class="text-center">
+                                <a href="kyc-detail.php?id={{ student.id }}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-search"></i> Examiner
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fas fa-check-circle fa-3x mb-3"></i>
+                                <p>Aucun dossier en attente de révision.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

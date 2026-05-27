@@ -18,6 +18,11 @@ $router->add('POST', '/register.php', 'RegistrationController@register');
 $router->add('GET', '/registration-details.php', 'RegistrationController@review');
 $router->add('POST', '/registration-details.php', 'RegistrationController@confirm');
 
+// Admin KYC Dashboard
+$router->add('GET', '/kyc-list.php', 'KYCController@index');
+$router->add('GET', '/kyc-detail.php', 'KYCController@review');
+$router->add('POST', '/kyc-detail.php', 'KYCController@decide');
+
 // Add more routes as we migrate...
 
 return $router;

@@ -16,9 +16,11 @@ class StudentRepository
     }
 
     /** @return Student[] */
-    public function findAll(): array
+    public function findAll(array $filters = []): array
     {
-        $stmt = $this->pdo->query("SELECT * FROM personnes ORDER BY date_enregistrement DESC");
+        [$where, $params] = $this->buildWhereClause($filters);
+        $stmt = $this->pdo->prepare("SELECT * FROM personnes{$where} ORDER BY date_enregistrement DESC");
+        $stmt->execute($params);
         return array_map(fn($row) => Student::fromRow($row), $stmt->fetchAll());
     }
 
@@ -299,7 +301,12 @@ class StudentRepository
         $conditions = [];
         $params     = [];
 
-        if (!empty($filters['search'])) {
+        if (!empty($filters['kyc_status'])) {
+            $conditions[] = "kyc_status = ?";
+            $params[]     = $filters['kyc_status'];
+        }
+
+        if (!empty($filters['sexe'])) {
             $conditions[] = "(nom LIKE ? OR prenom LIKE ? OR email LIKE ? OR telephone LIKE ?)";
             $s = '%' . $filters['search'] . '%';
             array_push($params, $s, $s, $s, $s);
