@@ -50,14 +50,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $image_id = (int)($_POST['image_id'] ?? 0);
 
             $image_path = '';
-            if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
-                $fileName = uniqid('', true) . '_' . basename($_FILES['image_file']['name']);
-                $targetFilePath = $uploadDir . $fileName;
-                if (move_uploaded_file($_FILES['image_file']['tmp_name'], $targetFilePath)) {
-                    $image_path = $targetFilePath;
-                } else {
-                    throw new Exception("Erreur lors du téléchargement de l'image.");
+            if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] !== UPLOAD_ERR_NO_FILE) {
+                $uploadResult = handleFileUpload($_FILES['image_file'], ['jpg', 'jpeg', 'png', 'gif', 'webp'], 5 * 1024 * 1024, rtrim($uploadDir, '/'));
+                if (!$uploadResult['success']) {
+                    throw new Exception($uploadResult['message'] ?? 'Erreur lors du téléchargement de l\'image.');
                 }
+                $image_path = $uploadResult['filepath'];
             }
 
             if ($action === 'add') {
