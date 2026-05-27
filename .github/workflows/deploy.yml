@@ -61,12 +61,15 @@ jobs:
             rsync -a --delete \
               --exclude='.git' \
               --exclude='.github' \
+              --exclude='.cpanel.yml' \
               --exclude='uploads/' \
               --exclude='.env' \
               ~/repositories/amea/ ~/public_html/
 
-            # S'assurer que .git n'est jamais dans public_html
+            # S'assurer que les fichiers de versioning ne sont jamais exposés
             rm -rf ~/public_html/.git
+            rm -rf ~/public_html/.github
+            rm -f ~/public_html/.cpanel.yml
 
             # Déployer le .htaccess de uploads/ (exclu du rsync pour préserver les fichiers uploadés)
             cp ~/repositories/amea/uploads/.htaccess ~/public_html/uploads/.htaccess
