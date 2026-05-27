@@ -14,10 +14,12 @@ class View
     {
         $loader = new FilesystemLoader($projectRoot . '/templates');
         
+        $isDebug = ($_ENV['APP_ENV'] ?? 'production') === 'dev';
+        
         $this->twig = new Environment($loader, [
             'cache' => $projectRoot . '/storage/cache/twig',
-            'debug' => true, // Set to false in production
-            'auto_reload' => true,
+            'debug' => $isDebug,
+            'auto_reload' => $isDebug,
         ]);
 
         $this->addAssetFunction($projectRoot);

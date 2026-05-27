@@ -47,12 +47,23 @@ class Router
             $file = 'index.php';
         }
 
+        // Senior Security: Prevent path traversal
+        if (str_contains($file, '..') || str_contains($file, '\\')) {
+            $this->notFound();
+            return;
+        }
+
+        // Only allow .php files in the root directory for legacy support
         if (file_exists($file) && str_ends_with($file, '.php') && $file !== 'index.php') {
             require_once $file;
             return;
         }
 
-        // 404
+        $this->notFound();
+    }
+
+    private function notFound(): void
+    {
         http_response_code(404);
         require_once '404-handler.php';
     }
