@@ -12,16 +12,6 @@ require_once 'functions/email-service.php';
 
 require_once 'config/session.php';
 
-// Auto-healing: Ensure optional fields are nullable in the DB
-try {
-    $columnsToNullable = ['lieu_residence' => 'varchar(150)', 'etablissement' => 'varchar(200)', 'statut' => "enum('Élève','Étudiant','Stagiaire','ELEVE','ETUDIANT','STAGIAIRE')", 'domaine_etudes' => 'varchar(200)', 'niveau_etudes' => 'varchar(100)', 'telephone' => 'varchar(20)', 'email' => 'varchar(100)', 'type_logement' => "enum('En famille','En colocation','En résidence universitaire','Autre','Colocation','Famille','Hébergement temporaire','Location','Résidence universitaire')"];
-    foreach ($columnsToNullable as $col => $type) {
-        $conn->exec("ALTER TABLE personnes MODIFY COLUMN `$col` $type NULL DEFAULT NULL");
-    }
-} catch (PDOException $e) {
-    // Ignore if already applied or if there's a minor syntax difference
-}
-
 // Initialiser les variables
 $errors = $_SESSION['form_errors'] ?? [];
 $formData = $_SESSION['form_data'] ?? [];

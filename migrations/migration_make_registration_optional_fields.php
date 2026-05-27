@@ -22,6 +22,7 @@ function getPersonnesColumn(PDO $conn, string $column): ?array
 
 try {
     $optionalColumns = [
+        'age',
         'lieu_residence',
         'etablissement',
         'statut',
@@ -29,7 +30,12 @@ try {
         'niveau_etudes',
         'telephone',
         'email',
+        'annee_arrivee',
         'type_logement',
+        'precision_logement',
+        'projet_apres_formation',
+        'identite',
+        'cv_path',
     ];
 
     foreach ($optionalColumns as $column) {
