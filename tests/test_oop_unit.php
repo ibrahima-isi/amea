@@ -392,7 +392,7 @@ $userSvc = new UserService($userRepo);
 $clean = $userSvc->sanitizePermissions(['students', 'export', 'evil_module', 'users']);
 expect('sanitizePermissions() removes evil_module', !in_array('evil_module', $clean));
 expect('sanitizePermissions() keeps valid modules', in_array('students', $clean));
-expect('sanitizePermissions() re-indexes array',   array_is_list($clean));
+expect('sanitizePermissions() re-indexes array',   array_keys($clean) === range(0, count($clean) - 1));
 
 // buildPermissionsJson: non-admin role → null
 $json = $userSvc->buildPermissionsJson('user', ['students'], false, false, '[]', 99);
