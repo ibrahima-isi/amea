@@ -214,15 +214,19 @@ amea/
 
 ### Migrations
 
-Les migrations sont des scripts PHP CLI idempotents dans `migrations/`. Ils ajoutent des colonnes ou tables sans recréer le schéma existant. À exécuter en cas de mise à jour du schéma :
+Les migrations sont des scripts PHP CLI idempotents dans `migrations/`. Ils ajoutent des colonnes, modifient les contraintes ou créent des tables sans recréer le schéma existant.
+
+À exécuter dans le répertoire `public_html/` de production en cas de mise à jour du schéma :
 
 ```bash
-php migrations/migration_add_consent_privacy.php
-php migrations/migration_add_is_locked.php
+cd /home/aeessqgf/public_html
+php -d display_errors=1 migrations/migration_add_consent_privacy.php
+php -d display_errors=1 migrations/migration_add_is_locked.php
+php -d display_errors=1 migrations/migration_make_registration_optional_fields.php
 # etc.
 ```
 
-> La plupart des fonctionnalités récentes utilisent des `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` auto-guérisants directement dans les pages PHP — aucune migration manuelle n'est requise.
+> **Note d'architecture** : Les migrations structurelles (`ALTER TABLE`) doivent toujours être exécutées explicitement via ces scripts CLI. Les requêtes "auto-guérissantes" injectées directement dans les contrôleurs web ont été supprimées afin d'alléger la charge serveur et de garantir une séparation propre entre code applicatif et structure de base de données.
 
 ---
 
@@ -418,21 +422,17 @@ Les tests couvrent les 5 fonctions de `functions/document-reconcile.php` :
 
 ## Déploiement (production)
 
-Le projet tourne sur un hébergement mutualisé Namecheap/LiteSpeed.
+Le projet utilise un pipeline **CI/CD via GitHub Actions** (`.github/workflows/deploy.yml`) pour se déployer automatiquement sur un hébergement mutualisé Namecheap/LiteSpeed.
 
-```bash
-# Après merge sur main, tirer les changements sur le serveur
-git pull origin main
+**Fonctionnement du pipeline :**
+1. À chaque push sur la branche `main`, une instance GitHub exécute les tests unitaires (PHP 8.4).
+2. Si les tests passent, le runner se connecte au serveur via SSH.
+3. Le projet est synchronisé avec `rsync`, garantissant un déploiement sans coupure.
+4. Les dépendances sont installées via `composer install --no-dev`.
+5. Le fichier `.env` de production est généré dynamiquement à partir des **GitHub Secrets** (`DB_HOST`, `DB_USER`, `MAIL_PASS`, etc.).
+6. Les permissions strictes (`755` pour les dossiers, `644` pour les fichiers) sont automatiquement appliquées pour éviter les erreurs `403 Forbidden` liées à suPHP/suExec.
 
-# Vérifier les permissions uploads
-chmod -R 755 uploads/
-```
-
-**Points de vigilance** :
-- Le fichier `.env` doit exister sur le serveur et ne pas être versionné
-- `uploads/` doit être accessible en écriture par le serveur web
-- Le cache LiteSpeed peut nécessiter un flush après déploiement CSS/JS
-- Les colonnes ajoutées via `ALTER TABLE` auto-guérissants s'exécutent au premier accès à la page concernée
+*Note : La configuration `.cpanel.yml` est maintenue en synchronisation stricte pour garantir que tout déclenchement manuel depuis l'interface cPanel respecte les mêmes exclusions de sécurité et permissions de fichiers.*
 
 ---
 
