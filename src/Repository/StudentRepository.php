@@ -9,8 +9,16 @@ class StudentRepository
 
     public function findById(int $id): ?Student
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM personnes WHERE id_personne = ? LIMIT 1");
+        $stmt = $this->pdo->prepare("SELECT * FROM personnes WHERE id_personne = ?");
         $stmt->execute([$id]);
+        $row = $stmt->fetch();
+        return $row ? Student::fromRow($row) : null;
+    }
+
+    public function findByToken(string $token): ?Student
+    {
+        $stmt = $this->pdo->prepare("SELECT * FROM personnes WHERE review_token = ?");
+        $stmt->execute([$token]);
         $row = $stmt->fetch();
         return $row ? Student::fromRow($row) : null;
     }

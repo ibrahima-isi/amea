@@ -23,6 +23,10 @@ $router->add('GET', '/kyc-list.php', 'KYCController@index');
 $router->add('GET', '/kyc-detail.php', 'KYCController@review');
 $router->add('POST', '/kyc-detail.php', 'KYCController@decide');
 
+// KYC Correction Loop
+$router->add('GET', '/kyc-correction.php', 'CorrectionController@edit');
+$router->add('POST', '/kyc-correction.php', 'CorrectionController@update');
+
 // Add more routes as we migrate...
 
 return $router;
