@@ -5,19 +5,24 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use Amea\Core\View;
+use Amea\Service\EmailService;
+
 function sendMail(string $to, string $subject, string $body): bool
 {
-    $svc = new \Amea\Service\EmailService(
+    $projectRoot = __DIR__ . '/..';
+    $svc = new EmailService(
         $_ENV['MAIL_USER'] ?? '',
         $_ENV['MAIL_PASS'] ?? '',
         'no-reply@aeesgs.org',
         'AEESGS',
-        new \Amea\Core\TemplateEngine(__DIR__ . '/..')
+        new View($projectRoot)
     );
     return $svc->send($to, $subject, $body);
 }
 
 function renderEmailTemplate(string $templatePath, array $data): string
 {
-    return (new \Amea\Core\TemplateEngine(__DIR__ . '/..'))->render($templatePath, $data);
+    $projectRoot = __DIR__ . '/..';
+    return (new View($projectRoot))->render($templatePath, $data);
 }

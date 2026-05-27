@@ -1,18 +1,18 @@
 <?php
 namespace Amea\Service;
 
-use Amea\Core\TemplateEngine;
+use Amea\Core\View;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as MailException;
 
 class EmailService
 {
     public function __construct(
-        private string         $smtpUser,
-        private string         $smtpPass,
-        private string         $fromAddress,
-        private string         $fromName,
-        private TemplateEngine $tpl
+        private string $smtpUser,
+        private string $smtpPass,
+        private string $fromAddress,
+        private string $fromName,
+        private View   $view
     ) {}
 
     public function send(string $to, string $subject, string $body): bool
@@ -49,7 +49,7 @@ class EmailService
         string $templatePath,
         array  $data
     ): bool {
-        $body = $this->tpl->render($templatePath, $data);
+        $body = $this->view->render($templatePath, $data);
         return $this->send($to, $subject, $body);
     }
 }

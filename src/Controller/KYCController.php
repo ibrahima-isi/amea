@@ -25,7 +25,7 @@ class KYCController extends BaseController
             $_ENV['MAIL_PASS'] ?? '',
             'noreply@aeesgs.org',
             'AEESGS Platform',
-            new TemplateEngine($projectRoot)
+            $this->view
         );
     }
 

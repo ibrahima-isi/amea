@@ -314,7 +314,7 @@ class StudentRepository
             $params[]     = $filters['kyc_status'];
         }
 
-        if (!empty($filters['sexe'])) {
+        if (!empty($filters['search'])) {
             $conditions[] = "(nom LIKE ? OR prenom LIKE ? OR email LIKE ? OR telephone LIKE ?)";
             $s = '%' . $filters['search'] . '%';
             array_push($params, $s, $s, $s, $s);
