@@ -682,6 +682,68 @@ if ($previousEnv === null) {
     $_ENV['APP_ENV'] = $previousEnv;
 }
 
+class EmailServiceFallbackProbe extends \Amea\Service\EmailService
+{
+    public int $sendCalls = 0;
+
+    public function send(string $to, string $subject, string $body): bool
+    {
+        $this->sendCalls++;
+        return true;
+    }
+}
+
+$previousServerEnv = $_SERVER['APP_ENV'] ?? null;
+$previousProcessEnv = getenv('APP_ENV');
+unset($_ENV['APP_ENV'], $_SERVER['APP_ENV']);
+putenv('APP_ENV');
+
+$missingWorkerRoot = sys_get_temp_dir() . '/amea_mail_missing_worker_' . uniqid();
+mkdir($missingWorkerRoot . '/storage', 0775, true);
+$fallbackSvc = new EmailServiceFallbackProbe(
+    'smtp-user@example.test',
+    'real-smtp-secret',
+    'no-reply@test.local',
+    'AEESGS',
+    null,
+    $missingWorkerRoot
+);
+
+$fallbackResult = $fallbackSvc->sendAsync('student@test.local', 'Subject', '<p>Body</p>');
+expect('sendAsync() delivers when APP_ENV is unset and SMTP credentials exist', $fallbackResult && $fallbackSvc->sendCalls === 1);
+
+$placeholderSvc = new EmailServiceFallbackProbe(
+    'your_brevo_login@example.com',
+    'your_brevo_smtp_key',
+    'no-reply@test.local',
+    'AEESGS',
+    null,
+    $missingWorkerRoot
+);
+$placeholderResult = $placeholderSvc->sendAsync('student@test.local', 'Subject', '<p>Body</p>');
+expect('sendAsync() skips when APP_ENV is unset and SMTP credentials are placeholders', $placeholderResult && $placeholderSvc->sendCalls === 0);
+
+$_ENV['APP_ENV'] = 'production';
+$fallbackSvc->sendCalls = 0;
+$fallbackResult = $fallbackSvc->sendAsync('student@test.local', 'Subject', '<p>Body</p>');
+expect('sendAsync() falls back to synchronous send when async worker cannot launch', $fallbackResult && $fallbackSvc->sendCalls === 1);
+
+if ($previousEnv === null) {
+    unset($_ENV['APP_ENV']);
+} else {
+    $_ENV['APP_ENV'] = $previousEnv;
+}
+if ($previousServerEnv === null) {
+    unset($_SERVER['APP_ENV']);
+} else {
+    $_SERVER['APP_ENV'] = $previousServerEnv;
+}
+if ($previousProcessEnv === false) {
+    putenv('APP_ENV');
+} else {
+    putenv('APP_ENV=' . $previousProcessEnv);
+}
+
 // ─── 14. Core\FileUploader ────────────────────────────────────────────────────
 echo "\nCore\\FileUploader\n";
 

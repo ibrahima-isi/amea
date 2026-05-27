@@ -50,20 +50,19 @@ class EmailService
 
     public function sendAsync(string $to, string $subject, string $body): bool
     {
-        if (!$this->isProductionEnvironment()) {
+        if ($this->shouldSkipDelivery()) {
             return true;
         }
         if (!$this->hasSmtpCredentials()) {
-            error_log('[EmailService] Missing SMTP credentials for production email: ' . $subject);
-            return false;
+            return $this->handleMissingCredentials('email', $subject);
         }
 
         $queueFile = $this->writeQueueFile($to, $subject, $body);
-        if ($queueFile === null) {
-            return false;
+        if ($queueFile !== null && $this->launchWorker($queueFile)) {
+            return true;
         }
 
-        return $this->launchWorker($queueFile);
+        return $this->send($to, $subject, $body);
     }
 
     public function sendFromTemplate(
@@ -72,12 +71,11 @@ class EmailService
         string $templatePath,
         array  $data
     ): bool {
-        if (!$this->isProductionEnvironment()) {
+        if ($this->shouldSkipDelivery()) {
             return true;
         }
         if (!$this->hasSmtpCredentials()) {
-            error_log('[EmailService] Missing SMTP credentials for production template email: ' . $subject);
-            return false;
+            return $this->handleMissingCredentials('template email', $subject);
         }
 
         if ($this->view === null) {
@@ -89,10 +87,30 @@ class EmailService
         return $this->sendAsync($to, $subject, $body);
     }
 
-    private function isProductionEnvironment(): bool
+    private function shouldSkipDelivery(): bool
     {
-        $env = strtolower((string)($_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? getenv('APP_ENV') ?: 'demo'));
-        return in_array($env, ['prod', 'production'], true);
+        $env = $this->appEnvironment();
+        return in_array($env, ['demo', 'dev', 'development', 'local', 'test', 'testing'], true);
+    }
+
+    private function isExplicitProductionEnvironment(): bool
+    {
+        return in_array($this->appEnvironment(), ['prod', 'production'], true);
+    }
+
+    private function appEnvironment(): string
+    {
+        return strtolower(trim((string)($_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? getenv('APP_ENV') ?: '')));
+    }
+
+    private function handleMissingCredentials(string $context, string $subject): bool
+    {
+        if ($this->isExplicitProductionEnvironment()) {
+            error_log("[EmailService] Missing SMTP credentials for {$context}: {$subject}");
+            return false;
+        }
+
+        return true;
     }
 
     private function hasSmtpCredentials(): bool
@@ -141,11 +159,9 @@ class EmailService
     {
         $script = $this->projectRoot . '/scripts/send-email.php';
         if (!is_file($script)) {
-            error_log('[EmailService] Mail worker script is missing: ' . $script);
             return false;
         }
         if (!function_exists('exec')) {
-            error_log('[EmailService] exec() is disabled; async mail worker cannot be launched.');
             return false;
         }
 
@@ -156,7 +172,6 @@ class EmailService
 
         exec($command, $output, $exitCode);
         if ($exitCode !== 0) {
-            error_log('[EmailService] Failed to launch async mail worker for: ' . $queueFile);
             return false;
         }
 
