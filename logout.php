@@ -1,19 +1,9 @@
 <?php
+
 /**
- * Logout script.
+ * Legacy entry point for logout.
  * File: logout.php
  */
 
-// Start session
-require_once 'config/session.php';
-
-// Unset all session variables
-$_SESSION = array();
-
-// Destroy the session
-session_destroy();
-
-// Redirect to login page
-header("Location: index.php");
-exit();
-?>
+$router = require_once 'src/bootstrap.php';
+$router->dispatch();
