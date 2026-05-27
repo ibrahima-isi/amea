@@ -74,7 +74,11 @@ $db->exec("
         date_enregistrement TEXT NOT NULL DEFAULT (datetime('now')),
         date_diplomation TEXT DEFAULT NULL,
         is_locked INTEGER NOT NULL DEFAULT 0,
-        consent_privacy INTEGER NOT NULL DEFAULT 0
+        consent_privacy INTEGER NOT NULL DEFAULT 0,
+        kyc_status TEXT NOT NULL DEFAULT 'PENDING_CONFIRMATION',
+        kyc_notes TEXT DEFAULT NULL,
+        review_token TEXT DEFAULT NULL,
+        kyc_updated_at TEXT DEFAULT (datetime('now'))
     );
 
     CREATE TABLE settings (

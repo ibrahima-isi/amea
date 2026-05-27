@@ -86,7 +86,11 @@ $db->exec("
         date_enregistrement  TEXT    DEFAULT CURRENT_TIMESTAMP,
         consent_privacy      INTEGER DEFAULT 0,
         is_locked            INTEGER DEFAULT 0,
-        date_diplomation     TEXT
+        date_diplomation     TEXT,
+        kyc_status           TEXT    DEFAULT 'PENDING_CONFIRMATION',
+        kyc_notes            TEXT,
+        review_token         TEXT,
+        kyc_updated_at       TEXT    DEFAULT CURRENT_TIMESTAMP
     );
 ");
 

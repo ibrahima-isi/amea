@@ -78,14 +78,24 @@ class StudentRepository
         'nom', 'prenom', 'sexe', 'date_naissance', 'lieu_residence', 'etablissement', 'statut',
         'domaine_etudes', 'niveau_etudes', 'telephone', 'email', 'annee_arrivee', 'type_logement',
         'precision_logement', 'projet_apres_formation', 'identite', 'nationalites', 'cv_path',
-        'date_diplomation', 'is_locked', 'consent_privacy',
+        'date_diplomation', 'is_locked', 'consent_privacy', 'kyc_status', 'kyc_notes', 'review_token',
     ];
 
     public function update(int $id, array $data): bool
     {
+        // Automatically set kyc_updated_at if not explicitly provided
+        if (!isset($data['kyc_updated_at'])) {
+            $data['kyc_updated_at'] = date('Y-m-d H:i:s');
+        }
+
         $setClauses   = [];
         $filteredData = [];
         foreach ($data as $key => $val) {
+            if ($key === 'kyc_updated_at') {
+                 $setClauses[]       = "kyc_updated_at = :kyc_updated_at";
+                 $filteredData['kyc_updated_at'] = $val;
+                 continue;
+            }
             if (!in_array($key, self::UPDATABLE_COLUMNS, true)) {
                 throw new \InvalidArgumentException("Column '{$key}' is not updatable.");
             }

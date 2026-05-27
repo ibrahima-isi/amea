@@ -26,7 +26,11 @@ class Student
         private string  $dateEnregistrement,
         private ?string $dateDiplomation = null,
         private bool    $isLocked = false,
-        private bool    $consentPrivacy = false
+        private bool    $consentPrivacy = false,
+        private string  $kycStatus = 'PENDING_CONFIRMATION',
+        private ?string $kycNotes = null,
+        private ?string $kycUpdatedAt = null,
+        private ?string $reviewToken = null
     ) {}
 
     public function getId(): int                          { return $this->id; }
@@ -52,6 +56,10 @@ class Student
     public function getDateDiplomation(): ?string         { return $this->dateDiplomation; }
     public function isLocked(): bool                      { return $this->isLocked; }
     public function hasConsentPrivacy(): bool             { return $this->consentPrivacy; }
+    public function getKycStatus(): string                { return $this->kycStatus; }
+    public function getKycNotes(): ?string                { return $this->kycNotes; }
+    public function getKycUpdatedAt(): ?string            { return $this->kycUpdatedAt; }
+    public function getReviewToken(): ?string             { return $this->reviewToken; }
 
     public function getNationalites(): array
     {
@@ -102,7 +110,11 @@ class Student
             dateEnregistrement:   $row['date_enregistrement'] ?? '',
             dateDiplomation:      $row['date_diplomation'] ?? null,
             isLocked:             (bool)($row['is_locked'] ?? false),
-            consentPrivacy:       (bool)($row['consent_privacy'] ?? false)
+            consentPrivacy:       (bool)($row['consent_privacy'] ?? false),
+            kycStatus:            (string)($row['kyc_status'] ?? 'PENDING_CONFIRMATION'),
+            kycNotes:             $row['kyc_notes'] ?? null,
+            kycUpdatedAt:         $row['kyc_updated_at'] ?? null,
+            reviewToken:          $row['review_token'] ?? null
         );
     }
 }
