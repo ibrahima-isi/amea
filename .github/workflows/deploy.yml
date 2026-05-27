@@ -21,6 +21,9 @@ jobs:
           php-version: '8.0'
           extensions: pdo, pdo_sqlite
 
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
       - name: Run unit tests
         run: |
           php tests/test_permissions_unit.php
