@@ -20,8 +20,8 @@ if (!hasPermission('settings')) {
     header('Location: dashboard.php'); exit();
 }
 
-$nom = $_SESSION['nom'];
-$prenom = $_SESSION['prenom'];
+$nom = $_SESSION['last_name'] ?? '';
+$prenom = $_SESSION['first_name'] ?? '';
 $role = $_SESSION['role']; // Define role for sidebar
 
 // Traitement du formulaire
@@ -76,8 +76,8 @@ $flash_json = $flash ? json_encode($flash) : '';
 
 $contentTpl = file_get_contents($contentPath);
 $contentHtml = strtr($contentTpl, [
-    '{{contact_email}}' => htmlspecialchars($currentSettings['contact_email']),
-    '{{contact_phone}}' => htmlspecialchars($currentSettings['contact_phone']),
+    '{{contact_email}}' => htmlspecialchars($currentSettings['contact_email'] ?? ''),
+    '{{contact_phone}}' => htmlspecialchars($currentSettings['contact_phone'] ?? ''),
     '{{csrf_token}}' => generateCsrfToken()
 ]);
 

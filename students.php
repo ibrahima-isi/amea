@@ -182,9 +182,9 @@ if (count($students) > 0) {
         elseif (in_array($student['status'], ['GRADUATE', 'Diplômé', 'DIPLOME'])) $badgeClass = 'success';
         
         $rowsHtml .= '<tr class="align-middle">'
-            . '<td>' . htmlspecialchars($student['last_name'], ENT_QUOTES, 'UTF-8') . '</td>'
-            . '<td>' . htmlspecialchars($student['first_name'], ENT_QUOTES, 'UTF-8') . '</td>'
-            . '<td>' . htmlspecialchars($student['gender'], ENT_QUOTES, 'UTF-8') . '</td>';
+            . '<td>' . htmlspecialchars($student['last_name'] ?? '', ENT_QUOTES, 'UTF-8') . '</td>'
+            . '<td>' . htmlspecialchars($student['first_name'] ?? '', ENT_QUOTES, 'UTF-8') . '</td>'
+            . '<td>' . htmlspecialchars($student['gender'] ?? '', ENT_QUOTES, 'UTF-8') . '</td>';
 
         // Nationalities Column
         $natHtml = '';
@@ -200,14 +200,14 @@ if (count($students) > 0) {
                  }
             }
         }
-        $statutCell = '<span class="badge bg-' . $badgeClass . '">' . htmlspecialchars($student['status'], ENT_QUOTES, 'UTF-8') . '</span>';
+        $statutCell = '<span class="badge bg-' . $badgeClass . '">' . htmlspecialchars($student['status'] ?? '', ENT_QUOTES, 'UTF-8') . '</span>';
         if (in_array($student['status'], ['GRADUATE', 'Diplômé', 'DIPLOME']) && !empty($student['graduation_date'])) {
             $promoYear = date('Y', strtotime($student['graduation_date']));
             $statutCell .= '<br><small class="text-muted">Promo ' . $promoYear . '</small>';
         }
 
         $rowsHtml .= '<td>' . $natHtml . '</td>'
-            . '<td>' . htmlspecialchars($student['institution'], ENT_QUOTES, 'UTF-8') . '</td>'
+            . '<td>' . htmlspecialchars($student['institution'] ?? '', ENT_QUOTES, 'UTF-8') . '</td>'
             . '<td>' . $statutCell . '</td>'
             . '<td class="text-nowrap">'
                 . '<a href="student-details.php?id=' . (int)$student['id'] . '" class="btn btn-sm btn-outline-primary" title="Voir détails">'

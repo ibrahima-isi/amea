@@ -433,7 +433,7 @@ $checked = fn($value, $option) => $value === $option ? 'checked' : '';
 
 $currentCvDisplay = '';
 if (!empty($formData['cv_path'])) {
-    $currentCvDisplay = '<div class="mt-2">CV actuel: <a href="' . htmlspecialchars($formData['cv_path']) . '" target="_blank" class="btn btn-sm btn-info"><i class="fas fa-download"></i> Télécharger</a></div>';
+    $currentCvDisplay = '<div class="mt-2">CV actuel: <a href="' . htmlspecialchars($formData['cv_path'] ?? '') . '" target="_blank" class="btn btn-sm btn-info"><i class="fas fa-download"></i> Télécharger</a></div>';
 }
 
 $replacements = [

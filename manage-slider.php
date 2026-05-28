@@ -112,8 +112,8 @@ $stmt = $conn->query("SELECT * FROM slider_images ORDER BY display_order ASC, cr
 $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $role = $_SESSION['role'];
-$nom = $_SESSION['nom'];
-$prenom = $_SESSION['prenom'];
+$nom = $_SESSION['last_name'] ?? '';
+$prenom = $_SESSION['first_name'] ?? '';
 
 // Rendu du template HTML
 $layoutPath = __DIR__ . '/templates/admin/layout.html';
@@ -134,15 +134,15 @@ if (empty($images)) {
         $status = $image['is_active'] ? '<span class="badge bg-success">Actif</span>' : '<span class="badge bg-danger">Inactif</span>';
         $imagesHtml .= '
             <tr>
-                <td><img src="' . htmlspecialchars($image['image_path']) . '" alt="" class="img-thumbnail" width="100"></td>
-                <td>' . htmlspecialchars($image['title']) . '</td>
+                <td><img src="' . htmlspecialchars($image['image_path'] ?? '') . '" alt="" class="img-thumbnail" width="100"></td>
+                <td>' . htmlspecialchars($image['title'] ?? '') . '</td>
                 <td>' . $image['display_order'] . '</td>
                 <td>' . $status . '</td>
                 <td class="text-end">
                     <button class="btn btn-sm btn-info btn-edit-slider" 
                             data-id="' . $image['id'] . '" 
-                            data-title="' . htmlspecialchars($image['title']) . '"
-                            data-caption="' . htmlspecialchars($image['caption']) . '"
+                            data-title="' . htmlspecialchars($image['title'] ?? '') . '"
+                            data-caption="' . htmlspecialchars($image['caption'] ?? '') . '"
                             data-order="' . $image['display_order'] . '"
                             data-active="' . $image['is_active'] . '">
                         <i class="fas fa-edit"></i>

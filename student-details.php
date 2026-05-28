@@ -246,7 +246,7 @@ $birthDateDisplay = !empty($student['birth_date']) ? formatDateFr((string)$stude
 $detailsHtml .= '<div class="col-md-6"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Date de Naissance</small><span class="fw-bold text-dark">' . $birthDateDisplay . '</span></div></div>';
 $detailsHtml .= '<div class="col-md-6"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Type de Logement</small><span class="fw-bold text-dark">' . htmlspecialchars($student['housing_type'] ?? 'N/A') . '</span></div></div>';
 if (!empty($student['housing_details'])) {
-    $detailsHtml .= '<div class="col-12"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Précision Logement</small><span class="fw-bold text-dark">' . htmlspecialchars($student['housing_details']) . '</span></div></div>';
+    $detailsHtml .= '<div class="col-12"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Précision Logement</small><span class="fw-bold text-dark">' . htmlspecialchars($student['housing_details'] ?? '') . '</span></div></div>';
 }
 $detailsHtml .= '</div></div></div>'; // end personal card
 
@@ -307,7 +307,7 @@ $detailsHtml .= '</div></div>'; // end documents card
 if (!empty($student['post_training_project'])) {
     $detailsHtml .= '<div class="card shadow-sm border-0">';
     $detailsHtml .= '<div class="card-header bg-transparent border-bottom py-3"><h5 class="mb-0 text-white"><i class="fas fa-rocket me-2"></i>Projet Professionnel</h5></div>';
-    $detailsHtml .= '<div class="card-body"><p class="card-text text-dark" style="line-height:1.6;">' . nl2br(htmlspecialchars($student['post_training_project'])) . '</p></div></div>';
+    $detailsHtml .= '<div class="card-body"><p class="card-text text-dark" style="line-height:1.6;">' . nl2br(htmlspecialchars($student['post_training_project'] ?? '')) . '</p></div></div>';
 }
 
 $detailsHtml .= '</div>'; // end right col

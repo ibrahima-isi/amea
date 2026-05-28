@@ -1,7 +1,7 @@
 <?php
 $role   = $_SESSION['role']   ?? '';
-$prenom = htmlspecialchars($_SESSION['prenom'] ?? '', ENT_QUOTES, 'UTF-8');
-$nom    = htmlspecialchars($_SESSION['nom']    ?? '', ENT_QUOTES, 'UTF-8');
+$prenom = htmlspecialchars($_SESSION['first_name'] ?? '', ENT_QUOTES, 'UTF-8');
+$nom    = htmlspecialchars($_SESSION['last_name']    ?? '', ENT_QUOTES, 'UTF-8');
 
 function sidebarActive(array $pages): string {
     return in_array(basename($_SERVER['PHP_SELF']), $pages) ? 'active' : '';

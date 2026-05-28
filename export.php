@@ -31,8 +31,8 @@ if (!hasPermission('export')) {
 $user_id = $_SESSION['user_id'];
 $username = $_SESSION['username'];
 $role = $_SESSION['role'];
-$nom = $_SESSION['nom'];
-$prenom = $_SESSION['prenom'];
+$nom = $_SESSION['last_name'] ?? '';
+$prenom = $_SESSION['first_name'] ?? '';
 
 // Initialiser les variables d'erreur et de succès
 $error = "";
