@@ -7,6 +7,7 @@
 
 require_once 'config/session.php';
 require_once 'functions/utility-functions.php';
+require_once 'functions/email-service.php';
 
 // Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['user_id'])) {
@@ -61,20 +62,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $stmt->execute();
                         $userToReset = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                        if ($userToReset && $userToReset['role'] !== 'admin') {
-                            $newPassword = bin2hex(random_bytes(8));
-                            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-
-                            $sql = "UPDATE users SET password = :password WHERE id_user = :id_user";
-                            $stmt = $conn->prepare($sql);
-                            $stmt->bindParam(':password', $hashedPassword, PDO::PARAM_STR);
-                            $stmt->bindParam(':id_user', $userId, PDO::PARAM_INT);
-                            $stmt->execute();
-
-                            $successMessage = "Le mot de passe pour l'utilisateur <strong>" . htmlspecialchars($userToReset['username'], ENT_QUOTES, 'UTF-8') . "</strong> a été réinitialisé.<br>Le nouveau mot de passe est : <code>" . htmlspecialchars($newPassword, ENT_QUOTES, 'UTF-8') . "</code>";
-                            setFlashMessage('success', $successMessage);
+                        if (!$userToReset) {
+                            setFlashMessage('warning', "Utilisateur introuvable.");
+                        } elseif ($userId === 1 && (int)$_SESSION['user_id'] !== 1) {
+                            setFlashMessage('warning', "Seul le Super Administrateur peut réinitialiser ce compte.");
                         } else {
-                            setFlashMessage('warning', "Vous ne pouvez pas réinitialiser le mot de passe d'un administrateur.");
+                            $resetService = new \Amea\Service\PasswordResetService(
+                                $conn,
+                                (string)env('APP_URL', 'http://localhost'),
+                                __DIR__
+                            );
+
+                            if ($resetService->requestForUserId($userId, 'sendMail')) {
+                                setFlashMessage('success', "Un lien sécurisé de réinitialisation a été envoyé à l'adresse e-mail du compte.");
+                            } else {
+                                setFlashMessage('error', "Impossible d'envoyer le lien de réinitialisation. Veuillez réessayer plus tard.");
+                            }
                         }
                     } catch (PDOException $e) {
                         logError("Erreur lors de la réinitialisation du mot de passe d'un utilisateur", $e);
@@ -178,7 +181,7 @@ foreach ($users as $user) {
             . '<a href="edit-user.php?id=' . (int)$user['id_user'] . '" class="btn btn-sm btn-info" title="Modifier">
                 <i class="fas fa-edit"></i>
             </a>'
-            . (($user['role'] !== 'admin') ? (
+            . (((int)$user['id_user'] !== (int)$_SESSION['user_id'] && (int)$user['id_user'] !== 1) ? (
                 '<form method="POST" class="d-inline">'
                 . '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') . '">'
                 . '<input type="hidden" name="action" value="reset_password">'

@@ -47,6 +47,7 @@ $db->exec("
         role TEXT NOT NULL DEFAULT 'user',
         permissions TEXT DEFAULT NULL,
         est_actif INTEGER NOT NULL DEFAULT 1,
+        session_version INTEGER NOT NULL DEFAULT 1,
         date_creation TEXT NOT NULL DEFAULT (datetime('now')),
         derniere_connexion TEXT DEFAULT NULL
     );
@@ -119,6 +120,7 @@ expect('getEmail() correct',                       $u->getEmail() === 'j@doe.com
 expect('getFullName() = "John Doe"',               $u->getFullName() === 'John Doe');
 expect('getRole() = admin',                        $u->getRole() === 'admin');
 expect('isActif() true',                           $u->isActif() === true);
+expect('getSessionVersion() defaults to 1',         $u->getSessionVersion() === 1);
 expect('isSuperAdmin() false for id=42',           $u->isSuperAdmin() === false);
 expect('getPassword() returns hash',               $u->getPassword() === 'hash');
 expect('getPermissions() returns decoded array',   $u->getPermissions() === ['students', 'export']);
@@ -251,11 +253,15 @@ expect('findAll() returns 3 users',                count($all) === 3); // includ
 $userRepo->update($id1, [
     'username'    => 'alice',
     'email'       => 'alice@test.sn',
+    'nom'         => 'AliceUpdated',
+    'prenom'      => 'Unit',
     'role'        => 'admin',
     'permissions' => json_encode(['settings']),
     'est_actif'   => 1,
 ]);
 $updated = $userRepo->findById($id1);
+expect('update() changes nom',                     $updated->getNom() === 'AliceUpdated');
+expect('update() changes prenom',                  $updated->getPrenom() === 'Unit');
 expect('update() changes permissions',             $updated->hasPermission('settings'));
 expect('update() removes old permission',          !$updated->hasPermission('students'));
 
@@ -269,6 +275,13 @@ expect('existsByEmail() false when excluded',      !$userRepo->existsByEmail('al
 $userRepo->updateLastLogin($id1);
 $afterLogin = $userRepo->findById($id1);
 expect('updateLastLogin() sets derniere_connexion', $afterLogin->getDerniereConnexion() !== null);
+
+$newSessionVersion = $userRepo->incrementSessionVersion($id1);
+$afterVersionBump = $userRepo->findById($id1);
+expect('incrementSessionVersion() returns incremented version', $newSessionVersion === 2);
+expect('incrementSessionVersion() persists incremented version', $afterVersionBump->getSessionVersion() === 2);
+expect('isSessionVersionCurrent() true for current version', $userRepo->isSessionVersionCurrent($id1, 2));
+expect('isSessionVersionCurrent() false for old version', !$userRepo->isSessionVersionCurrent($id1, 1));
 
 $userRepo->delete($id2);
 expect('delete() removes user',                    $userRepo->findById($id2) === null);
@@ -438,12 +451,16 @@ expect('createUser() rejects evil permission',     !$charlie->hasPermission('evi
 $userSvc->updateUser($newId, [
     'username'    => 'charlie',
     'email'       => 'charlie@test.sn',
+    'nom'         => 'CharlieUpdated',
+    'prenom'      => 'Service',
     'role'        => 'user',
     'permissions' => ['documents'],
     'est_actif'   => 1,
 ], false, false);
 $charlie2 = $userRepo->findById($newId);
 expect('updateUser() demote to user → no permissions', !$charlie2->hasPermission('documents'));
+expect('updateUser() updates nom',                  $charlie2->getNom() === 'CharlieUpdated');
+expect('updateUser() updates prenom',               $charlie2->getPrenom() === 'Service');
 
 // ─── 8. Service\AuthService ──────────────────────────────────────────────────
 echo "\nService\\AuthService\n";
@@ -482,6 +499,7 @@ $ok = $auth->attempt('diana', 'correct');
 expect('attempt() true for valid credentials',     $ok === true);
 expect('attempt() sets user_id in session',        $_SESSION['user_id'] === $loginId);
 expect('attempt() sets role in session',           $_SESSION['role'] === 'admin');
+expect('attempt() stores session_version in session', $_SESSION['session_version'] === 1);
 
 // hasPermission()
 expect('hasPermission() true for granted module',  $auth->hasPermission('students'));

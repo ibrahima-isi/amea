@@ -19,46 +19,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             setFlashMessage('error', 'Veuillez fournir une adresse e-mail valide.');
         } else {
-            // Check if user exists
-            $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-            $stmt->execute([$email]);
-            $user = $stmt->fetch();
+            $resetService = new \Amea\Service\PasswordResetService(
+                $conn,
+                (string)env('APP_URL', 'http://localhost'),
+                __DIR__
+            );
+            $resetService->requestForEmail($email, 'sendMail');
 
-            if ($user) {
-                // Generate a token
-                $token = bin2hex(random_bytes(50));
-
-                // Set expiration date
-                $expires = new DateTime('+1 hour');
-                $expires_at = $expires->format('Y-m-d H:i:s');
-
-                // Invalidate any existing tokens for this email before creating a new one
-                $stmt = $conn->prepare("DELETE FROM password_resets WHERE email = ?");
-                $stmt->execute([$email]);
-
-                // Store the new token in the database
-                $stmt = $conn->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)");
-                $stmt->execute([$email, $token, $expires_at]);
-
-                // Send the email
-                $resetLink = env('APP_URL', 'http://localhost') . '/reset-password.php?token=' . $token;
-                $emailBody = renderEmailTemplate(__DIR__ . '/templates/emails/password-reset-email.html', [
-                    'prenom'     => htmlspecialchars($user['prenom']),
-                    'nom'        => htmlspecialchars($user['nom']),
-                    'reset_link' => $resetLink,
-                    'expires_in' => '1 heure',
-                ]);
-
-                if (sendMail($email, 'Réinitialisation de votre mot de passe', $emailBody)) {
-                    setFlashMessage('success', 'Un lien de réinitialisation de mot de passe a été envoyé à votre adresse e-mail.');
-                    $_SESSION['flash_message']['redirect'] = 'login.php';
-                } else {
-                    $conn->prepare("DELETE FROM password_resets WHERE token = ?")->execute([$token]);
-                    setFlashMessage('error', 'Impossible d\'envoyer l\'e-mail de réinitialisation. Veuillez contacter un administrateur.');
-                }
-            } else {
-                setFlashMessage('error', 'Aucun compte n\'est associé à cette adresse e-mail.');
-            }
+            setFlashMessage('success', 'Si un compte actif correspond à cette adresse, un lien de réinitialisation valable 5 minutes sera envoyé.');
+            $_SESSION['flash_message']['redirect'] = 'login.php';
         }
     }
     header('Location: forgot-password.php');
@@ -97,4 +66,3 @@ $output = strtr($tpl, [
 ]);
 
 echo addVersionToAssets($output);
-

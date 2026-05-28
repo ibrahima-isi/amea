@@ -8,32 +8,24 @@
 require_once 'config/session.php';
 require_once 'config/database.php';
 require_once 'functions/utility-functions.php';
+require_once 'functions/email-service.php';
 
-$token = $_GET['token'] ?? '';
+$token = trim($_GET['token'] ?? '');
+$resetService = new \Amea\Service\PasswordResetService(
+    $conn,
+    (string)env('APP_URL', 'http://localhost'),
+    __DIR__
+);
 
 if (empty($token)) {
     header('Location: login.php');
     exit();
 }
 
-// Verify the token
-$stmt = $conn->prepare("SELECT * FROM password_resets WHERE token = ?");
-$stmt->execute([$token]);
-$reset = $stmt->fetch();
-
-if (!$reset) {
-    setFlashMessage('error', 'Ce jeton de réinitialisation de mot de passe n\'est pas valide.');
+if (!$resetService->isTokenUsable($token)) {
+    setFlashMessage('error', 'Ce lien de réinitialisation est invalide ou expiré.');
     header('Location: login.php');
     exit();
-} else {
-    $expires = new DateTime($reset['expires_at']);
-    $now = new DateTime();
-
-    if ($now > $expires) {
-        setFlashMessage('error', 'Ce jeton de réinitialisation de mot de passe a expiré.');
-        header('Location: login.php');
-        exit();
-    }
 }
 
 $errors = [];
@@ -44,44 +36,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = $_POST['password'] ?? '';
         $confirm_password = $_POST['confirm_password'] ?? '';
 
-        if (empty($password)) {
+        if (empty($password) || empty($confirm_password)) {
             $errors['password'] = 'Veuillez remplir tous les champs.';
-        } elseif ($password !== $confirm_password) {
-            $errors['confirm_password'] = 'Les mots de passe ne correspondent pas.';
         } else {
-            // Update the password
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $conn->prepare("UPDATE users SET password = ? WHERE email = ?");
-            $stmt->execute([$hashedPassword, $reset['email']]);
+            $result = $resetService->resetPassword($token, $password, $confirm_password, 'sendMail');
 
-            // Delete the token
-            $conn->prepare("DELETE FROM password_resets WHERE token = ?")->execute([$token]);
-
-            // Auto-login: fetch user with active check
-            $stmt = $conn->prepare("SELECT * FROM users WHERE email = ? AND est_actif = 1");
-            $stmt->execute([$reset['email']]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($user) {
+            if ($result['success']) {
+                $_SESSION = [];
                 session_regenerate_id(true);
-                $_SESSION['user_id']      = $user['id_user'];
-                $_SESSION['username']     = $user['username'];
-                $_SESSION['role']         = $user['role'];
-                $_SESSION['nom']          = $user['nom'];
-                $_SESSION['prenom']       = $user['prenom'];
-                $_SESSION['csrf_token']   = bin2hex(random_bytes(32));
                 $_SESSION['last_activity'] = time();
-
-                $conn->prepare("UPDATE users SET derniere_connexion = NOW() WHERE id_user = ?")
-                     ->execute([$user['id_user']]);
-
-                session_write_close();
-                header('Location: dashboard.php');
-            } else {
-                setFlashMessage('error', 'Ce compte est désactivé. Veuillez contacter un administrateur.');
+                setFlashMessage('success', $result['message']);
                 header('Location: login.php');
+            } else {
+                $errors['password'] = $result['message'];
             }
-            exit();
+            if ($result['success']) {
+                exit();
+            }
         }
     }
 }
@@ -126,4 +97,3 @@ $output = strtr($tpl, [
 ]);
 
 echo addVersionToAssets($output);
-

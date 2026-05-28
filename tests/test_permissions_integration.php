@@ -112,6 +112,7 @@ $allPermsJson     = json_encode(['students','export','users','slider','upgrade',
 $limitedPermsJson = json_encode(['documents']); // only documents, NOT users
 
 // Clean up any leftover fixtures from a previous failed run
+$conn->exec("DELETE FROM password_resets WHERE email LIKE '_test_%@test.local'");
 $conn->exec("DELETE FROM users WHERE username IN ('_test_fulladmin','_test_restricted')");
 
 $conn->prepare("INSERT INTO users (username, email, nom, prenom, password, role, permissions, est_actif, date_creation)
@@ -314,6 +315,8 @@ if ($sessionsOk) {
             'csrf_token'  => $csrf,
             'username'    => '_test_restricted',
             'email'       => '_test_restricted@test.local',
+            'nom'         => 'Test',
+            'prenom'      => 'Restricted',
             'role'        => 'admin',
             'est_actif'   => '1',
             'permissions' => ['documents', '../../etc/passwd', 'injected_module'],
@@ -330,7 +333,89 @@ if ($sessionsOk) {
     }
 }
 
-// 12. edit-user.php: invalid / non-positive ID must redirect to users.php
+// 12. Full-admin can edit another user's full name
+echo "\nFull-admin edit-user.php full-name update\n";
+
+if ($sessionsOk) {
+    [, , $body] = http('GET', "/edit-user.php?id=$restrictedId", [], $fullAdminJar);
+    $csrf = '';
+    if (preg_match('/name="csrf_token"\s+value="([^"]+)"/', $body, $m)) {
+        $csrf = $m[1];
+    }
+
+    expect('Edit form contains nom input', str_contains($body, 'name="nom"'));
+    expect('Edit form contains prenom input', str_contains($body, 'name="prenom"'));
+
+    if ($csrf !== '') {
+        [$postCode, $postLocation] = http('POST', "/edit-user.php?id=$restrictedId", [
+            'csrf_token'  => $csrf,
+            'username'    => '_test_restricted',
+            'email'       => '_test_restricted@test.local',
+            'nom'         => 'EditedNom',
+            'prenom'      => 'EditedPrenom',
+            'role'        => 'admin',
+            'est_actif'   => '1',
+            'permissions' => ['documents'],
+        ], $fullAdminJar);
+
+        expect('Full-admin full-name edit POST → 302 redirect', $postCode === 302 && str_contains($postLocation, 'users.php'));
+
+        $check = $conn->prepare("SELECT nom, prenom FROM users WHERE id_user = ?");
+        $check->execute([$restrictedId]);
+        $row = $check->fetch(PDO::FETCH_ASSOC);
+        expect('Full-admin edit updates nom in DB', $row['nom'] === 'EditedNom');
+        expect('Full-admin edit updates prenom in DB', $row['prenom'] === 'EditedPrenom');
+    } else {
+        expect('SKIP: could not extract CSRF for full-name edit test', false);
+        expect('SKIP: could not extract CSRF for full-name edit test', false);
+        expect('SKIP: could not extract CSRF for full-name edit test', false);
+    }
+}
+
+// 13. Admin password reset creates an emailed reset-token hash, not a raw password
+echo "\nAdmin user password reset security\n";
+
+if ($sessionsOk) {
+    [, , $body] = http('GET', '/users.php', [], $fullAdminJar);
+    $csrf = '';
+    if (preg_match('/name="csrf_token"\s+value="([^"]+)"/', $body, $m)) {
+        $csrf = $m[1];
+    }
+
+    $beforeHash = (string)$conn->query("SELECT password FROM users WHERE id_user = {$restrictedId}")->fetchColumn();
+
+    if ($csrf !== '') {
+        [$postCode, $postLocation] = http('POST', '/users.php', [
+            'csrf_token' => $csrf,
+            'action'     => 'reset_password',
+            'id'         => (string)$restrictedId,
+        ], $fullAdminJar);
+
+        expect('Admin reset POST → 302 redirect to users.php', $postCode === 302 && str_contains($postLocation, 'users.php'));
+
+        $afterHash = (string)$conn->query("SELECT password FROM users WHERE id_user = {$restrictedId}")->fetchColumn();
+        expect('Admin reset does not directly change password', $afterHash === $beforeHash);
+
+        $resetStmt = $conn->prepare("SELECT token, expires_at FROM password_resets WHERE email = ? ORDER BY expires_at DESC LIMIT 1");
+        $resetStmt->execute(['_test_restricted@test.local']);
+        $resetRow = $resetStmt->fetch(PDO::FETCH_ASSOC);
+
+        expect('Admin reset stores a hashed token', $resetRow && strlen($resetRow['token']) === 64 && ctype_xdigit($resetRow['token']));
+        $ttl = $resetRow ? (strtotime($resetRow['expires_at']) - time()) : 0;
+        expect('Admin reset token expires in 5 minutes max', $ttl > 0 && $ttl <= 300);
+
+        [, , $usersBody] = http('GET', '/users.php', [], $fullAdminJar);
+        expect('Admin UI does not expose generated passwords', !str_contains($usersBody, 'nouveau mot de passe') && !str_contains($usersBody, '<code>'));
+    } else {
+        expect('SKIP: could not extract CSRF for admin reset security test', false);
+        expect('SKIP: could not extract CSRF for admin reset security test', false);
+        expect('SKIP: could not extract CSRF for admin reset security test', false);
+        expect('SKIP: could not extract CSRF for admin reset security test', false);
+        expect('SKIP: could not extract CSRF for admin reset security test', false);
+    }
+}
+
+// 14. edit-user.php: invalid / non-positive ID must redirect to users.php
 // Must be authenticated: the auth check runs before the ID guard, so without a
 // valid session the server redirects to login.php, not users.php.
 echo "\nedit-user.php invalid ID guard\n";
@@ -350,7 +435,7 @@ if ($sessionsOk) {
     expect('SKIP: session unavailable — invalid ID guard test', false);
 }
 
-// 13. Role demotion: admin → user triggers warning flash in the redirect target
+// 15. Role demotion: admin → user triggers warning flash in the redirect target
 echo "\nRole demotion warning flash\n";
 
 if ($sessionsOk) {
@@ -367,6 +452,8 @@ if ($sessionsOk) {
             'csrf_token' => $csrf,
             'username'   => '_test_restricted',
             'email'      => '_test_restricted@test.local',
+            'nom'        => 'EditedNom',
+            'prenom'     => 'EditedPrenom',
             'role'       => 'user',   // ← demotion
             'est_actif'  => '1',
         ], $fullAdminJar);
@@ -389,6 +476,7 @@ if ($sessionsOk) {
 }
 
 // ─── Teardown ─────────────────────────────────────────────────────────────────
+$conn->exec("DELETE FROM password_resets WHERE email LIKE '_test_%@test.local'");
 $conn->exec("DELETE FROM users WHERE username IN ('_test_fulladmin','_test_restricted')");
 @unlink($fullAdminJar);
 @unlink($restrictedJar);

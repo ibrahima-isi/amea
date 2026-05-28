@@ -67,6 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $formData = [
         'username' => trim($_POST['username'] ?? ''),
         'email' => trim($_POST['email'] ?? ''),
+        'nom' => trim($_POST['nom'] ?? ''),
+        'prenom' => trim($_POST['prenom'] ?? ''),
         'role' => $_POST['role'] ?? 'user',
         'est_actif' => $_POST['est_actif'] ?? 0,
         'permissions' => $_POST['permissions'] ?? []
@@ -74,6 +76,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($formData['username'])) {
         $errors['username'] = 'Le nom d\'utilisateur est requis.';
+    }
+
+    if (empty($formData['nom'])) {
+        $errors['nom'] = 'Le nom est requis.';
+    }
+
+    if (empty($formData['prenom'])) {
+        $errors['prenom'] = 'Le prénom est requis.';
     }
 
     if (empty($formData['email'])) {
@@ -104,6 +114,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sql = "UPDATE users SET 
             username = :username, 
             email = :email, 
+            nom = :nom,
+            prenom = :prenom,
             role = :role, 
             permissions = :permissions,
             est_actif = :est_actif
@@ -113,6 +125,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([
             'username' => $formData['username'],
             'email' => $formData['email'],
+            'nom' => $formData['nom'],
+            'prenom' => $formData['prenom'],
             'role' => $formData['role'],
             'permissions' => $permissionsJson,
             'est_actif' => $formData['est_actif'],
@@ -167,13 +181,19 @@ $contentHtml = strtr($template, [
     '{{csrf_token}}' => generateCsrfToken(),
     '{{username}}' => htmlspecialchars($formData['username'] ?? $user['username'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{email}}' => htmlspecialchars($formData['email'] ?? $user['email'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{nom}}' => htmlspecialchars($formData['nom'] ?? $user['nom'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{prenom}}' => htmlspecialchars($formData['prenom'] ?? $user['prenom'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{role_sel_admin}}' => $sel('admin', $formData['role'] ?? $user['role']),
     '{{role_sel_user}}' => $sel('user', $formData['role'] ?? $user['role']),
     '{{est_actif_sel_1}}' => $sel(1, $formData['est_actif'] ?? $user['est_actif']),
     '{{est_actif_sel_0}}' => $sel(0, $formData['est_actif'] ?? $user['est_actif']),
     '{{error_username}}' => $errors['username'] ?? '',
+    '{{error_nom}}' => $errors['nom'] ?? '',
+    '{{error_prenom}}' => $errors['prenom'] ?? '',
     '{{error_email}}' => $errors['email'] ?? '',
     '{{is_invalid_username}}' => isset($errors['username']) ? 'is-invalid' : '',
+    '{{is_invalid_nom}}' => isset($errors['nom']) ? 'is-invalid' : '',
+    '{{is_invalid_prenom}}' => isset($errors['prenom']) ? 'is-invalid' : '',
     '{{is_invalid_email}}' => isset($errors['email']) ? 'is-invalid' : '',
     '{{permissions_display}}' => ($formData['role'] ?? $user['role']) === 'admin' ? 'block' : 'none',
     '{{perm_students_checked}}' => in_array('students', $userPermissions) ? 'checked' : '',

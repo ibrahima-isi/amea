@@ -59,6 +59,7 @@ $db->exec("
         role             TEXT    NOT NULL DEFAULT 'user',
         permissions      TEXT,
         est_actif        INTEGER NOT NULL DEFAULT 1,
+        session_version  INTEGER NOT NULL DEFAULT 1,
         date_creation    TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
         derniere_connexion TEXT
     );
@@ -142,6 +143,8 @@ $updated = $userService->updateUser(
     [
         'username'    => 'admin_awa',
         'email'       => 'awa@test.sn',
+        'nom'         => 'NdiayeUpdated',
+        'prenom'      => 'AwaUpdated',
         'role'        => 'admin',
         'permissions' => ['students', 'export', 'users', 'settings'], // trying to add more
         'est_actif'   => 1,
@@ -150,6 +153,8 @@ $updated = $userService->updateUser(
     isSuperAdminSession:  false
 );
 $afterSelfEdit = $userRepo->findById($adminId);
+expect('updateUser() updates nom during self-edit', $afterSelfEdit->getNom() === 'NdiayeUpdated');
+expect('updateUser() updates prenom during self-edit', $afterSelfEdit->getPrenom() === 'AwaUpdated');
 expect('updateUser() self-edit cannot escalate',
     !$afterSelfEdit->hasPermission('settings')); // 'settings' was not in original
 
@@ -159,6 +164,8 @@ $userService->updateUser(
     [
         'username'    => 'admin_awa',
         'email'       => 'awa@test.sn',
+        'nom'         => 'NdiayeSuper',
+        'prenom'      => 'AwaSuper',
         'role'        => 'admin',
         'permissions' => ['students', 'settings'],
         'est_actif'   => 1,
@@ -167,6 +174,8 @@ $userService->updateUser(
     isSuperAdminSession:  true
 );
 $afterSuperEdit = $userRepo->findById($adminId);
+expect('updateUser() super-admin edit updates nom',     $afterSuperEdit->getNom() === 'NdiayeSuper');
+expect('updateUser() super-admin edit updates prenom',  $afterSuperEdit->getPrenom() === 'AwaSuper');
 expect('updateUser() super-admin session can add settings', $afterSuperEdit->hasPermission('settings'));
 expect('updateUser() export removed by super-admin edit',  !$afterSuperEdit->hasPermission('export'));
 
@@ -176,6 +185,8 @@ $userService->updateUser(
     [
         'username'    => 'admin_awa',
         'email'       => 'awa@test.sn',
+        'nom'         => 'NdiayeDemoted',
+        'prenom'      => 'AwaDemoted',
         'role'        => 'user',
         'permissions' => ['students'],
         'est_actif'   => 1,
@@ -220,6 +231,7 @@ $ok = $auth->attempt('logintest', 'mypassword');
 expect('attempt() returns true for correct password', $ok === true);
 expect('session user_id set after login',             $session->userId() === $loginId);
 expect('session role set after login',                $session->role() === 'admin');
+expect('session version set after login',             $session->get('session_version') === 1);
 
 // updateLastLogin was called
 $afterLogin = $userRepo->findById($loginId);

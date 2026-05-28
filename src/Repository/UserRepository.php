@@ -60,7 +60,7 @@ class UserRepository
     {
         $data['id_user'] = $id;
         $stmt = $this->pdo->prepare(
-            "UPDATE users SET username = :username, email = :email, role = :role,
+            "UPDATE users SET username = :username, email = :email, nom = :nom, prenom = :prenom, role = :role,
              permissions = :permissions, est_actif = :est_actif WHERE id_user = :id_user"
         );
         return $stmt->execute($data);
@@ -70,6 +70,30 @@ class UserRepository
     {
         $stmt = $this->pdo->prepare("UPDATE users SET password = ? WHERE id_user = ?");
         return $stmt->execute([$hashedPassword, $id]);
+    }
+
+    public function incrementSessionVersion(int $id): int
+    {
+        $stmt = $this->pdo->prepare(
+            "UPDATE users SET session_version = COALESCE(session_version, 1) + 1 WHERE id_user = ?"
+        );
+        $stmt->execute([$id]);
+
+        return $this->sessionVersion($id);
+    }
+
+    public function sessionVersion(int $id): int
+    {
+        $stmt = $this->pdo->prepare("SELECT session_version FROM users WHERE id_user = ? LIMIT 1");
+        $stmt->execute([$id]);
+        $version = $stmt->fetchColumn();
+
+        return $version === false ? 0 : (int)$version;
+    }
+
+    public function isSessionVersionCurrent(int $id, int $sessionVersion): bool
+    {
+        return $sessionVersion > 0 && $this->sessionVersion($id) === $sessionVersion;
     }
 
     public function updateLastLogin(int $id): bool

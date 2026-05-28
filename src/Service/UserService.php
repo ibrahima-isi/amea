@@ -83,6 +83,8 @@ class UserService
         return $this->repo->update($id, [
             'username'    => $data['username'],
             'email'       => $data['email'],
+            'nom'         => $data['nom'],
+            'prenom'      => $data['prenom'],
             'role'        => $data['role'] ?? 'user',
             'permissions' => $permissionsJson,
             'est_actif'   => (int)($data['est_actif'] ?? 1),

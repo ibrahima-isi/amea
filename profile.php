@@ -102,29 +102,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         require_once 'functions/email-service.php';
 
         try {
-            $stmt = $conn->prepare("SELECT email, prenom, nom FROM users WHERE id_user = ?");
-            $stmt->execute([$user_id]);
-            $userInfo = $stmt->fetch();
+            $resetService = new \Amea\Service\PasswordResetService(
+                $conn,
+                (string)env('APP_URL', 'http://localhost'),
+                __DIR__
+            );
 
-            $token = bin2hex(random_bytes(50));
-            $expires_at = (new DateTime('+1 hour'))->format('Y-m-d H:i:s');
-
-            $conn->prepare("DELETE FROM password_resets WHERE email = ?")->execute([$userInfo['email']]);
-            $conn->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)")
-                 ->execute([$userInfo['email'], $token, $expires_at]);
-
-            $resetLink = env('APP_URL', 'http://localhost') . '/reset-password.php?token=' . $token;
-            $emailBody = renderEmailTemplate(__DIR__ . '/templates/emails/password-reset-email.html', [
-                'prenom'     => htmlspecialchars($userInfo['prenom']),
-                'nom'        => htmlspecialchars($userInfo['nom']),
-                'reset_link' => $resetLink,
-                'expires_in' => '1 heure',
-            ]);
-
-            if (sendMail($userInfo['email'], 'Réinitialisation de votre mot de passe', $emailBody)) {
-                setFlashMessage('success', 'Un lien de réinitialisation a été envoyé à ' . htmlspecialchars($userInfo['email']) . '.');
+            if ($resetService->requestForUserId((int)$user_id, 'sendMail')) {
+                setFlashMessage('success', 'Un lien sécurisé de réinitialisation valable 5 minutes a été envoyé à votre adresse e-mail.');
             } else {
-                $conn->prepare("DELETE FROM password_resets WHERE token = ?")->execute([$token]);
                 setFlashMessage('error', "Impossible d'envoyer l'e-mail. Veuillez réessayer plus tard.");
             }
         } catch (PDOException $e) {

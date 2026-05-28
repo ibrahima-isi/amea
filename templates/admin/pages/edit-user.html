@@ -32,6 +32,16 @@
               <div class="text-danger">{{error_email}}</div>
             </div>
             <div class="col-md-6">
+              <label for="nom" class="form-label">Nom</label>
+              <input type="text" class="form-control {{is_invalid_nom}}" id="nom" name="nom" value="{{nom}}" required>
+              <div class="text-danger">{{error_nom}}</div>
+            </div>
+            <div class="col-md-6">
+              <label for="prenom" class="form-label">Prénom</label>
+              <input type="text" class="form-control {{is_invalid_prenom}}" id="prenom" name="prenom" value="{{prenom}}" required>
+              <div class="text-danger">{{error_prenom}}</div>
+            </div>
+            <div class="col-md-6">
               <label for="role" class="form-label">Rôle</label>
               <select class="form-select" id="role" name="role" required>
                 <option value="user" {{role_sel_user}}>Utilisateur</option>

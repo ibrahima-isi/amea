@@ -14,7 +14,8 @@ class User
         private ?string $permissionsJson,
         private string  $dateCreation,
         private ?string $derniereConnexion = null,
-        private ?string $password = null
+        private ?string $password = null,
+        private int     $sessionVersion = 1
     ) {}
 
     public function getId(): int               { return $this->id; }
@@ -29,6 +30,7 @@ class User
     public function getPassword(): ?string     { return $this->password; }
     public function getDateCreation(): string  { return $this->dateCreation; }
     public function getDerniereConnexion(): ?string { return $this->derniereConnexion; }
+    public function getSessionVersion(): int   { return $this->sessionVersion; }
 
     public function getPermissions(): array
     {
@@ -58,7 +60,8 @@ class User
             permissionsJson:    $row['permissions'] ?? null,
             dateCreation:       $row['date_creation'] ?? '',
             derniereConnexion:  $row['derniere_connexion'] ?? null,
-            password:           $row['password'] ?? null
+            password:           $row['password'] ?? null,
+            sessionVersion:     (int)($row['session_version'] ?? 1)
         );
     }
 }

@@ -195,7 +195,7 @@ amea/
 | `id_user` | INT PK | |
 | `username` | VARCHAR UNIQUE | Identifiant de connexion |
 | `password` | VARCHAR | Hash bcrypt |
-| `role` | ENUM | `admin` / `utilisateur` |
+| `role` | ENUM | `admin` / `user` |
 | `est_actif` | TINYINT | Compte actif (1) ou désactivé (0) |
 | `derniere_connexion` | DATETIME | Dernière connexion |
 
@@ -233,7 +233,7 @@ php -d display_errors=1 migrations/migration_make_registration_optional_fields.p
 ## Authentification & sessions
 
 - **Connexion** : vérification `password_verify()` + `session_regenerate_id(true)` après succès
-- **Rôles** : `admin` (accès total) / `utilisateur` (accès restreint)
+- **Rôles** : `admin` (accès total) / `user` (accès restreint)
 - **Durée de session** : 30 minutes d'inactivité
 - **Cookies** : `HttpOnly`, `Secure`, `SameSite=Strict`
 - **CSRF** : token `bin2hex(random_bytes(32))` vérifié via `hash_equals()` sur tous les formulaires POST

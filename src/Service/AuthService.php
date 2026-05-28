@@ -23,9 +23,11 @@ class AuthService
 
         $this->session->regenerate();
         $this->session->set('user_id', $user->getId());
+        $this->session->set('username', $user->getUsername());
         $this->session->set('role',    $user->getRole());
         $this->session->set('nom',     $user->getNom());
         $this->session->set('prenom',  $user->getPrenom());
+        $this->session->set('session_version', $user->getSessionVersion());
 
         $this->users->updateLastLogin($user->getId());
         return true;

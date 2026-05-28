@@ -32,6 +32,7 @@ jobs:
           php tests/test_permissions_unit.php
           php tests/test_oop_unit.php
           php tests/test_oop_integration.php
+          php tests/test_password_reset_security.php
 
   # ── Deploy only when tests pass ───────────────────────────────────────────────
   deploy:
