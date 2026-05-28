@@ -50,6 +50,7 @@ class StudentService
             'nom' => 'Le nom est requis.',
             'prenom' => 'Le prénom est requis.',
             'sexe' => 'Le sexe est requis.',
+            'statut' => 'Le statut est requis.',
             'telephone' => 'Le téléphone est requis.',
             'email' => 'L\'email est requis.',
         ];
@@ -72,6 +73,9 @@ class StudentService
         // 4. Phone validation
         if (!empty($input['telephone']) && !\isValidPhone($input['telephone'])) {
             $errors['telephone'] = 'Numéro invalide (9 chiffres attendus).';
+        }
+        if (!empty($input['statut']) && !in_array($input['statut'], ['ELEVE', 'ETUDIANT', 'STAGIAIRE'], true)) {
+            $errors['statut'] = 'Statut invalide.';
         }
 
         // 5. Nationalities

@@ -9,6 +9,10 @@
  * JSON array in the permissions column; a NULL value blocks all access.
  */
 
+if (php_sapi_name() !== 'cli') {
+    die("This script can only be run from the command line.");
+}
+
 require_once __DIR__ . '/../config/database.php';
 
 $allPermissions = json_encode([

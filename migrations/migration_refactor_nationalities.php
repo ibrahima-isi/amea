@@ -13,8 +13,6 @@ require_once __DIR__ . '/../config/database.php';
 echo "Starting Nationalities Refactoring Migration...\n";
 
 try {
-    $conn->beginTransaction();
-
     // 1. Create 'pays' table
     echo "Creating 'pays' table...\n";
     $conn->exec("CREATE TABLE IF NOT EXISTS pays (
@@ -33,6 +31,9 @@ try {
         FOREIGN KEY (id_personne) REFERENCES personnes(id_personne) ON DELETE CASCADE,
         FOREIGN KEY (id_pays) REFERENCES pays(id_pays) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    // Start transaction for data migration only
+    $conn->beginTransaction();
 
     // 3. Populate 'pays' table from JSON
     echo "Populating 'pays' table...\n";
@@ -98,11 +99,17 @@ try {
         echo "Column 'nationalites' does not exist, skipping data migration.\n";
     }
 
+    echo "Attempting to commit transaction...\n";
     $conn->commit();
     echo "Migration successfully finished.\n";
 
 } catch (PDOException $e) {
-    $conn->rollBack();
-    echo "Error during migration: " . $e->getMessage() . "\n";
+    echo "Caught PDOException: " . $e->getMessage() . "\n";
+    if ($conn->inTransaction()) {
+        echo "Transaction is active, rolling back...\n";
+        $conn->rollBack();
+    } else {
+        echo "No active transaction to roll back.\n";
+    }
     exit(1);
 }

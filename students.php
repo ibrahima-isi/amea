@@ -139,7 +139,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Obtenir les listes pour les filtres de sélection
 
 // 1. Établissements
-$etablissementSql = "SELECT DISTINCT etablissement FROM personnes ORDER BY etablissement";
+$etablissementSql = "SELECT DISTINCT etablissement FROM personnes WHERE etablissement IS NOT NULL AND etablissement <> '' ORDER BY etablissement";
 $etablissementStmt = $conn->prepare($etablissementSql);
 $etablissementStmt->execute();
 $etablissements = $etablissementStmt->fetchAll(PDO::FETCH_COLUMN);

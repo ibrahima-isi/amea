@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `personnes` (
     `date_naissance` date DEFAULT NULL,
     `lieu_residence` varchar(150) DEFAULT NULL,
     `etablissement` varchar(200) DEFAULT NULL,
-    `statut` enum('Élève','Étudiant','Stagiaire','ELEVE','ETUDIANT','STAGIAIRE') DEFAULT NULL,
+    `statut` enum('ELEVE','ETUDIANT','STAGIAIRE') NOT NULL,
     `domaine_etudes` varchar(200) DEFAULT NULL,
     `niveau_etudes` varchar(100) DEFAULT NULL,
     `telephone` varchar(20) DEFAULT NULL UNIQUE,

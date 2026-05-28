@@ -102,6 +102,16 @@
                       </div>
                       <div class="text-danger">{{ errors.sexe }}</div>
                     </div>
+                    <div class="col-md-6">
+                      <label for="statut" class="form-label">Statut <span class="text-danger">*</span></label>
+                      <select class="form-select {{ errors.statut ? 'is-invalid' : '' }}" id="statut" name="statut" required>
+                        <option value="" {{ not formData.statut ? 'selected' : '' }}>Sélectionnez</option>
+                        {% for code, label in {'ELEVE': 'Élève', 'ETUDIANT': 'Étudiant', 'STAGIAIRE': 'Stagiaire'} %}
+                          <option value="{{ code }}" {{ formData.statut == code ? 'selected' : '' }}>{{ label }}</option>
+                        {% endfor %}
+                      </select>
+                      <div class="text-danger">{{ errors.statut }}</div>
+                    </div>
 
                     <div class="col-md-12 mb-3">
                       <label for="nationalites" class="form-label">Nationalité <span class="text-danger">*</span></label>
@@ -265,16 +275,6 @@
                       <div class="col-md-6" id="autre_etablissement_wrapper" style="{{ formData.etablissement == 'Autre' ? '' : 'display: none' }}">
                         <label for="autre_etablissement" class="form-label">Précisez l'établissement</label>
                         <input type="text" class="form-control" id="autre_etablissement" name="autre_etablissement" value="{{ formData.autre_etablissement }}" />
-                      </div>
-                      <div class="col-md-6">
-                        <label for="statut" class="form-label">Statut</label>
-                        <select class="form-select {{ errors.statut ? 'is-invalid' : '' }}" id="statut" name="statut">
-                          <option value="" {{ not formData.statut ? 'selected' : '' }}>Sélectionnez</option>
-                          {% for s in ['Élève', 'Étudiant', 'Stagiaire'] %}
-                            <option value="{{ s }}" {{ formData.statut == s ? 'selected' : '' }}>{{ s }}</option>
-                          {% endfor %}
-                        </select>
-                        <div class="text-danger">{{ errors.statut }}</div>
                       </div>
                       <div class="col-md-6">
                         <label for="domaine_etudes" class="form-label">Domaine d'études</label>

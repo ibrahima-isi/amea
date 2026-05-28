@@ -150,6 +150,45 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   }
 
+  const registrationForm = document.getElementById("registrationForm");
+  const statutSelect = document.getElementById("statut");
+
+  function validateRequiredStatus(showAlert) {
+    if (!statutSelect || statutSelect.value.trim() !== "") {
+      if (statutSelect) {
+        statutSelect.classList.remove("is-invalid");
+        statutSelect.setCustomValidity("");
+      }
+      return true;
+    }
+
+    statutSelect.classList.add("is-invalid");
+    statutSelect.setCustomValidity("Veuillez sélectionner votre statut.");
+
+    if (showAlert && typeof Swal !== "undefined") {
+      Swal.fire({
+        icon: "error",
+        title: "Erreur de validation",
+        text: "Veuillez sélectionner votre statut.",
+      });
+    }
+
+    statutSelect.focus();
+    return false;
+  }
+
+  if (statutSelect) {
+    statutSelect.addEventListener("change", () => validateRequiredStatus(false));
+  }
+
+  if (registrationForm) {
+    registrationForm.addEventListener("submit", function (event) {
+      if (!validateRequiredStatus(true)) {
+        event.preventDefault();
+      }
+    });
+  }
+
   const sectionToggles = document.querySelectorAll(
     ".registration-section-toggle",
   );

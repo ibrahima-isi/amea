@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS `personnes`
     `date_naissance`         date             DEFAULT NULL,
     `lieu_residence`         varchar(150)      DEFAULT NULL,
     `etablissement`          varchar(200)      DEFAULT NULL,
-    `statut`                 enum ('Élève','Étudiant','Stagiaire') DEFAULT NULL,
+    `statut`                 enum ('ELEVE','ETUDIANT','STAGIAIRE') NOT NULL,
     `domaine_etudes`         varchar(200)      DEFAULT NULL,
     `niveau_etudes`          varchar(100)      DEFAULT NULL,
     `telephone`              varchar(20)       DEFAULT NULL UNIQUE,
@@ -270,7 +270,7 @@ VALUES ('Le Plateau', 'Dakar'),
 
 ALTER TABLE personnes
 
-    MODIFY statut ENUM('ELEVE','ETUDIANT','STAGIAIRE') NULL DEFAULT NULL;
+    MODIFY statut ENUM('ELEVE','ETUDIANT','STAGIAIRE') NOT NULL;
 
 
 

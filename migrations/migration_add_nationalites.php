@@ -19,7 +19,7 @@ try {
         AND TABLE_NAME = 'personnes' 
         AND COLUMN_NAME = 'nationalites'
     ");
-    $stmt->execute([':db_name' => DB_NAME]);
+    $stmt->execute([':db_name' => $_ENV['DB_NAME'] ?? 'amea_db']);
     
     if ($stmt->fetchColumn() == 0) {
         // Add the column

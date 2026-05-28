@@ -19,7 +19,7 @@ try {
         AND TABLE_NAME = 'personnes' 
         AND COLUMN_NAME = 'nationalites'"
     );
-    $stmt->execute([':db_name' => DB_NAME]);
+    $stmt->execute([':db_name' => $_ENV['DB_NAME'] ?? 'amea_db']);
     
     if ($stmt->fetchColumn() == 0) {
         $conn->exec("ALTER TABLE personnes ADD COLUMN nationalites JSON DEFAULT NULL COMMENT 'Liste des nationalités supplémentaires'");
@@ -34,7 +34,7 @@ try {
         AND TABLE_NAME = 'personnes'
         AND INDEX_NAME = 'idx_nationalites'"
     );
-    $stmt->execute([':db_name' => DB_NAME]);
+    $stmt->execute([':db_name' => $_ENV['DB_NAME'] ?? 'amea_db']);
 
     if ($stmt->fetchColumn() == 0) {
         // Add the Multi-Valued Index

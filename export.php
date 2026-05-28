@@ -163,13 +163,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
 // Récupérer les options pour les filtres
 try {
     // Établissements
-    $etablissementSql = "SELECT DISTINCT etablissement FROM personnes ORDER BY etablissement";
+    $etablissementSql = "SELECT DISTINCT etablissement FROM personnes WHERE etablissement IS NOT NULL AND etablissement <> '' ORDER BY etablissement";
     $etablissementStmt = $conn->prepare($etablissementSql);
     $etablissementStmt->execute();
     $etablissements = $etablissementStmt->fetchAll(PDO::FETCH_COLUMN);
 
     // Niveaux d'études
-    $niveauEtudesSql = "SELECT DISTINCT niveau_etudes FROM personnes ORDER BY niveau_etudes";
+    $niveauEtudesSql = "SELECT DISTINCT niveau_etudes FROM personnes WHERE niveau_etudes IS NOT NULL AND niveau_etudes <> '' ORDER BY niveau_etudes";
     $niveauEtudesStmt = $conn->prepare($niveauEtudesSql);
     $niveauEtudesStmt->execute();
     $niveauxEtudes = $niveauEtudesStmt->fetchAll(PDO::FETCH_COLUMN);

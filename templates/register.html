@@ -129,6 +129,31 @@
                       </div>
                       <div class="text-danger">{{error_sexe}}</div>
                     </div>
+                    <div class="col-md-6">
+                      <label for="statut" class="form-label"
+                        >Statut <span class="text-danger">*</span></label
+                      >
+                      <select
+                        class="form-select {{is_invalid_statut}}"
+                        id="statut"
+                        name="statut"
+                        required
+                      >
+                        <option value="" disabled {{statut_sel_none}}>
+                          Sélectionnez
+                        </option>
+                        <option value="ELEVE" {{statut_sel_ELEVE}}>
+                          Élève
+                        </option>
+                        <option value="ETUDIANT" {{statut_sel_ETUDIANT}}>
+                          Étudiant
+                        </option>
+                        <option value="STAGIAIRE" {{statut_sel_STAGIAIRE}}>
+                          Stagiaire
+                        </option>
+                      </select>
+                      <div class="text-danger">{{error_statut}}</div>
+                    </div>
 
                     <div class="col-md-12 mb-3">
                       <label for="nationalites" class="form-label"
@@ -397,28 +422,6 @@
                           name="autre_etablissement"
                           value="{{autre_etablissement}}"
                         />
-                      </div>
-                      <div class="col-md-6">
-                        <label for="statut" class="form-label">Statut</label>
-                        <select
-                          class="form-select {{is_invalid_statut}}"
-                          id="statut"
-                          name="statut"
-                        >
-                          <option value="" disabled {{statut_sel_none}}>
-                            Sélectionnez
-                          </option>
-                          <option value="Élève" {{statut_sel_Élève}}>
-                            Élève
-                          </option>
-                          <option value="Étudiant" {{statut_sel_Étudiant}}>
-                            Étudiant
-                          </option>
-                          <option value="Stagiaire" {{statut_sel_Stagiaire}}>
-                            Stagiaire
-                          </option>
-                        </select>
-                        <div class="text-danger">{{error_statut}}</div>
                       </div>
                       <div class="col-md-6">
                         <label for="domaine_etudes" class="form-label"
