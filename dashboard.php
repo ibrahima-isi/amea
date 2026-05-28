@@ -48,7 +48,7 @@ $etablissementStats = $etablissementStmt->fetchAll(PDO::FETCH_ASSOC);
 $labels = [];
 $values = [];
 foreach ($etablissementStats as $stat) {
-    $labels[] = "'" . addslashes($stat['etablissement']) . "'";
+    $labels[] = jsStringLiteral($stat['etablissement'] ?? null, 'Non renseigné');
     $values[] = (int)$stat['nombre'];
 }
 

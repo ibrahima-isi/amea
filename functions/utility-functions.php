@@ -66,6 +66,26 @@ function truncateString(string $string, int $length = 100, string $append = '...
     return strlen($string) > $length ? substr($string, 0, $length) . $append : $string;
 }
 
+function jsStringLiteral(?string $value, string $fallback = ''): string
+{
+    $text = trim((string)($value ?? ''));
+    if ($text === '') {
+        $text = $fallback;
+    }
+
+    $encoded = json_encode(
+        $text,
+        JSON_UNESCAPED_UNICODE
+        | JSON_HEX_TAG
+        | JSON_HEX_APOS
+        | JSON_HEX_AMP
+        | JSON_HEX_QUOT
+        | JSON_INVALID_UTF8_SUBSTITUTE
+    );
+
+    return $encoded !== false ? $encoded : '""';
+}
+
 // ─── CSRF ─────────────────────────────────────────────────────────────────────
 function generateCsrfToken(): string
 {
