@@ -72,6 +72,23 @@ try {
     renameColumn($conn, 'students', 'precision_logement', 'housing_details', 'VARCHAR(255) DEFAULT NULL');
     renameColumn($conn, 'students', 'projet_apres_formation', 'post_training_project', 'TEXT DEFAULT NULL');
     renameColumn($conn, 'students', 'identite', 'identity_document', 'VARCHAR(255) DEFAULT NULL');
+    
+    // Handle 'nationalites' which has a functional index
+    if (columnExists($conn, 'students', 'nationalites')) {
+        echo "Renaming column 'students.nationalites' to 'nationalities'...\n";
+        try {
+            $conn->exec("ALTER TABLE `students` DROP INDEX `idx_nationalites`");
+        } catch (PDOException $e) {
+            // Ignore if index doesn't exist
+        }
+        $conn->exec("ALTER TABLE `students` CHANGE COLUMN `nationalites` `nationalities` JSON DEFAULT NULL");
+        try {
+            $conn->exec("ALTER TABLE `students` ADD INDEX `idx_nationalities` ( (CAST(`nationalities` AS CHAR(100) ARRAY)) )");
+        } catch (PDOException $e) {
+            // Ignore if DB doesn't support multi-valued indexes
+        }
+    }
+
     renameColumn($conn, 'students', 'date_enregistrement', 'registration_date', 'TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP');
     renameColumn($conn, 'students', 'date_diplomation', 'graduation_date', 'DATE DEFAULT NULL');
 
