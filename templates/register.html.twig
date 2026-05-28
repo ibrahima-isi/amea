@@ -118,33 +118,18 @@
                     </div>
 
                     <div class="col-md-6">
-                      <label for="date_naissance" class="form-label">Date de naissance<span class="text-danger">*</span></label>
+                      <label for="date_naissance" class="form-label">Date de naissance</label>
                       <input
                         type="text"
                         class="form-control {{ errors.date_naissance ? 'is-invalid' : '' }}"
                         id="date_naissance"
                         name="date_naissance"
                         value="{{ formData.date_naissance }}"
-                        required
                         data-max-date="{{ "now"|date_modify("-15 years")|date("Y-12-31") }}"
                         placeholder="JJ/MM/AAAA"
                       />
                       <div class="text-danger">{{ errors.date_naissance }}</div>
                     </div>
-                    <div class="col-md-6">
-                      <label for="numero_identite" class="form-label">Identité / Passeport <span class="text-danger">*</span></label>
-                      <input
-                        type="text"
-                        class="form-control {{ errors.numero_identite ? 'is-invalid' : '' }}"
-                        id="numero_identite"
-                        name="numero_identite"
-                        value="{{ formData.numero_identite }}"
-                        required
-                        placeholder="Ex: NNI, passeport ou carte d'identité"
-                      />
-                      <div class="text-danger">{{ errors.numero_identite }}</div>
-                    </div>
-
                     <div class="col-md-6">
                       <label for="telephone" class="form-label">Téléphone <span class="text-danger">*</span></label>
                       <input
@@ -173,7 +158,7 @@
                     </div>
 
                     <div class="col-md-6">
-                      <label for="photo" class="form-label">ID ou Passeport</label>
+                      <label for="photo" class="form-label">Pièce d'identité</label>
                       <input
                         type="file"
                         class="form-control {{ errors.identite ? 'is-invalid' : '' }}"

@@ -19,7 +19,7 @@ class View
         $this->twig = new Environment($loader, [
             'cache' => $projectRoot . '/storage/cache/twig',
             'debug' => $isDebug,
-            'auto_reload' => $isDebug,
+            'auto_reload' => true,
         ]);
 
         $this->addAssetFunction($projectRoot);

@@ -58,11 +58,13 @@
                         </div>
                         <div class="col-md-6 detail-group">
                             <div class="detail-label">Date de naissance</div>
-                            <div class="detail-value">{{ student.dateNaissance }} ({{ student.age }} ans)</div>
-                        </div>
-                        <div class="col-md-6 detail-group">
-                            <div class="detail-label">Identité / Passeport</div>
-                            <div class="detail-value">{{ student.numeroIdentite }}</div>
+                            <div class="detail-value">
+                                {% if student.dateNaissance %}
+                                    {{ student.dateNaissance }} ({{ student.age }} ans)
+                                {% else %}
+                                    Non renseignée
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
 

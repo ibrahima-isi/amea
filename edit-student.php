@@ -125,7 +125,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $formData = [
         'nom' => trim($_POST['nom'] ?? ''),
         'prenom' => trim($_POST['prenom'] ?? ''),
-        'numero_identite' => trim($_POST['numero_identite'] ?? ''),
         'sexe' => $_POST['sexe'] ?? '',
         'date_naissance' => $_POST['date_naissance'] ?? '',
         'lieu_residence' => trim($_POST['lieu_residence'] ?? ''),
@@ -208,20 +207,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // --- Validation ---
     $requiredFields = [
         'nom' => 'Le nom est requis.', 'prenom' => 'Le prénom est requis.', 'sexe' => 'Le sexe est requis.',
-        'date_naissance' => 'La date de naissance est requise.', 'lieu_residence' => 'Le lieu de résidence est requis.',
+        'lieu_residence' => 'Le lieu de résidence est requis.',
         'etablissement' => 'L\'établissement est requis.', 'statut' => 'Le statut est requis.',
         'domaine_etudes' => 'Le domaine d\'études est requis.', 'niveau_etudes' => 'Le niveau d\'études est requis.',
         'telephone' => 'Le téléphone est requis.', 'email' => 'L\'email est requis.', 'type_logement' => 'Le type de logement est requis.'
     ];
     foreach ($requiredFields as $field => $message) {
         if (empty($formData[$field])) $errors[$field] = $message;
-    }
-    if (empty($formData['numero_identite'])) {
-        $errors['numero_identite'] = 'Le numéro d\'identité est requis.';
-    } else {
-        $stmt = $conn->prepare("SELECT id_personne FROM personnes WHERE numero_identite = ? AND id_personne != ?");
-        $stmt->execute([$formData['numero_identite'], $student_id]);
-        if ($stmt->fetch()) $errors['numero_identite'] = 'Ce numéro d\'identité est déjà utilisé.';
     }
 
     // Email validation
@@ -246,7 +238,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt->fetch()) $errors['telephone'] = 'Ce numéro de téléphone est déjà enregistré.';
     }
 
-    if (empty($errors['date_naissance'])) {
+    if (!empty($formData['date_naissance']) && empty($errors['date_naissance'])) {
         $age = calculateAge($formData['date_naissance']);
         if ($age < 15) {
             $errors['date_naissance'] = "L'âge doit être d'au moins 15 ans.";
@@ -318,7 +310,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $sql = "UPDATE personnes SET
-            nom = :nom, prenom = :prenom, numero_identite = :numero_identite, sexe = :sexe,
+            nom = :nom, prenom = :prenom, sexe = :sexe,
             date_naissance = :date_naissance, lieu_residence = :lieu_residence, etablissement = :etablissement,
             statut = :statut, domaine_etudes = :domaine_etudes, niveau_etudes = :niveau_etudes,
             telephone = :telephone, email = :email, annee_arrivee = :annee_arrivee,
@@ -331,9 +323,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $params = [
             'nom' => $formData['nom'],
             'prenom' => $formData['prenom'],
-            'numero_identite' => $formData['numero_identite'],
             'sexe' => $formData['sexe'],
-            'date_naissance' => $formData['date_naissance'],
+            'date_naissance' => $formData['date_naissance'] ?: null,
             'lieu_residence' => $finalLieuResidenceForDb,
             'etablissement' => $finalEtablissementForDb,
             'statut' => $formData['statut'],
@@ -472,7 +463,6 @@ $replacements = [
     '{{csrf_token}}' => generateCsrfToken(),
     '{{nom}}' => htmlspecialchars($formData['nom'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{prenom}}' => htmlspecialchars($formData['prenom'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{numero_identite}}' => htmlspecialchars($formData['numero_identite'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{date_naissance}}' => htmlspecialchars($formData['date_naissance'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{max_birth_date}}' => $maxBirthDate,
     '{{telephone}}' => htmlspecialchars($formData['telephone'] ?? '', ENT_QUOTES, 'UTF-8'),
@@ -506,7 +496,7 @@ $replacements = [
     '{{autre_niveau_etudes}}' => htmlspecialchars($formData['autre_niveau_etudes'] ?? '', ENT_QUOTES, 'UTF-8'),
 ];
 
-$error_fields = ['nom', 'prenom', 'numero_identite', 'sexe', 'date_naissance', 'identite', 'telephone', 'email', 'lieu_residence', 'etablissement', 'statut', 'domaine_etudes', 'niveau_etudes', 'type_logement', 'cv']; // Added 'cv'
+$error_fields = ['nom', 'prenom', 'sexe', 'date_naissance', 'identite', 'telephone', 'email', 'lieu_residence', 'etablissement', 'statut', 'domaine_etudes', 'niveau_etudes', 'type_logement', 'cv'];
 foreach ($error_fields as $field) {
     $replacements["{{error_$field}}"] = $errors[$field] ?? '';
     $replacements["{{is_invalid_$field}}"] = isset($errors[$field]) ? 'is-invalid' : '';

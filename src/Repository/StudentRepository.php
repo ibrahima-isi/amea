@@ -224,18 +224,6 @@ class StudentRepository
         return (bool)$stmt->fetchColumn();
     }
 
-    public function existsByIdentite(string $numeroIdentite, ?int $excludeId = null): bool
-    {
-        if ($excludeId !== null) {
-            $stmt = $this->pdo->prepare("SELECT 1 FROM personnes WHERE numero_identite = ? AND id_personne != ? LIMIT 1");
-            $stmt->execute([$numeroIdentite, $excludeId]);
-        } else {
-            $stmt = $this->pdo->prepare("SELECT 1 FROM personnes WHERE numero_identite = ? LIMIT 1");
-            $stmt->execute([$numeroIdentite]);
-        }
-        return (bool)$stmt->fetchColumn();
-    }
-
     public function ensureEtablissementExists(string $nom): void
     {
         $stmt = $this->pdo->prepare("SELECT 1 FROM etablissements WHERE nom = ? LIMIT 1");

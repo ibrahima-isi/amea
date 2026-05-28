@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS `personnes`
     `prenom`                 varchar(100)                                                             NOT NULL,
     `sexe`                   enum ('Masculin','Féminin')                                              NOT NULL,
     `age`                    int(11)      DEFAULT NULL,
-    `date_naissance`         date                                                                     NOT NULL,
+    `date_naissance`         date             DEFAULT NULL,
     `lieu_residence`         varchar(150)      DEFAULT NULL,
     `etablissement`          varchar(200)      DEFAULT NULL,
     `statut`                 enum ('Élève','Étudiant','Stagiaire') DEFAULT NULL,
@@ -201,9 +201,6 @@ VALUES ('Seconde'),
        ('BTS 1 (Brevet de Technicien Supérieur)'),
        ('BTS 2 (Brevet de Technicien Supérieur)'),
        ('DUT (Diplôme Universitaire de Technologie)');
-ALTER TABLE personnes
-    ADD COLUMN numero_identite VARCHAR(255) NOT NULL UNIQUE;
-
 CREATE TABLE locations
 (
     id     INT AUTO_INCREMENT PRIMARY KEY,

@@ -149,9 +149,7 @@
 
                     <div class="col-md-6">
                       <label for="date_naissance" class="form-label"
-                        >Date de naissance<span class="text-danger"
-                          >*</span
-                        ></label
+                        >Date de naissance</label
                       >
                       <input
                         type="text"
@@ -159,29 +157,11 @@
                         id="date_naissance"
                         name="date_naissance"
                         value="{{date_naissance}}"
-                        required
                         data-max-date="{{max_birth_date}}"
                         placeholder="JJ/MM/AAAA"
                       />
                       <div class="text-danger">{{error_date_naissance}}</div>
                     </div>
-                    <div class="col-md-6">
-                      <label for="numero_identite" class="form-label"
-                        >Identité / Passeport
-                        <span class="text-danger">*</span></label
-                      >
-                      <input
-                        type="text"
-                        class="form-control {{is_invalid_numero_identite}}"
-                        id="numero_identite"
-                        name="numero_identite"
-                        value="{{numero_identite}}"
-                        required
-                        placeholder="Ex: NNI, passeport ou carte d'identité"
-                      />
-                      <div class="text-danger">{{error_numero_identite}}</div>
-                    </div>
-
                     <div class="col-md-6">
                       <label for="telephone" class="form-label"
                         >Téléphone <span class="text-danger">*</span></label
@@ -215,7 +195,7 @@
 
                     <div class="col-md-6">
                       <label for="photo" class="form-label"
-                        >ID ou Passeport</label
+                        >Pièce d'identité</label
                       >
                       <input
                         type="file"

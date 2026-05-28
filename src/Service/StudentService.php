@@ -18,7 +18,6 @@ class StudentService
         $input = [
             'nom' => trim($post['nom'] ?? ''),
             'prenom' => trim($post['prenom'] ?? ''),
-            'numero_identite' => trim($post['numero_identite'] ?? ''),
             'sexe' => $post['sexe'] ?? '',
             'date_naissance' => $post['date_naissance'] ?? '',
             'lieu_residence' => trim($post['lieu_residence'] ?? ''),
@@ -51,10 +50,8 @@ class StudentService
             'nom' => 'Le nom est requis.',
             'prenom' => 'Le prénom est requis.',
             'sexe' => 'Le sexe est requis.',
-            'date_naissance' => 'La date de naissance est requise.',
             'telephone' => 'Le téléphone est requis.',
             'email' => 'L\'email est requis.',
-            'numero_identite' => 'Le numéro d\'identité est requis.',
         ];
         // Only require consent for new registrations (not corrections, where it's already accepted)
         if ($excludeId === null) {
@@ -72,10 +69,6 @@ class StudentService
         if (!empty($input['telephone']) && $this->studentRepo->existsByPhone($input['telephone'], $excludeId)) {
             $errors['telephone'] = 'Ce numéro de téléphone est déjà utilisé.';
         }
-        if (!empty($input['numero_identite']) && $this->studentRepo->existsByIdentite($input['numero_identite'], $excludeId)) {
-            $errors['numero_identite'] = 'Ce numéro d\'identité est déjà utilisé.';
-        }
-
         // 4. Phone validation
         if (!empty($input['telephone']) && !\isValidPhone($input['telephone'])) {
             $errors['telephone'] = 'Numéro invalide (9 chiffres attendus).';
@@ -135,7 +128,7 @@ class StudentService
                 'nom' => $input['nom'],
                 'prenom' => $input['prenom'],
                 'sexe' => $input['sexe'],
-                'date_naissance' => $input['date_naissance'],
+                'date_naissance' => $input['date_naissance'] ?: null,
                 'lieu_residence' => $finalLieu ?: null,
                 'etablissement' => $finalEtab ?: null,
                 'statut' => $input['statut'] ?: null,
@@ -143,7 +136,6 @@ class StudentService
                 'niveau_etudes' => $finalNiv ?: null,
                 'telephone' => $input['telephone'],
                 'email' => $input['email'],
-                'numero_identite' => $input['numero_identite'],
                 'annee_arrivee' => $input['annee_arrivee'] ? (int)$input['annee_arrivee'] : null,
                 'type_logement' => $input['type_logement'] ?: null,
                 'precision_logement' => $input['precision_logement'] ?: null,

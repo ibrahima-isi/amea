@@ -167,7 +167,9 @@ $detailsHtml .= '</div>';
 
 $detailsHtml .= '<div class="d-flex justify-content-center gap-3 text-muted mt-1">';
 $detailsHtml .= '<div><i class="fas fa-venus-mars me-1"></i>' . htmlspecialchars($student['sexe'] ?? '?') . '</div>';
-$detailsHtml .= '<div><i class="fas fa-birthday-cake me-1"></i>' . calculateAge($student['date_naissance']) . ' ans</div>';
+if (!empty($student['date_naissance'])) {
+    $detailsHtml .= '<div><i class="fas fa-birthday-cake me-1"></i>' . calculateAge($student['date_naissance']) . ' ans</div>';
+}
 $detailsHtml .= '</div>';
 $detailsHtml .= '</div></div>'; // end profile card
 
@@ -246,8 +248,8 @@ if (!empty($nationalities)) {
 }
 $detailsHtml .= '</div></div>';
 
-$detailsHtml .= '<div class="col-md-6"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Date de Naissance</small><span class="fw-bold text-dark">' . formatDateFr($student['date_naissance']) . '</span></div></div>';
-$detailsHtml .= '<div class="col-md-6"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Identité / Passeport</small><span class="fw-bold text-dark">' . htmlspecialchars($student['numero_identite'] ?? 'N/A') . '</span></div></div>';
+$birthDateDisplay = !empty($student['date_naissance']) ? formatDateFr($student['date_naissance']) : 'Non renseignée';
+$detailsHtml .= '<div class="col-md-6"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Date de Naissance</small><span class="fw-bold text-dark">' . $birthDateDisplay . '</span></div></div>';
 $detailsHtml .= '<div class="col-md-6"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Type de Logement</small><span class="fw-bold text-dark">' . htmlspecialchars($student['type_logement'] ?? 'N/A') . '</span></div></div>';
 if (!empty($student['precision_logement'])) {
     $detailsHtml .= '<div class="col-12"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Précision Logement</small><span class="fw-bold text-dark">' . htmlspecialchars($student['precision_logement']) . '</span></div></div>';

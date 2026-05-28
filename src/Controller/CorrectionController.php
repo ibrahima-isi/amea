@@ -90,7 +90,6 @@ class CorrectionController extends BaseController
         return [
             'nom' => $student->getNom(),
             'prenom' => $student->getPrenom(),
-            'numero_identite' => $student->getNumeroIdentite(),
             'sexe' => $student->getSexe(),
             'date_naissance' => $student->getDateNaissance(),
             'lieu_residence' => $student->getLieuResidence(),
