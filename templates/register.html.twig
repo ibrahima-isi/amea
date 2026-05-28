@@ -51,107 +51,107 @@
                   </h3>
                   <div class="row g-3 mb-4">
                     <div class="col-md-6">
-                      <label for="nom" class="form-label">Nom <span class="text-danger">*</span></label>
+                      <label for="last_name" class="form-label">Nom <span class="text-danger">*</span></label>
                       <input
                         type="text"
-                        class="form-control {{ errors.nom ? 'is-invalid' : '' }}"
-                        id="nom"
-                        name="nom"
-                        value="{{ formData.nom }}"
+                        class="form-control {{ errors.last_name ? 'is-invalid' : '' }}"
+                        id="last_name"
+                        name="last_name"
+                        value="{{ formData.last_name }}"
                         required
                       />
-                      <div class="text-danger">{{ errors.nom }}</div>
+                      <div class="text-danger">{{ errors.last_name }}</div>
                     </div>
                     <div class="col-md-6">
-                      <label for="prenom" class="form-label">Prénom <span class="text-danger">*</span></label>
+                      <label for="first_name" class="form-label">Prénom <span class="text-danger">*</span></label>
                       <input
                         type="text"
-                        class="form-control {{ errors.prenom ? 'is-invalid' : '' }}"
-                        id="prenom"
-                        name="prenom"
-                        value="{{ formData.prenom }}"
+                        class="form-control {{ errors.first_name ? 'is-invalid' : '' }}"
+                        id="first_name"
+                        name="first_name"
+                        value="{{ formData.first_name }}"
                         required
                       />
-                      <div class="text-danger">{{ errors.prenom }}</div>
+                      <div class="text-danger">{{ errors.first_name }}</div>
                     </div>
                     <div class="col-md-6">
                       <label class="form-label">Sexe <span class="text-danger">*</span></label>
                       <div class="form-check">
                         <input
-                          class="form-check-input {{ errors.sexe ? 'is-invalid' : '' }}"
+                          class="form-check-input {{ errors.gender ? 'is-invalid' : '' }}"
                           type="radio"
-                          name="sexe"
-                          id="sexeMasculin"
+                          name="gender"
+                          id="genderMasculin"
                           value="Masculin"
-                          {{ formData.sexe == 'Masculin' ? 'checked' : '' }}
+                          {{ formData.gender == 'Masculin' ? 'checked' : '' }}
                           required
                         />
-                        <label class="form-check-label" for="sexeMasculin">Masculin</label>
+                        <label class="form-check-label" for="genderMasculin">Masculin</label>
                       </div>
                       <div class="form-check">
                         <input
-                          class="form-check-input {{ errors.sexe ? 'is-invalid' : '' }}"
+                          class="form-check-input {{ errors.gender ? 'is-invalid' : '' }}"
                           type="radio"
-                          name="sexe"
-                          id="sexeFeminin"
+                          name="gender"
+                          id="genderFeminin"
                           value="Féminin"
-                          {{ formData.sexe == 'Féminin' ? 'checked' : '' }}
+                          {{ formData.gender == 'Féminin' ? 'checked' : '' }}
                           required
                         />
-                        <label class="form-check-label" for="sexeFeminin">Féminin</label>
+                        <label class="form-check-label" for="genderFeminin">Féminin</label>
                       </div>
-                      <div class="text-danger">{{ errors.sexe }}</div>
+                      <div class="text-danger">{{ errors.gender }}</div>
                     </div>
                     <div class="col-md-6">
-                      <label for="statut" class="form-label">Statut <span class="text-danger">*</span></label>
-                      <select class="form-select {{ errors.statut ? 'is-invalid' : '' }}" id="statut" name="statut" required>
-                        <option value="" {{ not formData.statut ? 'selected' : '' }}>Sélectionnez</option>
+                      <label for="status" class="form-label">Statut <span class="text-danger">*</span></label>
+                      <select class="form-select {{ errors.status ? 'is-invalid' : '' }}" id="status" name="status" required>
+                        <option value="" {{ not formData.status ? 'selected' : '' }}>Sélectionnez</option>
                         {% for code, label in {'ELEVE': 'Élève', 'ETUDIANT': 'Étudiant', 'STAGIAIRE': 'Stagiaire'} %}
-                          <option value="{{ code }}" {{ formData.statut == code ? 'selected' : '' }}>{{ label }}</option>
+                          <option value="{{ code }}" {{ formData.status == code ? 'selected' : '' }}>{{ label }}</option>
                         {% endfor %}
                       </select>
-                      <div class="text-danger">{{ errors.statut }}</div>
+                      <div class="text-danger">{{ errors.status }}</div>
                     </div>
 
                     <div class="col-md-12 mb-3">
-                      <label for="nationalites" class="form-label">Nationalité <span class="text-danger">*</span></label>
+                      <label for="nationalities" class="form-label">Nationalité <span class="text-danger">*</span></label>
                       <input
-                        name="nationalites"
-                        id="nationalites"
-                        class="form-control {{ errors.nationalites ? 'is-invalid' : '' }}"
+                        name="nationalities"
+                        id="nationalities"
+                        class="form-control {{ errors.nationalities ? 'is-invalid' : '' }}"
                         placeholder="Nationalité (max 5)"
-                        value="{{ formData.nationalites }}"
+                        value="{{ formData.nationalities }}"
                         required
                       />
                       <div class="form-text">Tapez et sélectionnez parmi la liste.</div>
-                      <div class="text-danger">{{ errors.nationalites }}</div>
+                      <div class="text-danger">{{ errors.nationalities }}</div>
                     </div>
 
                     <div class="col-md-6">
-                      <label for="date_naissance" class="form-label">Date de naissance</label>
+                      <label for="birth_date" class="form-label">Date de naissance</label>
                       <input
                         type="text"
-                        class="form-control {{ errors.date_naissance ? 'is-invalid' : '' }}"
-                        id="date_naissance"
-                        name="date_naissance"
-                        value="{{ formData.date_naissance }}"
+                        class="form-control {{ errors.birth_date ? 'is-invalid' : '' }}"
+                        id="birth_date"
+                        name="birth_date"
+                        value="{{ formData.birth_date }}"
                         data-max-date="{{ "now"|date_modify("-15 years")|date("Y-12-31") }}"
                         placeholder="JJ/MM/AAAA"
                       />
-                      <div class="text-danger">{{ errors.date_naissance }}</div>
+                      <div class="text-danger">{{ errors.birth_date }}</div>
                     </div>
                     <div class="col-md-6">
-                      <label for="telephone" class="form-label">Téléphone <span class="text-danger">*</span></label>
+                      <label for="phone" class="form-label">Téléphone <span class="text-danger">*</span></label>
                       <input
                         type="tel"
-                        class="form-control {{ errors.telephone ? 'is-invalid' : '' }}"
-                        id="telephone"
-                        name="telephone"
-                        value="{{ formData.telephone }}"
+                        class="form-control {{ errors.phone ? 'is-invalid' : '' }}"
+                        id="phone"
+                        name="phone"
+                        value="{{ formData.phone }}"
                         placeholder="Saisissez votre numero sans l'indicatif du pays (9 chiffres)"
                         required
                       />
-                      <div class="text-danger">{{ errors.telephone }}</div>
+                      <div class="text-danger">{{ errors.phone }}</div>
                     </div>
                     <div class="col-md-6">
                       <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
@@ -171,12 +171,12 @@
                       <label for="photo" class="form-label">Pièce d'identité</label>
                       <input
                         type="file"
-                        class="form-control {{ errors.identite ? 'is-invalid' : '' }}"
+                        class="form-control {{ errors.identity_document ? 'is-invalid' : '' }}"
                         id="photo"
                         name="photo"
                         accept="image/*,application/pdf"
                       />
-                      <div class="text-danger">{{ errors.identite }}</div>
+                      <div class="text-danger">{{ errors.identity_document }}</div>
                     </div>
                   </div>
 
@@ -199,46 +199,46 @@
                   <div id="contactResidenceSection" class="registration-section-panel" data-registration-section-panel>
                     <div class="row g-3">
                       <div class="col-md-6">
-                        <label for="lieu_residence" class="form-label">Lieu de résidence au Sénégal</label>
-                        <select class="form-select {{ errors.lieu_residence ? 'is-invalid' : '' }}" id="lieu_residence" name="lieu_residence">
+                        <label for="residence" class="form-label">Lieu de résidence au Sénégal</label>
+                        <select class="form-select {{ errors.residence ? 'is-invalid' : '' }}" id="residence" name="residence">
                           <option value="">Sélectionnez un lieu</option>
                           {% for region, cities in locations %}
                             <optgroup label="{{ region }}">
                               {% for city in cities %}
-                                <option value="{{ city }}" {{ formData.lieu_residence == city ? 'selected' : '' }}>{{ city }}</option>
+                                <option value="{{ city }}" {{ formData.residence == city ? 'selected' : '' }}>{{ city }}</option>
                               {% endfor %}
                             </optgroup>
                           {% endfor %}
-                          <option value="Autre" {{ formData.lieu_residence == 'Autre' ? 'selected' : '' }}>Autre</option>
+                          <option value="Autre" {{ formData.residence == 'Autre' ? 'selected' : '' }}>Autre</option>
                         </select>
-                        <div class="text-danger">{{ errors.lieu_residence }}</div>
+                        <div class="text-danger">{{ errors.residence }}</div>
                       </div>
-                      <div class="col-md-6" id="autre_lieu_residence_wrapper" style="{{ formData.lieu_residence == 'Autre' ? '' : 'display: none' }}">
-                        <label for="autre_lieu_residence" class="form-label">Précisez le lieu de résidence</label>
-                        <input type="text" class="form-control" id="autre_lieu_residence" name="autre_lieu_residence" value="{{ formData.autre_lieu_residence }}" />
+                      <div class="col-md-6" id="other_residence_wrapper" style="{{ formData.residence == 'Autre' ? '' : 'display: none' }}">
+                        <label for="other_residence" class="form-label">Précisez le lieu de résidence</label>
+                        <input type="text" class="form-control" id="other_residence" name="other_residence" value="{{ formData.other_residence }}" />
                       </div>
                       <div class="col-md-6">
-                        <label for="annee_arrivee" class="form-label">Année d'arrivée au Sénégal</label>
-                        <select class="form-select" id="annee_arrivee" name="annee_arrivee">
+                        <label for="arrival_year" class="form-label">Année d'arrivée au Sénégal</label>
+                        <select class="form-select" id="arrival_year" name="arrival_year">
                           <option value="">Sélectionnez</option>
                           {% for year in "now"|date("Y")..1990 %}
-                            <option value="{{ year }}" {{ formData.annee_arrivee == year ? 'selected' : '' }}>{{ year }}</option>
+                            <option value="{{ year }}" {{ formData.arrival_year == year ? 'selected' : '' }}>{{ year }}</option>
                           {% endfor %}
                         </select>
                       </div>
                       <div class="col-md-6">
-                        <label for="type_logement" class="form-label">Type de logement</label>
-                        <select class="form-select {{ errors.type_logement ? 'is-invalid' : '' }}" id="type_logement" name="type_logement">
-                          <option value="" {{ not formData.type_logement ? 'selected' : '' }}>Sélectionnez</option>
+                        <label for="housing_type" class="form-label">Type de logement</label>
+                        <select class="form-select {{ errors.housing_type ? 'is-invalid' : '' }}" id="housing_type" name="housing_type">
+                          <option value="" {{ not formData.housing_type ? 'selected' : '' }}>Sélectionnez</option>
                           {% for type in ['Colocation', 'Famille', 'Hébergement temporaire', 'Location', 'Résidence universitaire', 'Autre'] %}
-                            <option value="{{ type }}" {{ formData.type_logement == type ? 'selected' : '' }}>{{ type }}</option>
+                            <option value="{{ type }}" {{ formData.housing_type == type ? 'selected' : '' }}>{{ type }}</option>
                           {% endfor %}
                         </select>
-                        <div class="text-danger">{{ errors.type_logement }}</div>
+                        <div class="text-danger">{{ errors.housing_type }}</div>
                       </div>
                       <div class="col-md-6">
-                        <label for="precision_logement" class="form-label">Précisions sur le logement</label>
-                        <input type="text" class="form-control" id="precision_logement" name="precision_logement" value="{{ formData.precision_logement }}" />
+                        <label for="housing_details" class="form-label">Précisions sur le logement</label>
+                        <input type="text" class="form-control" id="housing_details" name="housing_details" value="{{ formData.housing_details }}" />
                       </div>
                     </div>
                   </div>
@@ -262,49 +262,49 @@
                   <div id="academicSection" class="registration-section-panel" data-registration-section-panel>
                     <div class="row g-3">
                       <div class="col-md-6">
-                        <label for="etablissement" class="form-label">Établissement</label>
-                        <select class="form-select {{ errors.etablissement ? 'is-invalid' : '' }}" id="etablissement" name="etablissement">
+                        <label for="institution" class="form-label">Établissement</label>
+                        <select class="form-select {{ errors.institution ? 'is-invalid' : '' }}" id="institution" name="institution">
                           <option value="">Sélectionnez votre établissement</option>
                           {% for school in schools %}
-                            <option value="{{ school }}" {{ formData.etablissement == school ? 'selected' : '' }}>{{ school }}</option>
+                            <option value="{{ school }}" {{ formData.institution == school ? 'selected' : '' }}>{{ school }}</option>
                           {% endfor %}
-                          <option value="Autre" {{ formData.etablissement == 'Autre' ? 'selected' : '' }}>Autre</option>
+                          <option value="Autre" {{ formData.institution == 'Autre' ? 'selected' : '' }}>Autre</option>
                         </select>
-                        <div class="text-danger">{{ errors.etablissement }}</div>
+                        <div class="text-danger">{{ errors.institution }}</div>
                       </div>
-                      <div class="col-md-6" id="autre_etablissement_wrapper" style="{{ formData.etablissement == 'Autre' ? '' : 'display: none' }}">
-                        <label for="autre_etablissement" class="form-label">Précisez l'établissement</label>
-                        <input type="text" class="form-control" id="autre_etablissement" name="autre_etablissement" value="{{ formData.autre_etablissement }}" />
+                      <div class="col-md-6" id="other_institution_wrapper" style="{{ formData.institution == 'Autre' ? '' : 'display: none' }}">
+                        <label for="other_institution" class="form-label">Précisez l'établissement</label>
+                        <input type="text" class="form-control" id="other_institution" name="other_institution" value="{{ formData.other_institution }}" />
                       </div>
                       <div class="col-md-6">
-                        <label for="domaine_etudes" class="form-label">Domaine d'études</label>
-                        <select class="form-select {{ errors.domaine_etudes ? 'is-invalid' : '' }}" id="domaine_etudes" name="domaine_etudes">
+                        <label for="study_field" class="form-label">Domaine d'études</label>
+                        <select class="form-select {{ errors.study_field ? 'is-invalid' : '' }}" id="study_field" name="study_field">
                           <option value="">Sélectionnez votre domaine d'études</option>
                           {% for d in domaines %}
-                            <option value="{{ d }}" {{ formData.domaine_etudes == d ? 'selected' : '' }}>{{ d }}</option>
+                            <option value="{{ d }}" {{ formData.study_field == d ? 'selected' : '' }}>{{ d }}</option>
                           {% endfor %}
-                          <option value="Autre" {{ formData.domaine_etudes == 'Autre' ? 'selected' : '' }}>Autre</option>
+                          <option value="Autre" {{ formData.study_field == 'Autre' ? 'selected' : '' }}>Autre</option>
                         </select>
-                        <div class="text-danger">{{ errors.domaine_etudes }}</div>
+                        <div class="text-danger">{{ errors.study_field }}</div>
                       </div>
-                      <div class="col-md-6" id="autre_domaine_etudes_wrapper" style="{{ formData.domaine_etudes == 'Autre' ? '' : 'display: none' }}">
-                        <label for="autre_domaine_etudes" class="form-label">Précisez le domaine d'études</label>
-                        <input type="text" class="form-control" id="autre_domaine_etudes" name="autre_domaine_etudes" value="{{ formData.autre_domaine_etudes }}" />
+                      <div class="col-md-6" id="other_study_field_wrapper" style="{{ formData.study_field == 'Autre' ? '' : 'display: none' }}">
+                        <label for="other_study_field" class="form-label">Précisez le domaine d'études</label>
+                        <input type="text" class="form-control" id="other_study_field" name="other_study_field" value="{{ formData.other_study_field }}" />
                       </div>
                       <div class="col-md-6">
-                        <label for="niveau_etudes" class="form-label">Niveau d'études</label>
-                        <select class="form-select {{ errors.niveau_etudes ? 'is-invalid' : '' }}" id="niveau_etudes" name="niveau_etudes">
+                        <label for="study_level" class="form-label">Niveau d'études</label>
+                        <select class="form-select {{ errors.study_level ? 'is-invalid' : '' }}" id="study_level" name="study_level">
                           <option value="">Sélectionnez votre niveau d'études</option>
                           {% for n in niveaux %}
-                            <option value="{{ n }}" {{ formData.niveau_etudes == n ? 'selected' : '' }}>{{ n }}</option>
+                            <option value="{{ n }}" {{ formData.study_level == n ? 'selected' : '' }}>{{ n }}</option>
                           {% endfor %}
-                          <option value="Autre" {{ formData.niveau_etudes == 'Autre' ? 'selected' : '' }}>Autre</option>
+                          <option value="Autre" {{ formData.study_level == 'Autre' ? 'selected' : '' }}>Autre</option>
                         </select>
-                        <div class="text-danger">{{ errors.niveau_etudes }}</div>
+                        <div class="text-danger">{{ errors.study_level }}</div>
                       </div>
-                      <div class="col-md-6" id="autre_niveau_etudes_wrapper" style="{{ formData.niveau_etudes == 'Autre' ? '' : 'display: none' }}">
-                        <label for="autre_niveau_etudes" class="form-label">Précisez le niveau d'études</label>
-                        <input type="text" class="form-control" id="autre_niveau_etudes" name="autre_niveau_etudes" value="{{ formData.autre_niveau_etudes }}" />
+                      <div class="col-md-6" id="other_study_level_wrapper" style="{{ formData.study_level == 'Autre' ? '' : 'display: none' }}">
+                        <label for="other_study_level" class="form-label">Précisez le niveau d'études</label>
+                        <input type="text" class="form-control" id="other_study_level" name="other_study_level" value="{{ formData.other_study_level }}" />
                       </div>
                     </div>
                   </div>
@@ -327,8 +327,8 @@
                   </h3>
                   <div id="futureProjectSection" class="registration-section-panel" data-registration-section-panel>
                     <div class="mb-4">
-                      <label for="projet_apres_formation" class="form-label">Projet après formation</label>
-                      <textarea class="form-control" id="projet_apres_formation" name="projet_apres_formation" rows="3" placeholder="Décrivez vos projets futurs...">{{ formData.projet_apres_formation }}</textarea>
+                      <label for="post_training_project" class="form-label">Projet après formation</label>
+                      <textarea class="form-control" id="post_training_project" name="post_training_project" rows="3" placeholder="Décrivez vos projets futurs...">{{ formData.post_training_project }}</textarea>
                     </div>
                       <div class="mb-4">
                         <label for="cv_file" class="form-label">Télécharger CV (PDF, PNG - max 5MB)</label>

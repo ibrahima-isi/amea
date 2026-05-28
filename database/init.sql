@@ -4,45 +4,46 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 -- 1. Table: users
 CREATE TABLE IF NOT EXISTS `users` (
-    `id_user` int(11) NOT NULL AUTO_INCREMENT,
+    `id` int(11) NOT NULL AUTO_INCREMENT,
     `username` varchar(50) NOT NULL,
     `password` varchar(255) NOT NULL,
-    `nom` varchar(100) NOT NULL,
-    `prenom` varchar(100) NOT NULL,
+    `last_name` varchar(100) NOT NULL,
+    `first_name` varchar(100) NOT NULL,
     `email` varchar(100) NOT NULL,
     `role` enum('admin','user') NOT NULL DEFAULT 'user',
-    `est_actif` tinyint(1) NOT NULL DEFAULT 1,
+    `is_active` tinyint(1) NOT NULL DEFAULT 1,
     `session_version` int(11) NOT NULL DEFAULT 1,
-    `derniere_connexion` datetime DEFAULT NULL,
-    `date_creation` datetime DEFAULT current_timestamp(),
-    PRIMARY KEY (`id_user`),
+    `last_login` datetime DEFAULT NULL,
+    `created_at` datetime DEFAULT current_timestamp(),
+    PRIMARY KEY (`id`),
     UNIQUE KEY `username` (`username`),
     UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- 2. Table: personnes
-CREATE TABLE IF NOT EXISTS `personnes` (
-    `id_personne` int(11) NOT NULL AUTO_INCREMENT,
-    `nom` varchar(100) NOT NULL,
-    `prenom` varchar(100) NOT NULL,
-    `sexe` enum('Masculin','Féminin') NOT NULL,
+-- 2. Table: students
+CREATE TABLE IF NOT EXISTS `students` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `last_name` varchar(100) NOT NULL,
+    `first_name` varchar(100) NOT NULL,
+    `gender` enum('Male','Female') NOT NULL,
     `age` int(11) DEFAULT NULL,
-    `date_naissance` date DEFAULT NULL,
-    `lieu_residence` varchar(150) DEFAULT NULL,
-    `etablissement` varchar(200) DEFAULT NULL,
-    `statut` enum('ELEVE','ETUDIANT','STAGIAIRE') NOT NULL,
-    `domaine_etudes` varchar(200) DEFAULT NULL,
-    `niveau_etudes` varchar(100) DEFAULT NULL,
-    `telephone` varchar(20) DEFAULT NULL UNIQUE,
+    `birth_date` date DEFAULT NULL,
+    `residence` varchar(150) DEFAULT NULL,
+    `institution` varchar(200) DEFAULT NULL,
+    `status` enum('PUPIL','STUDENT','TRAINEE') NOT NULL,
+    `study_field` varchar(200) DEFAULT NULL,
+    `study_level` varchar(100) DEFAULT NULL,
+    `phone` varchar(20) DEFAULT NULL UNIQUE,
     `email` varchar(100) DEFAULT NULL UNIQUE,
-    `annee_arrivee` int(11) DEFAULT NULL,
-    `type_logement` enum('En famille','En colocation','En résidence universitaire','Autre','Colocation','Famille','Hébergement temporaire','Location','Résidence universitaire') DEFAULT NULL,
-    `precision_logement` varchar(100) DEFAULT NULL,
-    `projet_apres_formation` text DEFAULT NULL,
-    `identite` varchar(255) DEFAULT NULL,
+    `arrival_year` int(11) DEFAULT NULL,
+    `housing_type` enum('With family','Shared housing','University residence','Other','Hébergement temporaire','Location') DEFAULT NULL,
+    `housing_details` varchar(100) DEFAULT NULL,
+    `post_training_project` text DEFAULT NULL,
+    `identity_document` varchar(255) DEFAULT NULL,
     `cv_path` varchar(255) DEFAULT NULL,
-    `nationalites` text DEFAULT NULL, -- JSON formatted array
-    `date_enregistrement` datetime DEFAULT current_timestamp(),
+    `nationalities` text DEFAULT NULL, -- JSON formatted array
+    `registration_date` datetime DEFAULT current_timestamp(),
+    `graduation_date` date DEFAULT NULL,
     `consent_privacy` tinyint(1) NOT NULL DEFAULT 0,
     `consent_privacy_date` datetime DEFAULT NULL,
     `is_locked` tinyint(1) NOT NULL DEFAULT 0,
@@ -50,25 +51,25 @@ CREATE TABLE IF NOT EXISTS `personnes` (
     `kyc_notes` text DEFAULT NULL,
     `review_token` varchar(64) DEFAULT NULL UNIQUE,
     `kyc_updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id_personne`)
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- 3. Table: etablissements
-CREATE TABLE IF NOT EXISTS `etablissements` (
+-- 3. Table: institutions
+CREATE TABLE IF NOT EXISTS `institutions` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `nom` VARCHAR(255) NOT NULL UNIQUE
+    `name` VARCHAR(255) NOT NULL UNIQUE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- 4. Table: domaines_etudes
-CREATE TABLE IF NOT EXISTS `domaines_etudes` (
+-- 4. Table: study_fields
+CREATE TABLE IF NOT EXISTS `study_fields` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `nom` VARCHAR(255) NOT NULL UNIQUE
+    `name` VARCHAR(255) NOT NULL UNIQUE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- 5. Table: niveaux_etudes
-CREATE TABLE IF NOT EXISTS `niveaux_etudes` (
+-- 5. Table: study_levels
+CREATE TABLE IF NOT EXISTS `study_levels` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `nom` VARCHAR(255) NOT NULL UNIQUE
+    `name` VARCHAR(255) NOT NULL UNIQUE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- 6. Table: locations
@@ -91,7 +92,7 @@ CREATE TABLE IF NOT EXISTS `slider_images` (
     `created_at` datetime DEFAULT current_timestamp(),
     PRIMARY KEY (`id`),
     KEY `uploaded_by` (`uploaded_by`),
-    CONSTRAINT `slider_images_ibfk_1` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id_user`) ON DELETE SET NULL
+    CONSTRAINT `slider_images_ibfk_1` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- 8. Table: password_resets
@@ -114,31 +115,31 @@ CREATE TABLE IF NOT EXISTS `settings` (
     UNIQUE KEY `setting_key` (`setting_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- 10. Table: pays (Reference for nationalities)
-CREATE TABLE IF NOT EXISTS `pays` (
-  `id_pays` int(11) NOT NULL AUTO_INCREMENT,
+-- 10. Table: countries (Reference for nationalities)
+CREATE TABLE IF NOT EXISTS `countries` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `code_iso` char(2) NOT NULL,
-  `nom_fr` varchar(100) NOT NULL,
-  `nom_en` varchar(100) NOT NULL,
-  PRIMARY KEY (`id_pays`),
+  `name_fr` varchar(100) NOT NULL,
+  `name_en` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`),
   UNIQUE KEY `code_iso` (`code_iso`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 11. Table: personne_pays (Pivot table for Many-to-Many relationship)
-CREATE TABLE IF NOT EXISTS `personne_pays` (
-  `id_personne` int(11) NOT NULL,
-  `id_pays` int(11) NOT NULL,
-  PRIMARY KEY (`id_personne`,`id_pays`),
-  KEY `id_pays` (`id_pays`),
-  CONSTRAINT `personne_pays_ibfk_1` FOREIGN KEY (`id_personne`) REFERENCES `personnes` (`id_personne`) ON DELETE CASCADE,
-  CONSTRAINT `personne_pays_ibfk_2` FOREIGN KEY (`id_pays`) REFERENCES `pays` (`id_pays`) ON DELETE CASCADE
+-- 11. Table: student_country (Pivot table for Many-to-Many relationship)
+CREATE TABLE IF NOT EXISTS `student_country` (
+  `student_id` int(11) NOT NULL,
+  `country_id` int(11) NOT NULL,
+  PRIMARY KEY (`student_id`,`country_id`),
+  KEY `country_id` (`country_id`),
+  CONSTRAINT `student_country_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `student_country_ibfk_2` FOREIGN KEY (`country_id`) REFERENCES `countries` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- --- INITIAL DATA ---
 
--- Etablissements
-INSERT IGNORE INTO etablissements (nom) VALUES
+-- Institutions
+INSERT IGNORE INTO institutions (name) VALUES
 ('Université Cheikh Anta Diop (UCAD)'),
 ('Université Gaston Berger (UGB)'),
 ('Université Alioune Diop de Bambey (UADB)'),
@@ -193,12 +194,12 @@ INSERT IGNORE INTO etablissements (nom) VALUES
 ('Ipd Thomas Sankara institut polytechnique de Dakar'),
 ('Collège sacre cœur');
 
--- Domaines d'études
-INSERT IGNORE INTO domaines_etudes (nom) VALUES
-('Analyse et Politique Économique'),
+-- Study Fields
+INSERT IGNORE INTO study_fields (name) VALUES
+('Analyse et Politique Écolast_nameique'),
 ('Anglais'),
 ('Arts Plastiques'),
-('Agronomie / Agriculture'),
+('Agrolast_nameie / Agriculture'),
 ('Biologie / Sciences de la Vie et de la Terre (SVT)'),
 ('Biologie Médicale'),
 ('Chimie'),
@@ -209,7 +210,7 @@ INSERT IGNORE INTO domaines_etudes (nom) VALUES
 ('Droit International'),
 ('Droit Notarial'),
 ('Droit Public'),
-('Économie et Gestion des Entreprises'),
+('Écolast_nameie et Gestion des Entreprises'),
 ('Finance, Banque, Assurance'),
 ('Formation des Enseignants'),
 ('Génie Civil'),
@@ -237,8 +238,8 @@ INSERT IGNORE INTO domaines_etudes (nom) VALUES
 ('Sciences Politiques'),
 ('Sociologie');
 
--- Niveaux d'études
-INSERT IGNORE INTO niveaux_etudes (nom) VALUES
+-- Study Levels
+INSERT IGNORE INTO study_levels (name) VALUES
 ('Seconde'),
 ('Première'),
 ('Terminale'),

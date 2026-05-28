@@ -38,42 +38,42 @@ $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
 $db->exec("
     CREATE TABLE users (
-        id_user INTEGER PRIMARY KEY AUTOINCREMENT,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL UNIQUE,
         email TEXT NOT NULL DEFAULT '',
-        nom TEXT NOT NULL DEFAULT '',
-        prenom TEXT NOT NULL DEFAULT '',
+        last_name TEXT NOT NULL DEFAULT '',
+        first_name TEXT NOT NULL DEFAULT '',
         password TEXT NOT NULL DEFAULT '',
         role TEXT NOT NULL DEFAULT 'user',
         permissions TEXT DEFAULT NULL,
-        est_actif INTEGER NOT NULL DEFAULT 1,
+        is_active INTEGER NOT NULL DEFAULT 1,
         session_version INTEGER NOT NULL DEFAULT 1,
-        date_creation TEXT NOT NULL DEFAULT (datetime('now')),
-        derniere_connexion TEXT DEFAULT NULL
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        last_login TEXT DEFAULT NULL
     );
 
-    CREATE TABLE personnes (
-        id_personne INTEGER PRIMARY KEY AUTOINCREMENT,
-        nom TEXT NOT NULL DEFAULT '',
-        prenom TEXT NOT NULL DEFAULT '',
-        sexe TEXT NOT NULL DEFAULT '',
-        date_naissance TEXT NOT NULL DEFAULT '',
-        lieu_residence TEXT NOT NULL DEFAULT '',
-        etablissement TEXT NOT NULL DEFAULT '',
-        statut TEXT NOT NULL DEFAULT '',
-        domaine_etudes TEXT NOT NULL DEFAULT '',
-        niveau_etudes TEXT NOT NULL DEFAULT '',
-        telephone TEXT NOT NULL DEFAULT '',
+    CREATE TABLE students (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        last_name TEXT NOT NULL DEFAULT '',
+        first_name TEXT NOT NULL DEFAULT '',
+        gender TEXT NOT NULL DEFAULT '',
+        birth_date TEXT NOT NULL DEFAULT '',
+        residence TEXT NOT NULL DEFAULT '',
+        institution TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT '',
+        study_field TEXT NOT NULL DEFAULT '',
+        study_level TEXT NOT NULL DEFAULT '',
+        phone TEXT NOT NULL DEFAULT '',
         email TEXT NOT NULL DEFAULT '',
-        annee_arrivee INTEGER DEFAULT NULL,
-        type_logement TEXT NOT NULL DEFAULT '',
-        precision_logement TEXT DEFAULT NULL,
-        projet_apres_formation TEXT DEFAULT NULL,
-        identite TEXT DEFAULT NULL,
-        nationalites TEXT DEFAULT NULL,
+        arrival_year INTEGER DEFAULT NULL,
+        housing_type TEXT NOT NULL DEFAULT '',
+        housing_details TEXT DEFAULT NULL,
+        post_training_project TEXT DEFAULT NULL,
+        identity_document TEXT DEFAULT NULL,
+        nationalities TEXT DEFAULT NULL,
         cv_path TEXT DEFAULT NULL,
-        date_enregistrement TEXT NOT NULL DEFAULT (datetime('now')),
-        date_diplomation TEXT DEFAULT NULL,
+        registration_date TEXT NOT NULL DEFAULT (datetime('now')),
+        graduation_date TEXT DEFAULT NULL,
         is_locked INTEGER NOT NULL DEFAULT 0,
         consent_privacy INTEGER NOT NULL DEFAULT 0,
         kyc_status TEXT NOT NULL DEFAULT 'PENDING_CONFIRMATION',
@@ -100,16 +100,16 @@ echo "\nModel\\User\n";
 use Amea\Model\User;
 
 $row = [
-    'id_user'           => 42,
+    'id'           => 42,
     'username'          => 'jdoe',
     'email'             => 'j@doe.com',
-    'nom'               => 'Doe',
-    'prenom'            => 'John',
+    'last_name'               => 'Doe',
+    'first_name'            => 'John',
     'role'              => 'admin',
-    'est_actif'         => 1,
+    'is_active'         => 1,
     'permissions'       => json_encode(['students', 'export']),
-    'date_creation'     => '2024-01-01',
-    'derniere_connexion' => null,
+    'created_at'     => '2024-01-01',
+    'last_login' => null,
     'password'          => 'hash',
 ];
 $u = User::fromRow($row);
@@ -119,7 +119,7 @@ expect('getUsername() correct',                    $u->getUsername() === 'jdoe')
 expect('getEmail() correct',                       $u->getEmail() === 'j@doe.com');
 expect('getFullName() = "John Doe"',               $u->getFullName() === 'John Doe');
 expect('getRole() = admin',                        $u->getRole() === 'admin');
-expect('isActif() true',                           $u->isActif() === true);
+expect('isActive() true',                           $u->isActive() === true);
 expect('getSessionVersion() defaults to 1',         $u->getSessionVersion() === 1);
 expect('isSuperAdmin() false for id=42',           $u->isSuperAdmin() === false);
 expect('getPassword() returns hash',               $u->getPassword() === 'hash');
@@ -127,7 +127,7 @@ expect('getPermissions() returns decoded array',   $u->getPermissions() === ['st
 expect('hasPermission(students) true',             $u->hasPermission('students'));
 expect('hasPermission(users) false',               !$u->hasPermission('users'));
 
-$super = User::fromRow(array_merge($row, ['id_user' => 1, 'permissions' => null]));
+$super = User::fromRow(array_merge($row, ['id' => 1, 'permissions' => null]));
 expect('isSuperAdmin() true for id=1',             $super->isSuperAdmin());
 expect('hasPermission() always true for id=1',     $super->hasPermission('anything'));
 expect('getPermissions() returns [] for null JSON', $super->getPermissions() === []);
@@ -141,27 +141,27 @@ echo "\nModel\\Student\n";
 use Amea\Model\Student;
 
 $sRow = [
-    'id_personne'          => 7,
-    'nom'                  => 'Diallo',
-    'prenom'               => 'Ibrahima',
-    'sexe'                 => 'Masculin',
-    'date_naissance'       => '2000-06-15',
-    'lieu_residence'       => 'Dakar',
-    'etablissement'        => 'UCAD',
-    'statut'               => 'En cours',
-    'domaine_etudes'       => 'Informatique',
-    'niveau_etudes'        => 'Master 1',
-    'telephone'            => '771234567',
+    'id'          => 7,
+    'last_name'                  => 'Diallo',
+    'first_name'               => 'Ibrahima',
+    'gender'                 => 'Masculin',
+    'birth_date'       => '2000-06-15',
+    'residence'       => 'Dakar',
+    'institution'        => 'UCAD',
+    'status'               => 'En cours',
+    'study_field'       => 'Informatique',
+    'study_level'        => 'Master 1',
+    'phone'            => '771234567',
     'email'                => 'i@d.sn',
-    'annee_arrivee'        => 2022,
-    'type_logement'        => 'Cité U',
-    'precision_logement'   => null,
-    'projet_apres_formation' => 'Doctorat',
-    'identite'             => 'uploads/students/photo.jpg',
-    'nationalites'         => json_encode(['Sénégalaise']),
+    'arrival_year'        => 2022,
+    'housing_type'        => 'Cité U',
+    'housing_details'   => null,
+    'post_training_project' => 'Doctorat',
+    'identity_document'             => 'uploads/students/photo.jpg',
+    'nationalities'         => json_encode(['Sénégalaise']),
     'cv_path'              => null,
-    'date_enregistrement'  => '2024-03-01',
-    'date_diplomation'     => null,
+    'registration_date'  => '2024-03-01',
+    'graduation_date'     => null,
     'is_locked'            => 0,
     'consent_privacy'      => 1,
 ];
@@ -169,17 +169,17 @@ $s = Student::fromRow($sRow);
 
 expect('getId() returns 7',                        $s->getId() === 7);
 expect('getFullName() = "Ibrahima Diallo"',        $s->getFullName() === 'Ibrahima Diallo');
-expect('getNationalites() decoded',                $s->getNationalites() === ['Sénégalaise']);
+expect('getNationalities() decoded',                $s->getNationalities() === ['Sénégalaise']);
 expect('isDiplome() false for En cours',           !$s->isDiplome());
 expect('isLocked() false',                         !$s->isLocked());
 expect('hasConsentPrivacy() true',                 $s->hasConsentPrivacy());
-expect('getIdentitePath() correct',               $s->getIdentitePath() === 'uploads/students/photo.jpg');
+expect('getIdentityDocument() correct',               $s->getIdentityDocument() === 'uploads/students/photo.jpg');
 
-$diplome = Student::fromRow(array_merge($sRow, ['statut' => 'Diplômé(e)']));
+$diplome = Student::fromRow(array_merge($sRow, ['status' => 'Diplômé(e)']));
 expect('isDiplome() true for Diplômé(e)',          $diplome->isDiplome());
 
-$noNat = Student::fromRow(array_merge($sRow, ['nationalites' => null]));
-expect('getNationalites() returns [] for null',    $noNat->getNationalites() === []);
+$noNat = Student::fromRow(array_merge($sRow, ['nationalities' => null]));
+expect('getNationalities() returns [] for null',    $noNat->getNationalities() === []);
 
 expect('getAge() is a non-negative int',           $s->getAge() >= 0);
 
@@ -201,29 +201,29 @@ $userRepo = new UserRepository($db);
 
 // Reserve id=1 for the Super Admin so test users get id≥2.
 // UserRepository tests must not get id=1 or User::hasPermission() always returns true.
-$db->exec("INSERT INTO users (id_user, username, email, nom, prenom, password, role, permissions, est_actif)
+$db->exec("INSERT INTO users (id, username, email, last_name, first_name, password, role, permissions, is_active)
            VALUES (1, '_superadmin', 'sa@test.internal', 'SA', 'Test', 'x', 'admin', NULL, 1)");
 
 // Insert via repository
 $id1 = $userRepo->save([
     'username'    => 'alice',
     'email'       => 'alice@test.sn',
-    'nom'         => 'Alice',
-    'prenom'      => 'Test',
+    'last_name'         => 'Alice',
+    'first_name'      => 'Test',
     'password'    => password_hash('secret', PASSWORD_DEFAULT),
     'role'        => 'admin',
     'permissions' => json_encode(['students', 'users']),
-    'est_actif'   => 1,
+    'is_active'   => 1,
 ]);
 $id2 = $userRepo->save([
     'username'    => 'bob',
     'email'       => 'bob@test.sn',
-    'nom'         => 'Bob',
-    'prenom'      => 'Test',
+    'last_name'         => 'Bob',
+    'first_name'      => 'Test',
     'password'    => password_hash('pass', PASSWORD_DEFAULT),
     'role'        => 'user',
     'permissions' => null,
-    'est_actif'   => 0,
+    'is_active'   => 0,
 ]);
 
 expect('save() returns valid int ID',              $id1 > 0);
@@ -243,7 +243,7 @@ expect('findByUsername() null for unknown',        $userRepo->findByUsername('no
 $byEmail = $userRepo->findByEmail('alice@test.sn');
 expect('findByEmail() returns alice',              $byEmail?->getEmail() === 'alice@test.sn');
 
-// bob is inactive (est_actif=0) — findActiveByUsername should return null
+// bob is inactive (is_active=0) — findActiveByUsername should return null
 expect('findActiveByUsername() null for inactive', $userRepo->findActiveByUsername('bob') === null);
 expect('findActiveByUsername() returns active',    $userRepo->findActiveByUsername('alice') !== null);
 
@@ -253,15 +253,15 @@ expect('findAll() returns 3 users',                count($all) === 3); // includ
 $userRepo->update($id1, [
     'username'    => 'alice',
     'email'       => 'alice@test.sn',
-    'nom'         => 'AliceUpdated',
-    'prenom'      => 'Unit',
+    'last_name'         => 'AliceUpdated',
+    'first_name'      => 'Unit',
     'role'        => 'admin',
     'permissions' => json_encode(['settings']),
-    'est_actif'   => 1,
+    'is_active'   => 1,
 ]);
 $updated = $userRepo->findById($id1);
-expect('update() changes nom',                     $updated->getNom() === 'AliceUpdated');
-expect('update() changes prenom',                  $updated->getPrenom() === 'Unit');
+expect('update() changes last_name',                     $updated->getLastName() === 'AliceUpdated');
+expect('update() changes first_name',                  $updated->getFirstName() === 'Unit');
 expect('update() changes permissions',             $updated->hasPermission('settings'));
 expect('update() removes old permission',          !$updated->hasPermission('students'));
 
@@ -274,7 +274,7 @@ expect('existsByEmail() false when excluded',      !$userRepo->existsByEmail('al
 
 $userRepo->updateLastLogin($id1);
 $afterLogin = $userRepo->findById($id1);
-expect('updateLastLogin() sets derniere_connexion', $afterLogin->getDerniereConnexion() !== null);
+expect('updateLastLogin() sets last_login', $afterLogin->getLastLogin() !== null);
 
 $newSessionVersion = $userRepo->incrementSessionVersion($id1);
 $afterVersionBump = $userRepo->findById($id1);
@@ -295,42 +295,42 @@ use Amea\Repository\StudentRepository;
 $stuRepo = new StudentRepository($db);
 
 $baseStudent = [
-    'nom'                  => 'Ndiaye',
-    'prenom'               => 'Fatou',
-    'sexe'                 => 'Féminin',
-    'date_naissance'       => '2001-03-10',
-    'lieu_residence'       => 'Saint-Louis',
-    'etablissement'        => 'UGB',
-    'statut'               => 'En cours',
-    'domaine_etudes'       => 'Droit',
-    'niveau_etudes'        => 'Licence 3',
-    'telephone'            => '771110001',
+    'last_name'                  => 'Ndiaye',
+    'first_name'               => 'Fatou',
+    'gender'                 => 'Féminin',
+    'birth_date'       => '2001-03-10',
+    'residence'       => 'Saint-Louis',
+    'institution'        => 'UGB',
+    'status'               => 'En cours',
+    'study_field'       => 'Droit',
+    'study_level'        => 'Licence 3',
+    'phone'            => '771110001',
     'email'                => 'fatou@test.sn',
-    'annee_arrivee'        => 2021,
-    'type_logement'        => 'Famille',
-    'precision_logement'   => null,
-    'projet_apres_formation' => null,
-    'identite'             => null,
-    'nationalites'         => json_encode(['Sénégalaise']),
+    'arrival_year'        => 2021,
+    'housing_type'        => 'Famille',
+    'housing_details'   => null,
+    'post_training_project' => null,
+    'identity_document'             => null,
+    'nationalities'         => json_encode(['Sénégalaise']),
     'cv_path'              => null,
     'consent_privacy'      => 0,
 ];
 
 $sid1 = $stuRepo->save($baseStudent);
 $sid2 = $stuRepo->save(array_merge($baseStudent, [
-    'nom'       => 'Fall',
-    'prenom'    => 'Moussa',
-    'sexe'      => 'Masculin',
-    'telephone' => '771110002',
+    'last_name'       => 'Fall',
+    'first_name'    => 'Moussa',
+    'gender'      => 'Masculin',
+    'phone' => '771110002',
     'email'     => 'moussa@test.sn',
-    'statut'    => 'Diplômé(e)',
+    'status'    => 'Diplômé(e)',
 ]));
 
 expect('save() returns valid ID',                  $sid1 > 0);
 
 $stu = $stuRepo->findById($sid1);
 expect('findById() returns Student',               $stu instanceof \Amea\Model\Student);
-expect('findById() nom is Ndiaye',                 $stu->getNom() === 'Ndiaye');
+expect('findById() last_name is Ndiaye',                 $stu->getLastName() === 'Ndiaye');
 
 expect('findById() null for missing',              $stuRepo->findById(9999) === null);
 
@@ -338,7 +338,7 @@ $all = $stuRepo->findAll();
 expect('findAll() returns 2 students',             count($all) === 2);
 
 expect('countAll() returns 2',                     $stuRepo->countAll() === 2);
-expect('countAll() with filter returns 1',         $stuRepo->countAll(['statut' => 'Diplômé(e)']) === 1);
+expect('countAll() with filter returns 1',         $stuRepo->countAll(['status' => 'Diplômé(e)']) === 1);
 
 $page = $stuRepo->findPaginated(1, 1);
 expect('findPaginated() items has 1 entry',        count($page['items']) === 1);
@@ -347,13 +347,13 @@ expect('findPaginated() total is 2',               $page['total'] === 2);
 $page2 = $stuRepo->findPaginated(2, 1);
 expect('findPaginated() page 2 works',             count($page2['items']) === 1);
 
-$filtered = $stuRepo->findPaginated(1, 10, ['sexe' => 'Masculin']);
-expect('findPaginated() filter by sexe',           count($filtered['items']) === 1);
+$filtered = $stuRepo->findPaginated(1, 10, ['gender' => 'Masculin']);
+expect('findPaginated() filter by gender',           count($filtered['items']) === 1);
 
-$stuRepo->update($sid1, ['statut' => 'Diplômé(e)', 'date_diplomation' => '2025-06-01']);
+$stuRepo->update($sid1, ['status' => 'Diplômé(e)', 'graduation_date' => '2025-06-01']);
 $afterUpdate = $stuRepo->findById($sid1);
-expect('update() changes statut',                  $afterUpdate->getStatut() === 'Diplômé(e)');
-expect('update() sets date_diplomation',           $afterUpdate->getDateDiplomation() === '2025-06-01');
+expect('update() changes status',                  $afterUpdate->getStatus() === 'Diplômé(e)');
+expect('update() sets graduation_date',           $afterUpdate->getGraduationDate() === '2025-06-01');
 
 $threw = false;
 try {
@@ -434,12 +434,12 @@ expect('buildPermissionsJson() keeps valid modules',              in_array('stud
 $newId = $userSvc->createUser([
     'username'    => 'charlie',
     'email'       => 'charlie@test.sn',
-    'nom'         => 'Charlie',
-    'prenom'      => 'Test',
+    'last_name'         => 'Charlie',
+    'first_name'      => 'Test',
     'password'    => 'password123',
     'role'        => 'admin',
     'permissions' => ['documents', 'evil'],
-    'est_actif'   => 1,
+    'is_active'   => 1,
 ]);
 $charlie = $userRepo->findById($newId);
 expect('createUser() saves to DB',                 $charlie !== null);
@@ -451,16 +451,16 @@ expect('createUser() rejects evil permission',     !$charlie->hasPermission('evi
 $userSvc->updateUser($newId, [
     'username'    => 'charlie',
     'email'       => 'charlie@test.sn',
-    'nom'         => 'CharlieUpdated',
-    'prenom'      => 'Service',
+    'last_name'         => 'CharlieUpdated',
+    'first_name'      => 'Service',
     'role'        => 'user',
     'permissions' => ['documents'],
-    'est_actif'   => 1,
+    'is_active'   => 1,
 ], false, false);
 $charlie2 = $userRepo->findById($newId);
 expect('updateUser() demote to user → no permissions', !$charlie2->hasPermission('documents'));
-expect('updateUser() updates nom',                  $charlie2->getNom() === 'CharlieUpdated');
-expect('updateUser() updates prenom',               $charlie2->getPrenom() === 'Service');
+expect('updateUser() updates last_name',                  $charlie2->getLastName() === 'CharlieUpdated');
+expect('updateUser() updates first_name',               $charlie2->getFirstName() === 'Service');
 
 // ─── 8. Service\AuthService ──────────────────────────────────────────────────
 echo "\nService\\AuthService\n";
@@ -487,12 +487,12 @@ expect('attempt() false for non-existent user',    $ok === false);
 $loginId = $userRepo->save([
     'username'    => 'diana',
     'email'       => 'diana@test.sn',
-    'nom'         => 'Diana',
-    'prenom'      => 'Test',
+    'last_name'         => 'Diana',
+    'first_name'      => 'Test',
     'password'    => password_hash('correct', PASSWORD_DEFAULT),
     'role'        => 'admin',
     'permissions' => json_encode(['students']),
-    'est_actif'   => 1,
+    'is_active'   => 1,
 ]);
 
 $ok = $auth->attempt('diana', 'correct');
@@ -687,8 +687,8 @@ if (method_exists($emailSvc, 'sendAsync')) {
 
 $emailSvc->sendCalls = 0;
 $templateQueued = $emailSvc->sendFromTemplate('student@test.local', 'Reset', 'emails/password-reset-email.html', [
-    'prenom' => 'Awa',
-    'nom' => 'Diallo',
+    'first_name' => 'Awa',
+    'last_name' => 'Diallo',
     'reset_link' => 'https://example.test/reset',
     'expires_in' => '30 minutes',
 ]);

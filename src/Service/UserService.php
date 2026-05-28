@@ -56,12 +56,12 @@ class UserService
         return $this->repo->save([
             'username'    => $data['username'],
             'email'       => $data['email'],
-            'nom'         => $data['nom'],
-            'prenom'      => $data['prenom'],
+            'last_name'   => $data['last_name'],
+            'first_name'  => $data['first_name'],
             'password'    => password_hash($data['password'], PASSWORD_DEFAULT),
             'role'        => $data['role'] ?? 'user',
             'permissions' => $permissions,
-            'est_actif'   => (int)($data['est_actif'] ?? 1),
+            'is_active'   => (int)($data['is_active'] ?? 1),
         ]);
     }
 
@@ -83,11 +83,11 @@ class UserService
         return $this->repo->update($id, [
             'username'    => $data['username'],
             'email'       => $data['email'],
-            'nom'         => $data['nom'],
-            'prenom'      => $data['prenom'],
+            'last_name'   => $data['last_name'],
+            'first_name'  => $data['first_name'],
             'role'        => $data['role'] ?? 'user',
             'permissions' => $permissionsJson,
-            'est_actif'   => (int)($data['est_actif'] ?? 1),
+            'is_active'   => (int)($data['is_active'] ?? 1),
         ]);
     }
 }

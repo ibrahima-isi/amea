@@ -1,144 +1,143 @@
 <?php
 /**
- * Public token-based grade upgrade confirmation page.
- * Students receive this URL by email and click to confirm their new level.
+ * Public confirmation page for level upgrades.
+ * File: confirm-upgrade.php
  */
 
+require_once 'config/session.php';
 require_once 'config/database.php';
+require_once 'functions/utility-functions.php';
 
-$conn->exec("CREATE TABLE IF NOT EXISTS pending_level_upgrades (
-    id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    personne_id   INT NOT NULL,
-    ancien_niveau VARCHAR(100) NOT NULL,
-    nouveau_niveau VARCHAR(100) NOT NULL,
-    token         VARCHAR(100) NOT NULL UNIQUE,
-    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    expires_at    DATETIME NOT NULL,
-    confirmed_at  DATETIME NULL,
-    INDEX idx_token    (token),
-    INDEX idx_personne (personne_id),
-    CONSTRAINT fk_plu_personne FOREIGN KEY (personne_id)
-        REFERENCES personnes(id_personne) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+// Self-healing: ensure the table exists
+try {
+    $conn->exec("CREATE TABLE IF NOT EXISTS pending_level_upgrades (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        student_id INT NOT NULL,
+        old_level VARCHAR(100) NOT NULL,
+        new_level VARCHAR(100) NOT NULL,
+        token VARCHAR(64) NOT NULL UNIQUE,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        expires_at DATETIME NOT NULL,
+        confirmed_at DATETIME NULL,
+        FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+} catch (PDOException $e) {}
 
 $token = trim($_GET['token'] ?? '');
-$status = 'invalid'; // invalid | expired | already_confirmed | success
-$student = null;
-$upgrade = null;
+if ($token === '') {
+    die('Lien invalide ou expiré.');
+}
 
-if (!empty($token)) {
-    $stmt = $conn->prepare(
-        'SELECT plu.*, p.prenom, p.nom, p.email
-         FROM pending_level_upgrades plu
-         JOIN personnes p ON p.id_personne = plu.personne_id
-         WHERE plu.token = ?'
-    );
-    $stmt->execute([$token]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+// Check if token exists and is valid
+$stmt = $conn->prepare(
+    "SELECT plu.*, p.first_name, p.last_name 
+     FROM pending_level_upgrades plu
+     JOIN students p ON p.id = plu.student_id
+     WHERE plu.token = ? LIMIT 1"
+);
+$stmt->execute([$token]);
+$upgrade = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$row) {
-        $status = 'invalid';
-    } elseif ($row['confirmed_at'] !== null) {
-        $status  = 'already_confirmed';
-        $upgrade = $row;
-    } elseif (new DateTime() > new DateTime($row['expires_at'])) {
-        $status  = 'expired';
-        $upgrade = $row;
-    } else {
-        // Valid — apply upgrade
-        try {
-            $conn->beginTransaction();
+if (!$upgrade) {
+    die('Ce lien de mise à niveau n\'existe pas.');
+}
 
-            $conn->prepare(
-                'UPDATE personnes SET niveau_etudes = ? WHERE id_personne = ? AND niveau_etudes = ?'
-            )->execute([$row['nouveau_niveau'], $row['personne_id'], $row['ancien_niveau']]);
+if ($upgrade['confirmed_at'] !== null) {
+    die('Ce lien a déjà été utilisé.');
+}
 
-            $conn->prepare(
-                'UPDATE pending_level_upgrades SET confirmed_at = NOW() WHERE id = ?'
-            )->execute([$row['id']]);
+if (new DateTime($upgrade['expires_at']) < new DateTime()) {
+    die('Ce lien de mise à niveau a expiré.');
+}
 
-            $conn->commit();
-            $status  = 'success';
-            $upgrade = $row;
-        } catch (Exception $e) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'confirm') {
+    try {
+        $conn->beginTransaction();
+
+        // 1. Update the student's level
+        $updStmt = $conn->prepare(
+            'UPDATE students SET study_level = ? WHERE id = ? AND study_level = ?'
+        );
+        $updStmt->execute([
+            $upgrade['new_level'], 
+            $upgrade['student_id'], 
+            $upgrade['old_level']
+        ]);
+
+        if ($updStmt->rowCount() === 0) {
             $conn->rollBack();
-            $status = 'invalid';
+            die('Impossible d\'appliquer la mise à niveau. Le niveau actuel de l\'étudiant a peut-être déjà été modifié.');
         }
+
+        // 2. Mark token as confirmed
+        $confStmt = $conn->prepare('UPDATE pending_level_upgrades SET confirmed_at = NOW() WHERE id = ?');
+        $confStmt->execute([$upgrade['id']]);
+
+        $conn->commit();
+        $success = true;
+    } catch (PDOException $e) {
+        $conn->rollBack();
+        logError("Erreur lors de l'application de la mise à niveau via token", $e);
+        die('Une erreur système est survenue.');
     }
 }
 
-// ─── Render minimal standalone page ───────────────────────────────────────
-$messages = [
-    'success' => [
-        'icon'  => '✅',
-        'title' => 'Niveau confirmé !',
-        'color' => '#009460',
-        'body'  => 'Votre niveau d\'études a bien été mis à jour.',
-        'sub'   => fn($u) => '<strong>' . htmlspecialchars($u['ancien_niveau']) . '</strong> → <strong>' . htmlspecialchars($u['nouveau_niveau']) . '</strong>',
-    ],
-    'already_confirmed' => [
-        'icon'  => 'ℹ️',
-        'title' => 'Déjà confirmé',
-        'color' => '#1a3c6e',
-        'body'  => 'Vous avez déjà confirmé ce changement de niveau.',
-        'sub'   => fn($u) => 'Votre niveau actuel est <strong>' . htmlspecialchars($u['nouveau_niveau']) . '</strong>.',
-    ],
-    'expired' => [
-        'icon'  => '⏰',
-        'title' => 'Lien expiré',
-        'color' => '#CE1126',
-        'body'  => 'Ce lien de confirmation a expiré.',
-        'sub'   => fn($u) => 'Veuillez contacter l\'administration AEESGS.',
-    ],
-    'invalid' => [
-        'icon'  => '❌',
-        'title' => 'Lien invalide',
-        'color' => '#CE1126',
-        'body'  => 'Ce lien de confirmation est invalide ou inexistant.',
-        'sub'   => fn($u) => 'Veuillez contacter l\'administration AEESGS.',
-    ],
-];
-
-$m   = $messages[$status];
-$sub = $upgrade ? ($m['sub'])($upgrade) : 'Veuillez contacter l\'administration AEESGS.';
-$greeting = $upgrade ? '<p style="margin:0 0 8px;">Bonjour <strong>' . htmlspecialchars($upgrade['prenom'] . ' ' . $upgrade['nom']) . '</strong>,</p>' : '';
+// --- RENDER ---
+$headerTpl = file_get_contents(__DIR__ . '/templates/partials/header.html');
+$footerTpl = strtr(file_get_contents(__DIR__ . '/templates/partials/footer.html'), getFooterReplacements());
+$headerHtml = strtr($headerTpl, [
+    '{{index_active}}' => '',
+    '{{register_active}}' => '',
+    '{{login_active}}' => '',
+]);
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Confirmation de niveau – AEESGS</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="assets/css/app.css">
-  <style>
-    body { background: #f4f4f4; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-    .card-confirm { max-width: 460px; width: 100%; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.10); }
-    .confirm-header { background: <?= $m['color'] ?>; padding: 28px 30px; text-align: center; color: #fff; }
-    .confirm-header .icon { font-size: 2.5rem; display: block; margin-bottom: 8px; }
-    .confirm-header h1 { font-size: 1.25rem; font-weight: 700; margin: 0; }
-    .confirm-body { padding: 28px 30px; color: #333; line-height: 1.7; }
-    .confirm-footer { padding: 16px 30px; background: #f8f9fa; text-align: center; font-size: 12px; color: #999; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEESGS - Mise à niveau</title>
+<link rel="stylesheet" href="assets/css/bootstrap.min.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
-  <div class="card-confirm">
-    <div class="confirm-header">
-      <span class="icon"><?= $m['icon'] ?></span>
-      <h1><?= $m['title'] ?></h1>
+<body class="bg-light">
+<?= $headerHtml ?>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0 p-4 text-center">
+                <?php if (isset($success) && $success): ?>
+                    <i class="fas fa-check-circle text-success mb-3" style="font-size:4rem;"></i>
+                    <h2 class="h4 mb-3">Mise à niveau réussie !</h2>
+                    <p class="text-muted">
+                        Votre niveau académique a été mis à jour avec succès :<br>
+                        <strong><?= htmlspecialchars($upgrade['old_level'], ENT_QUOTES, 'UTF-8') ?></strong> 
+                        <i class="fas fa-arrow-right mx-2 text-muted"></i> 
+                        <strong class="text-success"><?= htmlspecialchars($upgrade['new_level'], ENT_QUOTES, 'UTF-8') ?></strong>
+                    </p>
+                    <p class="mt-4 mb-0"><a href="index.php" class="btn btn-outline-primary">Retour à l'accueil</a></p>
+                <?php else: ?>
+                    <i class="fas fa-level-up-alt text-primary mb-3" style="font-size:4rem;"></i>
+                    <h2 class="h4 mb-3">Confirmer votre mise à niveau</h2>
+                    <p>Bonjour <strong><?= htmlspecialchars($upgrade['first_name'] . ' ' . $upgrade['last_name'], ENT_QUOTES, 'UTF-8') ?></strong>,</p>
+                    <p class="text-muted mb-4">
+                        Vous avez demandé à passer de <strong><?= htmlspecialchars($upgrade['old_level'], ENT_QUOTES, 'UTF-8') ?></strong> 
+                        à <strong><?= htmlspecialchars($upgrade['new_level'], ENT_QUOTES, 'UTF-8') ?></strong>.
+                        Veuillez confirmer cette modification.
+                    </p>
+                    <form method="POST" action="confirm-upgrade.php?token=<?= htmlspecialchars($token, ENT_QUOTES, 'UTF-8') ?>">
+                        <input type="hidden" name="action" value="confirm">
+                        <button type="submit" class="btn btn-primary btn-lg px-5">
+                            <i class="fas fa-check me-2"></i>Je confirme la mise à niveau
+                        </button>
+                    </form>
+                <?php endif; ?>
+            </div>
+        </div>
     </div>
-    <div class="confirm-body">
-      <?= $greeting ?>
-      <p><?= $m['body'] ?></p>
-      <p><?= $sub ?></p>
-      <div class="text-center mt-4">
-        <a href="index.php" class="btn btn-sm btn-outline-secondary">Retour à l'accueil</a>
-      </div>
-    </div>
-    <div class="confirm-footer">
-      AEESGS &bull; <a href="mailto:contact@aeesgs.org" style="color:#009460;">contact@aeesgs.org</a>
-    </div>
-  </div>
+</div>
+<?= $footerTpl ?>
+<script src="assets/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

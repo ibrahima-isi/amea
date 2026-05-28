@@ -58,15 +58,15 @@
                 <div class="col-md-4 text-center mb-4">
                   <div class="mb-3">
                     <img
-                      src="{{ student.identitePath ? asset(student.identitePath) : asset('assets/img/placeholder.png') }}"
+                      src="{{ student.identityDocument ? asset(student.identityDocument) : asset('assets/img/placeholder.png') }}"
                       alt="Photo d'identité"
                       class="img-thumbnail rounded-circle shadow-sm"
                       style="width: 150px; height: 150px; object-fit: cover"
                     />
                   </div>
-                  <h3 class="text-primary">{{ student.prenom }} {{ student.nom }}</h3>
-                  <p class="text-muted mb-1">{{ student.statut }}</p>
-                  <span class="badge bg-warning text-dark student-school-badge">{{ student.etablissement }}</span>
+                  <h3 class="text-primary">{{ student.firstName }} {{ student.lastName }}</h3>
+                  <p class="text-muted mb-1">{{ student.status }}</p>
+                  <span class="badge bg-warning text-dark student-school-badge">{{ student.institution }}</span>
                 </div>
 
                 <div class="col-md-8">
@@ -75,15 +75,15 @@
                   </h5>
                   <div class="detail-row">
                     <span class="detail-label">Date de naissance:</span>
-                    <span class="detail-value">{{ student.dateNaissance }}</span>
+                    <span class="detail-value">{{ student.birthDate }}</span>
                   </div>
                   <div class="detail-row">
                     <span class="detail-label">Sexe:</span>
-                    <span class="detail-value">{{ student.sexe }}</span>
+                    <span class="detail-value">{{ student.gender }}</span>
                   </div>
                   <div class="detail-row">
                     <span class="detail-label">Nationalités:</span>
-                    <span class="detail-value">{{ student.nationalites|join(', ') }}</span>
+                    <span class="detail-value">{{ student.nationalities|join(', ') }}</span>
                   </div>
 
                   <h5 class="section-title">
@@ -95,19 +95,19 @@
                   </div>
                   <div class="detail-row">
                     <span class="detail-label">Téléphone:</span>
-                    <span class="detail-value">{{ student.telephone }}</span>
+                    <span class="detail-value">{{ student.phone }}</span>
                   </div>
                   <div class="detail-row">
                     <span class="detail-label">Lieu de résidence:</span>
-                    <span class="detail-value">{{ student.lieuResidence }}</span>
+                    <span class="detail-value">{{ student.residence }}</span>
                   </div>
                   <div class="detail-row">
                     <span class="detail-label">Type de logement:</span>
-                    <span class="detail-value">{{ student.typeLogement }}</span>
+                    <span class="detail-value">{{ student.housingType }}</span>
                   </div>
                   <div class="detail-row">
                     <span class="detail-label">Année d'arrivée:</span>
-                    <span class="detail-value">{{ student.anneeArrivee }}</span>
+                    <span class="detail-value">{{ student.arrivalYear }}</span>
                   </div>
 
                   <h5 class="section-title">
@@ -115,15 +115,15 @@
                   </h5>
                   <div class="detail-row">
                     <span class="detail-label">Domaine d'études:</span>
-                    <span class="detail-value">{{ student.domaineEtudes }}</span>
+                    <span class="detail-value">{{ student.studyField }}</span>
                   </div>
                   <div class="detail-row">
                     <span class="detail-label">Niveau d'études:</span>
-                    <span class="detail-value">{{ student.niveauEtudes }}</span>
+                    <span class="detail-value">{{ student.studyLevel }}</span>
                   </div>
                   <div class="detail-row">
                     <span class="detail-label">Projets futurs:</span>
-                    <span class="detail-value">{{ student.projetApresFormation|nl2br }}</span>
+                    <span class="detail-value">{{ student.postTrainingProject|nl2br }}</span>
                   </div>
 
                   <h5 class="section-title">

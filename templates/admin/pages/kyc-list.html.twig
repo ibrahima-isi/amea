@@ -32,22 +32,22 @@
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <img src="{{ student.identitePath ? asset(student.identitePath) : asset('assets/img/placeholder.png') }}" 
+                                    <img src="{{ student.identityDocument ? asset(student.identityDocument) : asset('assets/img/placeholder.png') }}" 
                                          class="rounded-circle me-2" width="40" height="40" style="object-fit: cover;">
                                     <div>
-                                        <div class="fw-bold">{{ student.prenom }} {{ student.nom }}</div>
-                                        <small class="text-muted text-uppercase">{{ student.statut }}</small>
+                                        <div class="fw-bold">{{ student.firstName }} {{ student.lastName }}</div>
+                                        <small class="text-muted text-uppercase">{{ student.status }}</small>
                                     </div>
                                 </div>
                             </td>
                             <td>
                                 <div>{{ student.email }}</div>
-                                <small class="text-muted">{{ student.telephone }}</small>
+                                <small class="text-muted">{{ student.phone }}</small>
                             </td>
                             <td>
                                 <span class="badge bg-info">SOUS RÉVISION</span>
                             </td>
-                            <td>{{ student.dateEnregistrement|date('d/m/Y H:i') }}</td>
+                            <td>{{ student.registrationDate|date('d/m/Y H:i') }}</td>
                             <td class="text-center">
                                 <a href="kyc-detail.php?id={{ student.id }}" class="btn btn-primary btn-sm">
                                     <i class="fas fa-search"></i> Examiner

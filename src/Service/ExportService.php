@@ -30,7 +30,7 @@ class ExportService
         $headers     = array_keys($safeFields);
 
         [$where, $params] = $this->buildWhereClause($filters);
-        $sql  = "SELECT {$selectExprs} FROM personnes{$where} ORDER BY date_enregistrement DESC";
+        $sql  = "SELECT {$selectExprs} FROM students{$where} ORDER BY registration_date DESC";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
 
@@ -62,21 +62,21 @@ class ExportService
         $conditions = [];
         $params     = [];
 
-        if (!empty($filters['statut'])) {
-            $conditions[] = "statut = ?";
-            $params[]     = $filters['statut'];
+        if (!empty($filters['status'])) {
+            $conditions[] = "status = ?";
+            $params[]     = $filters['status'];
         }
-        if (!empty($filters['sexe'])) {
-            $conditions[] = "sexe = ?";
-            $params[]     = $filters['sexe'];
+        if (!empty($filters['gender'])) {
+            $conditions[] = "gender = ?";
+            $params[]     = $filters['gender'];
         }
-        if (!empty($filters['etablissement'])) {
-            $conditions[] = "etablissement = ?";
-            $params[]     = $filters['etablissement'];
+        if (!empty($filters['institution'])) {
+            $conditions[] = "institution = ?";
+            $params[]     = $filters['institution'];
         }
-        if (!empty($filters['niveau_etudes'])) {
-            $conditions[] = "niveau_etudes = ?";
-            $params[]     = $filters['niveau_etudes'];
+        if (!empty($filters['study_level'])) {
+            $conditions[] = "study_level = ?";
+            $params[]     = $filters['study_level'];
         }
 
         $where = $conditions ? ' WHERE ' . implode(' AND ', $conditions) : '';

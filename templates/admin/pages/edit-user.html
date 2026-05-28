@@ -32,14 +32,14 @@
               <div class="text-danger">{{error_email}}</div>
             </div>
             <div class="col-md-6">
-              <label for="nom" class="form-label">Nom</label>
-              <input type="text" class="form-control {{is_invalid_nom}}" id="nom" name="nom" value="{{nom}}" required>
-              <div class="text-danger">{{error_nom}}</div>
+              <label for="last_name" class="form-label">Nom</label>
+              <input type="text" class="form-control {{is_invalid_last_name}}" id="last_name" name="last_name" value="{{last_name}}" required>
+              <div class="text-danger">{{error_last_name}}</div>
             </div>
             <div class="col-md-6">
-              <label for="prenom" class="form-label">Prénom</label>
-              <input type="text" class="form-control {{is_invalid_prenom}}" id="prenom" name="prenom" value="{{prenom}}" required>
-              <div class="text-danger">{{error_prenom}}</div>
+              <label for="first_name" class="form-label">Prénom</label>
+              <input type="text" class="form-control {{is_invalid_first_name}}" id="first_name" name="first_name" value="{{first_name}}" required>
+              <div class="text-danger">{{error_first_name}}</div>
             </div>
             <div class="col-md-6">
               <label for="role" class="form-label">Rôle</label>
@@ -49,10 +49,10 @@
               </select>
             </div>
             <div class="col-md-6">
-              <label for="est_actif" class="form-label">Statut</label>
-              <select class="form-select" id="est_actif" name="est_actif" required>
-                <option value="1" {{est_actif_sel_1}}>Actif</option>
-                <option value="0" {{est_actif_sel_0}}>Inactif</option>
+              <label for="is_active" class="form-label">Statut</label>
+              <select class="form-select" id="is_active" name="is_active" required>
+                <option value="1" {{is_active_sel_1}}>Actif</option>
+                <option value="0" {{is_active_sel_0}}>Inactif</option>
               </select>
             </div>
           </div>

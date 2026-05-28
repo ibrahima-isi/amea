@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     // === Tagify Initialization for Nationalities ===
-    const input = document.querySelector('input[name="nationalites"]');
+    const input = document.querySelector('input[name="nationalities"]');
     if (input) {
         fetch('assets/json/countries.json')
             .then(response => response.json())

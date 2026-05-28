@@ -20,14 +20,14 @@ if (!hasPermission('communications')) {
 
 require_once 'functions/email-service.php';
 
-$prenom = $_SESSION['prenom'];
-$nom    = $_SESSION['nom'];
+$prenom = $_SESSION['first_name'] ?? '';
+$nom    = $_SESSION['last_name'] ?? '';
 
 // ─── Self-healing schema ───────────────────────────────────────────────────────
-try { $conn->exec("ALTER TABLE personnes ADD COLUMN cgu_token VARCHAR(64) NULL"); }             catch (PDOException $e) {}
-try { $conn->exec("ALTER TABLE personnes ADD COLUMN cgu_reminder_sent_at DATETIME NULL"); }     catch (PDOException $e) {}
-try { $conn->exec("ALTER TABLE personnes ADD COLUMN consent_refused_at DATETIME NULL"); }       catch (PDOException $e) {}
-try { $conn->exec("ALTER TABLE personnes ADD COLUMN deletion_requested_at DATETIME NULL"); }    catch (PDOException $e) {}
+try { $conn->exec("ALTER TABLE students ADD COLUMN cgu_token VARCHAR(64) NULL"); }             catch (PDOException $e) {}
+try { $conn->exec("ALTER TABLE students ADD COLUMN cgu_reminder_sent_at DATETIME NULL"); }     catch (PDOException $e) {}
+try { $conn->exec("ALTER TABLE students ADD COLUMN consent_refused_at DATETIME NULL"); }       catch (PDOException $e) {}
+try { $conn->exec("ALTER TABLE students ADD COLUMN deletion_requested_at DATETIME NULL"); }    catch (PDOException $e) {}
 try {
     $conn->exec("CREATE TABLE IF NOT EXISTS communications (
         id              INT AUTO_INCREMENT PRIMARY KEY,
@@ -68,22 +68,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $placeholders = implode(',', array_fill(0, count($rawIds), '?'));
             $stmt = $conn->prepare(
-                "SELECT id_personne, nom, prenom, email, consent_privacy
-                 FROM personnes
-                 WHERE id_personne IN ($placeholders)
+                "SELECT id, last_name, first_name, email, consent_privacy
+                 FROM students
+                 WHERE id IN ($placeholders)
                  AND email IS NOT NULL AND email != ''"
             );
             $stmt->execute(array_values($rawIds));
         } elseif ($scope === 'all') {
             $stmt = $conn->query(
-                "SELECT id_personne, nom, prenom, email, consent_privacy
-                 FROM personnes
+                "SELECT id, last_name, first_name, email, consent_privacy
+                 FROM students
                  WHERE email IS NOT NULL AND email != ''"
             );
         } else {
             $stmt = $conn->query(
-                "SELECT id_personne, nom, prenom, email, consent_privacy
-                 FROM personnes
+                "SELECT id, last_name, first_name, email, consent_privacy
+                 FROM students
                  WHERE (consent_privacy = 0 OR consent_privacy IS NULL)
                  AND email IS NOT NULL AND email != ''"
             );
@@ -93,17 +93,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sent = 0; $errors = 0;
         $tplPath = __DIR__ . '/templates/emails/cgu-reminder.html';
         $updToken = $conn->prepare(
-            "UPDATE personnes SET cgu_token = ?, cgu_reminder_sent_at = NOW() WHERE id_personne = ?"
+            "UPDATE students SET cgu_token = ?, cgu_reminder_sent_at = NOW() WHERE id = ?"
         );
 
         foreach ($targets as $t) {
             $token = bin2hex(random_bytes(32));
-            $updToken->execute([$token, $t['id_personne']]);
+            $updToken->execute([$token, $t['id']]);
 
             $acceptUrl = $baseUrl . '/accept-cgu.php?token=' . $token;
             $body = renderEmailTemplate($tplPath, [
-                'prenom'     => htmlspecialchars($t['prenom'], ENT_QUOTES, 'UTF-8'),
-                'nom'        => htmlspecialchars($t['nom'], ENT_QUOTES, 'UTF-8'),
+                'prenom'     => htmlspecialchars($t['first_name'], ENT_QUOTES, 'UTF-8'),
+                'nom'        => htmlspecialchars($t['last_name'], ENT_QUOTES, 'UTF-8'),
                 'accept_url' => $acceptUrl,
             ]);
 
@@ -135,8 +135,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $params = [];
 
             if (!empty($statutFilter)) {
-                $where[]          = 'statut = :statut';
-                $params[':statut'] = $statutFilter;
+                $where[]          = 'status = :status';
+                $params[':status'] = $statutFilter;
             }
             if ($consentFilter === 'consented') {
                 $where[] = 'consent_privacy = 1';
@@ -144,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $where[] = '(consent_privacy = 0 OR consent_privacy IS NULL)';
             }
 
-            $sql  = 'SELECT id_personne, nom, prenom, email FROM personnes WHERE ' . implode(' AND ', $where);
+            $sql  = 'SELECT id, last_name, first_name, email FROM students WHERE ' . implode(' AND ', $where);
             $stmt = $conn->prepare($sql);
             $stmt->execute($params);
             $targets = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -155,13 +155,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($targets as $t) {
                 // Allow {{prenom}} and {{nom}} in the body as personalisation
                 $personalised = strtr($bodyContent, [
-                    '{{prenom}}' => htmlspecialchars($t['prenom'], ENT_QUOTES, 'UTF-8'),
-                    '{{nom}}'    => htmlspecialchars($t['nom'], ENT_QUOTES, 'UTF-8'),
+                    '{{prenom}}' => htmlspecialchars($t['first_name'], ENT_QUOTES, 'UTF-8'),
+                    '{{nom}}'    => htmlspecialchars($t['last_name'], ENT_QUOTES, 'UTF-8'),
                 ]);
                 $body = renderEmailTemplate($tplPath, [
                     'subject' => htmlspecialchars($subject, ENT_QUOTES, 'UTF-8'),
-                    'prenom'  => htmlspecialchars($t['prenom'], ENT_QUOTES, 'UTF-8'),
-                    'nom'     => htmlspecialchars($t['nom'], ENT_QUOTES, 'UTF-8'),
+                    'prenom'  => htmlspecialchars($t['first_name'], ENT_QUOTES, 'UTF-8'),
+                    'nom'     => htmlspecialchars($t['last_name'], ENT_QUOTES, 'UTF-8'),
                     'content' => nl2br(htmlspecialchars($personalised, ENT_QUOTES, 'UTF-8')),
                 ]);
 
@@ -199,23 +199,23 @@ $cguStats = $conn->query(
         COALESCE(SUM(consent_privacy = 1), 0)                          AS consented,
         COALESCE(SUM(consent_privacy = 0 OR consent_privacy IS NULL), 0) AS not_consented,
         COALESCE(SUM(cgu_reminder_sent_at IS NOT NULL), 0)             AS reminder_sent
-     FROM personnes"
+     FROM students"
 )->fetch(PDO::FETCH_ASSOC);
 
-$totalStudents = (int)$conn->query("SELECT COUNT(*) FROM personnes")->fetchColumn();
+$totalStudents = (int)$conn->query("SELECT COUNT(*) FROM students")->fetchColumn();
 
 // Students who haven't consented (for the CGU table)
 $notConsentedList = $conn->query(
-    "SELECT id_personne, nom, prenom, email, date_enregistrement, cgu_reminder_sent_at
-     FROM personnes
+    "SELECT id, last_name, first_name, email, registration_date, cgu_reminder_sent_at
+     FROM students
      WHERE (consent_privacy = 0 OR consent_privacy IS NULL)
-     ORDER BY nom, prenom"
+     ORDER BY last_name, first_name"
 )->fetchAll(PDO::FETCH_ASSOC);
 
 // Pending deletion requests
 $deletionRequests = $conn->query(
-    "SELECT id_personne, nom, prenom, email, deletion_requested_at
-     FROM personnes
+    "SELECT id, last_name, first_name, email, deletion_requested_at
+     FROM students
      WHERE deletion_requested_at IS NOT NULL
      ORDER BY deletion_requested_at DESC"
 )->fetchAll(PDO::FETCH_ASSOC);
@@ -224,16 +224,16 @@ $countDeletionRequests = count($deletionRequests);
 
 // All students for the selection checkbox list
 $allStudentsForSelect = $conn->query(
-    "SELECT id_personne, nom, prenom, email, consent_privacy
-     FROM personnes ORDER BY nom, prenom"
+    "SELECT id, last_name, first_name, email, consent_privacy
+     FROM students ORDER BY last_name, first_name"
 )->fetchAll(PDO::FETCH_ASSOC);
 
 // Recent communications history
 $recentComms = $conn->query(
     "SELECT c.subject, c.sent_count, c.recipient_count, c.sent_at,
-            CONCAT(u.prenom, ' ', u.nom) AS sent_by_name
+            CONCAT(u.first_name, ' ', u.last_name) AS sent_by_name
      FROM communications c
-     LEFT JOIN users u ON u.id_user = c.sent_by
+     LEFT JOIN users u ON u.id = c.sent_by
      ORDER BY c.sent_at DESC
      LIMIT 10"
 )->fetchAll(PDO::FETCH_ASSOC);
@@ -246,9 +246,9 @@ foreach ($notConsentedList as $s) {
         : '<span class="badge bg-secondary">Pas encore contacté</span>';
 
     $notConsentedRows .= '<tr>'
-        . '<td>' . htmlspecialchars($s['prenom'] . ' ' . $s['nom'], ENT_QUOTES, 'UTF-8') . '</td>'
+        . '<td>' . htmlspecialchars($s['first_name'] . ' ' . $s['last_name'], ENT_QUOTES, 'UTF-8') . '</td>'
         . '<td>' . htmlspecialchars($s['email'] ?? '—', ENT_QUOTES, 'UTF-8') . '</td>'
-        . '<td>' . date('d/m/Y', strtotime($s['date_enregistrement'])) . '</td>'
+        . '<td>' . date('d/m/Y', strtotime($s['registration_date'])) . '</td>'
         . '<td>' . $sentAt . '</td>'
         . '</tr>';
 }
@@ -262,13 +262,13 @@ foreach ($allStudentsForSelect as $s) {
     $consentBadge = $s['consent_privacy'] == 1
         ? '<span class="badge bg-success ms-2">CGU acceptées</span>'
         : '<span class="badge bg-warning text-dark ms-2">En attente</span>';
-    $searchData = strtolower($s['prenom'] . ' ' . $s['nom'] . ' ' . ($s['email'] ?? ''));
+    $searchData = strtolower($s['first_name'] . ' ' . $s['last_name'] . ' ' . ($s['email'] ?? ''));
     $studentCheckboxes .= '<div class="student-checkbox-item d-flex align-items-center gap-2 px-3 py-2 border-bottom"'
         . ' data-name="' . htmlspecialchars($searchData, ENT_QUOTES, 'UTF-8') . '">'
         . '<input class="form-check-input flex-shrink-0 mt-0" type="checkbox" name="selected_ids[]"'
-        . ' value="' . (int)$s['id_personne'] . '" id="cgu_std_' . (int)$s['id_personne'] . '">'
-        . '<label class="form-check-label flex-grow-1" for="cgu_std_' . (int)$s['id_personne'] . '">'
-        . '<span class="fw-semibold">' . htmlspecialchars($s['prenom'] . ' ' . $s['nom'], ENT_QUOTES, 'UTF-8') . '</span>'
+        . ' value="' . (int)$s['id'] . '" id="cgu_std_' . (int)$s['id'] . '">'
+        . '<label class="form-check-label flex-grow-1" for="cgu_std_' . (int)$s['id'] . '">'
+        . '<span class="fw-semibold">' . htmlspecialchars($s['first_name'] . ' ' . $s['last_name'], ENT_QUOTES, 'UTF-8') . '</span>'
         . $consentBadge
         . '<br><small class="text-muted">' . htmlspecialchars($s['email'] ?? '—', ENT_QUOTES, 'UTF-8') . '</small>'
         . '</label>'
@@ -278,11 +278,11 @@ foreach ($allStudentsForSelect as $s) {
 $deletionRows = '';
 foreach ($deletionRequests as $d) {
     $deletionRows .= '<tr>'
-        . '<td>' . htmlspecialchars($d['prenom'] . ' ' . $d['nom'], ENT_QUOTES, 'UTF-8') . '</td>'
+        . '<td>' . htmlspecialchars($d['first_name'] . ' ' . $d['last_name'], ENT_QUOTES, 'UTF-8') . '</td>'
         . '<td>' . htmlspecialchars($d['email'] ?? '—', ENT_QUOTES, 'UTF-8') . '</td>'
         . '<td>' . date('d/m/Y H:i', strtotime($d['deletion_requested_at'])) . '</td>'
         . '<td>'
-        . '<a href="student-details.php?id=' . (int)$d['id_personne'] . '" class="btn btn-sm btn-outline-primary me-1">'
+        . '<a href="student-details.php?id=' . (int)$d['id'] . '" class="btn btn-sm btn-outline-primary me-1">'
         . '<i class="fas fa-eye"></i></a>'
         . '</td>'
         . '</tr>';

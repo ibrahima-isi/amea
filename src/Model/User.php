@@ -7,13 +7,13 @@ class User
         private int     $id,
         private string  $username,
         private string  $email,
-        private string  $nom,
-        private string  $prenom,
+        private string  $lastName,
+        private string  $firstName,
         private string  $role,
-        private bool    $estActif,
+        private bool    $isActive,
         private ?string $permissionsJson,
-        private string  $dateCreation,
-        private ?string $derniereConnexion = null,
+        private string  $createdAt,
+        private ?string $lastLogin = null,
         private ?string $password = null,
         private int     $sessionVersion = 1
     ) {}
@@ -21,15 +21,15 @@ class User
     public function getId(): int               { return $this->id; }
     public function getUsername(): string      { return $this->username; }
     public function getEmail(): string         { return $this->email; }
-    public function getNom(): string           { return $this->nom; }
-    public function getPrenom(): string        { return $this->prenom; }
-    public function getFullName(): string      { return $this->prenom . ' ' . $this->nom; }
+    public function getLastName(): string      { return $this->lastName; }
+    public function getFirstName(): string     { return $this->firstName; }
+    public function getFullName(): string      { return $this->firstName . ' ' . $this->lastName; }
     public function getRole(): string          { return $this->role; }
-    public function isActif(): bool            { return $this->estActif; }
+    public function isActive(): bool           { return $this->isActive; }
     public function isSuperAdmin(): bool       { return $this->id === 1; }
     public function getPassword(): ?string     { return $this->password; }
-    public function getDateCreation(): string  { return $this->dateCreation; }
-    public function getDerniereConnexion(): ?string { return $this->derniereConnexion; }
+    public function getCreatedAt(): string     { return $this->createdAt; }
+    public function getLastLogin(): ?string    { return $this->lastLogin; }
     public function getSessionVersion(): int   { return $this->sessionVersion; }
 
     public function getPermissions(): array
@@ -50,16 +50,16 @@ class User
     public static function fromRow(array $row): self
     {
         return new self(
-            id:                 (int)$row['id_user'],
+            id:                 (int)($row['id'] ?? 0),
             username:           $row['username'] ?? '',
             email:              $row['email'] ?? '',
-            nom:                $row['nom'] ?? '',
-            prenom:             $row['prenom'] ?? '',
+            lastName:           $row['last_name'] ?? '',
+            firstName:          $row['first_name'] ?? '',
             role:               $row['role'] ?? 'user',
-            estActif:           (bool)($row['est_actif'] ?? false),
+            isActive:           (bool)($row['is_active'] ?? false),
             permissionsJson:    $row['permissions'] ?? null,
-            dateCreation:       $row['date_creation'] ?? '',
-            derniereConnexion:  $row['derniere_connexion'] ?? null,
+            createdAt:          $row['created_at'] ?? '',
+            lastLogin:          $row['last_login'] ?? null,
             password:           $row['password'] ?? null,
             sessionVersion:     (int)($row['session_version'] ?? 1)
         );

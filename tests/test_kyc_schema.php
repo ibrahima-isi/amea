@@ -47,7 +47,7 @@ foreach ($requiredColumns as $column) {
     expect(
         "migration checks whether {$column} already exists",
         $migration !== false
-            && str_contains($migration, 'function personnesColumnExists')
+            && str_contains($migration, 'function studentsColumnExists')
             && preg_match(
                 "/addPersonnesColumnIfMissing\\(\\s*\\\$conn,\\s*'{$column}'/s",
                 $migration

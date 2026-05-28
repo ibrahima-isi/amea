@@ -78,9 +78,9 @@ class RegistrationController extends BaseController
         $id = $this->studentRepo->save($dbData);
 
         // Handle auxiliary tables
-        if (!empty($dbData['etablissement'])) $this->studentRepo->ensureEtablissementExists($dbData['etablissement']);
-        if (!empty($dbData['domaine_etudes'])) $this->studentRepo->ensureDomaineExists($dbData['domaine_etudes']);
-        if (!empty($dbData['niveau_etudes']))  $this->studentRepo->ensureNiveauExists($dbData['niveau_etudes']);
+        if (!empty($dbData['institution'])) $this->studentRepo->ensureEtablissementExists($dbData['institution']);
+        if (!empty($dbData['study_field'])) $this->studentRepo->ensureDomaineExists($dbData['study_field']);
+        if (!empty($dbData['study_level']))  $this->studentRepo->ensureNiveauExists($dbData['study_level']);
         
         if (!empty($data['valid_pays_ids'])) {
             $this->studentRepo->savePersonnePays($id, $data['valid_pays_ids']);

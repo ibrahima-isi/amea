@@ -40,25 +40,25 @@ $success = "";
 $csrfToken = generateCsrfToken();
 
 $allowedExportFields = [
-    'id_personne' => '`id_personne`',
-    'nom' => '`nom`',
-    'prenom' => '`prenom`',
-    'sexe' => '`sexe`',
+    'id' => '`id`',
+    'last_name' => '`last_name`',
+    'first_name' => '`first_name`',
+    'gender' => '`gender`',
     'age' => '`age`',
-    'date_naissance' => '`date_naissance`',
-    'telephone' => '`telephone`',
+    'birth_date' => '`birth_date`',
+    'phone' => '`phone`',
     'email' => '`email`',
-    'etablissement' => '`etablissement`',
-    'statut' => '`statut`',
-    'domaine_etudes' => '`domaine_etudes`',
-    'niveau_etudes' => '`niveau_etudes`',
-    'lieu_residence' => '`lieu_residence`',
-    'type_logement' => '`type_logement`',
-    'precision_logement' => '`precision_logement`',
-    'annee_arrivee' => '`annee_arrivee`',
-    'projet_apres_formation' => '`projet_apres_formation`',
-    'date_enregistrement' => '`date_enregistrement`',
-    'date_diplomation' => '`date_diplomation`',
+    'institution' => '`institution`',
+    'status' => '`status`',
+    'study_field' => '`study_field`',
+    'study_level' => '`study_level`',
+    'residence' => '`residence`',
+    'housing_type' => '`housing_type`',
+    'housing_details' => '`housing_details`',
+    'arrival_year' => '`arrival_year`',
+    'post_training_project' => '`post_training_project`',
+    'registration_date' => '`registration_date`',
+    'graduation_date' => '`graduation_date`',
 ];
 
 // Traitement de l'exportation
@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
             return array_key_exists($field, $allowedExportFields);
         })));
 
-        $allowedFilterKeys = ['sexe', 'statut', 'etablissement', 'niveau_etudes', 'type_logement'];
+        $allowedFilterKeys = ['gender', 'status', 'institution', 'study_level', 'housing_type'];
         $filters = [];
         foreach ($allowedFilterKeys as $key) {
             $filters[$key] = trim($_POST[$key] ?? '');
@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
                     return $allowedExportFields[$field];
                 }, $selectedFields);
 
-                $sql = "SELECT " . implode(', ', $selectedColumnList) . " FROM personnes";
+                $sql = "SELECT " . implode(', ', $selectedColumnList) . " FROM students";
 
                 $whereClauses = [];
                 $params = [];
@@ -163,13 +163,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
 // Récupérer les options pour les filtres
 try {
     // Établissements
-    $etablissementSql = "SELECT DISTINCT etablissement FROM personnes WHERE etablissement IS NOT NULL AND etablissement <> '' ORDER BY etablissement";
+    $etablissementSql = "SELECT DISTINCT institution FROM students WHERE institution IS NOT NULL AND institution <> '' ORDER BY institution";
     $etablissementStmt = $conn->prepare($etablissementSql);
     $etablissementStmt->execute();
     $etablissements = $etablissementStmt->fetchAll(PDO::FETCH_COLUMN);
 
     // Niveaux d'études
-    $niveauEtudesSql = "SELECT DISTINCT niveau_etudes FROM personnes WHERE niveau_etudes IS NOT NULL AND niveau_etudes <> '' ORDER BY niveau_etudes";
+    $niveauEtudesSql = "SELECT DISTINCT study_level FROM students WHERE study_level IS NOT NULL AND study_level <> '' ORDER BY study_level";
     $niveauEtudesStmt = $conn->prepare($niveauEtudesSql);
     $niveauEtudesStmt->execute();
     $niveauxEtudes = $niveauEtudesStmt->fetchAll(PDO::FETCH_COLUMN);

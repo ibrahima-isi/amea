@@ -24,7 +24,7 @@ if ($studentId <= 0 || !in_array($type, ['identite', 'cv'], true)) {
 }
 
 // Fetch the student record
-$stmt = $conn->prepare('SELECT nom, prenom, identite, cv_path FROM personnes WHERE id_personne = ?');
+$stmt = $conn->prepare('SELECT last_name, first_name, identity_document, cv_path FROM students WHERE id = ?');
 $stmt->execute([$studentId]);
 $student = $stmt->fetch(PDO::FETCH_ASSOC);
 

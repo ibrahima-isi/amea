@@ -26,9 +26,6 @@ if (!hasPermission('students')) {
     header('Location: dashboard.php'); exit();
 }
 
-// Ensure date_diplomation column exists (one-time migration)
-try { $conn->exec("ALTER TABLE personnes ADD COLUMN date_diplomation DATE NULL"); } catch (PDOException $e) {}
-
 // Get student ID from URL
 $student_id = $_GET['id'] ?? null;
 if (!$student_id) {
@@ -37,7 +34,7 @@ if (!$student_id) {
 }
 
 // Fetch student data from the database
-$stmt = $conn->prepare("SELECT * FROM personnes WHERE id_personne = ?");
+$stmt = $conn->prepare("SELECT * FROM students WHERE id = ?");
 $stmt->execute([$student_id]);
     $student = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -48,30 +45,30 @@ $stmt->execute([$student_id]);
     }
 
     // Fetch nationalities from pivot table
-    $stmtNats = $conn->prepare("SELECT p.nom_fr FROM pays p JOIN personne_pays pp ON p.id_pays = pp.id_pays WHERE pp.id_personne = ?");
+    $stmtNats = $conn->prepare("SELECT p.name_fr FROM countries p JOIN student_country pp ON p.id = pp.country_id WHERE pp.student_id = ?");
     $stmtNats->execute([$student_id]);
     $nationalitiesList = $stmtNats->fetchAll(PDO::FETCH_COLUMN);
 
     if (!empty($nationalitiesList)) {
-        $nationalites_value = json_encode($nationalitiesList, JSON_UNESCAPED_UNICODE);
+        $nationalities_value = json_encode($nationalitiesList, JSON_UNESCAPED_UNICODE);
     } else {
         // Fallback to legacy
-        $nationalites_value = $student['nationalites'] ?? '';
-        if (is_null($nationalites_value)) $nationalites_value = '';
+        $nationalities_value = $student['nationalities'] ?? '';
+        if (is_null($nationalities_value)) $nationalities_value = '';
     }
 
 // Fetch data for dropdowns
-$stmt = $conn->query("SELECT nom FROM etablissements ORDER BY nom ASC");
+$stmt = $conn->query("SELECT name FROM institutions ORDER BY name ASC");
 $schools = $stmt->fetchAll(PDO::FETCH_COLUMN);
 $schools[] = 'Autre';
 
-$stmt = $conn->query("SELECT nom FROM domaines_etudes ORDER BY nom ASC");
-$domaines = $stmt->fetchAll(PDO::FETCH_COLUMN);
-$domaines[] = 'Autre';
+$stmt = $conn->query("SELECT name FROM study_fields ORDER BY name ASC");
+$studyFields = $stmt->fetchAll(PDO::FETCH_COLUMN);
+$studyFields[] = 'Autre';
 
-$stmt = $conn->query("SELECT nom FROM niveaux_etudes ORDER BY nom ASC");
-$niveaux = $stmt->fetchAll(PDO::FETCH_COLUMN);
-$niveaux[] = 'Autre';
+$stmt = $conn->query("SELECT name FROM study_levels ORDER BY name ASC");
+$studyLevels = $stmt->fetchAll(PDO::FETCH_COLUMN);
+$studyLevels[] = 'Autre';
 
 // Initialize variables
 $errors = [];
@@ -84,33 +81,27 @@ $formData = $student; // Pre-fill form with existing student data
 // Lieu de residence
 $stmtLocations = $conn->query("SELECT name FROM locations");
 $knownLocations = $stmtLocations->fetchAll(PDO::FETCH_COLUMN);
-if (!in_array($formData['lieu_residence'], $knownLocations)) {
-    $formData['autre_lieu_residence'] = $formData['lieu_residence']; // Store the custom value
-    $formData['lieu_residence'] = 'Autre'; // Set dropdown to 'Autre'
+if (!in_array($formData['residence'], $knownLocations)) {
+    $formData['other_residence'] = $formData['residence']; // Store the custom value
+    $formData['residence'] = 'Autre'; // Set dropdown to 'Autre'
 }
 
 // Etablissement
-$stmtSchools = $conn->query("SELECT nom FROM etablissements");
-$knownSchools = $stmtSchools->fetchAll(PDO::FETCH_COLUMN);
-if (!in_array($formData['etablissement'], $knownSchools)) {
-    $formData['autre_etablissement'] = $formData['etablissement'];
-    $formData['etablissement'] = 'Autre';
+if (!in_array($formData['institution'], $schools)) {
+    $formData['other_institution'] = $formData['institution'];
+    $formData['institution'] = 'Autre';
 }
 
 // Domaine d'etudes
-$stmtDomaines = $conn->query("SELECT nom FROM domaines_etudes");
-$knownDomaines = $stmtDomaines->fetchAll(PDO::FETCH_COLUMN);
-if (!in_array($formData['domaine_etudes'], $knownDomaines)) {
-    $formData['autre_domaine_etudes'] = $formData['domaine_etudes'];
-    $formData['domaine_etudes'] = 'Autre';
+if (!in_array($formData['study_field'], $studyFields)) {
+    $formData['other_study_field'] = $formData['study_field'];
+    $formData['study_field'] = 'Autre';
 }
 
 // Niveau d'etudes
-$stmtNiveaux = $conn->query("SELECT nom FROM niveaux_etudes");
-$knownNiveaux = $stmtNiveaux->fetchAll(PDO::FETCH_COLUMN);
-if (!in_array($formData['niveau_etudes'], $knownNiveaux)) {
-    $formData['autre_niveau_etudes'] = $formData['niveau_etudes'];
-    $formData['niveau_etudes'] = 'Autre';
+if (!in_array($formData['study_level'], $studyLevels)) {
+    $formData['other_study_level'] = $formData['study_level'];
+    $formData['study_level'] = 'Autre';
 }
 
 // Handle form submission
@@ -123,40 +114,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Sanitize and retrieve form data
     $formData = [
-        'nom' => trim($_POST['nom'] ?? ''),
-        'prenom' => trim($_POST['prenom'] ?? ''),
-        'sexe' => $_POST['sexe'] ?? '',
-        'date_naissance' => $_POST['date_naissance'] ?? '',
-        'lieu_residence' => trim($_POST['lieu_residence'] ?? ''),
-        'etablissement' => trim($_POST['etablissement'] ?? ''),
-        'autre_etablissement' => trim($_POST['autre_etablissement'] ?? ''),
-        'statut' => $_POST['statut'] ?? '',
-        'domaine_etudes' => trim($_POST['domaine_etudes'] ?? ''),
-        'autre_domaine_etudes' => trim($_POST['autre_domaine_etudes'] ?? ''),
-        'niveau_etudes' => trim($_POST['niveau_etudes'] ?? ''),
-        'autre_niveau_etudes' => trim($_POST['autre_niveau_etudes'] ?? ''),
-        'telephone' => trim($_POST['telephone'] ?? ''),
+        'last_name' => trim($_POST['last_name'] ?? ''),
+        'first_name' => trim($_POST['first_name'] ?? ''),
+        'gender' => $_POST['gender'] ?? '',
+        'birth_date' => $_POST['birth_date'] ?? '',
+        'residence' => trim($_POST['residence'] ?? ''),
+        'institution' => trim($_POST['institution'] ?? ''),
+        'other_institution' => trim($_POST['other_institution'] ?? ''),
+        'status' => $_POST['status'] ?? '',
+        'study_field' => trim($_POST['study_field'] ?? ''),
+        'other_study_field' => trim($_POST['other_study_field'] ?? ''),
+        'study_level' => trim($_POST['study_level'] ?? ''),
+        'other_study_level' => trim($_POST['other_study_level'] ?? ''),
+        'phone' => trim($_POST['phone'] ?? ''),
         'email' => trim($_POST['email'] ?? ''),
-        'annee_arrivee' => $_POST['annee_arrivee'] ?? null,
-        'type_logement' => $_POST['type_logement'] ?? '',
-        'precision_logement' => trim($_POST['precision_logement'] ?? ''),
-        'projet_apres_formation' => trim($_POST['projet_apres_formation'] ?? ''),
-        'autre_lieu_residence' => trim($_POST['autre_lieu_residence'] ?? ''),
-        'nationalites' => $_POST['nationalites'] ?? '',
-        'date_diplomation' => trim($_POST['date_diplomation'] ?? ''),
+        'arrival_year' => $_POST['arrival_year'] ?? null,
+        'housing_type' => $_POST['housing_type'] ?? '',
+        'housing_details' => trim($_POST['housing_details'] ?? ''),
+        'post_training_project' => trim($_POST['post_training_project'] ?? ''),
+        'other_residence' => trim($_POST['other_residence'] ?? ''),
+        'nationalities' => $_POST['nationalities'] ?? '',
+        'graduation_date' => trim($_POST['graduation_date'] ?? ''),
         'cv_path' => $student['cv_path'] ?? null // Keep existing CV path
     ];
 
     // Normalize nullable fields
-    $formData['annee_arrivee'] = ($formData['annee_arrivee'] === null || $formData['annee_arrivee'] === '') ? null : (int)$formData['annee_arrivee'];
-    $formData['precision_logement'] = $formData['precision_logement'] === '' ? null : $formData['precision_logement'];
-    $formData['projet_apres_formation'] = $formData['projet_apres_formation'] === '' ? null : $formData['projet_apres_formation'];
+    $formData['arrival_year'] = ($formData['arrival_year'] === null || $formData['arrival_year'] === '') ? null : (int)$formData['arrival_year'];
+    $formData['housing_details'] = $formData['housing_details'] === '' ? null : $formData['housing_details'];
+    $formData['post_training_project'] = $formData['post_training_project'] === '' ? null : $formData['post_training_project'];
 
     // Process Nationalities
     $validNats = [];
     $validIds = [];
-    if (!empty($formData['nationalites'])) {
-        $decoded = json_decode($formData['nationalites'], true);
+    if (!empty($formData['nationalities'])) {
+        $decoded = json_decode($formData['nationalities'], true);
         $names = [];
 
         // Handle Tagify formats
@@ -171,46 +162,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Validate against DB
         if (!empty($names)) {
             $placeholders = implode(',', array_fill(0, count($names), '?'));
-            $stmtVal = $conn->prepare("SELECT id_pays, nom_fr FROM pays WHERE nom_fr IN ($placeholders)");
+            $stmtVal = $conn->prepare("SELECT id, name_fr FROM countries WHERE name_fr IN ($placeholders)");
             $stmtVal->execute($names);
             while ($row = $stmtVal->fetch(PDO::FETCH_ASSOC)) {
-                $validNats[] = $row['nom_fr'];
-                $validIds[] = $row['id_pays'];
+                $validNats[] = $row['name_fr'];
+                $validIds[] = $row['id'];
             }
         }
     }
-    $nationalites_json = !empty($validNats) ? json_encode($validNats, JSON_UNESCAPED_UNICODE) : null;
+    $nationalities_json = !empty($validNats) ? json_encode($validNats, JSON_UNESCAPED_UNICODE) : null;
     
-    // Note: 'Autre' options for lieu_residence, etablissement, domaine_etudes, niveau_etudes
-    // are now handled by separate variables for database insertion,
-    // ensuring the original selection remains in $formData for form re-rendering.
-    $finalLieuResidenceForDb = $formData['lieu_residence'];
-    if ($formData['lieu_residence'] === 'Autre') {
-        $finalLieuResidenceForDb = $formData['autre_lieu_residence'];
+    $finalLieuResidenceForDb = $formData['residence'];
+    if ($formData['residence'] === 'Autre') {
+        $finalLieuResidenceForDb = $formData['other_residence'];
     }
 
-    $finalEtablissementForDb = $formData['etablissement'];
-    if ($formData['etablissement'] === 'Autre') {
-        $finalEtablissementForDb = $formData['autre_etablissement'];
+    $finalEtablissementForDb = $formData['institution'];
+    if ($formData['institution'] === 'Autre') {
+        $finalEtablissementForDb = $formData['other_institution'];
     }
 
-    $finalDomaineEtudesForDb = $formData['domaine_etudes'];
-    if ($formData['domaine_etudes'] === 'Autre') {
-        $finalDomaineEtudesForDb = $formData['autre_domaine_etudes'];
+    $finalDomaineEtudesForDb = $formData['study_field'];
+    if ($formData['study_field'] === 'Autre') {
+        $finalDomaineEtudesForDb = $formData['other_study_field'];
     }
 
-    $finalNiveauEtudesForDb = $formData['niveau_etudes'];
-    if ($formData['niveau_etudes'] === 'Autre') {
-        $finalNiveauEtudesForDb = $formData['autre_niveau_etudes'];
+    $finalNiveauEtudesForDb = $formData['study_level'];
+    if ($formData['study_level'] === 'Autre') {
+        $finalNiveauEtudesForDb = $formData['other_study_level'];
     }
 
     // --- Validation ---
     $requiredFields = [
-        'nom' => 'Le nom est requis.', 'prenom' => 'Le prénom est requis.', 'sexe' => 'Le sexe est requis.',
-        'lieu_residence' => 'Le lieu de résidence est requis.',
-        'etablissement' => 'L\'établissement est requis.', 'statut' => 'Le statut est requis.',
-        'domaine_etudes' => 'Le domaine d\'études est requis.', 'niveau_etudes' => 'Le niveau d\'études est requis.',
-        'telephone' => 'Le téléphone est requis.', 'email' => 'L\'email est requis.', 'type_logement' => 'Le type de logement est requis.'
+        'last_name' => 'Le nom est requis.', 'first_name' => 'Le prénom est requis.', 'gender' => 'Le sexe est requis.',
+        'residence' => 'Le lieu de résidence est requis.',
+        'institution' => 'L\'établissement est requis.', 'status' => 'Le statut est requis.',
+        'study_field' => 'Le domaine d\'études est requis.', 'study_level' => 'Le niveau d\'études est requis.',
+        'phone' => 'Le téléphone est requis.', 'email' => 'L\'email est requis.', 'housing_type' => 'Le type de logement est requis.'
     ];
     foreach ($requiredFields as $field => $message) {
         if (empty($formData[$field])) $errors[$field] = $message;
@@ -222,44 +210,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     // Check unique Email
     if (empty($errors['email'])) { // Only check uniqueness if format is valid
-        $stmt = $conn->prepare("SELECT id_personne FROM personnes WHERE email = ? AND id_personne != ?");
+        $stmt = $conn->prepare("SELECT id FROM students WHERE email = ? AND id != ?");
         $stmt->execute([$formData['email'], $student_id]);
         if ($stmt->fetch()) $errors['email'] = 'Cette adresse email est déjà enregistrée.';
     }
 
     // Telephone validation
-    if (!isset($errors['telephone']) && !isValidPhone($formData['telephone'])) {
-        $errors['telephone'] = "Le numéro de téléphone doit contenir exactement 9 chiffres.";
+    if (!isset($errors['phone']) && !isValidPhone($formData['phone'])) {
+        $errors['phone'] = "Le numéro de téléphone doit contenir exactement 9 chiffres.";
     }
     // Check unique Telephone
-    if (empty($errors['telephone'])) { // Only check uniqueness if format is valid
-        $stmt = $conn->prepare("SELECT id_personne FROM personnes WHERE telephone = ? AND id_personne != ?");
-        $stmt->execute([$formData['telephone'], $student_id]);
-        if ($stmt->fetch()) $errors['telephone'] = 'Ce numéro de téléphone est déjà enregistré.';
+    if (empty($errors['phone'])) { // Only check uniqueness if format is valid
+        $stmt = $conn->prepare("SELECT id FROM students WHERE phone = ? AND id != ?");
+        $stmt->execute([$formData['phone'], $student_id]);
+        if ($stmt->fetch()) $errors['phone'] = 'Ce numéro de téléphone est déjà enregistré.';
     }
 
-    if (!empty($formData['date_naissance']) && empty($errors['date_naissance'])) {
-        $age = calculateAge($formData['date_naissance']);
+    if (!empty($formData['birth_date']) && empty($errors['birth_date'])) {
+        $age = calculateAge($formData['birth_date']);
         if ($age < 15) {
-            $errors['date_naissance'] = "L'âge doit être d'au moins 15 ans.";
+            $errors['birth_date'] = "L'âge doit être d'au moins 15 ans.";
         }
     }
 
-    // Handle file uploads (Identité and CV)
-    $identitePath = $student['identite']; // Keep old path if no new file is uploaded
-    $identiteUploadResult = handleFileUpload($_FILES['photo'] ?? [], ['jpg', 'jpeg', 'png', 'gif', 'pdf'], 2 * 1024 * 1024, 'uploads/students');
-    if (!$identiteUploadResult['success']) {
-        if ($identiteUploadResult['filepath'] !== null) { // Only set error if a file was actually attempted to be uploaded
-             $errors['identite'] = $identiteUploadResult['message'];
+    // Handle file uploads (Identity document and CV)
+    $identityDocumentPath = $student['identity_document']; // Keep old path if no new file is uploaded
+    $identityUploadResult = handleFileUpload($_FILES['photo'] ?? [], ['jpg', 'jpeg', 'png', 'gif', 'pdf'], 2 * 1024 * 1024, 'uploads/students');
+    if (!$identityUploadResult['success']) {
+        if ($identityUploadResult['filepath'] !== null) { // Only set error if a file was actually attempted to be uploaded
+             $errors['identity_document'] = $identityUploadResult['message'];
         }
     } else {
         // Only replace path when a new file was actually uploaded
-        if ($identiteUploadResult['filepath'] !== null) {
-            safeUnlink($identitePath);
-            $identitePath = $identiteUploadResult['filepath'];
+        if ($identityUploadResult['filepath'] !== null) {
+            safeUnlink($identityDocumentPath);
+            $identityDocumentPath = $identityUploadResult['filepath'];
         }
     }
-    $formData['identite'] = $identitePath;
+    $formData['identity_document'] = $identityDocumentPath;
 
     $cvPath = $student['cv_path']; // Keep old path if no new file is uploaded
     $cvUploadResult = handleFileUpload($_FILES['cv_file'] ?? [], ['pdf', 'png'], 5 * 1024 * 1024, 'uploads/students/cvs');
@@ -280,98 +268,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         // Logic to add new school/domain/level if they don't exist
         if (!empty($finalEtablissementForDb)) {
-            $stmt = $conn->prepare("SELECT id FROM etablissements WHERE nom = ?");
+            $stmt = $conn->prepare("SELECT id FROM institutions WHERE name = ?");
             $stmt->execute([$finalEtablissementForDb]);
             if ($stmt->fetchColumn() === false) {
-                $conn->prepare("INSERT INTO etablissements (nom) VALUES (?)")->execute([$finalEtablissementForDb]);
+                $conn->prepare("INSERT INTO institutions (name) VALUES (?)")->execute([$finalEtablissementForDb]);
             }
         }
         if (!empty($finalDomaineEtudesForDb)) {
-            $stmt = $conn->prepare("SELECT id FROM domaines_etudes WHERE nom = ?");
+            $stmt = $conn->prepare("SELECT id FROM study_fields WHERE name = ?");
             $stmt->execute([$finalDomaineEtudesForDb]);
             if ($stmt->fetchColumn() === false) {
-                $conn->prepare("INSERT INTO domaines_etudes (nom) VALUES (?)")->execute([$finalDomaineEtudesForDb]);
+                $conn->prepare("INSERT INTO study_fields (name) VALUES (?)")->execute([$finalDomaineEtudesForDb]);
             }
         }
         if (!empty($finalNiveauEtudesForDb)) {
-            $stmt = $conn->prepare("SELECT id FROM niveaux_etudes WHERE nom = ?");
+            $stmt = $conn->prepare("SELECT id FROM study_levels WHERE name = ?");
             $stmt->execute([$finalNiveauEtudesForDb]);
             if ($stmt->fetchColumn() === false) {
-                $conn->prepare("INSERT INTO niveaux_etudes (nom) VALUES (?)")->execute([$finalNiveauEtudesForDb]);
+                $conn->prepare("INSERT INTO study_levels (name) VALUES (?)")->execute([$finalNiveauEtudesForDb]);
             }
         }
 
-        // Handle date_diplomation: set to today if Diplômé and no date given; null if not Diplômé
-        $finalDateDiplomation = null;
-        if ($formData['statut'] === 'Diplômé') {
-            $finalDateDiplomation = !empty($formData['date_diplomation'])
-                ? $formData['date_diplomation']
+        // Handle graduation_date: set to today if Diplômé and no date given; null if not Diplômé
+        $finalGraduationDate = null;
+        if ($formData['status'] === 'GRADUATE' || $formData['status'] === 'Diplômé') {
+            $finalGraduationDate = !empty($formData['graduation_date'])
+                ? $formData['graduation_date']
                 : date('Y-m-d');
         }
 
-        $sql = "UPDATE personnes SET
-            nom = :nom, prenom = :prenom, sexe = :sexe,
-            date_naissance = :date_naissance, lieu_residence = :lieu_residence, etablissement = :etablissement,
-            statut = :statut, domaine_etudes = :domaine_etudes, niveau_etudes = :niveau_etudes,
-            telephone = :telephone, email = :email, annee_arrivee = :annee_arrivee,
-            type_logement = :type_logement, precision_logement = :precision_logement,
-            projet_apres_formation = :projet_apres_formation, identite = :identite,
-            nationalites = :nationalites, cv_path = :cv_path,
-            date_diplomation = :date_diplomation
-            WHERE id_personne = :id_personne";
+        $sql = "UPDATE students SET
+            last_name = :last_name, first_name = :first_name, gender = :gender,
+            birth_date = :birth_date, residence = :residence, institution = :institution,
+            status = :status, study_field = :study_field, study_level = :study_level,
+            phone = :phone, email = :email, arrival_year = :arrival_year,
+            housing_type = :housing_type, housing_details = :housing_details,
+            post_training_project = :post_training_project, identity_document = :identity_document,
+            nationalities = :nationalities, cv_path = :cv_path,
+            graduation_date = :graduation_date
+            WHERE id = :id";
 
         $params = [
-            'nom' => $formData['nom'],
-            'prenom' => $formData['prenom'],
-            'sexe' => $formData['sexe'],
-            'date_naissance' => $formData['date_naissance'] ?: null,
-            'lieu_residence' => $finalLieuResidenceForDb,
-            'etablissement' => $finalEtablissementForDb,
-            'statut' => $formData['statut'],
-            'domaine_etudes' => $finalDomaineEtudesForDb,
-            'niveau_etudes' => $finalNiveauEtudesForDb,
-            'telephone' => $formData['telephone'],
+            'last_name' => $formData['last_name'],
+            'first_name' => $formData['first_name'],
+            'gender' => $formData['gender'],
+            'birth_date' => $formData['birth_date'] ?: null,
+            'residence' => $finalLieuResidenceForDb,
+            'institution' => $finalEtablissementForDb,
+            'status' => $formData['status'],
+            'study_field' => $finalDomaineEtudesForDb,
+            'study_level' => $finalNiveauEtudesForDb,
+            'phone' => $formData['phone'],
             'email' => $formData['email'],
-            'annee_arrivee' => $formData['annee_arrivee'],
-            'type_logement' => $formData['type_logement'],
-            'precision_logement' => $formData['precision_logement'],
-            'projet_apres_formation' => $formData['projet_apres_formation'],
-            'identite' => $formData['identite'],
-            'nationalites' => $nationalites_json,
+            'arrival_year' => $formData['arrival_year'],
+            'housing_type' => $formData['housing_type'],
+            'housing_details' => $formData['housing_details'],
+            'post_training_project' => $formData['post_training_project'],
+            'identity_document' => $formData['identity_document'],
+            'nationalities' => $nationalities_json,
             'cv_path' => $formData['cv_path'],
-            'date_diplomation' => $finalDateDiplomation,
-            'id_personne' => $student_id
+            'graduation_date' => $finalGraduationDate,
+            'id' => $student_id
         ];
 
         $stmt = $conn->prepare($sql);
         $stmt->execute($params);
 
         // Update Nationalities Pivot
-        // 1. Delete old
-        $conn->prepare("DELETE FROM personne_pays WHERE id_personne = ?")->execute([$student_id]);
-        
-        // 2. Insert new
+        $conn->prepare("DELETE FROM student_country WHERE student_id = ?")->execute([$student_id]);
         if (!empty($validIds)) {
-             $stmtPivot = $conn->prepare("INSERT IGNORE INTO personne_pays (id_personne, id_pays) VALUES (?, ?)");
+             $stmtPivot = $conn->prepare("INSERT IGNORE INTO student_country (student_id, country_id) VALUES (?, ?)");
              foreach ($validIds as $pid) {
                  $stmtPivot->execute([$student_id, $pid]);
              }
         }
 
-        // Notify student that an admin updated their record
+        // Notify student
         $notifBody = renderEmailTemplate(__DIR__ . '/templates/emails/admin-update-notification.html', [
-            'id_personne'    => $student_id,
-            'prenom'         => $formData['prenom'],
-            'nom'            => $formData['nom'],
+            'id'             => $student_id,
+            'first_name'     => $formData['first_name'],
+            'last_name'      => $formData['last_name'],
             'email'          => $formData['email'],
-            'telephone'      => $formData['telephone'],
-            'statut'         => $formData['statut'],
-            'etablissement'  => $finalEtablissementForDb,
-            'domaine_etudes' => $finalDomaineEtudesForDb,
-            'niveau_etudes'  => $finalNiveauEtudesForDb,
-            'lieu_residence' => $finalLieuResidenceForDb,
-            'type_logement'  => $formData['type_logement'],
-            'date_mise_a_jour' => date('d/m/Y à H:i'),
+            'phone'          => $formData['phone'],
+            'status'         => $formData['status'],
+            'institution'    => $finalEtablissementForDb,
+            'study_field'    => $finalDomaineEtudesForDb,
+            'study_level'    => $finalNiveauEtudesForDb,
+            'residence'      => $finalLieuResidenceForDb,
+            'housing_type'   => $formData['housing_type'],
+            'update_date'    => date('d/m/Y à H:i'),
         ]);
         sendMail($formData['email'], 'Votre dossier a été mis à jour – AEESGS', $notifBody);
 
@@ -383,8 +368,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // --- Template Rendering ---
 $role = $_SESSION['role'];
-$nom = $_SESSION['nom'];
-$prenom = $_SESSION['prenom'];
+$nom = $_SESSION['last_name'] ?? '';
+$prenom = $_SESSION['first_name'] ?? '';
 
 // Define template paths
 $layoutPath = __DIR__ . '/templates/admin/layout.html';
@@ -396,15 +381,9 @@ require_once 'includes/sidebar.php';
 $sidebarHtml = ob_get_clean();
 
 $flash = getFlashMessage();
-$flash_json = '';
-if ($flash) {
-    $flash_json = json_encode($flash);
-}
+$flash_json = $flash ? json_encode($flash) : '';
 
-$validation_errors_json = '';
-if (!empty($errors)) {
-    $validation_errors_json = json_encode($errors);
-}
+$validation_errors_json = !empty($errors) ? json_encode($errors) : '';
 
 // Read content template
 $template = file_get_contents($templatePath);
@@ -412,39 +391,39 @@ $template = file_get_contents($templatePath);
 // Prepare replacements for the content template
 $sel = fn($value, $option) => $value === $option ? 'selected' : '';
 
-$etablissementOptions = '';
+$institutionOptions = '';
 foreach ($schools as $school) {
-    $etablissementOptions .= "<option value=\"$school\" " . $sel($formData['etablissement'], $school) . ">$school</option>";
+    $institutionOptions .= "<option value=\"$school\" " . $sel($formData['institution'], $school) . ">$school</option>";
 }
-$domaineOptions = '';
-foreach ($domaines as $domaine) {
-    $domaineOptions .= "<option value=\"$domaine\" " . $sel($formData['domaine_etudes'], $domaine) . ">$domaine</option>";
+$studyFieldOptions = '';
+foreach ($studyFields as $domaine) {
+    $studyFieldOptions .= "<option value=\"$domaine\" " . $sel($formData['study_field'], $domaine) . ">$domaine</option>";
 }
-$niveauOptions = '';
-foreach ($niveaux as $niveau) {
-    $niveauOptions .= "<option value=\"$niveau\" " . $sel($formData['niveau_etudes'], $niveau) . ">$niveau</option>";
+$studyLevelOptions = '';
+foreach ($studyLevels as $niveau) {
+    $studyLevelOptions .= "<option value=\"$niveau\" " . $sel($formData['study_level'], $niveau) . ">$niveau</option>";
 }
 
-// Fetch locations from the database
+// Fetch locations
 $stmt = $conn->query("SELECT region, name FROM locations ORDER BY CASE WHEN region LIKE 'Dakar%' THEN 0 ELSE 1 END, region ASC, name ASC");
 $locations = $stmt->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_COLUMN);
 
-$lieuResidenceOptions = '<option value="" selected>Sélectionnez un lieu</option>';
+$residenceOptions = '<option value="" selected>Sélectionnez un lieu</option>';
 foreach ($locations as $region => $cities) {
-    $lieuResidenceOptions .= "<optgroup label=\"$region\">";
+    $residenceOptions .= "<optgroup label=\"$region\">";
     foreach ($cities as $city) {
-        $selected = ($formData['lieu_residence'] ?? '') === $city ? 'selected' : '';
-        $lieuResidenceOptions .= "<option value=\"$city\" $selected>$city</option>";
+        $selected = ($formData['residence'] ?? '') === $city ? 'selected' : '';
+        $residenceOptions .= "<option value=\"$city\" $selected>$city</option>";
     }
-    $lieuResidenceOptions .= "</optgroup>";
+    $residenceOptions .= "</optgroup>";
 }
-$lieuResidenceOptions .= '<option value="Autre">Autre</option>';
+$residenceOptions .= '<option value="Autre">Autre</option>';
 
-$anneeArriveeOptions = '<option value="" selected>Sélectionnez</option>';
+$arrivalYearOptions = '<option value="" selected>Sélectionnez</option>';
 $currentYear = date('Y');
 for ($year = $currentYear; $year >= 1990; $year--) {
-    $selected = ($formData['annee_arrivee'] ?? '') == $year ? 'selected' : '';
-    $anneeArriveeOptions .= "<option value=\"$year\" $selected>$year</option>";
+    $selected = ($formData['arrival_year'] ?? '') == $year ? 'selected' : '';
+    $arrivalYearOptions .= "<option value=\"$year\" $selected>$year</option>";
 }
 
 $maxBirthDate = ($currentYear - 15) . '-12-31';
@@ -461,42 +440,42 @@ $replacements = [
     '{{feedback_block}}' => !empty($errors) ? '<div class="alert alert-danger">Veuillez corriger les erreurs ci-dessous.</div>' : '',
     '{{form_action}}' => 'edit-student.php?id=' . $student_id,
     '{{csrf_token}}' => generateCsrfToken(),
-    '{{nom}}' => htmlspecialchars($formData['nom'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{prenom}}' => htmlspecialchars($formData['prenom'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{date_naissance}}' => htmlspecialchars($formData['date_naissance'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{last_name}}' => htmlspecialchars($formData['last_name'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{first_name}}' => htmlspecialchars($formData['first_name'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{birth_date}}' => htmlspecialchars($formData['birth_date'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{max_birth_date}}' => $maxBirthDate,
-    '{{telephone}}' => htmlspecialchars($formData['telephone'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{phone}}' => htmlspecialchars($formData['phone'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{email}}' => htmlspecialchars($formData['email'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{lieu_residence}}' => htmlspecialchars($formData['lieu_residence'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{lieu_residence_options}}' => $lieuResidenceOptions,
-    '{{annee_arrivee_options}}' => $anneeArriveeOptions,
-    '{{precision_logement}}' => htmlspecialchars($formData['precision_logement'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{projet_apres_formation}}' => htmlspecialchars($formData['projet_apres_formation'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{etablissement_options}}' => $etablissementOptions,
-    '{{domaine_etudes_options}}' => $domaineOptions,
-    '{{niveau_etudes_options}}' => $niveauOptions,
-    '{{sexe_checked_Masculin}}' => $checked($formData['sexe'], 'Masculin'),
-    '{{sexe_checked_Feminin}}' => $checked($formData['sexe'], 'Feminin'),
-    '{{type_logement_sel_Colocation}}' => $sel($formData['type_logement'], 'Colocation'),
-    '{{type_logement_sel_Famille}}' => $sel($formData['type_logement'], 'Famille'),
-    '{{type_logement_sel_Hébergement temporaire}}' => $sel($formData['type_logement'], 'Hébergement temporaire'),
-    '{{type_logement_sel_Location}}' => $sel($formData['type_logement'], 'Location'),
-    '{{type_logement_sel_Résidence universitaire}}' => $sel($formData['type_logement'], 'Résidence universitaire'),
-    '{{type_logement_sel_Autre}}' => $sel($formData['type_logement'], 'Autre'),
-    '{{statut_sel_Élève}}' => $sel($formData['statut'], 'Élève'),
-    '{{statut_sel_Étudiant}}' => $sel($formData['statut'], 'Étudiant'),
-    '{{statut_sel_Stagiaire}}' => $sel($formData['statut'], 'Stagiaire'),
-    '{{statut_sel_Diplômé}}' => $sel($formData['statut'], 'Diplômé'),
-    '{{date_diplomation}}' => htmlspecialchars($formData['date_diplomation'] ?? ($student['date_diplomation'] ?? ''), ENT_QUOTES, 'UTF-8'),
-    '{{nationalites_value}}' => htmlspecialchars($nationalites_value, ENT_QUOTES, 'UTF-8'),
+    '{{residence}}' => htmlspecialchars($formData['residence'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{residence_options}}' => $residenceOptions,
+    '{{arrival_year_options}}' => $arrivalYearOptions,
+    '{{housing_details}}' => htmlspecialchars($formData['housing_details'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{post_training_project}}' => htmlspecialchars($formData['post_training_project'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{institution_options}}' => $institutionOptions,
+    '{{study_field_options}}' => $studyFieldOptions,
+    '{{study_level_options}}' => $studyLevelOptions,
+    '{{gender_checked_Male}}' => $checked($formData['gender'], 'Masculin') || $checked($formData['gender'], 'Male'),
+    '{{gender_checked_Female}}' => $checked($formData['gender'], 'Féminin') || $checked($formData['gender'], 'Female'),
+    '{{housing_type_sel_Colocation}}' => $sel($formData['housing_type'], 'Colocation'),
+    '{{housing_type_sel_Famille}}' => $sel($formData['housing_type'], 'Famille'),
+    '{{housing_type_sel_Hébergement temporaire}}' => $sel($formData['housing_type'], 'Hébergement temporaire'),
+    '{{housing_type_sel_Location}}' => $sel($formData['housing_type'], 'Location'),
+    '{{housing_type_sel_Résidence universitaire}}' => $sel($formData['housing_type'], 'Résidence universitaire'),
+    '{{housing_type_sel_Autre}}' => $sel($formData['housing_type'], 'Autre'),
+    '{{status_sel_PUPIL}}' => $sel($formData['status'], 'ELEVE') || $sel($formData['status'], 'PUPIL') || $sel($formData['status'], 'Élève'),
+    '{{status_sel_STUDENT}}' => $sel($formData['status'], 'ETUDIANT') || $sel($formData['status'], 'STUDENT') || $sel($formData['status'], 'Étudiant'),
+    '{{status_sel_TRAINEE}}' => $sel($formData['status'], 'STAGIAIRE') || $sel($formData['status'], 'TRAINEE') || $sel($formData['status'], 'Stagiaire'),
+    '{{status_sel_GRADUATE}}' => $sel($formData['status'], 'GRADUATE') || $sel($formData['status'], 'Diplômé'),
+    '{{graduation_date}}' => htmlspecialchars($formData['graduation_date'] ?? ($student['graduation_date'] ?? ''), ENT_QUOTES, 'UTF-8'),
+    '{{nationalities_value}}' => htmlspecialchars($nationalities_value, ENT_QUOTES, 'UTF-8'),
     '{{current_cv_display}}' => $currentCvDisplay,
-    '{{autre_lieu_residence}}' => htmlspecialchars($formData['autre_lieu_residence'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{autre_etablissement}}' => htmlspecialchars($formData['autre_etablissement'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{autre_domaine_etudes}}' => htmlspecialchars($formData['autre_domaine_etudes'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{autre_niveau_etudes}}' => htmlspecialchars($formData['autre_niveau_etudes'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{other_residence}}' => htmlspecialchars($formData['other_residence'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{other_institution}}' => htmlspecialchars($formData['other_institution'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{other_study_field}}' => htmlspecialchars($formData['other_study_field'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{other_study_level}}' => htmlspecialchars($formData['other_study_level'] ?? '', ENT_QUOTES, 'UTF-8'),
 ];
 
-$error_fields = ['nom', 'prenom', 'sexe', 'date_naissance', 'identite', 'telephone', 'email', 'lieu_residence', 'etablissement', 'statut', 'domaine_etudes', 'niveau_etudes', 'type_logement', 'cv'];
+$error_fields = ['last_name', 'first_name', 'gender', 'birth_date', 'identity_document', 'phone', 'email', 'residence', 'institution', 'status', 'study_field', 'study_level', 'housing_type', 'cv'];
 foreach ($error_fields as $field) {
     $replacements["{{error_$field}}"] = $errors[$field] ?? '';
     $replacements["{{is_invalid_$field}}"] = isset($errors[$field]) ? 'is-invalid' : '';

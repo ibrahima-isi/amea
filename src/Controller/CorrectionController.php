@@ -77,9 +77,9 @@ class CorrectionController extends BaseController
         $this->studentRepo->update($student->getId(), $dbData);
 
         // Handle auxiliary tables
-        if (!empty($dbData['etablissement'])) $this->studentRepo->ensureEtablissementExists($dbData['etablissement']);
-        if (!empty($dbData['domaine_etudes'])) $this->studentRepo->ensureDomaineExists($dbData['domaine_etudes']);
-        if (!empty($dbData['niveau_etudes']))  $this->studentRepo->ensureNiveauExists($dbData['niveau_etudes']);
+        if (!empty($dbData['institution'])) $this->studentRepo->ensureEtablissementExists($dbData['institution']);
+        if (!empty($dbData['study_field'])) $this->studentRepo->ensureDomaineExists($dbData['study_field']);
+        if (!empty($dbData['study_level']))  $this->studentRepo->ensureNiveauExists($dbData['study_level']);
 
         $this->flash->add('success', 'Votre dossier a été mis à jour et est à nouveau sous révision.');
         $this->redirect('/');
@@ -88,22 +88,22 @@ class CorrectionController extends BaseController
     private function mapStudentToFormData($student): array
     {
         return [
-            'nom' => $student->getNom(),
-            'prenom' => $student->getPrenom(),
-            'sexe' => $student->getSexe(),
-            'date_naissance' => $student->getDateNaissance(),
-            'lieu_residence' => $student->getLieuResidence(),
-            'etablissement' => $student->getEtablissement(),
-            'statut' => $student->getStatut(),
-            'domaine_etudes' => $student->getDomaineEtudes(),
-            'niveau_etudes' => $student->getNiveauEtudes(),
-            'telephone' => $student->getTelephone(),
+            'last_name' => $student->getLastName(),
+            'first_name' => $student->getFirstName(),
+            'gender' => $student->getGender(),
+            'birth_date' => $student->getBirthDate(),
+            'residence' => $student->getResidence(),
+            'institution' => $student->getInstitution(),
+            'status' => $student->getStatus(),
+            'study_field' => $student->getStudyField(),
+            'study_level' => $student->getStudyLevel(),
+            'phone' => $student->getPhone(),
             'email' => $student->getEmail(),
-            'nationalites' => json_encode(array_map(fn($n) => ['value' => $n], $student->getNationalites())),
-            'annee_arrivee' => $student->getAnneeArrivee(),
-            'type_logement' => $student->getTypeLogement(),
-            'precision_logement' => $student->getPrecisionLogement(),
-            'projet_apres_formation' => $student->getProjetApresFormation(),
+            'nationalities' => json_encode(array_map(fn($n) => ['value' => $n], $student->getNationalities())),
+            'arrival_year' => $student->getAnneeArrivee(),
+            'housing_type' => $student->getHousingType(),
+            'housing_details' => $student->getHousingDetails(),
+            'post_training_project' => $student->getPostTrainingProject(),
             'consent_privacy' => $student->hasConsentPrivacy() ? 1 : 0
         ];
     }

@@ -26,21 +26,21 @@ $studentsPhp = file_get_contents($root . '/students.php');
 $exportPhp = file_get_contents($root . '/export.php');
 
 expect(
-    'students.php excludes null and blank etablissements from options',
+    'students.php excludes null and blank institutions from options',
     $studentsPhp !== false
-        && preg_match("/SELECT DISTINCT etablissement FROM personnes WHERE etablissement IS NOT NULL AND etablissement <> '' ORDER BY etablissement/", $studentsPhp) === 1
+        && preg_match("/SELECT DISTINCT institution FROM students WHERE institution IS NOT NULL AND institution <> '' ORDER BY institution/", $studentsPhp) === 1
 );
 
 expect(
-    'export.php excludes null and blank etablissements from options',
+    'export.php excludes null and blank institutions from options',
     $exportPhp !== false
-        && preg_match("/SELECT DISTINCT etablissement FROM personnes WHERE etablissement IS NOT NULL AND etablissement <> '' ORDER BY etablissement/", $exportPhp) === 1
+        && preg_match("/SELECT DISTINCT institution FROM students WHERE institution IS NOT NULL AND institution <> '' ORDER BY institution/", $exportPhp) === 1
 );
 
 expect(
     'export.php excludes null and blank niveaux from options',
     $exportPhp !== false
-        && preg_match("/SELECT DISTINCT niveau_etudes FROM personnes WHERE niveau_etudes IS NOT NULL AND niveau_etudes <> '' ORDER BY niveau_etudes/", $exportPhp) === 1
+        && preg_match("/SELECT DISTINCT study_level FROM students WHERE study_level IS NOT NULL AND study_level <> '' ORDER BY study_level/", $exportPhp) === 1
 );
 
 echo "\n";

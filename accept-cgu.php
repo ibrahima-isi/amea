@@ -18,16 +18,16 @@ require_once 'functions/utility-functions.php';
 require_once 'functions/email-service.php';
 
 // Self-healing columns (may not exist on older installs)
-try { $conn->exec("ALTER TABLE personnes ADD COLUMN consent_refused_at DATETIME NULL"); }    catch (PDOException $e) {}
-try { $conn->exec("ALTER TABLE personnes ADD COLUMN deletion_requested_at DATETIME NULL"); } catch (PDOException $e) {}
+try { $conn->exec("ALTER TABLE students ADD COLUMN consent_refused_at DATETIME NULL"); }    catch (PDOException $e) {}
+try { $conn->exec("ALTER TABLE students ADD COLUMN deletion_requested_at DATETIME NULL"); } catch (PDOException $e) {}
 
 $token = trim($_GET['token'] ?? '');
 
 $student = null;
 if ($token !== '') {
     $stmt = $conn->prepare(
-        "SELECT id_personne, nom, prenom, email, consent_privacy
-         FROM personnes WHERE cgu_token = ? LIMIT 1"
+        "SELECT id, last_name, first_name, email, consent_privacy
+         FROM students WHERE cgu_token = ? LIMIT 1"
     );
     $stmt->execute([$token]);
     $student = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -49,29 +49,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $student && $postAction !== '') {
 
     if ($postAction === 'accept') {
         $conn->prepare(
-            "UPDATE personnes
+            "UPDATE students
              SET consent_privacy = 1, consent_privacy_date = NOW(),
                  consent_refused_at = NULL, cgu_token = NULL
-             WHERE id_personne = ? AND cgu_token = ?"
-        )->execute([$student['id_personne'], $token]);
+             WHERE id = ? AND cgu_token = ?"
+        )->execute([$student['id'], $token]);
         $state = 'accepted';
 
     } elseif ($postAction === 'refuse') {
         // Record refusal and revoke any previous consent
         $conn->prepare(
-            "UPDATE personnes
+            "UPDATE students
              SET consent_privacy = 0, consent_refused_at = NOW()
-             WHERE id_personne = ? AND cgu_token = ?"
-        )->execute([$student['id_personne'], $token]);
+             WHERE id = ? AND cgu_token = ?"
+        )->execute([$student['id'], $token]);
         $state = 'refused';
 
     } elseif ($postAction === 'request_deletion') {
         // Mark deletion request and notify admin
         $conn->prepare(
-            "UPDATE personnes
+            "UPDATE students
              SET deletion_requested_at = NOW(), cgu_token = NULL
-             WHERE id_personne = ? AND cgu_token = ?"
-        )->execute([$student['id_personne'], $token]);
+             WHERE id = ? AND cgu_token = ?"
+        )->execute([$student['id'], $token]);
 
         // Notify admin
         $adminEmail = $conn->query(
@@ -80,16 +80,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $student && $postAction !== '') {
 
         $adminBody = '<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;padding:20px;">'
             . '<h2 style="color:#CE1126;">Demande de suppression de données</h2>'
-            . '<p>Le membre <strong>' . htmlspecialchars($student['prenom'] . ' ' . $student['nom'], ENT_QUOTES, 'UTF-8') . '</strong>'
+            . '<p>Le membre <strong>' . htmlspecialchars($student['first_name'] . ' ' . $student['last_name'], ENT_QUOTES, 'UTF-8') . '</strong>'
             . ' (email&nbsp;: <strong>' . htmlspecialchars($student['email'] ?? '—', ENT_QUOTES, 'UTF-8') . '</strong>,'
-            . ' ID&nbsp;: #' . (int)$student['id_personne'] . ')'
+            . ' ID&nbsp;: #' . (int)$student['id'] . ')'
             . ' a refusé les CGU et demande la suppression de ses données personnelles.</p>'
             . '<p>Veuillez traiter cette demande conformément à la politique de confidentialité de l\'AEESGS.</p>'
             . '</body></html>';
 
         sendMail(
             $adminEmail,
-            'AEESGS – Demande de suppression de données (#' . (int)$student['id_personne'] . ')',
+            'AEESGS – Demande de suppression de données (#' . (int)$student['id'] . ')',
             $adminBody
         );
 
@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $student && $postAction !== '') {
 
 // ─── Build page content per state ─────────────────────────────────────────────
 $tokenHtml = htmlspecialchars($token, ENT_QUOTES, 'UTF-8');
-$name      = $student ? htmlspecialchars($student['prenom'] . ' ' . $student['nom'], ENT_QUOTES, 'UTF-8') : '';
+$name      = $student ? htmlspecialchars($student['first_name'] . ' ' . $student['last_name'], ENT_QUOTES, 'UTF-8') : '';
 
 $formOpen  = '<form method="POST" action="accept-cgu.php?token=' . $tokenHtml . '">';
 $formClose = '</form>';

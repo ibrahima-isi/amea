@@ -15,40 +15,40 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $role   = $_SESSION['role'];
-$nom    = $_SESSION['nom'];
-$prenom = $_SESSION['prenom'];
+$nom    = $_SESSION['last_name'] ?? '';
+$prenom = $_SESSION['first_name'] ?? '';
 
 // Statistiques globales
 $statsStmt = $conn->prepare("SELECT
     COUNT(*) as total,
-    SUM(CASE WHEN sexe = 'Masculin'  THEN 1 ELSE 0 END) as hommes,
-    SUM(CASE WHEN sexe = 'Féminin'   THEN 1 ELSE 0 END) as femmes,
-    SUM(CASE WHEN statut = 'Élève'     THEN 1 ELSE 0 END) as eleves,
-    SUM(CASE WHEN statut = 'Étudiant'  THEN 1 ELSE 0 END) as etudiants,
-    SUM(CASE WHEN statut = 'Stagiaire' THEN 1 ELSE 0 END) as stagiaires
-FROM personnes");
+    SUM(CASE WHEN gender = 'Male'  THEN 1 ELSE 0 END) as hommes,
+    SUM(CASE WHEN gender = 'Female'   THEN 1 ELSE 0 END) as femmes,
+    SUM(CASE WHEN status = 'PUPIL'     THEN 1 ELSE 0 END) as eleves,
+    SUM(CASE WHEN status = 'STUDENT'  THEN 1 ELSE 0 END) as etudiants,
+    SUM(CASE WHEN status = 'TRAINEE' THEN 1 ELSE 0 END) as stagiaires
+FROM students");
 $statsStmt->execute();
 $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
 
 // Nouveaux inscrits — 7 jours
-$recentWeekStmt = $conn->prepare("SELECT COUNT(*) FROM personnes WHERE date_enregistrement >= DATE_SUB(NOW(), INTERVAL 7 DAY)");
+$recentWeekStmt = $conn->prepare("SELECT COUNT(*) FROM students WHERE registration_date >= DATE_SUB(NOW(), INTERVAL 7 DAY)");
 $recentWeekStmt->execute();
 $recentWeek = (int)$recentWeekStmt->fetchColumn();
 
 // Nouveaux inscrits — 30 jours
-$recentMonthStmt = $conn->prepare("SELECT COUNT(*) FROM personnes WHERE date_enregistrement >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
+$recentMonthStmt = $conn->prepare("SELECT COUNT(*) FROM students WHERE registration_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
 $recentMonthStmt->execute();
 $recentMonth = (int)$recentMonthStmt->fetchColumn();
 
 // Top 5 établissements
-$etablissementStmt = $conn->prepare("SELECT etablissement, COUNT(*) as nombre FROM personnes GROUP BY etablissement ORDER BY nombre DESC LIMIT 5");
+$etablissementStmt = $conn->prepare("SELECT institution, COUNT(*) as nombre FROM students GROUP BY institution ORDER BY nombre DESC LIMIT 5");
 $etablissementStmt->execute();
 $etablissementStats = $etablissementStmt->fetchAll(PDO::FETCH_ASSOC);
 
 $labels = [];
 $values = [];
 foreach ($etablissementStats as $stat) {
-    $labels[] = jsStringLiteral($stat['etablissement'] ?? null, 'Non renseigné');
+    $labels[] = jsStringLiteral($stat['institution'] ?? null, 'Non renseigné');
     $values[] = (int)$stat['nombre'];
 }
 

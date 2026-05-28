@@ -21,15 +21,15 @@ require_once 'functions/utility-functions.php';
 $user_id = $_SESSION['user_id'];
 $username = $_SESSION['username'];
 $role = $_SESSION['role'];
-$nom = $_SESSION['nom'];
-$prenom = $_SESSION['prenom'];
+$nom = $_SESSION['last_name'] ?? '';
+$prenom = $_SESSION['first_name'] ?? '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
         setFlashMessage('error', 'La session a expiré. Veuillez réessayer.');
     } elseif (isset($_POST['update_profile'])) {
-        $newNom = trim($_POST['nom'] ?? '');
-        $newPrenom = trim($_POST['prenom'] ?? '');
+        $newNom = trim($_POST['last_name'] ?? '');
+        $newPrenom = trim($_POST['first_name'] ?? '');
         $newEmail = trim($_POST['email'] ?? '');
 
         if (empty($newNom) || empty($newPrenom) || empty($newEmail)) {
@@ -38,25 +38,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             setFlashMessage('error', "Veuillez entrer une adresse email valide.");
         } else {
             try {
-                $checkSql = "SELECT COUNT(*) FROM users WHERE email = :email AND id_user != :id_user";
+                $checkSql = "SELECT COUNT(*) FROM users WHERE email = :email AND id != :id";
                 $checkStmt = $conn->prepare($checkSql);
                 $checkStmt->bindParam(':email', $newEmail);
-                $checkStmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
+                $checkStmt->bindParam(':id', $user_id, PDO::PARAM_INT);
                 $checkStmt->execute();
 
                 if ($checkStmt->fetchColumn() > 0) {
                     setFlashMessage('error', "Cette adresse email est déjà utilisée par un autre utilisateur.");
                 } else {
-                    $updateSql = "UPDATE users SET nom = :nom, prenom = :prenom, email = :email WHERE id_user = :id_user";
+                    $updateSql = "UPDATE users SET last_name = :last_name, first_name = :first_name, email = :email WHERE id = :id";
                     $updateStmt = $conn->prepare($updateSql);
-                    $updateStmt->bindParam(':nom', $newNom);
-                    $updateStmt->bindParam(':prenom', $newPrenom);
+                    $updateStmt->bindParam(':last_name', $newNom);
+                    $updateStmt->bindParam(':first_name', $newPrenom);
                     $updateStmt->bindParam(':email', $newEmail);
-                    $updateStmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
+                    $updateStmt->bindParam(':id', $user_id, PDO::PARAM_INT);
                     $updateStmt->execute();
 
-                    $_SESSION['nom'] = $newNom;
-                    $_SESSION['prenom'] = $newPrenom;
+                    $_SESSION['last_name'] = $newNom;
+                    $_SESSION['first_name'] = $newPrenom;
 
                     setFlashMessage('success', 'Votre profil a été mis à jour avec succès.');
                 }
@@ -78,16 +78,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             setFlashMessage('error', "Le nouveau mot de passe doit contenir au moins 8 caractères.");
         } else {
             try {
-                $stmt = $conn->prepare("SELECT password FROM users WHERE id_user = :id_user");
-                $stmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
+                $stmt = $conn->prepare("SELECT password FROM users WHERE id = :id");
+                $stmt->bindParam(':id', $user_id, PDO::PARAM_INT);
                 $stmt->execute();
                 $user_password = $stmt->fetchColumn();
 
                 if (password_verify($currentPassword, $user_password)) {
                     $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-                    $updateStmt = $conn->prepare("UPDATE users SET password = :password WHERE id_user = :id_user");
+                    $updateStmt = $conn->prepare("UPDATE users SET password = :password WHERE id = :id");
                     $updateStmt->bindParam(':password', $hashedPassword);
-                    $updateStmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
+                    $updateStmt->bindParam(':id', $user_id, PDO::PARAM_INT);
                     $updateStmt->execute();
                     setFlashMessage('success', 'Votre mot de passe a été changé avec succès.');
                 } else {
@@ -124,15 +124,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 // Récupérer les informations complètes de l'utilisateur
 try {
-    $sql = "SELECT * FROM users WHERE id_user = :id_user";
+    $sql = "SELECT * FROM users WHERE id = :id";
     $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':id_user', $user_id, PDO::PARAM_INT);
+    $stmt->bindParam(':id', $user_id, PDO::PARAM_INT);
     $stmt->execute();
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     logError("Erreur lors de la récupération du profil utilisateur", $e);
     setFlashMessage('danger', "Impossible de récupérer les informations de profil pour le moment.");
-    // Redirect or handle error appropriately
 }
 
 $csrfToken = generateCsrfToken();
@@ -149,22 +148,19 @@ $contentTpl = file_get_contents($contentPath);
 $contentHtml = strtr($contentTpl, [
     '{{error_block}}' => '', // Handled by flash messages
     '{{success_block}}' => '', // Handled by flash messages
-    '{{avatar_initials}}' => htmlspecialchars(strtoupper(substr($user['prenom'] ?? '', 0, 1) . substr($user['nom'] ?? '', 0, 1)), ENT_QUOTES, 'UTF-8'),
-    '{{display_name}}' => htmlspecialchars(($user['prenom'] ?? '') . ' ' . ($user['nom'] ?? ''), ENT_QUOTES, 'UTF-8'),
+    '{{avatar_initials}}' => htmlspecialchars(strtoupper(substr($user['first_name'] ?? '', 0, 1) . substr($user['last_name'] ?? '', 0, 1)), ENT_QUOTES, 'UTF-8'),
+    '{{display_name}}' => htmlspecialchars(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''), ENT_QUOTES, 'UTF-8'),
     '{{username}}' => htmlspecialchars($username, ENT_QUOTES, 'UTF-8'),
     '{{role}}' => htmlspecialchars($role, ENT_QUOTES, 'UTF-8'),
     '{{email}}' => htmlspecialchars($user['email'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{nom}}' => htmlspecialchars($user['nom'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{prenom}}' => htmlspecialchars($user['prenom'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{last_name}}' => htmlspecialchars($user['last_name'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{first_name}}' => htmlspecialchars($user['first_name'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{form_action}}' => htmlspecialchars($_SERVER['PHP_SELF'] ?? 'profile.php', ENT_QUOTES, 'UTF-8'),
     '{{csrf_token}}' => htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'),
 ]);
 
 $flash = getFlashMessage();
-$flash_json = '';
-if ($flash) {
-    $flash_json = json_encode($flash);
-}
+$flash_json = $flash ? json_encode($flash) : '';
 
 // Layout
 $layoutTpl = file_get_contents($layoutPath);

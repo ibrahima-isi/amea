@@ -42,7 +42,7 @@ class PasswordResetService
         }
 
         $stmt = $this->pdo->prepare(
-            "SELECT id_user, email, nom, prenom FROM users WHERE id_user = ? AND est_actif = 1 LIMIT 1"
+            "SELECT id, email, last_name, first_name FROM users WHERE id = ? AND is_active = 1 LIMIT 1"
         );
         $stmt->execute([$userId]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -82,13 +82,13 @@ class PasswordResetService
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         $this->pdo->beginTransaction();
         try {
-            $stmt = $this->pdo->prepare("UPDATE users SET password = ? WHERE id_user = ?");
-            $stmt->execute([$hashedPassword, (int)$reset['id_user']]);
+            $stmt = $this->pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+            $stmt->execute([$hashedPassword, (int)$reset['id']]);
 
             $stmt = $this->pdo->prepare(
-                "UPDATE users SET session_version = COALESCE(session_version, 1) + 1 WHERE id_user = ?"
+                "UPDATE users SET session_version = COALESCE(session_version, 1) + 1 WHERE id = ?"
             );
-            $stmt->execute([(int)$reset['id_user']]);
+            $stmt->execute([(int)$reset['id']]);
 
             $stmt = $this->pdo->prepare("DELETE FROM password_resets WHERE email = ?");
             $stmt->execute([(string)$reset['email']]);
@@ -136,8 +136,8 @@ class PasswordResetService
         }
 
         $body = $this->view->render('emails/password-reset-email.html', [
-            'prenom' => (string)($user['prenom'] ?? ''),
-            'nom' => (string)($user['nom'] ?? ''),
+            'prenom' => (string)($user['first_name'] ?? ''),
+            'nom' => (string)($user['last_name'] ?? ''),
             'reset_link' => $this->resetLink($rawToken),
             'expires_in' => '5 minutes',
         ]);
@@ -155,7 +155,7 @@ class PasswordResetService
     private function findActiveUserByEmail(string $email): ?array
     {
         $stmt = $this->pdo->prepare(
-            "SELECT id_user, email, nom, prenom FROM users WHERE email = ? AND est_actif = 1 LIMIT 1"
+            "SELECT id, email, last_name, first_name FROM users WHERE email = ? AND is_active = 1 LIMIT 1"
         );
         $stmt->execute([$email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -170,10 +170,10 @@ class PasswordResetService
         }
 
         $stmt = $this->pdo->prepare(
-            "SELECT pr.email, pr.expires_at, u.id_user, u.nom, u.prenom
+            "SELECT pr.email, pr.expires_at, u.id, u.last_name, u.first_name
              FROM password_resets pr
              INNER JOIN users u ON u.email = pr.email
-             WHERE pr.token = ? AND u.est_actif = 1
+             WHERE pr.token = ? AND u.is_active = 1
              LIMIT 1"
         );
         $stmt->execute([$this->hashToken($rawToken)]);
@@ -195,8 +195,8 @@ class PasswordResetService
     private function sendPasswordChangedConfirmation(array $user, callable $sendMail): bool
     {
         $body = $this->view->render('emails/password-updated-confirmation.html', [
-            'prenom' => (string)($user['prenom'] ?? ''),
-            'nom' => (string)($user['nom'] ?? ''),
+            'prenom' => (string)($user['first_name'] ?? ''),
+            'nom' => (string)($user['last_name'] ?? ''),
         ]);
 
         $sent = $sendMail(

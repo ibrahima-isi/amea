@@ -20,23 +20,23 @@ if (!hasPermission('upgrade')) {
 
 require_once 'functions/email-service.php';
 
-$prenom = $_SESSION['prenom'];
-$nom    = $_SESSION['nom'];
+$prenom = $_SESSION['first_name'] ?? '';
+$nom    = $_SESSION['last_name'] ?? '';
 
 // ─── Ensure table exists (runs once, no-op if already there) ─────────────
 $conn->exec("CREATE TABLE IF NOT EXISTS pending_level_upgrades (
     id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    personne_id   INT NOT NULL,
-    ancien_niveau VARCHAR(100) NOT NULL,
-    nouveau_niveau VARCHAR(100) NOT NULL,
+    student_id    INT NOT NULL,
+    old_level     VARCHAR(100) NOT NULL,
+    new_level     VARCHAR(100) NOT NULL,
     token         VARCHAR(100) NOT NULL UNIQUE,
     created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     expires_at    DATETIME NOT NULL,
     confirmed_at  DATETIME NULL,
     INDEX idx_token    (token),
-    INDEX idx_personne (personne_id),
-    CONSTRAINT fk_plu_personne FOREIGN KEY (personne_id)
-        REFERENCES personnes(id_personne) ON DELETE CASCADE
+    INDEX idx_personne (student_id),
+    CONSTRAINT fk_plu_personne FOREIGN KEY (student_id)
+        REFERENCES students(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
 // ─── Natural next-level suggestions (pre-selects dropdown, not enforced) ─
@@ -52,24 +52,24 @@ const GRADE_NEXT = [
 ];
 
 // ─── All available levels (from DB, ordered) ─────────────────────────────
-$allLevels = $conn->query("SELECT nom FROM niveaux_etudes ORDER BY id")
+$allLevels = $conn->query("SELECT name FROM study_levels ORDER BY id")
                   ->fetchAll(PDO::FETCH_COLUMN);
 
 // ─── Eligible students ────────────────────────────────────────────────────
 // Rules: registered >= 1 year ago, not Diplômé, and no upgrade confirmed
 // in the last 12 months (covers both auto-upgrades and email-confirmed ones).
 $stmtAll = $conn->query(
-    "SELECT id_personne, nom, prenom, email, niveau_etudes, statut
-     FROM personnes
-     WHERE statut NOT IN ('Diplômé', 'DIPLOME')
-       AND date_enregistrement <= DATE_SUB(NOW(), INTERVAL 1 YEAR)
+    "SELECT id, last_name, first_name, email, study_level, status
+     FROM students
+     WHERE status NOT IN ('GRADUATE', 'DIPLOME', 'Diplômé')
+       AND registration_date <= DATE_SUB(NOW(), INTERVAL 1 YEAR)
        AND NOT EXISTS (
            SELECT 1 FROM pending_level_upgrades plu
-           WHERE plu.personne_id = personnes.id_personne
+           WHERE plu.student_id = students.id
              AND plu.confirmed_at IS NOT NULL
              AND plu.confirmed_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR)
        )
-     ORDER BY niveau_etudes, nom, prenom"
+     ORDER BY study_level, last_name, first_name"
 );
 $allStudents = $stmtAll->fetchAll(PDO::FETCH_ASSOC);
 
@@ -96,15 +96,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         // Find current level from loaded list
         foreach ($allStudents as $s) {
-            if ((int)$s['id_personne'] === $id) {
-                if ($s['niveau_etudes'] !== $next) { // skip no-change
+            if ((int)$s['id'] === $id) {
+                if ($s['study_level'] !== $next) { // skip no-change
                     $targets[] = [
-                        'id_personne'    => $id,
-                        'ancien_niveau'  => $s['niveau_etudes'],
-                        'nouveau_niveau' => $next,
+                        'id'             => $id,
+                        'old_level'      => $s['study_level'],
+                        'new_level'      => $next,
                         'email'          => $s['email'],
-                        'prenom'         => $s['prenom'],
-                        'nom'            => $s['nom'],
+                        'first_name'     => $s['first_name'],
+                        'last_name'      => $s['last_name'],
                     ];
                 }
                 break;
@@ -118,20 +118,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conn->beginTransaction();
         try {
             $updateStmt = $conn->prepare(
-                'UPDATE personnes SET niveau_etudes = ? WHERE id_personne = ? AND niveau_etudes = ?'
+                'UPDATE students SET study_level = ? WHERE id = ? AND study_level = ?'
             );
             $trackStmt = $conn->prepare(
                 'INSERT IGNORE INTO pending_level_upgrades
-                 (personne_id, ancien_niveau, nouveau_niveau, token, expires_at, confirmed_at)
+                 (student_id, old_level, new_level, token, expires_at, confirmed_at)
                  VALUES (?, ?, ?, ?, NOW(), NOW())'
             );
             foreach ($targets as $t) {
-                $updateStmt->execute([$t['nouveau_niveau'], $t['id_personne'], $t['ancien_niveau']]);
+                $updateStmt->execute([$t['new_level'], $t['id'], $t['old_level']]);
                 if ($updateStmt->rowCount() > 0) {
                     $upgraded++;
                     $trackStmt->execute([
-                        $t['id_personne'], $t['ancien_niveau'], $t['nouveau_niveau'],
-                        'auto_' . $t['id_personne'] . '_' . bin2hex(random_bytes(8)),
+                        $t['id'], $t['old_level'], $t['new_level'],
+                        'auto_' . $t['id'] . '_' . bin2hex(random_bytes(8)),
                     ]);
                 }
             }
@@ -144,17 +144,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         // Refresh list (re-apply eligibility filter)
         $allStudents = $conn->query(
-            "SELECT id_personne, nom, prenom, email, niveau_etudes, statut
-             FROM personnes
-             WHERE statut NOT IN ('Diplômé', 'DIPLOME')
-               AND date_enregistrement <= DATE_SUB(NOW(), INTERVAL 1 YEAR)
+            "SELECT id, last_name, first_name, email, study_level, status
+             FROM students
+             WHERE status NOT IN ('GRADUATE', 'DIPLOME', 'Diplômé')
+               AND registration_date <= DATE_SUB(NOW(), INTERVAL 1 YEAR)
                AND NOT EXISTS (
                    SELECT 1 FROM pending_level_upgrades plu
-                   WHERE plu.personne_id = personnes.id_personne
+                   WHERE plu.student_id = students.id
                      AND plu.confirmed_at IS NOT NULL
                      AND plu.confirmed_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR)
                )
-             ORDER BY niveau_etudes, nom, prenom"
+             ORDER BY study_level, last_name, first_name"
         )->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -169,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $insertStmt = $conn->prepare(
             'INSERT IGNORE INTO pending_level_upgrades
-             (personne_id, ancien_niveau, nouveau_niveau, token, expires_at)
+             (student_id, old_level, new_level, token, expires_at)
              VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))'
         );
 
@@ -179,22 +179,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Check if a pending (non-expired, non-confirmed) upgrade already exists
             $check = $conn->prepare(
                 'SELECT id FROM pending_level_upgrades
-                 WHERE personne_id = ? AND confirmed_at IS NULL AND expires_at > NOW()'
+                 WHERE student_id = ? AND confirmed_at IS NULL AND expires_at > NOW()'
             );
-            $check->execute([$t['id_personne']]);
+            $check->execute([$t['id']]);
             if ($check->fetch()) { $skipped++; continue; }
 
             $token = bin2hex(random_bytes(32));
-            $insertStmt->execute([$t['id_personne'], $t['ancien_niveau'], $t['nouveau_niveau'], $token]);
+            $insertStmt->execute([$t['id'], $t['old_level'], $t['new_level'], $token]);
 
             $confirmLink = $appUrl . '/confirm-upgrade.php?token=' . $token;
             $body = renderEmailTemplate(
                 __DIR__ . '/templates/emails/grade-upgrade-email.html',
                 [
-                    'prenom'        => htmlspecialchars($t['prenom']),
-                    'nom'           => htmlspecialchars($t['nom']),
-                    'ancien_niveau' => htmlspecialchars($t['ancien_niveau']),
-                    'nouveau_niveau'=> htmlspecialchars($t['nouveau_niveau']),
+                    'prenom'        => htmlspecialchars($t['first_name']),
+                    'nom'           => htmlspecialchars($t['last_name']),
+                    'ancien_niveau' => htmlspecialchars($t['old_level']),
+                    'nouveau_niveau'=> htmlspecialchars($t['new_level']),
                     'confirm_link'  => $confirmLink,
                     'expires_in'    => '7 jours',
                 ]
@@ -240,9 +240,9 @@ foreach ($allLevels as $lvl) {
 $rows = '';
 $statutLabels = ['ELEVE' => 'Élève', 'ETUDIANT' => 'Étudiant', 'STAGIAIRE' => 'Stagiaire'];
 foreach ($allStudents as $s) {
-    $suggestion = GRADE_NEXT[$s['niveau_etudes']] ?? $s['niveau_etudes'];
-    $id = (int)$s['id_personne'];
-    $statutLabel = $statutLabels[$s['statut']] ?? htmlspecialchars($s['statut']);
+    $suggestion = GRADE_NEXT[$s['study_level']] ?? $s['study_level'];
+    $id = (int)$s['id'];
+    $statutLabel = $statutLabels[$s['status']] ?? htmlspecialchars($s['status']);
 
     // Build select options with the suggestion pre-selected
     $options = '';
@@ -253,8 +253,8 @@ foreach ($allStudents as $s) {
 
     $rows .= '<tr>'
         . '<td><input type="checkbox" name="upgrades[' . $id . '][selected]" value="1" class="form-check-input student-checkbox"></td>'
-        . '<td>' . htmlspecialchars($s['prenom'] . ' ' . $s['nom']) . '</td>'
-        . '<td>' . htmlspecialchars($s['niveau_etudes']) . '</td>'
+        . '<td>' . htmlspecialchars($s['first_name'] . ' ' . $s['last_name']) . '</td>'
+        . '<td>' . htmlspecialchars($s['study_level']) . '</td>'
         . '<td><span class="badge bg-secondary fw-normal">' . $statutLabel . '</span></td>'
         . '<td>'
         . '<select name="upgrades[' . $id . '][next]" class="form-select form-select-sm level-select" style="min-width:200px;">'

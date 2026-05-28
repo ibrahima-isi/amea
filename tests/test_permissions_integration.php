@@ -113,23 +113,23 @@ $limitedPermsJson = json_encode(['documents']); // only documents, NOT users
 // Clean up any leftover fixtures from a previous failed run
 $conn->exec("DELETE FROM password_resets WHERE email LIKE '_test_%@test.local'");
 $conn->exec("DELETE FROM users WHERE username IN ('_test_fulladmin','_test_restricted')");
-$conn->exec("DELETE FROM personnes WHERE email = '_test_student_details@test.local'");
+$conn->exec("DELETE FROM students WHERE email = '_test_student_details@test.local'");
 
-$conn->prepare("INSERT INTO users (username, email, nom, prenom, password, role, permissions, est_actif, date_creation)
+$conn->prepare("INSERT INTO users (username, email, last_name, first_name, password, role, permissions, is_active, created_at)
                 VALUES ('_test_fulladmin', '_test_fulladmin@test.local', 'Test', 'FullAdmin', ?, 'admin', ?, 1, NOW())")
      ->execute([$testHash, $allPermsJson]);
 $fullAdminId = (int)$conn->lastInsertId();
 
-$conn->prepare("INSERT INTO users (username, email, nom, prenom, password, role, permissions, est_actif, date_creation)
+$conn->prepare("INSERT INTO users (username, email, last_name, first_name, password, role, permissions, is_active, created_at)
                 VALUES ('_test_restricted', '_test_restricted@test.local', 'Test', 'Restricted', ?, 'admin', ?, 1, NOW())")
      ->execute([$testHash, $limitedPermsJson]);
 $restrictedId = (int)$conn->lastInsertId();
 
-$conn->prepare("INSERT INTO personnes (
-                    nom, prenom, sexe, date_naissance, lieu_residence, etablissement,
-                    statut, domaine_etudes, niveau_etudes, telephone, email,
-                    annee_arrivee, type_logement, projet_apres_formation,
-                    consent_privacy, is_locked, date_enregistrement
+$conn->prepare("INSERT INTO students (
+                    last_name, first_name, gender, birth_date, residence, institution,
+                    status, study_field, study_level, phone, email,
+                    arrival_year, housing_type, post_training_project,
+                    consent_privacy, is_locked, registration_date
                 ) VALUES (
                     'StudentDetails', 'Fixture', 'Masculin', '2000-01-02', 'Dakar', 'UCAD',
                     'ETUDIANT', 'Informatique', 'Licence', '_test_770000001',
@@ -164,7 +164,6 @@ foreach ([
     '/export.php',
     '/manage-slider.php',
     '/upgrade-levels.php',
-    '/reconcile-documents.php',
     '/communications.php',
 ] as $path) {
     [$code] = http('GET', $path);
@@ -212,14 +211,14 @@ if ($sessionsOk) {
         'username'      => '_test_restricted',
         'email'         => '_test_restricted@test.local',
         'role'          => 'admin',
-        'est_actif'     => '1',
+        'is_active'     => '1',
         'permissions[]' => ['students','export','users','slider','upgrade','documents','communications','settings'],
     ], $restrictedJar);
 
     expect('POST with invalid CSRF → 302 redirect',         $postCode === 302);
 
     // Verify DB: restricted admin's permissions must still be documents-only
-    $check = $conn->prepare("SELECT permissions FROM users WHERE id_user = ?");
+    $check = $conn->prepare("SELECT permissions FROM users WHERE id = ?");
     $check->execute([$restrictedId]);
     $permsInDb = json_decode($check->fetchColumn(), true);
     expect('DB permissions unchanged after blocked POST',
@@ -250,11 +249,11 @@ if ($sessionsOk) {
             'username'    => '_test_fulladmin',
             'email'       => '_test_fulladmin@test.local',
             'role'        => 'admin',
-            'est_actif'   => '1',
+            'is_active'   => '1',
             'permissions' => $manipulated,
         ], $fullAdminJar);
 
-        $check = $conn->prepare("SELECT permissions FROM users WHERE id_user = ?");
+        $check = $conn->prepare("SELECT permissions FROM users WHERE id = ?");
         $check->execute([$fullAdminId]);
         $permsInDb = json_decode($check->fetchColumn(), true);
         expect('injected_module NOT present after self-edit',
@@ -322,7 +321,7 @@ if ($sessionsOk) {
         'username'  => '_test_restricted',
         'email'     => '_test_restricted@test.local',
         'role'      => 'admin',
-        'est_actif' => '1',
+        'is_active' => '1',
     ], $fullAdminJar);
     expect('POST without CSRF token → 302 redirect', $code === 302);
 }
@@ -349,14 +348,14 @@ if ($sessionsOk) {
             'csrf_token'  => $csrf,
             'username'    => '_test_restricted',
             'email'       => '_test_restricted@test.local',
-            'nom'         => 'Test',
-            'prenom'      => 'Restricted',
+            'last_name'         => 'Test',
+            'first_name'      => 'Restricted',
             'role'        => 'admin',
-            'est_actif'   => '1',
+            'is_active'   => '1',
             'permissions' => ['documents', '../../etc/passwd', 'injected_module'],
         ], $fullAdminJar);
 
-        $check = $conn->prepare("SELECT permissions FROM users WHERE id_user = ?");
+        $check = $conn->prepare("SELECT permissions FROM users WHERE id = ?");
         $check->execute([$restrictedId]);
         $stored = json_decode($check->fetchColumn(), true) ?? [];
         expect('injected_module not stored in DB',      !in_array('injected_module', $stored));
@@ -377,28 +376,28 @@ if ($sessionsOk) {
         $csrf = $m[1];
     }
 
-    expect('Edit form contains nom input', str_contains($body, 'name="nom"'));
-    expect('Edit form contains prenom input', str_contains($body, 'name="prenom"'));
+    expect('Edit form contains last_name input', str_contains($body, 'name="last_name"'));
+    expect('Edit form contains first_name input', str_contains($body, 'name="first_name"'));
 
     if ($csrf !== '') {
         [$postCode, $postLocation] = http('POST', "/edit-user.php?id=$restrictedId", [
             'csrf_token'  => $csrf,
             'username'    => '_test_restricted',
             'email'       => '_test_restricted@test.local',
-            'nom'         => 'EditedNom',
-            'prenom'      => 'EditedPrenom',
+            'last_name'         => 'EditedNom',
+            'first_name'      => 'EditedFirstName',
             'role'        => 'admin',
-            'est_actif'   => '1',
+            'is_active'   => '1',
             'permissions' => ['documents'],
         ], $fullAdminJar);
 
         expect('Full-admin full-name edit POST → 302 redirect', $postCode === 302 && str_contains($postLocation, 'users.php'));
 
-        $check = $conn->prepare("SELECT nom, prenom FROM users WHERE id_user = ?");
+        $check = $conn->prepare("SELECT last_name, first_name FROM users WHERE id = ?");
         $check->execute([$restrictedId]);
         $row = $check->fetch(PDO::FETCH_ASSOC);
-        expect('Full-admin edit updates nom in DB', $row['nom'] === 'EditedNom');
-        expect('Full-admin edit updates prenom in DB', $row['prenom'] === 'EditedPrenom');
+        expect('Full-admin edit updates last_name in DB', $row['last_name'] === 'EditedNom');
+        expect('Full-admin edit updates first_name in DB', $row['first_name'] === 'EditedFirstName');
     } else {
         expect('SKIP: could not extract CSRF for full-name edit test', false);
         expect('SKIP: could not extract CSRF for full-name edit test', false);
@@ -416,7 +415,7 @@ if ($sessionsOk) {
         $csrf = $m[1];
     }
 
-    $beforeHash = (string)$conn->query("SELECT password FROM users WHERE id_user = {$restrictedId}")->fetchColumn();
+    $beforeHash = (string)$conn->query("SELECT password FROM users WHERE id = {$restrictedId}")->fetchColumn();
 
     if ($csrf !== '') {
         [$postCode, $postLocation] = http('POST', '/users.php', [
@@ -427,7 +426,7 @@ if ($sessionsOk) {
 
         expect('Admin reset POST → 302 redirect to users.php', $postCode === 302 && str_contains($postLocation, 'users.php'));
 
-        $afterHash = (string)$conn->query("SELECT password FROM users WHERE id_user = {$restrictedId}")->fetchColumn();
+        $afterHash = (string)$conn->query("SELECT password FROM users WHERE id = {$restrictedId}")->fetchColumn();
         expect('Admin reset does not directly change password', $afterHash === $beforeHash);
 
         $resetStmt = $conn->prepare("SELECT token, expires_at FROM password_resets WHERE email = ? ORDER BY expires_at DESC LIMIT 1");
@@ -486,23 +485,23 @@ if ($sessionsOk) {
             'csrf_token' => $csrf,
             'username'   => '_test_restricted',
             'email'      => '_test_restricted@test.local',
-            'nom'        => 'EditedNom',
-            'prenom'     => 'EditedPrenom',
+            'last_name'        => 'EditedNom',
+            'first_name'     => 'EditedFirstName',
             'role'       => 'user',   // ← demotion
-            'est_actif'  => '1',
+            'is_active'  => '1',
         ], $fullAdminJar);
 
         expect('Role demotion POST → 302 redirect to users.php', $postCode === 302 && str_contains($postLocation, 'users.php'));
 
         // DB must reflect the demotion; permissions must be NULL (cleared server-side)
-        $check = $conn->prepare("SELECT role, permissions FROM users WHERE id_user = ?");
+        $check = $conn->prepare("SELECT role, permissions FROM users WHERE id = ?");
         $check->execute([$restrictedId]);
         $row = $check->fetch(PDO::FETCH_ASSOC);
         expect('Role changed to "user" in DB',             $row['role'] === 'user');
         expect('Permissions cleared (NULL) after demotion', $row['permissions'] === null);
 
         // Restore role so teardown and later tests still work
-        $conn->prepare("UPDATE users SET role = 'admin', permissions = ? WHERE id_user = ?")
+        $conn->prepare("UPDATE users SET role = 'admin', permissions = ? WHERE id = ?")
              ->execute([json_encode(['documents']), $restrictedId]);
     } else {
         expect('SKIP: could not extract CSRF for demotion test', false);
@@ -511,7 +510,7 @@ if ($sessionsOk) {
 
 // ─── Teardown ─────────────────────────────────────────────────────────────────
 $conn->exec("DELETE FROM password_resets WHERE email LIKE '_test_%@test.local'");
-$conn->exec("DELETE FROM personnes WHERE email = '_test_student_details@test.local'");
+$conn->exec("DELETE FROM students WHERE email = '_test_student_details@test.local'");
 $conn->exec("DELETE FROM users WHERE username IN ('_test_fulladmin','_test_restricted')");
 @unlink($fullAdminJar);
 @unlink($restrictedJar);

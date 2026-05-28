@@ -2,19 +2,19 @@ document.addEventListener("DOMContentLoaded", function () {
   let tagify; // Variable to store Tagify instance
 
   // === Flatpickr Initialization for Date de naissance ===
-  const dateNaissanceInput = document.getElementById("date_naissance");
-  if (dateNaissanceInput) {
-    flatpickr(dateNaissanceInput, {
+  const birthDateInput = document.getElementById("birth_date");
+  if (birthDateInput) {
+    flatpickr(birthDateInput, {
       locale: "fr",
       dateFormat: "Y-m-d", // The format that will be submitted with the form
       altInput: true, // Show user-friendly date
       altFormat: "j F, Y", // How the user-friendly date will look
-      maxDate: dateNaissanceInput.dataset.maxDate || new Date(), // Set maxDate from data attribute, or today if not found
+      maxDate: birthDateInput.dataset.maxDate || new Date(), // Set maxDate from data attribute, or today if not found
     });
   }
 
   // === Tagify Initialization for Nationalities ===
-  const input = document.querySelector('input[name="nationalites"]');
+  const input = document.querySelector('input[name="nationalities"]');
   if (input) {
     fetch("assets/json/countries.json")
       .then((response) => response.json())
@@ -67,32 +67,32 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // === Existing Logic ===
-  const etablissementSelect = document.getElementById("etablissement");
-  const autreEtablissementDiv = document.getElementById(
-    "autre_etablissement_wrapper",
+  const institutionSelect = document.getElementById("institution");
+  const otherInstitutionDiv = document.getElementById(
+    "other_institution_wrapper",
   );
-  const autreEtablissementInput = document.getElementById(
-    "autre_etablissement",
+  const otherInstitutionInput = document.getElementById(
+    "other_institution",
   );
 
-  const domaineSelect = document.getElementById("domaine_etudes");
-  const autreDomaineDiv = document.getElementById(
-    "autre_domaine_etudes_wrapper",
+  const studyFieldSelect = document.getElementById("study_field");
+  const otherStudyFieldDiv = document.getElementById(
+    "other_study_field_wrapper",
   );
-  const autreDomaineInput = document.getElementById("autre_domaine_etudes");
+  const otherStudyFieldInput = document.getElementById("other_study_field");
 
-  const niveauSelect = document.getElementById("niveau_etudes");
-  const autreNiveauDiv = document.getElementById("autre_niveau_etudes_wrapper");
-  const autreNiveauInput = document.getElementById("autre_niveau_etudes");
+  const studyLevelSelect = document.getElementById("study_level");
+  const otherStudyLevelDiv = document.getElementById("other_study_level_wrapper");
+  const otherStudyLevelInput = document.getElementById("other_study_level");
 
-  const typeLogementSelect = document.getElementById("type_logement");
+  const housingTypeSelect = document.getElementById("housing_type");
 
-  const lieuResidenceSelect = document.getElementById("lieu_residence");
-  const autreLieuResidenceDiv = document.getElementById(
-    "autre_lieu_residence_wrapper",
+  const residenceSelect = document.getElementById("residence");
+  const otherResidenceDiv = document.getElementById(
+    "other_residence_wrapper",
   );
-  const autreLieuResidenceInput = document.getElementById(
-    "autre_lieu_residence",
+  const otherResidenceInput = document.getElementById(
+    "other_residence",
   );
 
   function toggleOtherField(selectElement, otherDiv, otherInput) {
@@ -106,64 +106,64 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  if (etablissementSelect) {
-    etablissementSelect.addEventListener("change", () =>
+  if (institutionSelect) {
+    institutionSelect.addEventListener("change", () =>
       toggleOtherField(
-        etablissementSelect,
-        autreEtablissementDiv,
-        autreEtablissementInput,
+        institutionSelect,
+        otherInstitutionDiv,
+        otherInstitutionInput,
       ),
     );
     toggleOtherField(
-      etablissementSelect,
-      autreEtablissementDiv,
-      autreEtablissementInput,
+      institutionSelect,
+      otherInstitutionDiv,
+      otherInstitutionInput,
     );
   }
 
-  if (domaineSelect) {
-    domaineSelect.addEventListener("change", () =>
-      toggleOtherField(domaineSelect, autreDomaineDiv, autreDomaineInput),
+  if (studyFieldSelect) {
+    studyFieldSelect.addEventListener("change", () =>
+      toggleOtherField(studyFieldSelect, otherStudyFieldDiv, otherStudyFieldInput),
     );
-    toggleOtherField(domaineSelect, autreDomaineDiv, autreDomaineInput);
+    toggleOtherField(studyFieldSelect, otherStudyFieldDiv, otherStudyFieldInput);
   }
 
-  if (niveauSelect) {
-    niveauSelect.addEventListener("change", () =>
-      toggleOtherField(niveauSelect, autreNiveauDiv, autreNiveauInput),
+  if (studyLevelSelect) {
+    studyLevelSelect.addEventListener("change", () =>
+      toggleOtherField(studyLevelSelect, otherStudyLevelDiv, otherStudyLevelInput),
     );
-    toggleOtherField(niveauSelect, autreNiveauDiv, autreNiveauInput);
+    toggleOtherField(studyLevelSelect, otherStudyLevelDiv, otherStudyLevelInput);
   }
 
-  if (lieuResidenceSelect) {
-    lieuResidenceSelect.addEventListener("change", () =>
+  if (residenceSelect) {
+    residenceSelect.addEventListener("change", () =>
       toggleOtherField(
-        lieuResidenceSelect,
-        autreLieuResidenceDiv,
-        autreLieuResidenceInput,
+        residenceSelect,
+        otherResidenceDiv,
+        otherResidenceInput,
       ),
     );
     toggleOtherField(
-      lieuResidenceSelect,
-      autreLieuResidenceDiv,
-      autreLieuResidenceInput,
+      residenceSelect,
+      otherResidenceDiv,
+      otherResidenceInput,
     );
   }
 
   const registrationForm = document.getElementById("registrationForm");
-  const statutSelect = document.getElementById("statut");
+  const statusSelect = document.getElementById("status");
 
   function validateRequiredStatus(showAlert) {
-    if (!statutSelect || statutSelect.value.trim() !== "") {
-      if (statutSelect) {
-        statutSelect.classList.remove("is-invalid");
-        statutSelect.setCustomValidity("");
+    if (!statusSelect || statusSelect.value.trim() !== "") {
+      if (statusSelect) {
+        statusSelect.classList.remove("is-invalid");
+        statusSelect.setCustomValidity("");
       }
       return true;
     }
 
-    statutSelect.classList.add("is-invalid");
-    statutSelect.setCustomValidity("Veuillez sélectionner votre statut.");
+    statusSelect.classList.add("is-invalid");
+    statusSelect.setCustomValidity("Veuillez sélectionner votre statut.");
 
     if (showAlert && typeof Swal !== "undefined") {
       Swal.fire({
@@ -173,12 +173,12 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
 
-    statutSelect.focus();
+    statusSelect.focus();
     return false;
   }
 
-  if (statutSelect) {
-    statutSelect.addEventListener("change", () => validateRequiredStatus(false));
+  if (statusSelect) {
+    statusSelect.addEventListener("change", () => validateRequiredStatus(false));
   }
 
   if (registrationForm) {

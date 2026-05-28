@@ -28,28 +28,28 @@ $conn = new PDO('sqlite::memory:');
 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $conn->exec("
     CREATE TABLE users (
-        id_user   INTEGER PRIMARY KEY,
+        id   INTEGER PRIMARY KEY,
         role      TEXT,
         permissions TEXT
     )
 ");
 
 // Super Admin (ID 1) — permissions column is intentionally left null; hasPermission bypasses DB for ID 1
-$conn->exec("INSERT INTO users (id_user, role, permissions) VALUES (1, 'admin', NULL)");
+$conn->exec("INSERT INTO users (id, role, permissions) VALUES (1, 'admin', NULL)");
 // Regular admin with some permissions
-$conn->exec("INSERT INTO users (id_user, role, permissions) VALUES (2, 'admin', '[\"students\",\"export\"]')");
+$conn->exec("INSERT INTO users (id, role, permissions) VALUES (2, 'admin', '[\"students\",\"export\"]')");
 // Admin with no permissions
-$conn->exec("INSERT INTO users (id_user, role, permissions) VALUES (3, 'admin', '[]')");
+$conn->exec("INSERT INTO users (id, role, permissions) VALUES (3, 'admin', '[]')");
 // Admin with null permissions stored as empty string
-$conn->exec("INSERT INTO users (id_user, role, permissions) VALUES (4, 'admin', '')");
+$conn->exec("INSERT INTO users (id, role, permissions) VALUES (4, 'admin', '')");
 // Non-admin user
-$conn->exec("INSERT INTO users (id_user, role, permissions) VALUES (5, 'user', NULL)");
+$conn->exec("INSERT INTO users (id, role, permissions) VALUES (5, 'user', NULL)");
 // Admin with all permissions
 $allPerms = json_encode(['students','export','users','slider','upgrade','documents','communications','settings']);
-$stmt = $conn->prepare("INSERT INTO users (id_user, role, permissions) VALUES (6, 'admin', ?)");
+$stmt = $conn->prepare("INSERT INTO users (id, role, permissions) VALUES (6, 'admin', ?)");
 $stmt->execute([$allPerms]);
 // Admin with malformed JSON
-$conn->exec("INSERT INTO users (id_user, role, permissions) VALUES (7, 'admin', 'not-valid-json')");
+$conn->exec("INSERT INTO users (id, role, permissions) VALUES (7, 'admin', 'not-valid-json')");
 
 // Helper: set a fake session state
 function setSession(int $uid, string $role = 'admin'): void {

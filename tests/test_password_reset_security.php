@@ -39,18 +39,18 @@ $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 $db->exec("
     CREATE TABLE users (
-        id_user INTEGER PRIMARY KEY AUTOINCREMENT,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL UNIQUE,
         email TEXT NOT NULL UNIQUE,
-        nom TEXT NOT NULL DEFAULT '',
-        prenom TEXT NOT NULL DEFAULT '',
+        last_name TEXT NOT NULL DEFAULT '',
+        first_name TEXT NOT NULL DEFAULT '',
         password TEXT NOT NULL DEFAULT '',
         role TEXT NOT NULL DEFAULT 'user',
         permissions TEXT DEFAULT NULL,
-        est_actif INTEGER NOT NULL DEFAULT 1,
+        is_active INTEGER NOT NULL DEFAULT 1,
         session_version INTEGER NOT NULL DEFAULT 1,
-        date_creation TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        derniere_connexion TEXT DEFAULT NULL
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        last_login TEXT DEFAULT NULL
     );
 
     CREATE TABLE password_resets (
@@ -60,7 +60,7 @@ $db->exec("
     );
 ");
 
-$db->prepare("INSERT INTO users (username, email, nom, prenom, password, role, est_actif)
+$db->prepare("INSERT INTO users (username, email, last_name, first_name, password, role, is_active)
               VALUES ('reset_user', 'reset.user@test.local', 'User', 'Reset', ?, 'admin', 1)")
    ->execute([password_hash('OldPassword#2026', PASSWORD_DEFAULT)]);
 $userId = (int)$db->lastInsertId();
@@ -95,8 +95,8 @@ expect('unknown email returns generic success', $unknownOk === true);
 expect('unknown email does not create reset token', $unknownCount === 0);
 
 $complete = $service->resetPassword($rawToken, 'NewPassword#2026', 'NewPassword#2026', $mailer);
-$updatedHash = (string)$db->query("SELECT password FROM users WHERE id_user = {$userId}")->fetchColumn();
-$sessionVersion = (int)$db->query("SELECT session_version FROM users WHERE id_user = {$userId}")->fetchColumn();
+$updatedHash = (string)$db->query("SELECT password FROM users WHERE id = {$userId}")->fetchColumn();
+$sessionVersion = (int)$db->query("SELECT session_version FROM users WHERE id = {$userId}")->fetchColumn();
 $remainingTokens = (int)$db->query("SELECT COUNT(*) FROM password_resets WHERE email = 'reset.user@test.local'")->fetchColumn();
 $confirmationBody = $sent[1]['body'] ?? '';
 

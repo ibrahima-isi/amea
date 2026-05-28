@@ -50,44 +50,44 @@ $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
 $db->exec("
     CREATE TABLE users (
-        id_user          INTEGER PRIMARY KEY AUTOINCREMENT,
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
         username         TEXT    NOT NULL,
         email            TEXT    NOT NULL,
-        nom              TEXT    NOT NULL DEFAULT '',
-        prenom           TEXT    NOT NULL DEFAULT '',
+        last_name              TEXT    NOT NULL DEFAULT '',
+        first_name           TEXT    NOT NULL DEFAULT '',
         password         TEXT    NOT NULL DEFAULT '',
         role             TEXT    NOT NULL DEFAULT 'user',
         permissions      TEXT,
-        est_actif        INTEGER NOT NULL DEFAULT 1,
+        is_active        INTEGER NOT NULL DEFAULT 1,
         session_version  INTEGER NOT NULL DEFAULT 1,
-        date_creation    TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        derniere_connexion TEXT
+        created_at    TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        last_login TEXT
     );
 
-    CREATE TABLE personnes (
-        id_personne          INTEGER PRIMARY KEY AUTOINCREMENT,
-        nom                  TEXT,
-        prenom               TEXT,
-        sexe                 TEXT,
-        date_naissance       TEXT,
-        lieu_residence       TEXT,
-        etablissement        TEXT,
-        statut               TEXT,
-        domaine_etudes       TEXT,
-        niveau_etudes        TEXT,
-        telephone            TEXT,
+    CREATE TABLE students (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        last_name                  TEXT,
+        first_name               TEXT,
+        gender                 TEXT,
+        birth_date       TEXT,
+        residence       TEXT,
+        institution        TEXT,
+        status               TEXT,
+        study_field       TEXT,
+        study_level        TEXT,
+        phone            TEXT,
         email                TEXT,
-        annee_arrivee        INTEGER,
-        type_logement        TEXT,
-        precision_logement   TEXT,
-        projet_apres_formation TEXT,
-        identite             TEXT,
-        nationalites         TEXT,
+        arrival_year        INTEGER,
+        housing_type        TEXT,
+        housing_details   TEXT,
+        post_training_project TEXT,
+        identity_document             TEXT,
+        nationalities         TEXT,
         cv_path              TEXT,
-        date_enregistrement  TEXT    DEFAULT CURRENT_TIMESTAMP,
+        registration_date  TEXT    DEFAULT CURRENT_TIMESTAMP,
         consent_privacy      INTEGER DEFAULT 0,
         is_locked            INTEGER DEFAULT 0,
-        date_diplomation     TEXT,
+        graduation_date     TEXT,
         kyc_status           TEXT    DEFAULT 'PENDING_CONFIRMATION',
         kyc_notes            TEXT,
         review_token         TEXT,
@@ -102,19 +102,19 @@ $userRepo    = new UserRepository($db);
 $userService = new UserService($userRepo);
 
 // Reserve id=1 for super admin
-$db->exec("INSERT INTO users (id_user, username, email, nom, prenom, password, role, permissions, est_actif)
+$db->exec("INSERT INTO users (id, username, email, last_name, first_name, password, role, permissions, is_active)
            VALUES (1, '_superadmin', 'sa@int.test', 'SA', 'Root', 'x', 'admin', NULL, 1)");
 
 // createUser() — regular user
 $regularId = $userService->createUser([
     'username'    => 'user_regular',
     'email'       => 'regular@test.sn',
-    'nom'         => 'Diallo',
-    'prenom'      => 'Ibra',
+    'last_name'         => 'Diallo',
+    'first_name'      => 'Ibra',
     'password'    => 'secret123',
     'role'        => 'user',
     'permissions' => ['students'],   // should be ignored for non-admin
-    'est_actif'   => 1,
+    'is_active'   => 1,
 ]);
 $regular = $userRepo->findById($regularId);
 expect('createUser() non-admin has no permissions',  $regular->getPermissions() === []);
@@ -125,12 +125,12 @@ expect('createUser() password is hashed',
 $adminId = $userService->createUser([
     'username'    => 'admin_awa',
     'email'       => 'awa@test.sn',
-    'nom'         => 'Ndiaye',
-    'prenom'      => 'Awa',
+    'last_name'         => 'Ndiaye',
+    'first_name'      => 'Awa',
     'password'    => 'pass456',
     'role'        => 'admin',
     'permissions' => ['students', 'export', 'INVALID_MODULE'],
-    'est_actif'   => 1,
+    'is_active'   => 1,
 ]);
 $admin = $userRepo->findById($adminId);
 expect('createUser() admin has valid permissions',    $admin->hasPermission('students'));
@@ -143,18 +143,18 @@ $updated = $userService->updateUser(
     [
         'username'    => 'admin_awa',
         'email'       => 'awa@test.sn',
-        'nom'         => 'NdiayeUpdated',
-        'prenom'      => 'AwaUpdated',
+        'last_name'         => 'NdiayeUpdated',
+        'first_name'      => 'AwaUpdated',
         'role'        => 'admin',
         'permissions' => ['students', 'export', 'users', 'settings'], // trying to add more
-        'est_actif'   => 1,
+        'is_active'   => 1,
     ],
     isSelf:               true,
     isSuperAdminSession:  false
 );
 $afterSelfEdit = $userRepo->findById($adminId);
-expect('updateUser() updates nom during self-edit', $afterSelfEdit->getNom() === 'NdiayeUpdated');
-expect('updateUser() updates prenom during self-edit', $afterSelfEdit->getPrenom() === 'AwaUpdated');
+expect('updateUser() updates last_name during self-edit', $afterSelfEdit->getLastName() === 'NdiayeUpdated');
+expect('updateUser() updates first_name during self-edit', $afterSelfEdit->getFirstName() === 'AwaUpdated');
 expect('updateUser() self-edit cannot escalate',
     !$afterSelfEdit->hasPermission('settings')); // 'settings' was not in original
 
@@ -164,18 +164,18 @@ $userService->updateUser(
     [
         'username'    => 'admin_awa',
         'email'       => 'awa@test.sn',
-        'nom'         => 'NdiayeSuper',
-        'prenom'      => 'AwaSuper',
+        'last_name'         => 'NdiayeSuper',
+        'first_name'      => 'AwaSuper',
         'role'        => 'admin',
         'permissions' => ['students', 'settings'],
-        'est_actif'   => 1,
+        'is_active'   => 1,
     ],
     isSelf:               false,
     isSuperAdminSession:  true
 );
 $afterSuperEdit = $userRepo->findById($adminId);
-expect('updateUser() super-admin edit updates nom',     $afterSuperEdit->getNom() === 'NdiayeSuper');
-expect('updateUser() super-admin edit updates prenom',  $afterSuperEdit->getPrenom() === 'AwaSuper');
+expect('updateUser() super-admin edit updates last_name',     $afterSuperEdit->getLastName() === 'NdiayeSuper');
+expect('updateUser() super-admin edit updates first_name',  $afterSuperEdit->getFirstName() === 'AwaSuper');
 expect('updateUser() super-admin session can add settings', $afterSuperEdit->hasPermission('settings'));
 expect('updateUser() export removed by super-admin edit',  !$afterSuperEdit->hasPermission('export'));
 
@@ -185,11 +185,11 @@ $userService->updateUser(
     [
         'username'    => 'admin_awa',
         'email'       => 'awa@test.sn',
-        'nom'         => 'NdiayeDemoted',
-        'prenom'      => 'AwaDemoted',
+        'last_name'         => 'NdiayeDemoted',
+        'first_name'      => 'AwaDemoted',
         'role'        => 'user',
         'permissions' => ['students'],
-        'est_actif'   => 1,
+        'is_active'   => 1,
     ],
     isSelf:               false,
     isSuperAdminSession:  true
@@ -213,12 +213,12 @@ $auth    = new AuthService($userRepo, $session, $flash);
 $loginId = $userService->createUser([
     'username'    => 'logintest',
     'email'       => 'login@test.sn',
-    'nom'         => 'Fall',
-    'prenom'      => 'Cheikh',
+    'last_name'         => 'Fall',
+    'first_name'      => 'Cheikh',
     'password'    => 'mypassword',
     'role'        => 'admin',
     'permissions' => ['students', 'export'],
-    'est_actif'   => 1,
+    'is_active'   => 1,
 ]);
 
 // attempt() — wrong password
@@ -235,7 +235,7 @@ expect('session version set after login',             $session->get('session_ver
 
 // updateLastLogin was called
 $afterLogin = $userRepo->findById($loginId);
-expect('attempt() updates derniere_connexion',        $afterLogin->getDerniereConnexion() !== null);
+expect('attempt() updates last_login',        $afterLogin->getLastLogin() !== null);
 
 // hasPermission() — logged-in admin with 'students'
 expect('hasPermission() true for students',           $auth->hasPermission('students'));
@@ -248,12 +248,12 @@ expect('hasPermission() cached — still true for export', $auth->hasPermission(
 $inactiveId = $userService->createUser([
     'username'    => 'inactive_user',
     'email'       => 'inactive@test.sn',
-    'nom'         => 'Sow',
-    'prenom'      => 'Mariama',
+    'last_name'         => 'Sow',
+    'first_name'      => 'Mariama',
     'password'    => 'pass789',
     'role'        => 'user',
     'permissions' => [],
-    'est_actif'   => 0,
+    'is_active'   => 0,
 ]);
 $inactiveAttempt = $auth->attempt('inactive_user', 'pass789');
 expect('attempt() false for inactive user', $inactiveAttempt === false);
@@ -286,48 +286,48 @@ $stuRepo = new StudentRepository($db);
 function makeStu(array $overrides = []): array
 {
     return array_merge([
-        'nom'                   => 'Diop',
-        'prenom'                => 'Fatou',
-        'sexe'                  => 'Féminin',
-        'date_naissance'        => '2000-03-15',
-        'lieu_residence'        => 'Dakar',
-        'etablissement'         => 'UCAD',
-        'statut'                => 'En cours',
-        'domaine_etudes'        => 'Informatique',
-        'niveau_etudes'         => 'Licence',
-        'telephone'             => '771234567',
+        'last_name'                   => 'Diop',
+        'first_name'                => 'Fatou',
+        'gender'                  => 'Féminin',
+        'birth_date'        => '2000-03-15',
+        'residence'        => 'Dakar',
+        'institution'         => 'UCAD',
+        'status'                => 'En cours',
+        'study_field'        => 'Informatique',
+        'study_level'         => 'Licence',
+        'phone'             => '771234567',
         'email'                 => 'fatou@test.sn',
-        'annee_arrivee'         => 2022,
-        'type_logement'         => 'Famille',
-        'precision_logement'    => null,
-        'projet_apres_formation'=> 'Emploi',
-        'identite'              => null,
-        'nationalites'          => 'Sénégalaise',
+        'arrival_year'         => 2022,
+        'housing_type'         => 'Famille',
+        'housing_details'    => null,
+        'post_training_project'=> 'Emploi',
+        'identity_document'              => null,
+        'nationalities'          => 'Sénégalaise',
         'cv_path'               => null,
         'consent_privacy'       => 1,
     ], $overrides);
 }
 
-$s1 = $stuRepo->save(makeStu(['nom' => 'Diop', 'email' => 'fatou@test.sn', 'sexe' => 'Féminin',
-    'statut' => 'En cours', 'etablissement' => 'UCAD', 'niveau_etudes' => 'Licence']));
-$s2 = $stuRepo->save(makeStu(['nom' => 'Ba', 'email' => 'amadou@test.sn', 'sexe' => 'Masculin',
-    'statut' => 'Diplômé(e)', 'etablissement' => 'ESP', 'niveau_etudes' => 'Master',
-    'telephone' => '779876543']));
-$s3 = $stuRepo->save(makeStu(['nom' => 'Sarr', 'email' => 'moussa@test.sn', 'sexe' => 'Masculin',
-    'statut' => 'En cours', 'etablissement' => 'UCAD', 'niveau_etudes' => 'Licence',
-    'telephone' => '770001122']));
+$s1 = $stuRepo->save(makeStu(['last_name' => 'Diop', 'email' => 'fatou@test.sn', 'gender' => 'Féminin',
+    'status' => 'En cours', 'institution' => 'UCAD', 'study_level' => 'Licence']));
+$s2 = $stuRepo->save(makeStu(['last_name' => 'Ba', 'email' => 'amadou@test.sn', 'gender' => 'Masculin',
+    'status' => 'Diplômé(e)', 'institution' => 'ESP', 'study_level' => 'Master',
+    'phone' => '779876543']));
+$s3 = $stuRepo->save(makeStu(['last_name' => 'Sarr', 'email' => 'moussa@test.sn', 'gender' => 'Masculin',
+    'status' => 'En cours', 'institution' => 'UCAD', 'study_level' => 'Licence',
+    'phone' => '770001122']));
 
 // findById
 $stu1 = $stuRepo->findById($s1);
-expect('findById() returns correct nom',     $stu1?->getNom() === 'Diop');
+expect('findById() returns correct last_name',     $stu1?->getLastName() === 'Diop');
 
 // countAll with various filters
 expect('countAll() total is 3',              $stuRepo->countAll() === 3);
-expect('countAll() filter by sexe Masculin', $stuRepo->countAll(['sexe' => 'Masculin']) === 2);
-expect('countAll() filter by statut',        $stuRepo->countAll(['statut' => 'Diplômé(e)']) === 1);
-expect('countAll() filter by etablissement', $stuRepo->countAll(['etablissement' => 'UCAD']) === 2);
-expect('countAll() filter by niveau',        $stuRepo->countAll(['niveau_etudes' => 'Master']) === 1);
-expect('countAll() search by nom',           $stuRepo->countAll(['search' => 'Sarr']) === 1);
+expect('countAll() filter by gender Masculin', $stuRepo->countAll(['gender' => 'Masculin']) === 2);
+expect('countAll() filter by status',        $stuRepo->countAll(['status' => 'Diplômé(e)']) === 1);
+expect('countAll() filter by institution', $stuRepo->countAll(['institution' => 'UCAD']) === 2);
+expect('countAll() filter by niveau',        $stuRepo->countAll(['study_level' => 'Master']) === 1);
+expect('countAll() search by last_name',           $stuRepo->countAll(['search' => 'Sarr']) === 1);
 expect('countAll() search by email',         $stuRepo->countAll(['search' => 'amadou']) === 1);
 
 // findPaginated — page 1 of 2 per page
@@ -339,13 +339,13 @@ $page2 = $stuRepo->findPaginated(2, 2);
 expect('findPaginated() page 2 has 1 item',  count($page2['items']) === 1);
 
 // findPaginated with filter
-$filtered = $stuRepo->findPaginated(1, 10, ['statut' => 'En cours']);
+$filtered = $stuRepo->findPaginated(1, 10, ['status' => 'En cours']);
 expect('findPaginated() filter total is 2',  $filtered['total'] === 2);
 
 // update()
-$stuRepo->update($s1, ['statut' => 'Diplômé(e)', 'date_diplomation' => '2024-06-01']);
+$stuRepo->update($s1, ['status' => 'Diplômé(e)', 'graduation_date' => '2024-06-01']);
 $updated = $stuRepo->findById($s1);
-expect('update() statut changed',            $updated?->getStatut() === 'Diplômé(e)');
+expect('update() status changed',            $updated?->getStatus() === 'Diplômé(e)');
 
 // update() rejects unknown column
 $threw = false;
@@ -371,7 +371,7 @@ expect('getStats() diplomes is 2',           (int)$stats['diplomes'] === 2); // 
 
 // updateField() — locked status (Student model has no getIsLocked(); verify via raw query)
 $stuRepo->updateField($s3, 'is_locked', 1);
-$lockedRow = $db->query("SELECT is_locked FROM personnes WHERE id_personne = {$s3}")->fetch();
+$lockedRow = $db->query("SELECT is_locked FROM students WHERE id = {$s3}")->fetch();
 expect('updateField() is_locked set to 1',   (int)$lockedRow['is_locked'] === 1);
 
 // updateField() rejects unknown field

@@ -130,29 +130,29 @@
                       <div class="text-danger">{{error_sexe}}</div>
                     </div>
                     <div class="col-md-6">
-                      <label for="statut" class="form-label"
+                      <label for="status" class="form-label"
                         >Statut <span class="text-danger">*</span></label
                       >
                       <select
-                        class="form-select {{is_invalid_statut}}"
-                        id="statut"
-                        name="statut"
+                        class="form-select {{is_invalid_status}}"
+                        id="status"
+                        name="status"
                         required
                       >
-                        <option value="" disabled {{statut_sel_none}}>
+                        <option value="" disabled {{status_sel_none}}>
                           Sélectionnez
                         </option>
-                        <option value="ELEVE" {{statut_sel_ELEVE}}>
+                        <option value="ELEVE" {{status_sel_ELEVE}}>
                           Élève
                         </option>
-                        <option value="ETUDIANT" {{statut_sel_ETUDIANT}}>
+                        <option value="ETUDIANT" {{status_sel_ETUDIANT}}>
                           Étudiant
                         </option>
-                        <option value="STAGIAIRE" {{statut_sel_STAGIAIRE}}>
+                        <option value="STAGIAIRE" {{status_sel_STAGIAIRE}}>
                           Stagiaire
                         </option>
                       </select>
-                      <div class="text-danger">{{error_statut}}</div>
+                      <div class="text-danger">{{error_status}}</div>
                     </div>
 
                     <div class="col-md-12 mb-3">
@@ -173,19 +173,19 @@
                     </div>
 
                     <div class="col-md-6">
-                      <label for="date_naissance" class="form-label"
+                      <label for="birth_date" class="form-label"
                         >Date de naissance</label
                       >
                       <input
                         type="text"
-                        class="form-control {{is_invalid_date_naissance}}"
-                        id="date_naissance"
-                        name="date_naissance"
-                        value="{{date_naissance}}"
+                        class="form-control {{is_invalid_birth_date}}"
+                        id="birth_date"
+                        name="birth_date"
+                        value="{{birth_date}}"
                         data-max-date="{{max_birth_date}}"
                         placeholder="JJ/MM/AAAA"
                       />
-                      <div class="text-danger">{{error_date_naissance}}</div>
+                      <div class="text-danger">{{error_birth_date}}</div>
                     </div>
                     <div class="col-md-6">
                       <label for="telephone" class="form-label"

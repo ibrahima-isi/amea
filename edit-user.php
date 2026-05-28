@@ -29,7 +29,7 @@ if ($user_id_to_edit <= 0) {
 }
 
 // Fetch user data
-$stmt = $conn->prepare("SELECT * FROM users WHERE id_user = ?");
+$stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$user_id_to_edit]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -67,10 +67,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $formData = [
         'username' => trim($_POST['username'] ?? ''),
         'email' => trim($_POST['email'] ?? ''),
-        'nom' => trim($_POST['nom'] ?? ''),
-        'prenom' => trim($_POST['prenom'] ?? ''),
+        'last_name' => trim($_POST['last_name'] ?? ''),
+        'first_name' => trim($_POST['first_name'] ?? ''),
         'role' => $_POST['role'] ?? 'user',
-        'est_actif' => $_POST['est_actif'] ?? 0,
+        'is_active' => $_POST['is_active'] ?? 0,
         'permissions' => $_POST['permissions'] ?? []
     ];
 
@@ -78,12 +78,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors['username'] = 'Le nom d\'utilisateur est requis.';
     }
 
-    if (empty($formData['nom'])) {
-        $errors['nom'] = 'Le nom est requis.';
+    if (empty($formData['last_name'])) {
+        $errors['last_name'] = 'Le nom est requis.';
     }
 
-    if (empty($formData['prenom'])) {
-        $errors['prenom'] = 'Le prénom est requis.';
+    if (empty($formData['first_name'])) {
+        $errors['first_name'] = 'Le prénom est requis.';
     }
 
     if (empty($formData['email'])) {
@@ -93,20 +93,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        // Convert permissions to JSON string for storage.
-        // Whitelist against PERMISSION_MODULES to prevent arbitrary strings
-        // from being persisted in the DB.
         $permissionsJson = null;
         if ($formData['role'] === 'admin') {
-            // Non-super-admins cannot modify their own permissions (privilege escalation prevention)
             if ($is_editing_self && !$is_super_admin_session) {
-                $permissionsJson = $user['permissions']; // restore from DB, ignore POST
+                $permissionsJson = $user['permissions']; 
             } else {
                 $permissionsJson = json_encode(array_values(array_intersect($formData['permissions'], PERMISSION_MODULES)));
             }
         }
 
-        // Safety: ensure User ID 1 (Super Admin) always has all permissions in the DB
         if ((int)$user_id_to_edit === 1) {
             $permissionsJson = json_encode(["students", "export", "users", "slider", "upgrade", "documents", "communications", "settings"]);
         }
@@ -114,26 +109,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sql = "UPDATE users SET 
             username = :username, 
             email = :email, 
-            nom = :nom,
-            prenom = :prenom,
+            last_name = :last_name,
+            first_name = :first_name,
             role = :role, 
             permissions = :permissions,
-            est_actif = :est_actif
-        WHERE id_user = :id_user";
+            is_active = :is_active
+        WHERE id = :id";
 
         $stmt = $conn->prepare($sql);
         $stmt->execute([
             'username' => $formData['username'],
             'email' => $formData['email'],
-            'nom' => $formData['nom'],
-            'prenom' => $formData['prenom'],
+            'last_name' => $formData['last_name'],
+            'first_name' => $formData['first_name'],
             'role' => $formData['role'],
             'permissions' => $permissionsJson,
-            'est_actif' => $formData['est_actif'],
-            'id_user' => $user_id_to_edit
+            'is_active' => $formData['is_active'],
+            'id' => $user_id_to_edit
         ]);
 
-        // Warn when an admin is demoted to user: permissions are cleared and not recoverable automatically
         $roleDemoted = ($user['role'] === 'admin' && $formData['role'] === 'user');
         if ($roleDemoted) {
             setFlashMessage('warning', 'Les informations ont été mises à jour. Le rôle a été changé en Utilisateur — toutes les permissions de ce compte ont été effacées.');
@@ -146,8 +140,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $role = $_SESSION['role'];
-$nom = $_SESSION['nom'];
-$prenom = $_SESSION['prenom'];
+$nom = $_SESSION['last_name'] ?? '';
+$prenom = $_SESSION['first_name'] ?? '';
 
 // Rendu du template HTML
 $layoutPath = __DIR__ . '/templates/admin/layout.html';
@@ -167,10 +161,7 @@ $sel = function ($value, $options) {
     return in_array($value, (array)$options) ? 'selected' : '';
 };
 
-$validation_errors_json = '';
-if (!empty($errors)) {
-    $validation_errors_json = json_encode($errors);
-}
+$validation_errors_json = !empty($errors) ? json_encode($errors) : '';
 
 $userPermissions = $formData['permissions'] ?? json_decode($user['permissions'] ?? '[]', true) ?? [];
 $isSuperAdmin = ((int)$user_id_to_edit === 1);
@@ -181,19 +172,19 @@ $contentHtml = strtr($template, [
     '{{csrf_token}}' => generateCsrfToken(),
     '{{username}}' => htmlspecialchars($formData['username'] ?? $user['username'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{email}}' => htmlspecialchars($formData['email'] ?? $user['email'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{nom}}' => htmlspecialchars($formData['nom'] ?? $user['nom'] ?? '', ENT_QUOTES, 'UTF-8'),
-    '{{prenom}}' => htmlspecialchars($formData['prenom'] ?? $user['prenom'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{last_name}}' => htmlspecialchars($formData['last_name'] ?? $user['last_name'] ?? '', ENT_QUOTES, 'UTF-8'),
+    '{{first_name}}' => htmlspecialchars($formData['first_name'] ?? $user['first_name'] ?? '', ENT_QUOTES, 'UTF-8'),
     '{{role_sel_admin}}' => $sel('admin', $formData['role'] ?? $user['role']),
     '{{role_sel_user}}' => $sel('user', $formData['role'] ?? $user['role']),
-    '{{est_actif_sel_1}}' => $sel(1, $formData['est_actif'] ?? $user['est_actif']),
-    '{{est_actif_sel_0}}' => $sel(0, $formData['est_actif'] ?? $user['est_actif']),
+    '{{is_active_sel_1}}' => $sel(1, $formData['is_active'] ?? $user['is_active']),
+    '{{is_active_sel_0}}' => $sel(0, $formData['is_active'] ?? $user['is_active']),
     '{{error_username}}' => $errors['username'] ?? '',
-    '{{error_nom}}' => $errors['nom'] ?? '',
-    '{{error_prenom}}' => $errors['prenom'] ?? '',
+    '{{error_last_name}}' => $errors['last_name'] ?? '',
+    '{{error_first_name}}' => $errors['first_name'] ?? '',
     '{{error_email}}' => $errors['email'] ?? '',
     '{{is_invalid_username}}' => isset($errors['username']) ? 'is-invalid' : '',
-    '{{is_invalid_nom}}' => isset($errors['nom']) ? 'is-invalid' : '',
-    '{{is_invalid_prenom}}' => isset($errors['prenom']) ? 'is-invalid' : '',
+    '{{is_invalid_last_name}}' => isset($errors['last_name']) ? 'is-invalid' : '',
+    '{{is_invalid_first_name}}' => isset($errors['first_name']) ? 'is-invalid' : '',
     '{{is_invalid_email}}' => isset($errors['email']) ? 'is-invalid' : '',
     '{{permissions_display}}' => ($formData['role'] ?? $user['role']) === 'admin' ? 'block' : 'none',
     '{{perm_students_checked}}' => in_array('students', $userPermissions) ? 'checked' : '',
@@ -209,10 +200,7 @@ $contentHtml = strtr($template, [
 ]);
 
 $flash = getFlashMessage();
-$flash_json = '';
-if ($flash) {
-    $flash_json = json_encode($flash);
-}
+$flash_json = $flash ? json_encode($flash) : '';
 
 $layoutTpl = file_get_contents($layoutPath);
 $output = strtr($layoutTpl, [

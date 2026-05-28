@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Migration: Add KYC workflow fields to the personnes table.
+ * Migration: Add KYC workflow fields to the students table.
  * Statuses: PENDING_CONFIRMATION, UNDER_REVIEW, APPROVED, NEEDS_CLARIFICATION, REJECTED
  */
 
@@ -11,20 +11,20 @@ if (php_sapi_name() !== 'cli') {
 
 require_once __DIR__ . '/../config/database.php';
 
-function personnesColumnExists(PDO $conn, string $column): bool
+function studentsColumnExists(PDO $conn, string $column): bool
 {
-    $stmt = $conn->query("SHOW COLUMNS FROM personnes LIKE " . $conn->quote($column));
+    $stmt = $conn->query("SHOW COLUMNS FROM students LIKE " . $conn->quote($column));
     return $stmt !== false && $stmt->rowCount() > 0;
 }
 
 function addPersonnesColumnIfMissing(PDO $conn, string $column, string $definition): bool
 {
-    if (personnesColumnExists($conn, $column)) {
+    if (studentsColumnExists($conn, $column)) {
         echo "Column '{$column}' already exists. Skipping.\n";
         return false;
     }
 
-    $conn->exec("ALTER TABLE personnes ADD COLUMN {$definition}");
+    $conn->exec("ALTER TABLE students ADD COLUMN {$definition}");
     echo "Added '{$column}' column.\n";
     return true;
 }
@@ -46,7 +46,7 @@ try {
     );
 
     if ($addedKycStatus) {
-        $conn->exec("UPDATE personnes SET kyc_status = 'APPROVED'");
+        $conn->exec("UPDATE students SET kyc_status = 'APPROVED'");
         echo "Marked existing records as 'APPROVED'.\n";
     }
 

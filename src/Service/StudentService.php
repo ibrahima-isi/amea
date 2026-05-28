@@ -16,47 +16,47 @@ class StudentService
     {
         $errors = [];
         $input = [
-            'nom' => trim($post['nom'] ?? ''),
-            'prenom' => trim($post['prenom'] ?? ''),
-            'sexe' => $post['sexe'] ?? '',
-            'date_naissance' => $post['date_naissance'] ?? '',
-            'lieu_residence' => trim($post['lieu_residence'] ?? ''),
-            'autre_lieu_residence' => trim($post['autre_lieu_residence'] ?? ''),
-            'etablissement' => trim($post['etablissement'] ?? ''),
-            'autre_etablissement' => trim($post['autre_etablissement'] ?? ''),
-            'statut' => $post['statut'] ?? '',
-            'domaine_etudes' => trim($post['domaine_etudes'] ?? ''),
-            'autre_domaine_etudes' => trim($post['autre_domaine_etudes'] ?? ''),
-            'niveau_etudes' => trim($post['niveau_etudes'] ?? ''),
-            'autre_niveau_etudes' => trim($post['autre_niveau_etudes'] ?? ''),
-            'telephone' => trim($post['telephone'] ?? ''),
+            'last_name' => trim($post['last_name'] ?? ''),
+            'first_name' => trim($post['first_name'] ?? ''),
+            'gender' => $post['gender'] ?? '',
+            'birth_date' => $post['birth_date'] ?? '',
+            'residence' => trim($post['residence'] ?? ''),
+            'other_residence' => trim($post['other_residence'] ?? ''),
+            'institution' => trim($post['institution'] ?? ''),
+            'other_institution' => trim($post['other_institution'] ?? ''),
+            'status' => $post['status'] ?? '',
+            'study_field' => trim($post['study_field'] ?? ''),
+            'other_study_field' => trim($post['other_study_field'] ?? ''),
+            'study_level' => trim($post['study_level'] ?? ''),
+            'other_study_level' => trim($post['other_study_level'] ?? ''),
+            'phone' => trim($post['phone'] ?? ''),
             'email' => trim($post['email'] ?? ''),
-            'nationalites' => $post['nationalites'] ?? '',
-            'annee_arrivee' => $post['annee_arrivee'] ?? null,
-            'type_logement' => $post['type_logement'] ?? '',
-            'precision_logement' => trim($post['precision_logement'] ?? ''),
-            'projet_apres_formation' => trim($post['projet_apres_formation'] ?? ''),
+            'nationalities' => $post['nationalities'] ?? '',
+            'arrival_year' => $post['arrival_year'] ?? null,
+            'housing_type' => $post['housing_type'] ?? '',
+            'housing_details' => trim($post['housing_details'] ?? ''),
+            'post_training_project' => trim($post['post_training_project'] ?? ''),
             'consent_privacy' => isset($post['consent_privacy']) ? 1 : 0
         ];
 
         // 1. Logic for 'Other' fields
-        $finalLieu = $input['lieu_residence'] === 'Autre' ? $input['autre_lieu_residence'] : $input['lieu_residence'];
-        $finalEtab = $input['etablissement'] === 'Autre' ? $input['autre_etablissement'] : $input['etablissement'];
-        $finalDom  = $input['domaine_etudes'] === 'Autre' ? $input['autre_domaine_etudes'] : $input['domaine_etudes'];
-        $finalNiv  = $input['niveau_etudes'] === 'Autre' ? $input['autre_niveau_etudes'] : $input['niveau_etudes'];
+        $finalLieu = $input['residence'] === 'Other' ? $input['other_residence'] : $input['residence'];
+        $finalEtab = $input['institution'] === 'Other' ? $input['other_institution'] : $input['institution'];
+        $finalDom  = $input['study_field'] === 'Other' ? $input['other_study_field'] : $input['study_field'];
+        $finalNiv  = $input['study_level'] === 'Other' ? $input['other_study_level'] : $input['study_level'];
 
         // 2. Required fields
         $required = [
-            'nom' => 'Le nom est requis.',
-            'prenom' => 'Le prénom est requis.',
-            'sexe' => 'Le sexe est requis.',
-            'statut' => 'Le statut est requis.',
-            'telephone' => 'Le téléphone est requis.',
-            'email' => 'L\'email est requis.',
+            'last_name' => 'Last name is required.',
+            'first_name' => 'First name is required.',
+            'gender' => 'Gender is required.',
+            'status' => 'Status is required.',
+            'phone' => 'Phone number is required.',
+            'email' => 'Email is required.',
         ];
-        // Only require consent for new registrations (not corrections, where it's already accepted)
+        // Only require consent for new registrations
         if ($excludeId === null) {
-            $required['consent_privacy'] = 'Vous devez accepter les conditions.';
+            $required['consent_privacy'] = 'You must accept the terms and conditions.';
         }
 
         foreach ($required as $f => $m) {
@@ -65,30 +65,33 @@ class StudentService
 
         // 3. Uniqueness
         if (!empty($input['email']) && $this->studentRepo->existsByEmail($input['email'], $excludeId)) {
-            $errors['email'] = 'Cet email est déjà utilisé.';
+            $errors['email'] = 'This email is already in use.';
         }
-        if (!empty($input['telephone']) && $this->studentRepo->existsByPhone($input['telephone'], $excludeId)) {
-            $errors['telephone'] = 'Ce numéro de téléphone est déjà utilisé.';
+        if (!empty($input['phone']) && $this->studentRepo->existsByPhone($input['phone'], $excludeId)) {
+            $errors['phone'] = 'This phone number is already in use.';
         }
         // 4. Phone validation
-        if (!empty($input['telephone']) && !\isValidPhone($input['telephone'])) {
-            $errors['telephone'] = 'Numéro invalide (9 chiffres attendus).';
+        if (!empty($input['phone']) && !\isValidPhone($input['phone'])) {
+            $errors['phone'] = 'Invalid phone number (9 digits expected).';
         }
-        if (!empty($input['statut']) && !in_array($input['statut'], ['ELEVE', 'ETUDIANT', 'STAGIAIRE'], true)) {
-            $errors['statut'] = 'Statut invalide.';
+        if (!empty($input['status']) && !in_array($input['status'], ['PUPIL', 'STUDENT', 'TRAINEE'], true)) {
+            $errors['status'] = 'Invalid status.';
+        }
+        if (!empty($input['gender']) && !in_array($input['gender'], ['Male', 'Female'], true)) {
+            $errors['gender'] = 'Invalid gender.';
         }
 
         // 5. Nationalities
         $validNats = [];
         $validIds = [];
-        if (!empty($input['nationalites'])) {
-            $decoded = json_decode($input['nationalites'], true);
+        if (!empty($input['nationalities'])) {
+            $decoded = json_decode($input['nationalities'], true);
             if (is_array($decoded)) {
                 $names = array_map(fn($item) => $item['value'], $decoded);
                 $paysRows = $this->studentRepo->getPaysByName($names);
                 foreach ($paysRows as $row) {
-                    $validNats[] = $row['nom_fr'];
-                    $validIds[]  = $row['id_pays'];
+                    $validNats[] = $row['name_fr'];
+                    $validIds[]  = $row['id'];
                 }
             }
         }
@@ -96,25 +99,25 @@ class StudentService
         
         // Always Guinée
         $guinee = $this->studentRepo->getGuineeCountry();
-        if ($guinee && !in_array($guinee['nom_fr'], $validNats, true)) {
-             array_unshift($validNats, $guinee['nom_fr']);
-             array_unshift($validIds, $guinee['id_pays']);
+        if ($guinee && !in_array($guinee['name_fr'], $validNats, true)) {
+             array_unshift($validNats, $guinee['name_fr']);
+             array_unshift($validIds, $guinee['id']);
         }
-        if (empty($validNats)) $errors['nationalites'] = 'La nationalité est requise.';
-        if (count($validNats) > 5) $errors['nationalites'] = 'Max 5 nationalités.';
+        if (empty($validNats)) $errors['nationalities'] = 'Nationality is required.';
+        if (count($validNats) > 5) $errors['nationalities'] = 'Maximum 5 nationalities allowed.';
 
         // 6. Age
-        if (!empty($input['date_naissance'])) {
-            $age = \calculateAge($input['date_naissance']);
-            if ($age < 15) $errors['date_naissance'] = 'L\'âge minimum est 15 ans.';
+        if (!empty($input['birth_date'])) {
+            $age = \calculateAge($input['birth_date']);
+            if ($age < 15) $errors['birth_date'] = 'Minimum age is 15 years old.';
         }
 
         // 7. Files
-        $identitePath = null;
+        $identityDocumentPath = null;
         if (!empty($files['photo']['name'])) {
             $res = $this->fileUploader->handle($files['photo'], ['jpg','jpeg','png','pdf'], 2*1024*1024, 'uploads/students');
-            if ($res['success']) $identitePath = $res['filepath'];
-            else $errors['identite'] = $res['message'];
+            if ($res['success']) $identityDocumentPath = $res['filepath'];
+            else $errors['identity_document'] = $res['message'];
         }
 
         $cvPath = null;
@@ -129,24 +132,24 @@ class StudentService
             'errors' => $errors,
             'valid_pays_ids' => $validIds,
             'db_data' => [
-                'nom' => $input['nom'],
-                'prenom' => $input['prenom'],
-                'sexe' => $input['sexe'],
-                'date_naissance' => $input['date_naissance'] ?: null,
-                'lieu_residence' => $finalLieu ?: null,
-                'etablissement' => $finalEtab ?: null,
-                'statut' => $input['statut'] ?: null,
-                'domaine_etudes' => $finalDom ?: null,
-                'niveau_etudes' => $finalNiv ?: null,
-                'telephone' => $input['telephone'],
+                'last_name' => $input['last_name'],
+                'first_name' => $input['first_name'],
+                'gender' => $input['gender'],
+                'birth_date' => $input['birth_date'] ?: null,
+                'residence' => $finalLieu ?: null,
+                'institution' => $finalEtab ?: null,
+                'status' => $input['status'] ?: null,
+                'study_field' => $finalDom ?: null,
+                'study_level' => $finalNiv ?: null,
+                'phone' => $input['phone'],
                 'email' => $input['email'],
-                'annee_arrivee' => $input['annee_arrivee'] ? (int)$input['annee_arrivee'] : null,
-                'type_logement' => $input['type_logement'] ?: null,
-                'precision_logement' => $input['precision_logement'] ?: null,
-                'projet_apres_formation' => $input['projet_apres_formation'] ?: null,
-                'identite' => $identitePath,
+                'arrival_year' => $input['arrival_year'] ? (int)$input['arrival_year'] : null,
+                'housing_type' => $input['housing_type'] ?: null,
+                'housing_details' => $input['housing_details'] ?: null,
+                'post_training_project' => $input['post_training_project'] ?: null,
+                'identity_document' => $identityDocumentPath,
                 'cv_path' => $cvPath,
-                'nationalites' => json_encode($validNats, JSON_UNESCAPED_UNICODE),
+                'nationalities' => json_encode($validNats, JSON_UNESCAPED_UNICODE),
                 'consent_privacy' => $input['consent_privacy']
             ]
         ];

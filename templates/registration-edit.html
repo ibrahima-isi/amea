@@ -173,19 +173,19 @@
                     </div>
 
                     <div class="col-md-6">
-                      <label for="date_naissance" class="form-label"
+                      <label for="birth_date" class="form-label"
                         >Date de naissance</label
                       >
                       <input
                         type="text"
-                        class="form-control {{is_invalid_date_naissance}}"
-                        id="date_naissance"
-                        name="date_naissance"
-                        value="{{date_naissance}}"
+                        class="form-control {{is_invalid_birth_date}}"
+                        id="birth_date"
+                        name="birth_date"
+                        value="{{birth_date}}"
                         data-max-date="{{max_birth_date}}"
                         placeholder="JJ/MM/AAAA"
                       />
-                      <div class="text-danger">{{error_date_naissance}}</div>
+                      <div class="text-danger">{{error_birth_date}}</div>
                     </div>
                     <div class="col-md-6">
                       <label for="photo" class="form-label"
@@ -389,26 +389,26 @@
                         />
                       </div>
                       <div class="col-md-6">
-                        <label for="statut" class="form-label">Statut</label>
+                        <label for="status" class="form-label">Statut</label>
                         <select
-                          class="form-select {{is_invalid_statut}}"
-                          id="statut"
-                          name="statut"
+                          class="form-select {{is_invalid_status}}"
+                          id="status"
+                          name="status"
                         >
-                          <option value="" disabled {{statut_sel_none}}>
+                          <option value="" disabled {{status_sel_none}}>
                             Sélectionnez
                           </option>
-                          <option value="Élève" {{statut_sel_Élève}}>
+                          <option value="Élève" {{status_sel_Élève}}>
                             Élève
                           </option>
-                          <option value="Étudiant" {{statut_sel_Étudiant}}>
+                          <option value="Étudiant" {{status_sel_Étudiant}}>
                             Étudiant
                           </option>
-                          <option value="Stagiaire" {{statut_sel_Stagiaire}}>
+                          <option value="Stagiaire" {{status_sel_Stagiaire}}>
                             Stagiaire
                           </option>
                         </select>
-                        <div class="text-danger">{{error_statut}}</div>
+                        <div class="text-danger">{{error_status}}</div>
                       </div>
                       <div class="col-md-6">
                         <label for="domaine_etudes" class="form-label"
