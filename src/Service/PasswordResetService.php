@@ -218,6 +218,15 @@ class PasswordResetService
             return 'Le mot de passe doit contenir au moins 12 caractères.';
         }
 
+        if (
+            !preg_match('/[a-z]/', $password)
+            || !preg_match('/[A-Z]/', $password)
+            || !preg_match('/\d/', $password)
+            || !preg_match('/[^A-Za-z0-9]/', $password)
+        ) {
+            return 'Le mot de passe doit contenir une minuscule, une majuscule, un chiffre et un caractère spécial.';
+        }
+
         return null;
     }
 

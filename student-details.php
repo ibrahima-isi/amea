@@ -109,7 +109,6 @@ if (!empty($identitePath)) {
         if (!empty($resolvedIdentity)) {
             $finfo    = finfo_open(FILEINFO_MIME_TYPE);
             $mimeType = finfo_file($finfo, $resolvedIdentity);
-            finfo_close($finfo);
             $identityIsPdf   = ($mimeType === 'application/pdf');
             $identityIsImage = (strncmp($mimeType, 'image/', 6) === 0);
         }
@@ -168,7 +167,7 @@ $detailsHtml .= '</div>';
 $detailsHtml .= '<div class="d-flex justify-content-center gap-3 text-muted mt-1">';
 $detailsHtml .= '<div><i class="fas fa-venus-mars me-1"></i>' . htmlspecialchars($student['sexe'] ?? '?') . '</div>';
 if (!empty($student['date_naissance'])) {
-    $detailsHtml .= '<div><i class="fas fa-birthday-cake me-1"></i>' . calculateAge($student['date_naissance']) . ' ans</div>';
+    $detailsHtml .= '<div><i class="fas fa-birthday-cake me-1"></i>' . calculateAge((string)$student['date_naissance']) . ' ans</div>';
 }
 $detailsHtml .= '</div>';
 $detailsHtml .= '</div></div>'; // end profile card
@@ -186,18 +185,19 @@ $detailsHtml .= '</ul></div></div>'; // end contact card
 $detailsHtml .= '<div class="card shadow-sm border-0">';
 $detailsHtml .= '<div class="card-header bg-white border-0 pt-3 pb-0"><h6 class="fw-bold text-uppercase text-muted small"><i class="fas fa-clipboard-list me-2"></i>Inscription</h6></div>';
 $detailsHtml .= '<div class="card-body"><ul class="list-unstyled mb-0">';
-$detailsHtml .= '<li class="mb-3"><span class="d-block small text-muted">Enregistré le</span><span class="fw-bold">' . formatDateFr($student['date_enregistrement'], true) . '</span></li>';
+$registrationDate = formatDateFr((string)($student['date_enregistrement'] ?? ''), true);
+$detailsHtml .= '<li class="mb-3"><span class="d-block small text-muted">Enregistré le</span><span class="fw-bold">' . ($registrationDate !== '' ? $registrationDate : 'Non renseigné') . '</span></li>';
 $detailsHtml .= '<li class="mb-3"><span class="d-block small text-muted">Statut du dossier</span>';
 $detailsHtml .= '<span class="badge ' . ($isLocked ? 'bg-success' : 'bg-warning text-dark') . '">' . ($isLocked ? 'Finalisé' : 'En cours') . '</span></li>';
 if (in_array($statut, ['Diplômé', 'DIPLOME']) && !empty($student['date_diplomation'])) {
-    $detailsHtml .= '<li class="mb-3"><span class="d-block small text-muted">Date de diplomation</span><span class="fw-bold text-success">' . formatDateFr($student['date_diplomation']) . '</span></li>';
+    $detailsHtml .= '<li class="mb-3"><span class="d-block small text-muted">Date de diplomation</span><span class="fw-bold text-success">' . formatDateFr((string)$student['date_diplomation']) . '</span></li>';
 }
 $hasConsent = !empty($student['consent_privacy']);
 $detailsHtml .= '<li><span class="d-block small text-muted">Consentement RGPD</span>';
 if ($hasConsent) {
     $detailsHtml .= '<span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i>Accordé</span>';
     if (!empty($student['consent_privacy_date'])) {
-        $detailsHtml .= '<span class="d-block small text-muted">le ' . formatDateFr($student['consent_privacy_date'], true) . '</span>';
+        $detailsHtml .= '<span class="d-block small text-muted">le ' . formatDateFr((string)$student['consent_privacy_date'], true) . '</span>';
     }
 } else {
     $detailsHtml .= '<span class="text-danger fw-bold"><i class="fas fa-times-circle me-1"></i>Non accordé</span>';
@@ -248,7 +248,7 @@ if (!empty($nationalities)) {
 }
 $detailsHtml .= '</div></div>';
 
-$birthDateDisplay = !empty($student['date_naissance']) ? formatDateFr($student['date_naissance']) : 'Non renseignée';
+$birthDateDisplay = !empty($student['date_naissance']) ? formatDateFr((string)$student['date_naissance']) : 'Non renseignée';
 $detailsHtml .= '<div class="col-md-6"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Date de Naissance</small><span class="fw-bold text-dark">' . $birthDateDisplay . '</span></div></div>';
 $detailsHtml .= '<div class="col-md-6"><div class="p-3 bg-light rounded"><small class="text-muted d-block mb-1">Type de Logement</small><span class="fw-bold text-dark">' . htmlspecialchars($student['type_logement'] ?? 'N/A') . '</span></div></div>';
 if (!empty($student['precision_logement'])) {

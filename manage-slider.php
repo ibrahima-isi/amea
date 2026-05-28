@@ -28,7 +28,7 @@ require_once 'config/database.php';
 
 $uploadDir = 'uploads/slider/';
 if (!is_dir($uploadDir)) {
-    mkdir($uploadDir, 0777, true);
+    mkdir($uploadDir, 0755, true);
 }
 
 // Handle POST requests

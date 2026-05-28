@@ -799,6 +799,16 @@ $result = $uploader->handle(
 );
 expect('handle() rejects disallowed extension',         !$result['success']);
 
+// handle() verifies MIME for allowed webp uploads
+$fakeWebp = tempnam(sys_get_temp_dir(), 'amea_fake_webp_');
+file_put_contents($fakeWebp, '<?php echo "not an image";');
+$result = $uploader->handle(
+    ['error' => UPLOAD_ERR_OK, 'size' => filesize($fakeWebp), 'name' => 'fake.webp', 'tmp_name' => $fakeWebp],
+    ['webp'], 5 * 1024 * 1024, 'uploads/test'
+);
+expect('handle() rejects fake webp MIME', !$result['success'] && $result['message'] === 'Type MIME invalide.');
+@unlink($fakeWebp);
+
 // ─── 15. Service\ExportService ────────────────────────────────────────────────
 echo "\nService\\ExportService\n";
 

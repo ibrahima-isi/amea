@@ -26,10 +26,7 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Les images seront listées ici par PHP -->
-                <tr>
-                    <td colspan="5" class="text-center">Aucune image dans le carrousel pour le moment.</td>
-                </tr>
+                <!-- Les images sont injectées ici par PHP -->
             </tbody>
         </table>
     </div>
@@ -61,8 +58,8 @@
 
                     <div class="mb-3">
                         <label for="image_file" class="form-label">Fichier image</label>
-                        <input class="form-control" type="file" id="image_file" name="image_file" accept="image/png, image/jpeg, image/gif" required>
-                        <div class="form-text">Les images doivent être au format JPG, PNG ou GIF et ne pas dépasser 2MB.</div>
+                        <input class="form-control" type="file" id="image_file" name="image_file" accept="image/png, image/jpeg, image/gif, image/webp" required>
+                        <div class="form-text">Les images doivent être au format JPG, PNG, GIF ou WebP et ne pas dépasser 5 Mo.</div>
                     </div>
 
                     <div class="row">

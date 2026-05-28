@@ -114,8 +114,17 @@ $service->requestForEmail('reset.user@test.local', $mailer);
 $secondBody = $sent[2]['body'] ?? '';
 preg_match('/token=([a-f0-9]{64})/i', $secondBody, $secondMatch);
 $secondToken = $secondMatch[1] ?? '';
-$mismatch = $service->resetPassword($secondToken, 'MismatchPassword#2026', 'DifferentPassword#2026', $mailer);
-$short = $service->resetPassword($secondToken, 'short', 'short', $mailer);
+$weakComposition = $service->resetPassword($secondToken, 'alllowercasepassword', 'alllowercasepassword', $mailer);
+$validAfterWeak = $service->resetPassword($secondToken, 'AnotherStrong#2026', 'AnotherStrong#2026', $mailer);
+expect('resetPassword() rejects passwords without mixed character classes', $weakComposition['success'] === false);
+expect('weak password attempt does not consume the reset token', $validAfterWeak['success'] === true);
+
+$service->requestForEmail('reset.user@test.local', $mailer);
+$thirdBody = $sent[4]['body'] ?? '';
+preg_match('/token=([a-f0-9]{64})/i', $thirdBody, $thirdMatch);
+$thirdToken = $thirdMatch[1] ?? '';
+$mismatch = $service->resetPassword($thirdToken, 'MismatchPassword#2026', 'DifferentPassword#2026', $mailer);
+$short = $service->resetPassword($thirdToken, 'short', 'short', $mailer);
 expect('resetPassword() rejects mismatched confirmation', $mismatch['success'] === false);
 expect('resetPassword() rejects short password', $short['success'] === false);
 

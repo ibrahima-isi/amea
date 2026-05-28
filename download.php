@@ -60,7 +60,6 @@ if ($uploadsDir === false || $realFile === false || strpos($realFile, $uploadsDi
 // Detect MIME type from actual content
 $finfo    = finfo_open(FILEINFO_MIME_TYPE);
 $mimeType = finfo_file($finfo, $realFile);
-finfo_close($finfo);
 
 $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
 if (!in_array($mimeType, $allowedMimes, true)) {

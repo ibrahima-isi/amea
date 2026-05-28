@@ -8,6 +8,7 @@ class FileUploader
         'jpeg' => 'image/jpeg',
         'png'  => 'image/png',
         'gif'  => 'image/gif',
+        'webp' => 'image/webp',
         'pdf'  => 'application/pdf',
     ];
 
@@ -41,7 +42,6 @@ class FileUploader
         // MIME verification
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime  = finfo_file($finfo, $fileInput['tmp_name']);
-        finfo_close($finfo);
         $expectedMime = self::ALLOWED_MIMES[$ext] ?? null;
         if ($expectedMime && $mime !== $expectedMime) {
             return ['success' => false, 'filepath' => null, 'message' => 'Type MIME invalide.'];

@@ -65,7 +65,6 @@ function http(string $method, string $path, array $postFields = [], string $cook
     $raw     = curl_exec($ch);
     $code    = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $hdrSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-    curl_close($ch);
 
     $headers  = substr($raw, 0, $hdrSize);
     $body     = substr($raw, $hdrSize);
@@ -114,6 +113,7 @@ $limitedPermsJson = json_encode(['documents']); // only documents, NOT users
 // Clean up any leftover fixtures from a previous failed run
 $conn->exec("DELETE FROM password_resets WHERE email LIKE '_test_%@test.local'");
 $conn->exec("DELETE FROM users WHERE username IN ('_test_fulladmin','_test_restricted')");
+$conn->exec("DELETE FROM personnes WHERE email = '_test_student_details@test.local'");
 
 $conn->prepare("INSERT INTO users (username, email, nom, prenom, password, role, permissions, est_actif, date_creation)
                 VALUES ('_test_fulladmin', '_test_fulladmin@test.local', 'Test', 'FullAdmin', ?, 'admin', ?, 1, NOW())")
@@ -124,6 +124,19 @@ $conn->prepare("INSERT INTO users (username, email, nom, prenom, password, role,
                 VALUES ('_test_restricted', '_test_restricted@test.local', 'Test', 'Restricted', ?, 'admin', ?, 1, NOW())")
      ->execute([$testHash, $limitedPermsJson]);
 $restrictedId = (int)$conn->lastInsertId();
+
+$conn->prepare("INSERT INTO personnes (
+                    nom, prenom, sexe, date_naissance, lieu_residence, etablissement,
+                    statut, domaine_etudes, niveau_etudes, telephone, email,
+                    annee_arrivee, type_logement, projet_apres_formation,
+                    consent_privacy, is_locked, date_enregistrement
+                ) VALUES (
+                    'StudentDetails', 'Fixture', 'Masculin', '2000-01-02', 'Dakar', 'UCAD',
+                    'ETUDIANT', 'Informatique', 'Licence', '_test_770000001',
+                    '_test_student_details@test.local', 2022, 'Location',
+                    'Projet de test', 1, 1, NULL
+                )")->execute();
+$studentDetailsId = (int)$conn->lastInsertId();
 
 // ─── Cookie jar files (one per test session) ──────────────────────────────────
 // Each user gets a temp file that curl uses as a persistent cookie store.
@@ -268,6 +281,27 @@ if ($sessionsOk) {
 if ($sessionsOk) {
     [$code] = http('GET', '/users.php', [], $fullAdminJar);
     expect('Full-admin GET users.php → 200',  $code === 200);
+}
+
+// 7b. Full-admin can access manage-slider.php without duplicated empty-state rows
+echo "\nFull-admin access to manage-slider.php\n";
+
+if ($sessionsOk) {
+    [$code, , $body] = http('GET', '/manage-slider.php', [], $fullAdminJar);
+    expect('Full-admin GET manage-slider.php → 200', $code === 200);
+    expect('manage-slider.php renders add/edit modal', str_contains($body, 'id="sliderImageModal"'));
+    expect('manage-slider.php resolves CSRF placeholder', !str_contains($body, '{{csrf_token}}'));
+    expect('manage-slider.php shows empty slider message once', substr_count($body, 'Aucune image dans le carrousel') === 1);
+}
+
+// 7c. Full-admin can view student details for an existing student
+echo "\nFull-admin access to student-details.php\n";
+
+if ($sessionsOk) {
+    [$code, , $body] = http('GET', "/student-details.php?id=$studentDetailsId", [], $fullAdminJar);
+    expect('Full-admin GET student-details.php → 200', $code === 200);
+    expect('student-details.php renders fixture student name', str_contains($body, 'Fixture StudentDetails'));
+    expect('student-details.php resolves student id placeholder', !str_contains($body, '{{student_id}}'));
 }
 
 // 8. settings.php: restricted admin (no 'settings') must be blocked
@@ -477,6 +511,7 @@ if ($sessionsOk) {
 
 // ─── Teardown ─────────────────────────────────────────────────────────────────
 $conn->exec("DELETE FROM password_resets WHERE email LIKE '_test_%@test.local'");
+$conn->exec("DELETE FROM personnes WHERE email = '_test_student_details@test.local'");
 $conn->exec("DELETE FROM users WHERE username IN ('_test_fulladmin','_test_restricted')");
 @unlink($fullAdminJar);
 @unlink($restrictedJar);
