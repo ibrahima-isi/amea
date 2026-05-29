@@ -445,15 +445,20 @@ select::placeholder,
 /* ═══════════════════════════════════════
    SIDEBAR — Enterprise Layout
 ═══════════════════════════════════════ */
+#wrapper {
+  display: flex;
+  height: 100vh; /* Make wrapper exact viewport height */
+  overflow: hidden; /* Prevent body scrolling */
+}
 #sidebar-wrapper {
   width: 260px;
-  min-height: 100vh;
+  height: 100vh; /* Fixed height to viewport */
   display: flex;
   flex-direction: column;
   background-color: var(--brand-dark);
   transition: width 0.25s ease;
   flex-shrink: 0;
-  overflow: hidden;
+  z-index: 1000;
 }
 #wrapper.toggled #sidebar-wrapper {
   width: 70px;
@@ -487,8 +492,9 @@ select::placeholder,
 .sidebar-nav {
   flex: 1;
   padding: 12px 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow-y: auto; overflow-x: hidden;
+  
+  
 }
 
 /* Section labels */
@@ -533,6 +539,11 @@ select::placeholder,
   background: rgba(0, 148, 96, 0.2);
   border-left-color: var(--brand-accent);
   font-weight: 600;
+}
+
+#page-content-wrapper {
+  flex: 1;
+  overflow-y: auto; /* Main content scrolls independently */
 }
 
 /* Footer */
