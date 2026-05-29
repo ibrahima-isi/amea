@@ -24,26 +24,26 @@
     gap: 12px;
     margin-bottom: 1.75rem;
     padding-bottom: 1.25rem;
-    border-bottom: 1px solid rgba(0,0,0,0.07);
+    border-bottom: 1px solid var(--bs-border-color);
 }
 .dash-header h1,
-.page-header h1 { font-size: 1.35rem; font-weight: 700; margin-bottom: 2px; }
+.page-header h1 { font-size: 1.35rem; font-weight: 700; margin-bottom: 2px; color: var(--bs-body-color); }
 .dash-subtitle,
 .page-header .breadcrumb { font-size: 0.8rem; margin: 0; }
-.dash-subtitle { font-size: 0.85rem; color: #888; margin: 0; }
+.dash-subtitle { font-size: 0.85rem; color: var(--bs-secondary-color); margin: 0; }
 
 /* ═══════════════════════════════════════
    DASHBOARD — Stat cards
 ═══════════════════════════════════════ */
 .stat-card {
-    background: #fff;
+    background: var(--bs-secondary-bg);
     border-radius: 12px;
     padding: 20px 22px;
     display: flex;
     align-items: center;
     gap: 16px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-    border: 1px solid rgba(0,148,96,0.1);
+    border: 1px solid var(--bs-border-color);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
     text-decoration: none;
     color: inherit;
@@ -63,19 +63,21 @@
     flex-shrink: 0;
 }
 .stat-icon-green  { background: rgba(0,148,96,0.12);   color: var(--brand-primary); }
-.stat-icon-yellow { background: rgba(252,209,22,0.18);  color: #997a00; }
+.stat-icon-yellow { background: rgba(252,209,22,0.18);  color: var(--brand-accent); }
 .stat-icon-dark   { background: rgba(27,77,62,0.12);    color: var(--brand-dark); }
 .stat-icon-red    { background: rgba(206,17,38,0.1);    color: var(--brand-danger); }
+
+[data-bs-theme="dark"] .stat-icon-dark { background: rgba(255,255,255,0.1); color: #fff; }
 
 .stat-body { min-width: 0; }
 .stat-value {
     font-size: 1.65rem; font-weight: 700; line-height: 1.1;
-    color: #1a1a1a; white-space: nowrap;
+    color: var(--bs-body-color); white-space: nowrap;
     overflow: hidden; text-overflow: ellipsis;
 }
 .stat-label {
     font-size: 0.7rem; text-transform: uppercase;
-    letter-spacing: 0.6px; color: #999;
+    letter-spacing: 0.6px; color: var(--bs-secondary-color);
     font-weight: 600; margin-top: 3px;
 }
 .stat-sub { font-size: 0.78rem; color: var(--brand-primary); margin-top: 5px; font-weight: 500; }

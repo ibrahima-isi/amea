@@ -1,0 +1,10 @@
+@@ -477,7 +482,8 @@
+ .sidebar-nav {
+   flex: 1;
+   padding: 12px 0;
+-  overflow-y: auto;
++  overflow-y: auto; /* Let nav items scroll internally */
++  overflow-x: hidden;
+ }
+ .sidebar-nav::-webkit-scrollbar {
+   width: 6px;

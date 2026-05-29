@@ -194,14 +194,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // --- Validation ---
     $requiredFields = [
-        'last_name' => 'Le nom est requis.', 'first_name' => 'Le prénom est requis.', 'gender' => 'Le sexe est requis.',
-        'residence' => 'Le lieu de résidence est requis.',
-        'institution' => 'L\'établissement est requis.', 'status' => 'Le statut est requis.',
-        'study_field' => 'Le domaine d\'études est requis.', 'study_level' => 'Le niveau d\'études est requis.',
-        'phone' => 'Le téléphone est requis.', 'email' => 'L\'email est requis.', 'housing_type' => 'Le type de logement est requis.'
+        'last_name' => 'Le nom est requis.', 
+        'first_name' => 'Le prénom est requis.', 
+        'gender' => 'Le sexe est requis.',
+        'status' => 'Le statut est requis.',
+        'phone' => 'Le téléphone est requis.', 
+        'email' => 'L\'email est requis.'
     ];
     foreach ($requiredFields as $field => $message) {
         if (empty($formData[$field])) $errors[$field] = $message;
+    }
+
+    if (empty($validNats)) {
+        $errors['nationalities'] = 'La nationalité est requise.';
+    } elseif (count($validNats) > 5) {
+        $errors['nationalities'] = 'Maximum 5 nationalités autorisées.';
+    }
+    
+    // Always ensure Guinée is included (Backend safety)
+    if (!empty($validNats)) {
+        $hasGuinee = false;
+        foreach ($validNats as $nat) {
+            $lnat = mb_strtolower($nat, 'UTF-8');
+            if ($lnat === 'guinée' || $lnat === 'guinee' || $lnat === 'guinea') {
+                $hasGuinee = true;
+                break;
+            }
+        }
+        if (!$hasGuinee) {
+            // Find Guinée ID and Name
+            $stmtG = $conn->query("SELECT id, name_fr FROM countries WHERE name_fr = 'Guinée' LIMIT 1");
+            $guineeRow = $stmtG->fetch(PDO::FETCH_ASSOC);
+            if ($guineeRow) {
+                array_unshift($validNats, $guineeRow['name_fr']);
+                array_unshift($validIds, $guineeRow['id']);
+                $nationalities_json = json_encode($validNats, JSON_UNESCAPED_UNICODE);
+            }
+        }
     }
 
     // Email validation
@@ -454,8 +483,8 @@ $replacements = [
     '{{institution_options}}' => $institutionOptions,
     '{{study_field_options}}' => $studyFieldOptions,
     '{{study_level_options}}' => $studyLevelOptions,
-    '{{gender_checked_Male}}' => $checked($formData['gender'], 'Masculin') || $checked($formData['gender'], 'Male'),
-    '{{gender_checked_Female}}' => $checked($formData['gender'], 'Féminin') || $checked($formData['gender'], 'Female'),
+    '{{gender_checked_Male}}' => $checked($formData['gender'], 'Masculin'),
+    '{{gender_checked_Female}}' => $checked($formData['gender'], 'Féminin'),
     '{{housing_type_sel_Colocation}}' => $sel($formData['housing_type'], 'Colocation'),
     '{{housing_type_sel_Famille}}' => $sel($formData['housing_type'], 'Famille'),
     '{{housing_type_sel_Hébergement temporaire}}' => $sel($formData['housing_type'], 'Hébergement temporaire'),

@@ -1,0 +1,46 @@
+--- assets/css/app.css
++++ assets/css/app.css
+@@ -446,14 +446,19 @@
+    SIDEBAR — Enterprise Layout
+ ═══════════════════════════════════════ */
++#wrapper {
++  display: flex;
++  height: 100vh; /* Make wrapper exact viewport height */
++  overflow: hidden; /* Prevent body scrolling */
++}
+ #sidebar-wrapper {
+   width: 260px;
+-  min-height: 100vh;
++  height: 100vh; /* Fixed height to viewport */
+   display: flex;
+   flex-direction: column;
+   background-color: var(--brand-dark);
+   transition: width 0.25s ease;
+   flex-shrink: 0;
+-  overflow: hidden;
++  z-index: 1000;
+ }
+ #wrapper.toggled #sidebar-wrapper {
+   width: 70px;
+@@ -477,7 +482,8 @@
+ .sidebar-nav {
+   flex: 1;
+   padding: 12px 0;
+-  overflow-y: auto;
++  overflow-y: auto; /* Let nav items scroll internally */
++  overflow-x: hidden;
+ }
+ .sidebar-nav::-webkit-scrollbar {
+   width: 6px;
+@@ -534,6 +540,11 @@
+   font-size: 0.85rem;
+   white-space: nowrap;
+ }
++
++#page-content-wrapper {
++  flex: 1;
++  overflow-y: auto; /* Main content scrolls independently */
++}
+ 
+ /* ═══════════════════════════════════════
+    FORM CARDS & DASHBOARD OVERRIDES

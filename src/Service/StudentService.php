@@ -74,10 +74,10 @@ class StudentService
         if (!empty($input['phone']) && !\isValidPhone($input['phone'])) {
             $errors['phone'] = 'Invalid phone number (9 digits expected).';
         }
-        if (!empty($input['status']) && !in_array($input['status'], ['PUPIL', 'STUDENT', 'TRAINEE'], true)) {
+        if (!empty($input['status']) && !in_array($input['status'], ['ELEVE', 'ETUDIANT', 'STAGIAIRE'], true)) {
             $errors['status'] = 'Invalid status.';
         }
-        if (!empty($input['gender']) && !in_array($input['gender'], ['Male', 'Female'], true)) {
+        if (!empty($input['gender']) && !in_array($input['gender'], ['Masculin', 'Féminin'], true)) {
             $errors['gender'] = 'Invalid gender.';
         }
 

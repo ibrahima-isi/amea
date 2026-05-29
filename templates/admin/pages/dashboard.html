@@ -118,59 +118,77 @@
 </div>
 
 <script>
-  var brandGreen  = '#009460';
-  var brandDark   = '#1B4D3E';
-  var brandYellow = '#FCD116';
-  var brandRed    = '#CE1126';
+  (function() {
+    var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    var brandGreen  = '#009460';
+    var brandDark   = '#1B4D3E';
+    var brandYellow = '#FCD116';
+    var brandRed    = '#CE1126';
+    var textColor   = isDark ? '#e9ecef' : '#1a1a1a';
+    var gridColor   = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
+    var borderColor = isDark ? '#1a1d20' : '#fff';
 
-  // Gender — donut
-  new Chart(document.getElementById('genderChart').getContext('2d'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Masculin', 'Féminin'],
-      datasets: [{
-        data: [{{stats_hommes}}, {{stats_femmes}}],
-        backgroundColor: [brandGreen, brandYellow],
-        hoverBackgroundColor: [brandDark, '#b8940a'],
-        borderWidth: 2, borderColor: '#fff'
-      }]
-    },
-    options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } } }
-  });
+    Chart.defaults.color = textColor;
 
-  // Status — donut
-  new Chart(document.getElementById('statusChart').getContext('2d'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Étudiants', 'Élèves', 'Stagiaires'],
-      datasets: [{
-        data: [{{stats_etudiants}}, {{stats_eleves}}, {{stats_stagiaires}}],
-        backgroundColor: [brandGreen, brandYellow, brandRed],
-        hoverBackgroundColor: [brandDark, '#b8940a', '#a00d1f'],
-        borderWidth: 2, borderColor: '#fff'
-      }]
-    },
-    options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } } }
-  });
+    // Gender — donut
+    new Chart(document.getElementById('genderChart').getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Masculin', 'Féminin'],
+        datasets: [{
+          data: [{{stats_hommes}}, {{stats_femmes}}],
+          backgroundColor: [brandGreen, brandYellow],
+          hoverBackgroundColor: [brandDark, '#b8940a'],
+          borderWidth: 2, borderColor: borderColor
+        }]
+      },
+      options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
 
-  // Schools — bar
-  new Chart(document.getElementById('schoolChart').getContext('2d'), {
-    type: 'bar',
-    data: {
-      labels: [{{school_labels}}],
-      datasets: [{
-        label: "Inscrits",
-        data: [{{school_values}}],
-        backgroundColor: brandGreen,
-        hoverBackgroundColor: brandDark,
-        borderRadius: 6,
-        borderSkipped: false
-      }]
-    },
-    options: {
-      maintainAspectRatio: false, responsive: true,
-      scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } },
-      plugins: { legend: { display: false } }
-    }
-  });
+    // Status — donut
+    new Chart(document.getElementById('statusChart').getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Étudiants', 'Élèves', 'Stagiaires'],
+        datasets: [{
+          data: [{{stats_etudiants}}, {{stats_eleves}}, {{stats_stagiaires}}],
+          backgroundColor: [brandGreen, brandYellow, brandRed],
+          hoverBackgroundColor: [brandDark, '#b8940a', '#a00d1f'],
+          borderWidth: 2, borderColor: borderColor
+        }]
+      },
+      options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    // Schools — bar
+    new Chart(document.getElementById('schoolChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: [{{school_labels}}],
+        datasets: [{
+          label: "Inscrits",
+          data: [{{school_values}}],
+          backgroundColor: brandGreen,
+          hoverBackgroundColor: brandDark,
+          borderRadius: 6,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        maintainAspectRatio: false, responsive: true,
+        scales: { 
+          y: { 
+            beginAtZero: true, 
+            ticks: { precision: 0, color: textColor }, 
+            grid: { color: gridColor } 
+          }, 
+          x: { 
+            ticks: { color: textColor },
+            grid: { display: false } 
+          } 
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  })();
 </script>
