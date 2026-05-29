@@ -220,7 +220,8 @@ Les migrations sont des scripts PHP CLI idempotents dans `migrations/`. Ils ajou
 
 ```bash
 cd /home/aeessqgf/public_html
-php -d display_errors=1 migrations/migration_translate_to_english.php
+php -d display_errors=1 migrations/00_init_schema.php
+php -d display_errors=1 migrations/01_migration_add_settings_table.php
 # etc.
 ```
 
