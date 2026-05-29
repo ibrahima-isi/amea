@@ -6,59 +6,50 @@ This is a PHP 8 web application designed for managing the members of the **Amica
 
 ## Technologies
 
-*   **Backend:** PHP 8.x (requires extensions: `pdo_mysql`, `fileinfo`, `mbstring`, `gd`)
+*   **Backend:** PHP 8.x (requires extensions: `pdo_mysql`, `fileinfo`, `mbstring`, `gd`) - Refactored to OOP/PSR-4.
 *   **Database:** MySQL 8.0+
-*   **Frontend:** Bootstrap 5, Vanilla JavaScript, Tagify
+*   **Frontend:** Bootstrap 5, Vanilla JavaScript, Tagify, **Dark Mode**
 *   **Email:** PHPMailer 6.x (via Brevo SMTP)
-*   **Templating:** Custom string-replacement engine (`{{...}}`)
+*   **Templating:** Custom string-replacement engine (`{{...}}`) & Twig
 
 ## Architecture & Directory Structure
 
-The project uses a custom, lightweight MVC-like architecture with a mix of OOP components and procedural scripts.
+The project uses a modern MVC architecture for new features and maintained procedural logic for legacy sections.
 
 *   **`src/`**: Contains the OOP core of the application following PSR-4 autoloading (`Amea\\`).
-    *   `Core/`: Fundamental components like `Database.php`, `Session.php`, `TemplateEngine.php`.
-    *   `Model/`: Data structures representing entities (`User.php`, `Student.php`).
+    *   `Core/`: Fundamental components like `TemplateEngine.php`, `Router.php`, `Session.php`.
+    *   `Controller/`: Page controllers (Auth, Registration, KYC).
+    *   `Model/`: Data entities (`User.php`, `Student.php`).
     *   `Repository/`: Database access logic.
-    *   `Service/`: Business logic and orchestration (`AuthService.php`, `EmailService.php`).
-*   **`templates/`**: HTML views. Pages use a custom templating system. Separated into public pages, admin pages, and email templates.
-*   **`assets/`**: Static assets (CSS, JS, images, JSON data).
-*   **`functions/`**: Procedural helper files (`utility-functions.php`, `email-service.php`, `document-reconcile.php`).
+    *   `Service/`: Business logic and orchestration (`AuthService.php`, `StudentService.php`).
+*   **`templates/`**: HTML views.
+    *   Admin pages use a custom replacement system.
+    *   Public pages use Twig templates.
+*   **`assets/`**: Static assets.
+    *   `js/theme.js`: Manages Dark Mode state and switching.
+*   **`functions/`**: Procedural helper files.
 *   **`database/` & `schema.sql`**: Database definitions.
-*   **`migrations/`**: Procedural PHP scripts for database migrations.
-*   **`uploads/`**: Directory for user uploads (student CVs, ID photos, slider images).
-*   **Root PHP files**: These act as the entry points or controllers for specific pages (e.g., `index.php`, `register.php`, `dashboard.php`, `students.php`).
+*   **`migrations/`**: PHP CLI scripts for schema updates.
+*   **`uploads/`**: Directory for user uploads.
+*   **Root PHP files**: Main entry points (index.php, register.php, etc.).
 
 ## Building, Testing, and Deployment
 
-1.  **Install Dependencies:**
-    ```bash
-    composer install
-    ```
-2.  **Environment Setup:**
-    Create a `.env` file at the root (based on a template or structure defined in the README). You need database and SMTP credentials.
-3.  **Database Setup:**
-    Create a MySQL database (`amea_db`) and import the schema:
-    ```bash
-    mysql -u root -p amea_db < schema.sql
-    ```
+1.  **Install Dependencies:** `composer install`
+2.  **Environment Setup:** Create `.env` from `.env.example`.
+3.  **Database Setup:** Import `schema.sql`.
 4.  **Run Tests:**
-    Unit tests use SQLite in-memory and are built for PHP 8.4 compatibility.
     ```bash
     php tests/test_oop_unit.php
-    php tests/test_permissions_unit.php
     php tests/test_oop_integration.php
     ```
-5.  **Deployment (CI/CD):**
-    Deployment is fully automated via **GitHub Actions** (`.github/workflows/deploy.yml`). Pushing to `main` triggers tests, connects to the Namecheap server via SSH, robustly installs dependencies with `composer.phar`, synchronizes files using strict `rsync` rules, applies secure `755/644` permissions to prevent `403 Forbidden` errors, and dynamically generates the production `.env` from GitHub Secrets.
+5.  **Deployment:** Automated via **GitHub Actions**.
 
-## Development Conventions
+## Engineering Standards
 
-*   **Autoloading:** Use Composer's PSR-4 autoloader for any new classes added to the `src/` directory under the `Amea\\` namespace.
-*   **Database:** Always use PDO prepared statements to prevent SQL injection. The `Amea\Config\Database` class should be used for getting the connection.
-*   **Security:**
-    *   All POST forms must include and verify a CSRF token.
-    *   Output escaping (`htmlspecialchars`) is mandatory for all user-provided data rendered in templates.
-    *   File uploads are validated by MIME type using `fileinfo`.
-*   **Templating:** Use the custom `TemplateEngine` or the procedural view wrappers instead of mixing complex PHP logic directly into HTML files.
-*   **Migrations:** Schema changes MUST be handled via explicit PHP CLI scripts in the `migrations/` directory. Auto-healing `ALTER TABLE` queries embedded in web controllers are deprecated to reduce overhead and prevent silent fatal errors. Migrations must be run manually on the production server from the `public_html/` root with `display_errors=1`.
+*   **Dark Mode:** All new UI elements must support `[data-bs-theme="dark"]` using CSS variables.
+*   **Form Synchronization:** The student editing interface must remain visually and logically identical to the registration form.
+*   **Data Integrity:** Use database-aligned French enums (`Masculin`, `ELEVE`) in all backend services.
+*   **Autoloading:** Always follow PSR-4 for new classes in `src/`.
+*   **Security:** Mandatory CSRF tokens, output escaping, and strict MIME type validation for uploads.
+*   **Migrations:** Schema changes must be handled via CLI scripts in `migrations/`.
