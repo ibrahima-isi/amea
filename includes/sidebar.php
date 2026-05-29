@@ -60,13 +60,6 @@ function sidebarActive(array $pages): string {
         </a>
         <?php endif; ?>
 
-        <?php if (hasPermission('documents')): ?>
-        <a href="reconcile-documents.php" class="sidebar-link <?= sidebarActive(['reconcile-documents.php']) ?>">
-            <i class="fas fa-folder-open"></i>
-            <span>Documents</span>
-        </a>
-        <?php endif; ?>
-
         <?php if (hasPermission('communications')): ?>
         <a href="communications.php" class="sidebar-link <?= sidebarActive(['communications.php']) ?>">
             <i class="fas fa-envelope-open-text"></i>
