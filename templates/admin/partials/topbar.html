@@ -9,13 +9,14 @@
         <ul class="navbar-nav ms-auto align-items-center flex-row">
             <li class="nav-item me-1">
                 <a href="#" class="nav-link theme-switcher px-2" title="Changer le thème">
-                    <i class="fas fa-moon fs-5"></i>
+                    <i class="fas fa-moon fs-5 d-lg-none"></i>
+                    <span class="theme-label d-none d-lg-inline">Mode sombre</span>
                 </a>
             </li>
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle d-flex align-items-center px-2" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="fas fa-user-circle fs-5"></i>
-                    <span class="ms-2 d-none d-md-inline">{{user_fullname}}</span>
+                    <i class="fas fa-user-circle fs-5 d-lg-none"></i>
+                    <span class="d-none d-lg-inline">{{user_fullname}}</span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="navbarDropdown">
                     <div class="dropdown-header d-md-none">
