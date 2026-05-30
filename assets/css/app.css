@@ -405,6 +405,14 @@ select::placeholder,
     transform: scale(1.1);
 }
 
+.adaptive-icon {
+    color: #000 !important;
+}
+
+[data-bs-theme="dark"] .adaptive-icon {
+    color: #fff !important;
+}
+
 .navbar-dark .theme-switcher {
     color: rgba(255, 255, 255, 0.8) !important;
 }

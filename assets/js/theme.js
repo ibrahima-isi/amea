@@ -14,15 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!themeSwitchers.length) return;
 
         themeSwitchers.forEach(btn => {
-            const icon = btn.querySelector('i');
             const label = btn.querySelector('.theme-label');
             if(theme === 'dark') {
-                icon.classList.remove('fa-moon');
-                icon.classList.add('fa-sun');
                 if (label) label.textContent = 'Mode clair';
             } else {
-                icon.classList.remove('fa-sun');
-                icon.classList.add('fa-moon');
                 if (label) label.textContent = 'Mode sombre';
             }
         });
