@@ -366,9 +366,18 @@ select::placeholder,
     --placeholder-color: rgba(255, 255, 255, 0.4);
     --tag-hover: var(--brand-primary);
     --tag-remove-btn-color: var(--bs-body-color);
+    
+    /* Dropdown specific variables */
+    --tagify-dd-bg-color: var(--bs-tertiary-bg);
+    --tagify-dd-text-color: var(--bs-body-color);
 }
 
 [data-bs-theme="dark"] .tagify__dropdown {
+    background: var(--bs-tertiary-bg);
+    border-color: var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .tagify__dropdown__wrapper {
     background: var(--bs-tertiary-bg);
     border-color: var(--bs-border-color);
 }
