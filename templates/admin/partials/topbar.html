@@ -1,33 +1,36 @@
-<nav class="navbar navbar-expand-lg border-bottom px-3">
+<nav class="navbar navbar-expand border-bottom px-3 py-2">
     <div class="container-fluid px-0">
-        <button class="btn btn-outline-primary shadow-sm" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </button>
-        
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav ms-auto mt-2 mt-lg-0 align-items-center">
-                <li class="nav-item me-2">
-                    <a href="#" class="nav-link theme-switcher" title="Changer le thème">
-                        <i class="fas fa-moon fs-5 d-md-none me-2"></i>
-                        <span class="theme-label">Mode sombre</span>
-                    </a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-user-circle me-1"></i> {{user_fullname}}
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="profile.php">Mon profil</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="logout.php">Déconnexion</a>
-                    </div>
-                </li>
-            </ul>
+        <div class="d-flex align-items-center">
+            <button class="btn btn-outline-primary shadow-sm me-3" id="sidebarToggle" title="Menu latéral">
+                <i class="fas fa-bars"></i>
+            </button>
         </div>
+
+        <ul class="navbar-nav ms-auto align-items-center flex-row">
+            <li class="nav-item me-1">
+                <a href="#" class="nav-link theme-switcher px-2" title="Changer le thème">
+                    <i class="fas fa-moon fs-5"></i>
+                </a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle d-flex align-items-center px-2" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-user-circle fs-5"></i>
+                    <span class="ms-2 d-none d-md-inline">{{user_fullname}}</span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="navbarDropdown">
+                    <div class="dropdown-header d-md-none">
+                        <strong>{{user_fullname}}</strong>
+                    </div>
+                    <a class="dropdown-item" href="profile.php">
+                        <i class="fas fa-user-edit me-2 opacity-75"></i> Mon profil
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item text-danger" href="logout.php">
+                        <i class="fas fa-sign-out-alt me-2 opacity-75"></i> Déconnexion
+                    </a>
+                </div>
+            </li>
+        </ul>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
