@@ -16,12 +16,12 @@
                         <a class="nav-link {{ register_active ? 'active' : '' }}" href="register.php">S'enregistrer</a>
                     </li>
                     {% if session.user_id %}
-                        <li class="nav-item ms-md-2">
-                            <a href="#" class="nav-link theme-switcher" title="Changer le thème">
-                                <i class="fas fa-moon fs-5 d-md-none"></i>
-                                <span class="theme-label d-none d-md-inline">Mode sombre</span>
-                            </a>
-                        </li>
+                    <li class="nav-item ms-md-2">
+                        <a href="#" class="nav-link theme-switcher" title="Changer le thème">
+                            <i class="fas fa-moon fs-5 d-md-none me-2"></i>
+                            <span class="theme-label">Mode sombre</span>
+                        </a>
+                    </li>
                         <li class="nav-item">
                             <a class="nav-link" href="dashboard.php">Tableau de bord</a>
                         </li>
@@ -32,12 +32,12 @@
                         <li class="nav-item">
                             <a class="nav-link {{ login_active ? 'active' : '' }}" href="login.php">Connexion</a>
                         </li>
-                        <li class="nav-item ms-md-2">
-                            <a href="#" class="nav-link theme-switcher" title="Changer le thème">
-                                <i class="fas fa-moon fs-5 d-md-none"></i>
-                                <span class="theme-label d-none d-md-inline">Mode sombre</span>
-                            </a>
-                        </li>
+                    <li class="nav-item ms-md-2">
+                        <a href="#" class="nav-link theme-switcher" title="Changer le thème">
+                            <i class="fas fa-moon fs-5 d-md-none me-2"></i>
+                            <span class="theme-label">Mode sombre</span>
+                        </a>
+                    </li>
                     {% endif %}
                 </ul>
             </div>

@@ -140,7 +140,7 @@ expect('schema.sql defines users.session_version', str_contains($schema, 'sessio
 expect('database/init.sql defines users.session_version', str_contains($init, 'session_version'));
 expect('schema.sql uses the application role enum values', str_contains($schema, "enum ('admin','user')") && str_contains($schema, "DEFAULT 'user'"));
 expect('database/init.sql uses the application role enum values', str_contains($init, "enum('admin','user')") && str_contains($init, "DEFAULT 'user'"));
-expect('migration exists for users.session_version', is_file(__DIR__ . '/../migrations/migration_add_user_session_version.php'));
+expect('migration exists for users.session_version', is_file(__DIR__ . '/../migrations/02_migration_add_user_session_version.php'));
 
 echo "\n";
 $total = $passed + $failed;
