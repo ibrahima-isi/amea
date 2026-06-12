@@ -46,8 +46,10 @@ class KYCController extends BaseController
         ]);
     }
 
-    public function review(int $id): void
+    public function review(): void
     {
+        $id = (int)($_GET['id'] ?? 0);
+
         $student = $this->studentRepo->findById($id);
         if (!$student) {
             $this->flash->add('error', 'Étudiant introuvable.');
@@ -60,8 +62,10 @@ class KYCController extends BaseController
         ]);
     }
 
-    public function decide(int $id): void
+    public function decide(): void
     {
+        $id = (int)($_GET['id'] ?? 0);
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('kyc-detail.php?id=' . $id);
             return;
@@ -79,6 +83,12 @@ class KYCController extends BaseController
         $student = $this->studentRepo->findById($id);
         if (!$student) {
             $this->flash->add('error', 'Étudiant introuvable.');
+            $this->redirect('kyc-list.php');
+            return;
+        }
+
+        if ($student->getKycStatus() !== 'UNDER_REVIEW') {
+            $this->flash->add('error', 'Ce dossier n\'est pas en cours de révision : aucune décision possible.');
             $this->redirect('kyc-list.php');
             return;
         }
@@ -102,9 +112,10 @@ class KYCController extends BaseController
     private function approve($student): void
     {
         $this->studentRepo->update($student->getId(), [
-            'kyc_status' => 'APPROVED',
-            'is_locked'  => 1,
-            'kyc_notes'  => null,
+            'kyc_status'   => 'APPROVED',
+            'is_locked'    => 1,
+            'kyc_notes'    => null,
+            'review_token' => null,
         ]);
 
         $this->emailService->sendFromTemplate(
@@ -143,7 +154,7 @@ class KYCController extends BaseController
             [
                 'student' => $student,
                 'notes'   => $notes,
-                'link'    => $_ENV['APP_URL'] . '/kyc-correction.php?token=' . $token
+                'link'    => rtrim((string)($_ENV['APP_URL'] ?? ''), '/') . '/kyc-correction.php?token=' . $token
             ]
         );
 
@@ -153,10 +164,17 @@ class KYCController extends BaseController
 
     private function reject($student, string $notes): void
     {
+        if (empty($notes)) {
+            $this->flash->add('error', 'Veuillez indiquer le motif du rejet.');
+            $this->redirect('kyc-detail.php?id=' . $student->getId());
+            return;
+        }
+
         $this->studentRepo->update($student->getId(), [
-            'kyc_status' => 'REJECTED',
-            'kyc_notes'  => $notes,
-            'is_locked'  => 1,
+            'kyc_status'   => 'REJECTED',
+            'kyc_notes'    => $notes,
+            'is_locked'    => 1,
+            'review_token' => null,
         ]);
 
         $this->emailService->sendFromTemplate(

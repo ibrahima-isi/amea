@@ -21,9 +21,11 @@ class CorrectionController extends BaseController
         $this->studentService = new StudentService($this->studentRepo, $this->fileUploader);
     }
 
-    public function edit(string $token): void
+    public function edit(): void
     {
-        $student = $this->studentRepo->findByToken($token);
+        $token = (string)($_GET['token'] ?? '');
+
+        $student = $token !== '' ? $this->studentRepo->findByToken($token) : null;
         if (!$student || $student->getKycStatus() !== 'NEEDS_CLARIFICATION') {
             $this->flash->add('error', 'Lien de correction invalide ou expiré.');
             $this->redirect('/');
@@ -47,9 +49,13 @@ class CorrectionController extends BaseController
         ]);
     }
 
-    public function update(string $token): void
+    public function update(): void
     {
-        $student = $this->studentRepo->findByToken($token);
+        // The correction form posts to kyc-correction.php?token=..., so the
+        // token arrives in the query string even on POST.
+        $token = (string)($_GET['token'] ?? '');
+
+        $student = $token !== '' ? $this->studentRepo->findByToken($token) : null;
         if (!$student || $student->getKycStatus() !== 'NEEDS_CLARIFICATION') {
             $this->redirect('/');
             return;

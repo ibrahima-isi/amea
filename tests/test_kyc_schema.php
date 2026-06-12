@@ -42,14 +42,14 @@ foreach (['schema.sql', 'database/init.sql'] as $relativePath) {
     }
 }
 
-$migration = file_get_contents($root . '/migrations/migration_add_kyc_workflow.php');
+$migration = file_get_contents($root . '/migrations/04_migration_add_kyc_workflow.php');
 foreach ($requiredColumns as $column) {
     expect(
         "migration checks whether {$column} already exists",
         $migration !== false
             && str_contains($migration, 'function studentsColumnExists')
             && preg_match(
-                "/addPersonnesColumnIfMissing\\(\\s*\\\$conn,\\s*'{$column}'/s",
+                "/addStudentsColumnIfMissing\\(\\s*\\\$conn,\\s*'{$column}'/s",
                 $migration
             ) === 1
     );

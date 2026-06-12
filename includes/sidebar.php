@@ -39,6 +39,11 @@ function sidebarActive(array $pages): string {
         <?php if ($role === 'admin'): ?>
         <div class="sidebar-section-label">Administration</div>
 
+        <a href="kyc-list.php" class="sidebar-link <?= sidebarActive(['kyc-list.php', 'kyc-detail.php']) ?>">
+            <i class="fas fa-user-check"></i>
+            <span>Validation KYC</span>
+        </a>
+
         <?php if (hasPermission('users')): ?>
         <a href="users.php" class="sidebar-link <?= sidebarActive(['users.php', 'add-user.php', 'edit-user.php']) ?>">
             <i class="fas fa-users"></i>

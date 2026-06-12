@@ -679,6 +679,51 @@ foreach ($referencedEmailTemplates as $template) {
     expect("referenced email template exists: {$template}", is_file(__DIR__ . '/../templates/' . $template));
 }
 
+// KYC flow emails must render the student's name (regression: templates used
+// the pre-rename {{ student.prenom }}/{{ student.nom }} accessors, which Twig
+// silently rendered as empty strings).
+$kycEmailStudent = \Amea\Model\Student::fromRow([
+    'id'         => 42,
+    'first_name' => 'Awa',
+    'last_name'  => 'Diallo',
+    'email'      => 'awa.diallo@test.local',
+    'kyc_status' => 'UNDER_REVIEW',
+]);
+
+$kycEmailCases = [
+    'emails/registration-received.html'      => [],
+    'emails/registration-approved.html'      => [],
+    'emails/registration-clarification.html' => ['notes' => 'Photo illisible', 'link' => 'https://example.test/kyc-correction.php?token=abc'],
+    'emails/registration-rejected.html'      => ['notes' => 'Dossier incomplet'],
+];
+foreach ($kycEmailCases as $template => $extra) {
+    $html = $emailView->render($template, array_merge(['student' => $kycEmailStudent], $extra));
+    expect("{$template} renders the student name", str_contains($html, 'Awa') && str_contains($html, 'Diallo'));
+    if (isset($extra['notes'])) {
+        expect("{$template} renders the admin notes", str_contains($html, $extra['notes']));
+    }
+    if (isset($extra['link'])) {
+        expect("{$template} renders the correction link", str_contains($html, $extra['link']));
+    }
+}
+
+// Router::dispatch() invokes controller actions with no arguments, so every
+// routed KYC action must be callable without parameters.
+$kycRoutedActions = [
+    [\Amea\Controller\KYCController::class,        'index'],
+    [\Amea\Controller\KYCController::class,        'review'],
+    [\Amea\Controller\KYCController::class,        'decide'],
+    [\Amea\Controller\CorrectionController::class, 'edit'],
+    [\Amea\Controller\CorrectionController::class, 'update'],
+];
+foreach ($kycRoutedActions as [$class, $action]) {
+    $method = new \ReflectionMethod($class, $action);
+    expect(
+        basename(str_replace('\\', '/', $class)) . "::{$action}() is dispatchable with no arguments",
+        $method->getNumberOfRequiredParameters() === 0
+    );
+}
+
 expect('sendAsync() method exists',                method_exists($emailSvc, 'sendAsync'));
 if (method_exists($emailSvc, 'sendAsync')) {
     $queued = $emailSvc->sendAsync('student@test.local', 'Subject', '<p>Body</p>');
