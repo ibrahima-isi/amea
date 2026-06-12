@@ -57,12 +57,24 @@ class EmailService
             return $this->handleMissingCredentials('email', $subject);
         }
 
-        $queueFile = $this->writeQueueFile($to, $subject, $body);
-        if ($queueFile !== null && $this->launchWorker($queueFile)) {
-            return true;
+        // Async delivery is opt-in (MAIL_ASYNC=1). On shared hosting PHP_BINARY
+        // is often a non-CLI binary (e.g. lsphp): the exec'd worker dies before
+        // sending, but the backgrounded shell still exits 0, so the failure is
+        // invisible to us. Synchronous delivery is the only verifiable default.
+        if ($this->asyncDeliveryEnabled()) {
+            $queueFile = $this->writeQueueFile($to, $subject, $body);
+            if ($queueFile !== null && $this->launchWorker($queueFile)) {
+                return true;
+            }
         }
 
         return $this->send($to, $subject, $body);
+    }
+
+    private function asyncDeliveryEnabled(): bool
+    {
+        $flag = strtolower(trim((string)($_ENV['MAIL_ASYNC'] ?? $_SERVER['MAIL_ASYNC'] ?? getenv('MAIL_ASYNC') ?: '')));
+        return in_array($flag, ['1', 'true', 'on', 'yes'], true);
     }
 
     public function sendFromTemplate(

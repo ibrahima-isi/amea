@@ -791,6 +791,46 @@ $fallbackSvc->sendCalls = 0;
 $fallbackResult = $fallbackSvc->sendAsync('student@test.local', 'Subject', '<p>Body</p>');
 expect('sendAsync() falls back to synchronous send when async worker cannot launch', $fallbackResult && $fallbackSvc->sendCalls === 1);
 
+// Async delivery is opt-in: by default sendAsync() must deliver synchronously
+// even when a worker script exists (regression: on shared hosting the exec'd
+// worker dies silently because PHP_BINARY is not a CLI binary).
+$asyncRoot = sys_get_temp_dir() . '/amea_mail_async_' . uniqid();
+mkdir($asyncRoot . '/scripts', 0775, true);
+mkdir($asyncRoot . '/storage', 0775, true);
+file_put_contents($asyncRoot . '/scripts/send-email.php', "<?php exit(0);\n");
+
+unset($_ENV['MAIL_ASYNC']);
+$syncDefaultSvc = new EmailServiceFallbackProbe(
+    'smtp-user@example.test',
+    'real-smtp-secret',
+    'no-reply@test.local',
+    'AEESGS',
+    null,
+    $asyncRoot
+);
+$syncDefaultResult = $syncDefaultSvc->sendAsync('student@test.local', 'Subject', '<p>Body</p>');
+expect(
+    'sendAsync() is synchronous by default even when a worker script exists',
+    $syncDefaultResult && $syncDefaultSvc->sendCalls === 1 && glob($asyncRoot . '/storage/mail-queue/*.json') === []
+);
+
+$_ENV['MAIL_ASYNC'] = '1';
+$asyncOptInSvc = new EmailServiceFallbackProbe(
+    'smtp-user@example.test',
+    'real-smtp-secret',
+    'no-reply@test.local',
+    'AEESGS',
+    null,
+    $asyncRoot
+);
+$asyncOptInResult = $asyncOptInSvc->sendAsync('student@test.local', 'Subject', '<p>Body</p>');
+$queuedFiles = glob($asyncRoot . '/storage/mail-queue/*.json') ?: [];
+expect(
+    'sendAsync() with MAIL_ASYNC=1 dispatches through the queue worker',
+    $asyncOptInResult && $asyncOptInSvc->sendCalls === 0 && count($queuedFiles) === 1
+);
+unset($_ENV['MAIL_ASYNC']);
+
 if ($previousEnv === null) {
     unset($_ENV['APP_ENV']);
 } else {
