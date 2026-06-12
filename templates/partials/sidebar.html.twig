@@ -1,0 +1,70 @@
+<div id="sidebar-wrapper">
+
+    <div class="sidebar-brand">
+        <i class="fas fa-graduation-cap"></i>
+        <span class="sidebar-brand-text">AEESGS Admin</span>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="sidebar-section-label">Navigation</div>
+
+        <a href="dashboard.php" class="sidebar-link {% if app.request.attributes.get('_route') == 'dashboard' %}active{% endif %}">
+            <i class="fas fa-chart-line"></i>
+            <span>Tableau de bord</span>
+        </a>
+
+        <a href="students.php" class="sidebar-link {% if 'students.php' in app.request.server.get('PHP_SELF') or 'student-details.php' in app.request.server.get('PHP_SELF') or 'edit-student.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
+            <i class="fas fa-user-graduate"></i>
+            <span>Étudiants</span>
+        </a>
+
+        <a href="export.php" class="sidebar-link {% if 'export.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
+            <i class="fas fa-file-export"></i>
+            <span>Export</span>
+        </a>
+
+        <div class="sidebar-section-label">Administration</div>
+
+        <a href="kyc-list.php" class="sidebar-link {% if 'kyc-list.php' in app.request.server.get('PHP_SELF') or 'kyc-detail.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
+            <i class="fas fa-user-check"></i>
+            <span>Validation KYC</span>
+        </a>
+
+        <a href="users.php" class="sidebar-link {% if 'users.php' in app.request.server.get('PHP_SELF') or 'add-user.php' in app.request.server.get('PHP_SELF') or 'edit-user.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
+            <i class="fas fa-users"></i>
+            <span>Utilisateurs</span>
+        </a>
+
+        <a href="manage-slider.php" class="sidebar-link {% if 'manage-slider.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
+            <i class="fas fa-images"></i>
+            <span>Carrousel</span>
+        </a>
+
+        <a href="upgrade-levels.php" class="sidebar-link {% if 'upgrade-levels.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
+            <i class="fas fa-arrow-up-right-dots"></i>
+            <span>Mise à niveau</span>
+        </a>
+
+        <a href="communications.php" class="sidebar-link {% if 'communications.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
+            <i class="fas fa-envelope-open-text"></i>
+            <span>Communications</span>
+        </a>
+
+        <a href="settings.php" class="sidebar-link {% if 'settings.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
+            <i class="fas fa-sliders-h"></i>
+            <span>Paramètres</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <a href="profile.php" class="sidebar-link {% if 'profile.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
+            <i class="fas fa-user-circle"></i>
+            <span>{{ session.first_name|default('') }} {{ session.last_name|default('') }}</span>
+        </a>
+        <a href="logout.php" class="sidebar-link sidebar-link-logout">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Déconnexion</span>
+        </a>
+    </div>
+
+</div>
