@@ -49,7 +49,8 @@ $service = new \Amea\Service\EmailService(
 $sent = $service->send(
     (string)($payload['to'] ?? ''),
     (string)($payload['subject'] ?? ''),
-    (string)($payload['body'] ?? '')
+    (string)($payload['body'] ?? ''),
+    isset($payload['replyTo']) ? (string)$payload['replyTo'] : null
 );
 
 if ($sent) {

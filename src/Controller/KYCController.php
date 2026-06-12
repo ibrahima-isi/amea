@@ -122,7 +122,8 @@ class KYCController extends BaseController
             $student->getEmail(),
             'Votre inscription a été approuvée – AEESGS',
             'emails/registration-approved.html',
-            ['student' => $student]
+            ['student' => $student],
+            'contact@aeesgs.org'
         );
 
         $this->flash->add('success', 'Dossier approuvé avec succès.');
@@ -155,7 +156,8 @@ class KYCController extends BaseController
                 'student' => $student,
                 'notes'   => $notes,
                 'link'    => rtrim((string)($_ENV['APP_URL'] ?? ''), '/') . '/kyc-correction.php?token=' . $token
-            ]
+            ],
+            'contact@aeesgs.org'
         );
 
         $this->flash->add('warning', 'Demande de clarification envoyée.');
@@ -181,7 +183,8 @@ class KYCController extends BaseController
             $student->getEmail(),
             'Votre dossier d\'inscription a été rejeté – AEESGS',
             'emails/registration-rejected.html',
-            ['student' => $student, 'notes' => $notes]
+            ['student' => $student, 'notes' => $notes],
+            'contact@aeesgs.org'
         );
 
         $this->flash->add('error', 'Dossier rejeté.');

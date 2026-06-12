@@ -20,7 +20,7 @@ class EmailService
         $this->projectRoot = $projectRoot ?? dirname(__DIR__, 2);
     }
 
-    public function send(string $to, string $subject, string $body): bool
+    public function send(string $to, string $subject, string $body, ?string $replyTo = null): bool
     {
         $mail = new PHPMailer(true);
         try {
@@ -34,6 +34,9 @@ class EmailService
             $mail->CharSet    = 'UTF-8';
 
             $mail->setFrom($this->fromAddress, $this->fromName);
+            if ($replyTo !== null && $replyTo !== '') {
+                $mail->addReplyTo($replyTo);
+            }
             $mail->addAddress($to);
             $mail->isHTML(true);
             $mail->Subject = $subject;
@@ -50,6 +53,11 @@ class EmailService
 
     public function sendAsync(string $to, string $subject, string $body): bool
     {
+        return $this->sendAsyncWithReplyTo($to, $subject, $body, null);
+    }
+
+    private function sendAsyncWithReplyTo(string $to, string $subject, string $body, ?string $replyTo = null): bool
+    {
         if ($this->shouldSkipDelivery()) {
             return true;
         }
@@ -62,13 +70,13 @@ class EmailService
         // sending, but the backgrounded shell still exits 0, so the failure is
         // invisible to us. Synchronous delivery is the only verifiable default.
         if ($this->asyncDeliveryEnabled()) {
-            $queueFile = $this->writeQueueFile($to, $subject, $body);
+            $queueFile = $this->writeQueueFile($to, $subject, $body, $replyTo);
             if ($queueFile !== null && $this->launchWorker($queueFile)) {
                 return true;
             }
         }
 
-        return $this->send($to, $subject, $body);
+        return $this->send($to, $subject, $body, $replyTo);
     }
 
     private function asyncDeliveryEnabled(): bool
@@ -81,7 +89,8 @@ class EmailService
         string $to,
         string $subject,
         string $templatePath,
-        array  $data
+        array  $data,
+        ?string $replyTo = null
     ): bool {
         if ($this->shouldSkipDelivery()) {
             return true;
@@ -96,7 +105,7 @@ class EmailService
         }
 
         $body = $this->view->render($templatePath, $data);
-        return $this->sendAsync($to, $subject, $body);
+        return $this->sendAsyncWithReplyTo($to, $subject, $body, $replyTo);
     }
 
     private function shouldSkipDelivery(): bool
@@ -133,7 +142,7 @@ class EmailService
             && $this->smtpPass !== 'your_brevo_smtp_key';
     }
 
-    private function writeQueueFile(string $to, string $subject, string $body): ?string
+    private function writeQueueFile(string $to, string $subject, string $body, ?string $replyTo = null): ?string
     {
         $queueDir = $this->projectRoot . '/storage/mail-queue';
         if (!is_dir($queueDir) && !mkdir($queueDir, 0775, true) && !is_dir($queueDir)) {
@@ -141,13 +150,17 @@ class EmailService
             return null;
         }
 
-        $payload = json_encode([
+        $payload = [
             'to' => $to,
             'subject' => $subject,
             'body' => $body,
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        ];
+        if ($replyTo !== null && $replyTo !== '') {
+            $payload['replyTo'] = $replyTo;
+        }
 
-        if ($payload === false) {
+        $encoded = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($encoded === false) {
             error_log('[EmailService] Failed to encode queued email payload.');
             return null;
         }
@@ -159,7 +172,7 @@ class EmailService
             bin2hex(random_bytes(8))
         );
 
-        if (file_put_contents($queueFile, $payload, LOCK_EX) === false) {
+        if (file_put_contents($queueFile, $encoded, LOCK_EX) === false) {
             error_log('[EmailService] Failed to write mail queue file: ' . $queueFile);
             return null;
         }

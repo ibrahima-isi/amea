@@ -650,7 +650,7 @@ class EmailServiceProbe extends \Amea\Service\EmailService
 {
     public int $sendCalls = 0;
 
-    public function send(string $to, string $subject, string $body): bool
+    public function send(string $to, string $subject, string $body, ?string $replyTo = null): bool
     {
         $this->sendCalls++;
         return true;
@@ -749,7 +749,7 @@ class EmailServiceFallbackProbe extends \Amea\Service\EmailService
 {
     public int $sendCalls = 0;
 
-    public function send(string $to, string $subject, string $body): bool
+    public function send(string $to, string $subject, string $body, ?string $replyTo = null): bool
     {
         $this->sendCalls++;
         return true;
