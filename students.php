@@ -76,8 +76,12 @@ $whereClauses = [];
 $params = [];
 
 if (!empty($search)) {
-    $whereClauses[] = "(last_name LIKE :search OR first_name LIKE :search OR email LIKE :search OR phone LIKE :search)";
-    $params[':search'] = "%$search%";
+    $whereClauses[] = "(last_name LIKE :search_last_name OR first_name LIKE :search_first_name OR email LIKE :search_email OR phone LIKE :search_phone)";
+    $searchPattern = "%$search%";
+    $params[':search_last_name'] = $searchPattern;
+    $params[':search_first_name'] = $searchPattern;
+    $params[':search_email'] = $searchPattern;
+    $params[':search_phone'] = $searchPattern;
 }
 
 if (!empty($genderFilter)) {
