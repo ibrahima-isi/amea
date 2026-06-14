@@ -49,6 +49,18 @@ $router->add('GET',  '/student-details.php', 'StudentController@show');
 $router->add('GET',  '/edit-student.php',    'StudentController@edit');
 $router->add('POST', '/edit-student.php',    'StudentController@update');
 
+// User management
+$router->add('GET',  '/users.php',     'UserController@index');
+$router->add('POST', '/users.php',     'UserController@delete');
+$router->add('GET',  '/add-user.php',  'UserController@create');
+$router->add('POST', '/add-user.php',  'UserController@store');
+$router->add('GET',  '/edit-user.php', 'UserController@edit');
+$router->add('POST', '/edit-user.php', 'UserController@update');
+
+// Profile
+$router->add('GET',  '/profile.php', 'ProfileController@show');
+$router->add('POST', '/profile.php', 'ProfileController@update');
+
 // Add more routes as we migrate...
 
 return $router;
