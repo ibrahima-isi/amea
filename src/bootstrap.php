@@ -83,6 +83,12 @@ $router->add('GET',  '/communications.php',       'CommunicationController@index
 $router->add('POST', '/communications.php',       'CommunicationController@send');
 $router->add('GET',  '/communications-count.php', 'CommunicationController@count');
 
+// Password reset
+$router->add('GET',  '/forgot-password.php', 'PasswordResetController@forgotForm');
+$router->add('POST', '/forgot-password.php', 'PasswordResetController@forgotSubmit');
+$router->add('GET',  '/reset-password.php',  'PasswordResetController@resetForm');
+$router->add('POST', '/reset-password.php',  'PasswordResetController@resetSubmit');
+
 // Add more routes as we migrate...
 
 return $router;
