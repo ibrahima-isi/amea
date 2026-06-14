@@ -40,6 +40,8 @@ $router->add('POST', '/kyc-detail.php', 'KYCController@decide');
 $router->add('GET', '/kyc-correction.php', 'CorrectionController@edit');
 $router->add('POST', '/kyc-correction.php', 'CorrectionController@update');
 
+$router->add('GET', '/dashboard.php', 'DashboardController@index');
+
 // Add more routes as we migrate...
 
 return $router;

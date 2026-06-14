@@ -1,12 +1,21 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}AEESGS — Tableau de bord{% endblock %}
+
+{% block body %}
 <!-- Page header -->
 <div class="dash-header">
   <div>
     <h1 class="mb-1">Tableau de bord</h1>
-    <p class="dash-subtitle">Bienvenue, <strong>{{user_fullname}}</strong> &middot; {{role_label}}</p>
+    <p class="dash-subtitle">Bienvenue, <strong>{{ user_fullname|e }}</strong> &middot; {{ role_label }}</p>
   </div>
   <div class="d-flex gap-2 flex-wrap">
-    {{students_btn}}
-    {{export_btn}}
+    {% if can_see_students %}
+      <a href="students.php" class="btn btn-outline-secondary btn-sm"><i class="fas fa-user-graduate me-1"></i> Étudiants</a>
+    {% endif %}
+    {% if can_export %}
+      <a href="export.php" class="btn btn-primary btn-sm"><i class="fas fa-file-export me-1"></i> Exporter</a>
+    {% endif %}
   </div>
 </div>
 
@@ -19,9 +28,9 @@
         <i class="fas fa-users"></i>
       </div>
       <div class="stat-body">
-        <div class="stat-value">{{stats_total}}</div>
+        <div class="stat-value">{{ stats.total|number_format(0, ',', "\u{202F}") }}</div>
         <div class="stat-label">Total inscrits</div>
-        <div class="stat-sub"><i class="fas fa-arrow-up fa-xs"></i> {{recent_week}} cette semaine</div>
+        <div class="stat-sub"><i class="fas fa-arrow-up fa-xs"></i> {{ recent_week }} cette semaine</div>
       </div>
     </a>
   </div>
@@ -32,7 +41,7 @@
         <i class="fas fa-calendar-plus"></i>
       </div>
       <div class="stat-body">
-        <div class="stat-value">{{recent_month}}</div>
+        <div class="stat-value">{{ recent_month }}</div>
         <div class="stat-label">Nouveaux (30 jours)</div>
         <div class="stat-sub"><i class="fas fa-clock fa-xs"></i> Derniers 30 jours</div>
       </div>
@@ -45,9 +54,9 @@
         <i class="fas fa-venus-mars"></i>
       </div>
       <div class="stat-body">
-        <div class="stat-value">{{stats_hommes}}&thinsp;/&thinsp;{{stats_femmes}}</div>
+        <div class="stat-value">{{ stats.hommes }}&thinsp;/&thinsp;{{ stats.femmes }}</div>
         <div class="stat-label">Hommes / Femmes</div>
-        <div class="stat-sub"><i class="fas fa-mars fa-xs"></i> {{stats_hommes}} &nbsp;<i class="fas fa-venus fa-xs"></i> {{stats_femmes}}</div>
+        <div class="stat-sub"><i class="fas fa-mars fa-xs"></i> {{ stats.hommes }} &nbsp;<i class="fas fa-venus fa-xs"></i> {{ stats.femmes }}</div>
       </div>
     </a>
   </div>
@@ -58,9 +67,9 @@
         <i class="fas fa-layer-group"></i>
       </div>
       <div class="stat-body">
-        <div class="stat-value">{{stats_etudiants}}</div>
+        <div class="stat-value">{{ stats.etudiants }}</div>
         <div class="stat-label">Étudiants</div>
-        <div class="stat-sub">Él.&thinsp;{{stats_eleves}} &middot; St.&thinsp;{{stats_stagiaires}}</div>
+        <div class="stat-sub">Él.&thinsp;{{ stats.eleves }} &middot; St.&thinsp;{{ stats.stagiaires }}</div>
       </div>
     </a>
   </div>
@@ -116,7 +125,10 @@
     </div>
   </div>
 </div>
+{% endblock %}
 
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script>
   (function() {
     var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
@@ -136,7 +148,7 @@
       data: {
         labels: ['Masculin', 'Féminin'],
         datasets: [{
-          data: [{{stats_hommes}}, {{stats_femmes}}],
+          data: [{{ stats.hommes }}, {{ stats.femmes }}],
           backgroundColor: [brandGreen, brandYellow],
           hoverBackgroundColor: [brandDark, '#b8940a'],
           borderWidth: 2, borderColor: borderColor
@@ -151,7 +163,7 @@
       data: {
         labels: ['Étudiants', 'Élèves', 'Stagiaires'],
         datasets: [{
-          data: [{{stats_etudiants}}, {{stats_eleves}}, {{stats_stagiaires}}],
+          data: [{{ stats.etudiants }}, {{ stats.eleves }}, {{ stats.stagiaires }}],
           backgroundColor: [brandGreen, brandYellow, brandRed],
           hoverBackgroundColor: [brandDark, '#b8940a', '#a00d1f'],
           borderWidth: 2, borderColor: borderColor
@@ -164,10 +176,10 @@
     new Chart(document.getElementById('schoolChart').getContext('2d'), {
       type: 'bar',
       data: {
-        labels: [{{school_labels}}],
+        labels: [{{ school_labels|raw }}],
         datasets: [{
           label: "Inscrits",
-          data: [{{school_values}}],
+          data: [{{ school_values|raw }}],
           backgroundColor: brandGreen,
           hoverBackgroundColor: brandDark,
           borderRadius: 6,
@@ -176,19 +188,20 @@
       },
       options: {
         maintainAspectRatio: false, responsive: true,
-        scales: { 
-          y: { 
-            beginAtZero: true, 
-            ticks: { precision: 0, color: textColor }, 
-            grid: { color: gridColor } 
-          }, 
-          x: { 
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0, color: textColor },
+            grid: { color: gridColor }
+          },
+          x: {
             ticks: { color: textColor },
-            grid: { display: false } 
-          } 
+            grid: { display: false }
+          }
         },
         plugins: { legend: { display: false } }
       }
     });
   })();
 </script>
+{% endblock %}

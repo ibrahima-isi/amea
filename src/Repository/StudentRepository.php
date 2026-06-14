@@ -171,13 +171,21 @@ class StudentRepository
         $row = $this->pdo->query(
             "SELECT
                 COUNT(*) AS total,
-                SUM(gender = 'Masculin') AS hommes,
-                SUM(gender = 'Féminin') AS femmes,
-                SUM(status = 'Diplômé(e)') AS diplomes,
-                SUM(status = 'En cours') AS en_cours
+                SUM(CASE WHEN gender = 'Masculin' THEN 1 ELSE 0 END) AS hommes,
+                SUM(CASE WHEN gender = 'Féminin'  THEN 1 ELSE 0 END) AS femmes,
+                SUM(CASE WHEN status = 'ELEVE'     THEN 1 ELSE 0 END) AS eleves,
+                SUM(CASE WHEN status = 'ETUDIANT'  THEN 1 ELSE 0 END) AS etudiants,
+                SUM(CASE WHEN status = 'STAGIAIRE' THEN 1 ELSE 0 END) AS stagiaires
              FROM students"
         )->fetch();
-        return $row ?: ['total' => 0, 'hommes' => 0, 'femmes' => 0, 'diplomes' => 0, 'en_cours' => 0];
+        return $row ?: [
+            'total'      => 0,
+            'hommes'     => 0,
+            'femmes'     => 0,
+            'eleves'     => 0,
+            'etudiants'  => 0,
+            'stagiaires' => 0,
+        ];
     }
 
     public function getRecentCount(int $days = 30): int
