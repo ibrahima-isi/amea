@@ -171,11 +171,12 @@ class StudentRepository
         $row = $this->pdo->query(
             "SELECT
                 COUNT(*) AS total,
-                SUM(CASE WHEN gender = 'Masculin' THEN 1 ELSE 0 END) AS hommes,
-                SUM(CASE WHEN gender = 'Féminin'  THEN 1 ELSE 0 END) AS femmes,
-                SUM(CASE WHEN status = 'ELEVE'     THEN 1 ELSE 0 END) AS eleves,
-                SUM(CASE WHEN status = 'ETUDIANT'  THEN 1 ELSE 0 END) AS etudiants,
-                SUM(CASE WHEN status = 'STAGIAIRE' THEN 1 ELSE 0 END) AS stagiaires
+                SUM(CASE WHEN gender = 'Masculin'    THEN 1 ELSE 0 END) AS hommes,
+                SUM(CASE WHEN gender = 'Féminin'     THEN 1 ELSE 0 END) AS femmes,
+                SUM(CASE WHEN status = 'ELEVE'       THEN 1 ELSE 0 END) AS eleves,
+                SUM(CASE WHEN status = 'ETUDIANT'    THEN 1 ELSE 0 END) AS etudiants,
+                SUM(CASE WHEN status = 'STAGIAIRE'   THEN 1 ELSE 0 END) AS stagiaires,
+                SUM(CASE WHEN status = 'Diplômé(e)'  THEN 1 ELSE 0 END) AS diplomes
              FROM students"
         )->fetch();
         return $row ?: [
@@ -185,6 +186,7 @@ class StudentRepository
             'eleves'     => 0,
             'etudiants'  => 0,
             'stagiaires' => 0,
+            'diplomes'   => 0,
         ];
     }
 
