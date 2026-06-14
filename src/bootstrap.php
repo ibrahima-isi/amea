@@ -89,6 +89,10 @@ $router->add('POST', '/forgot-password.php', 'PasswordResetController@forgotSubm
 $router->add('GET',  '/reset-password.php',  'PasswordResetController@resetForm');
 $router->add('POST', '/reset-password.php',  'PasswordResetController@resetSubmit');
 
-// Add more routes as we migrate...
+// Download, legal, CGU
+$router->add('GET',  '/download.php',     'DownloadController@serve');
+$router->add('GET',  '/legal-notice.php', 'LegalController@index');
+$router->add('GET',  '/accept-cgu.php',   'AcceptCguController@accept');
+$router->add('POST', '/accept-cgu.php',   'AcceptCguController@accept');
 
 return $router;

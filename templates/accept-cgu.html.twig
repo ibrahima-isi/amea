@@ -1,0 +1,132 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}AEESGS – CGU{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="card shadow-sm border-0 p-4">
+
+                {# ── Invalid / expired token ── #}
+                {% if state == 'invalid' %}
+                    <div class="text-center mb-3">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning"></i>
+                    </div>
+                    <h2 class="h4 text-center mb-3">Lien invalide ou expiré</h2>
+                    <div class="mb-4">
+                        <p class="text-muted">Ce lien est invalide ou a déjà été utilisé. Contactez l'administration de l'AEESGS si vous avez besoin d'un nouveau lien.</p>
+                    </div>
+
+                {# ── First-time acceptance ── #}
+                {% elseif state == 'pending' %}
+                    <div class="text-center mb-3">
+                        <i class="fas fa-file-contract fa-3x" style="color:#009460;"></i>
+                    </div>
+                    <h2 class="h4 text-center mb-3">Acceptation des CGU</h2>
+                    <div class="mb-4">
+                        <p>Bonjour <strong>{{ student.fullName }}</strong>,</p>
+                        <p>L'AEESGS vous invite à accepter ses <a href="legal-notice.php" target="_blank">Conditions Générales d'Utilisation et politique de confidentialité</a>. Ces documents expliquent comment vos données personnelles sont collectées et protégées.</p>
+                        <p>Votre consentement est nécessaire pour maintenir votre dossier actif.</p>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <form method="POST" action="accept-cgu.php?token={{ token|url_encode }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="token" value="{{ token }}">
+                            <input type="hidden" name="action" value="accept">
+                            <button type="submit" class="btn btn-success btn-lg px-5">
+                                <i class="fas fa-check me-2"></i>J'accepte les CGU
+                            </button>
+                        </form>
+                        <form method="POST" action="accept-cgu.php?token={{ token|url_encode }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="token" value="{{ token }}">
+                            <input type="hidden" name="action" value="refuse">
+                            <button type="submit" class="btn btn-outline-danger mt-2">
+                                <i class="fas fa-times me-2"></i>Je refuse
+                            </button>
+                        </form>
+                    </div>
+
+                {# ── CGU update reminder ── #}
+                {% elseif state == 'update' %}
+                    <div class="text-center mb-3">
+                        <i class="fas fa-file-signature fa-3x" style="color:#009460;"></i>
+                    </div>
+                    <h2 class="h4 text-center mb-3">Mise à jour des CGU</h2>
+                    <div class="mb-4">
+                        <p>Bonjour <strong>{{ student.fullName }}</strong>,</p>
+                        <p>Nos <a href="legal-notice.php" target="_blank">Conditions Générales d'Utilisation</a> ont été mises à jour. Veuillez confirmer votre accord pour continuer à bénéficier des services de l'AEESGS.</p>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <form method="POST" action="accept-cgu.php?token={{ token|url_encode }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="token" value="{{ token }}">
+                            <input type="hidden" name="action" value="accept">
+                            <button type="submit" class="btn btn-success btn-lg px-5">
+                                <i class="fas fa-check me-2"></i>Je confirme mon accord
+                            </button>
+                        </form>
+                        <form method="POST" action="accept-cgu.php?token={{ token|url_encode }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="token" value="{{ token }}">
+                            <input type="hidden" name="action" value="refuse">
+                            <button type="submit" class="btn btn-outline-danger mt-2">
+                                <i class="fas fa-times me-2"></i>Je refuse la mise à jour
+                            </button>
+                        </form>
+                    </div>
+
+                {# ── Accepted ── #}
+                {% elseif state == 'accepted' %}
+                    <div class="text-center mb-3">
+                        <i class="fas fa-check-circle fa-3x" style="color:#009460;"></i>
+                    </div>
+                    <h2 class="h4 text-center mb-3">Consentement enregistré</h2>
+                    <div class="mb-4">
+                        <p class="text-muted">Bonjour <strong>{{ student.fullName }}</strong>, votre accord avec les CGU a bien été enregistré. Merci !</p>
+                    </div>
+
+                {# ── Refused ── #}
+                {% elseif state == 'refused' %}
+                    <div class="text-center mb-3">
+                        <i class="fas fa-exclamation-circle fa-3x text-danger"></i>
+                    </div>
+                    <h2 class="h4 text-center mb-3">Vous avez refusé les CGU</h2>
+                    <div class="mb-4">
+                        <p>Bonjour <strong>{{ student.fullName }}</strong>,</p>
+                        <div class="alert alert-warning">
+                            <strong>Important :</strong> en refusant les CGU, votre dossier ne peut pas être maintenu actif. Conformément au RGPD, vous pouvez demander la suppression de vos données personnelles. L'équipe AEESGS traitera votre demande dans les meilleurs délais.
+                        </div>
+                        <p>Que souhaitez-vous faire ?</p>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <form method="POST" action="accept-cgu.php?token={{ token|url_encode }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="token" value="{{ token }}">
+                            <input type="hidden" name="action" value="request_deletion">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash-alt me-2"></i>Demander la suppression de mes données
+                            </button>
+                        </form>
+                        <a href="accept-cgu.php?token={{ token|url_encode }}" class="btn btn-outline-success mt-2">
+                            <i class="fas fa-undo me-2"></i>Finalement, j'accepte les CGU
+                        </a>
+                    </div>
+
+                {# ── Deletion requested ── #}
+                {% elseif state == 'deletion_requested' %}
+                    <div class="text-center mb-3">
+                        <i class="fas fa-envelope-open-text fa-3x text-secondary"></i>
+                    </div>
+                    <h2 class="h4 text-center mb-3">Demande de suppression envoyée</h2>
+                    <div class="mb-4">
+                        <p class="text-muted">Bonjour <strong>{{ student.fullName }}</strong>, votre demande de suppression de données a bien été transmise à l'équipe AEESGS. Nous la traiterons dans les meilleurs délais et vous contacterons si nécessaire.</p>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
