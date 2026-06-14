@@ -39,11 +39,11 @@ class StudentService
             'consent_privacy' => isset($post['consent_privacy']) ? 1 : 0
         ];
 
-        // 1. Logic for 'Other' fields
-        $finalLieu = $input['residence'] === 'Other' ? $input['other_residence'] : $input['residence'];
-        $finalEtab = $input['institution'] === 'Other' ? $input['other_institution'] : $input['institution'];
-        $finalDom  = $input['study_field'] === 'Other' ? $input['other_study_field'] : $input['study_field'];
-        $finalNiv  = $input['study_level'] === 'Other' ? $input['other_study_level'] : $input['study_level'];
+        // 1. Logic for 'Autre' fields (French UI convention)
+        $finalLieu = $input['residence'] === 'Autre' ? $input['other_residence'] : $input['residence'];
+        $finalEtab = $input['institution'] === 'Autre' ? $input['other_institution'] : $input['institution'];
+        $finalDom  = $input['study_field'] === 'Autre' ? $input['other_study_field'] : $input['study_field'];
+        $finalNiv  = $input['study_level'] === 'Autre' ? $input['other_study_level'] : $input['study_level'];
 
         // 2. Required fields
         $required = [

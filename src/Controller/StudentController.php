@@ -11,6 +11,7 @@ class StudentController extends BaseController
 {
     private StudentRepository $studentRepo;
     private StudentService $studentService;
+    private \Amea\Core\FileUploader $uploader;
 
     public function __construct()
     {
@@ -18,9 +19,10 @@ class StudentController extends BaseController
         $this->requireAuth();
         $db = Container::db();
         $this->studentRepo = new StudentRepository($db);
+        $this->uploader = new FileUploader(__DIR__ . '/../../');
         $this->studentService = new StudentService(
             $this->studentRepo,
-            new FileUploader(__DIR__ . '/../../')
+            $this->uploader
         );
     }
 
@@ -194,9 +196,8 @@ class StudentController extends BaseController
             $dbData['identity_document'] = $student->getIdentityDocument();
         } else {
             // New file uploaded — delete old one
-            $uploader = new FileUploader(__DIR__ . '/../../');
             if ($student->getIdentityDocument()) {
-                $uploader->safeDelete($student->getIdentityDocument());
+                $this->uploader->safeDelete($student->getIdentityDocument());
             }
         }
 
@@ -204,17 +205,17 @@ class StudentController extends BaseController
             $dbData['cv_path'] = $student->getCvPath();
         } else {
             // New CV uploaded — delete old one
-            $uploader = new FileUploader(__DIR__ . '/../../');
             if ($student->getCvPath()) {
-                $uploader->safeDelete($student->getCvPath());
+                $this->uploader->safeDelete($student->getCvPath());
             }
         }
 
         // graduation_date logic: set to today if status is GRADUATE and no date given; null otherwise
         $finalGraduationDate = null;
         if ($dbData['status'] === 'GRADUATE' || $dbData['status'] === 'Diplômé') {
-            $postedDate = trim($_POST['graduation_date'] ?? '');
-            $finalGraduationDate = $postedDate !== '' ? $postedDate : date('Y-m-d');
+            $rawDate = trim($_POST['graduation_date'] ?? '');
+            $validatedDate = (preg_match('/^\d{4}-\d{2}-\d{2}$/', $rawDate) ? $rawDate : null);
+            $finalGraduationDate = $validatedDate ?? date('Y-m-d');
         }
         $dbData['graduation_date'] = $finalGraduationDate;
 
@@ -262,12 +263,11 @@ class StudentController extends BaseController
         $id      = (int)($_POST['id'] ?? 0);
         $student = $this->studentRepo->findById($id);
         if ($student) {
-            $uploader = new FileUploader(__DIR__ . '/../../');
             if ($student->getIdentityDocument()) {
-                $uploader->safeDelete($student->getIdentityDocument());
+                $this->uploader->safeDelete($student->getIdentityDocument());
             }
             if ($student->getCvPath()) {
-                $uploader->safeDelete($student->getCvPath());
+                $this->uploader->safeDelete($student->getCvPath());
             }
             $this->studentRepo->delete($id);
             $this->flash->add('success', 'Membre supprimé.');
