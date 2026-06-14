@@ -21,7 +21,7 @@
                 {# ── First-time acceptance ── #}
                 {% elseif state == 'pending' %}
                     <div class="text-center mb-3">
-                        <i class="fas fa-file-contract fa-3x" style="color:#009460;"></i>
+                        <i class="fas fa-file-contract fa-3x" class="text-primary"></i>
                     </div>
                     <h2 class="h4 text-center mb-3">Acceptation des CGU</h2>
                     <div class="mb-4">
@@ -51,7 +51,7 @@
                 {# ── CGU update reminder ── #}
                 {% elseif state == 'update' %}
                     <div class="text-center mb-3">
-                        <i class="fas fa-file-signature fa-3x" style="color:#009460;"></i>
+                        <i class="fas fa-file-signature fa-3x" class="text-primary"></i>
                     </div>
                     <h2 class="h4 text-center mb-3">Mise à jour des CGU</h2>
                     <div class="mb-4">
@@ -80,7 +80,7 @@
                 {# ── Accepted ── #}
                 {% elseif state == 'accepted' %}
                     <div class="text-center mb-3">
-                        <i class="fas fa-check-circle fa-3x" style="color:#009460;"></i>
+                        <i class="fas fa-check-circle fa-3x" class="text-primary"></i>
                     </div>
                     <h2 class="h4 text-center mb-3">Consentement enregistré</h2>
                     <div class="mb-4">
