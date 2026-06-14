@@ -51,6 +51,25 @@ class ExportService
         exit();
     }
 
+    /**
+     * Fetch export rows into memory for preview/PDF.
+     * Returns ['headers' => [...], 'rows' => [...]].
+     */
+    public function getExportData(array $selectedFields, array $allowedFields, array $filters = []): array
+    {
+        $safeFields = array_intersect_key($allowedFields, array_flip($selectedFields));
+        if (empty($safeFields)) {
+            return ['headers' => [], 'rows' => []];
+        }
+
+        [$where, $params] = $this->buildWhereClause($filters);
+        $sql  = 'SELECT ' . implode(', ', $safeFields) . " FROM students{$where} ORDER BY registration_date DESC";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+
+        return ['headers' => array_keys($safeFields), 'rows' => $stmt->fetchAll(\PDO::FETCH_NUM)];
+    }
+
     public function cleanForCsv(?string $data): string
     {
         if ($data === null) return '';
