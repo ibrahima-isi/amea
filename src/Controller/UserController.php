@@ -33,8 +33,7 @@ class UserController extends BaseController
         $users = $this->userRepo->findAll();
 
         $this->render('admin/pages/users.html.twig', [
-            'users'         => $users,
-            'session_user'  => $this->session->get('user_id'),
+            'users' => $users,
         ]);
     }
 
@@ -166,6 +165,13 @@ class UserController extends BaseController
             return;
         }
 
+        // Only Super Admin (ID 1) can update Super Admin
+        if ($id === 1 && (int)$this->session->get('user_id') !== 1) {
+            $this->flash->set('error', 'Accès refusé : seul le Super Administrateur peut modifier son propre compte.');
+            $this->redirect('users.php');
+            return;
+        }
+
         $formData = [
             'username'    => trim($_POST['username'] ?? ''),
             'email'       => trim($_POST['email'] ?? ''),
@@ -224,6 +230,11 @@ class UserController extends BaseController
         $userId    = (int)($_POST['id'] ?? 0);
         $sessionId = (int)$this->session->get('user_id');
 
+        if ($userId <= 0) {
+            $this->redirect('users.php');
+            return;
+        }
+
         if ($userId === 1) {
             $this->flash->set('error', 'Le Super Administrateur ne peut pas être supprimé.');
             $this->redirect('users.php');
@@ -261,8 +272,13 @@ class UserController extends BaseController
         if (empty($data['first_name'])) {
             $errors['first_name'] = 'Le prénom est requis.';
         }
+        if (!in_array($data['role'], ['admin', 'user'], true)) {
+            $errors['role'] = 'Rôle invalide.';
+        }
         if (empty($data['password'])) {
             $errors['password'] = 'Le mot de passe est requis.';
+        } elseif (strlen($data['password']) < 8) {
+            $errors['password'] = 'Le mot de passe doit contenir au moins 8 caractères.';
         }
         if ($data['password'] !== $data['confirm_password']) {
             $errors['confirm_password'] = 'Les mots de passe ne correspondent pas.';
@@ -284,6 +300,9 @@ class UserController extends BaseController
     {
         $errors = [];
 
+        if (!in_array($data['role'], ['admin', 'user'], true)) {
+            $errors['role'] = 'Rôle invalide.';
+        }
         if (empty($data['username'])) {
             $errors['username'] = 'Le nom d\'utilisateur est requis.';
         }
