@@ -1,0 +1,389 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}AEESGS — {{ student.firstName }} {{ student.lastName }}{% endblock %}
+
+{% block body %}
+<div class="page-header">
+  <div>
+    <h1>Détails du membre</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+      <li class="breadcrumb-item"><a href="students.php">Étudiants</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ student.firstName }} {{ student.lastName }}</li>
+    </ol></nav>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="students.php" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i> Retour</a>
+    {% if session.role == 'admin' %}
+    <a href="edit-student.php?id={{ student.id }}" class="btn btn-primary btn-sm"><i class="fas fa-edit me-1"></i> Modifier</a>
+    <form action="students.php" method="POST" class="d-inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="id" value="{{ student.id }}">
+      <button type="submit" class="btn btn-danger btn-sm btn-delete-student"><i class="fas fa-trash me-1"></i> Supprimer</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+{% set identityExt = student.identityDocument ? student.identityDocument|split('.')|last|lower : '' %}
+{% set identityIsImage = identityExt in ['jpg','jpeg','png','gif'] %}
+{% set identityIsPdf   = identityExt == 'pdf' %}
+{% set hasIdentity     = student.identityDocument and (identityIsImage or identityIsPdf) %}
+
+{% set cvExt     = student.cvPath ? student.cvPath|split('.')|last|lower : '' %}
+{% set cvIsImage = cvExt in ['jpg','jpeg','png','gif'] %}
+{% set cvIsPdf   = cvExt == 'pdf' %}
+
+{% set statusBadge = 'secondary' %}
+{% if student.status == 'ETUDIANT' %}{% set statusBadge = 'primary' %}
+{% elseif student.status == 'ELEVE' %}{% set statusBadge = 'info' %}
+{% elseif student.status == 'STAGIAIRE' %}{% set statusBadge = 'warning' %}
+{% elseif student.status in ['GRADUATE','DIPLOME','Diplômé'] %}{% set statusBadge = 'success' %}
+{% endif %}
+
+<div class="row">
+  {# ── LEFT COLUMN ─────────────────────────────────────────────────────── #}
+  <div class="col-lg-4 mb-4">
+
+    {# Profile card #}
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-body text-center pt-4">
+        {% if hasIdentity and identityIsImage %}
+          <a href="#" data-bs-toggle="modal" data-bs-target="#identiteModal{{ student.id }}">
+            <img src="{{ asset(student.identityDocument) }}" alt="Photo"
+                 class="rounded-circle img-thumbnail mb-3"
+                 style="width:150px;height:150px;object-fit:cover;">
+          </a>
+        {% elseif hasIdentity and identityIsPdf %}
+          <a href="#" data-bs-toggle="modal" data-bs-target="#identiteModal{{ student.id }}"
+             class="d-inline-block mb-3 text-decoration-none">
+            <div class="rounded-circle bg-body-secondary d-flex align-items-center justify-content-center mx-auto"
+                 style="width:150px;height:150px;">
+              <i class="fas fa-file-pdf fa-4x text-danger"></i>
+            </div>
+          </a>
+        {% else %}
+          <img src="{{ asset('assets/img/placeholder.png') }}" alt="Profil"
+               class="rounded-circle img-thumbnail mb-3"
+               style="width:150px;height:150px;object-fit:cover;">
+        {% endif %}
+
+        <h4 class="card-title mb-1">{{ student.firstName }} {{ student.lastName }}</h4>
+        <div class="mb-2">
+          <span class="badge bg-{{ statusBadge }} me-1">{{ student.status ?: 'Inconnu' }}</span>
+          {% if student.graduationDate and student.status in ['GRADUATE','DIPLOME','Diplômé'] %}
+            <span class="badge bg-warning text-dark me-1">
+              <i class="fas fa-graduation-cap me-1"></i>Promo {{ student.graduationDate|date('Y') }}
+            </span>
+          {% endif %}
+          <span class="badge {{ student.isLocked ? 'bg-success' : 'bg-warning text-dark' }}">
+            <i class="fas {{ student.isLocked ? 'fa-lock' : 'fa-lock-open' }} me-1"></i>
+            {{ student.isLocked ? 'Finalisé' : 'En attente' }}
+          </span>
+        </div>
+        <div class="d-flex justify-content-center gap-3 text-muted mt-1">
+          <div><i class="fas fa-venus-mars me-1"></i>{{ student.gender ?: '?' }}</div>
+          {% if student.birthDate %}
+            <div><i class="fas fa-birthday-cake me-1"></i>{{ student.age }} ans</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    {# Contact card #}
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-transparent border-0 pt-3 pb-0">
+        <h6 class="fw-bold text-uppercase text-muted small"><i class="fas fa-address-book me-2"></i>Coordonnées</h6>
+      </div>
+      <div class="card-body">
+        <ul class="list-unstyled mb-0">
+          <li class="mb-3 d-flex align-items-start">
+            <i class="fas fa-envelope text-primary mt-1 me-3"></i>
+            <div>
+              <span class="d-block small text-muted">Email</span>
+              <a href="mailto:{{ student.email }}" class="text-body text-decoration-none">{{ student.email ?: 'N/A' }}</a>
+            </div>
+          </li>
+          <li class="mb-3 d-flex align-items-start">
+            <i class="fas fa-phone text-success mt-1 me-3"></i>
+            <div>
+              <span class="d-block small text-muted">Téléphone</span>
+              <a href="tel:{{ student.phone }}" class="text-body text-decoration-none">{{ student.phone ?: 'N/A' }}</a>
+            </div>
+          </li>
+          <li class="d-flex align-items-start">
+            <i class="fas fa-map-marker-alt text-danger mt-1 me-3"></i>
+            <div>
+              <span class="d-block small text-muted">Lieu de résidence</span>
+              {{ student.residence ?: 'N/A' }}
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    {# Registration card #}
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-transparent border-0 pt-3 pb-0">
+        <h6 class="fw-bold text-uppercase text-muted small"><i class="fas fa-clipboard-list me-2"></i>Inscription</h6>
+      </div>
+      <div class="card-body">
+        <ul class="list-unstyled mb-0">
+          <li class="mb-3">
+            <span class="d-block small text-muted">Enregistré le</span>
+            <span class="fw-bold">
+              {% if student.registrationDate %}{{ student.registrationDate|date('d/m/Y à H:i') }}{% else %}Non renseigné{% endif %}
+            </span>
+          </li>
+          <li class="mb-3">
+            <span class="d-block small text-muted">Statut du dossier</span>
+            <span class="badge {{ student.isLocked ? 'bg-success' : 'bg-warning text-dark' }}">
+              {{ student.isLocked ? 'Finalisé' : 'En cours' }}
+            </span>
+          </li>
+          {% if student.graduationDate and student.status in ['GRADUATE','DIPLOME','Diplômé'] %}
+          <li class="mb-3">
+            <span class="d-block small text-muted">Date de diplomation</span>
+            <span class="fw-bold text-success">{{ student.graduationDate|date('d/m/Y') }}</span>
+          </li>
+          {% endif %}
+          <li>
+            <span class="d-block small text-muted">Consentement RGPD</span>
+            {% if student.hasConsentPrivacy %}
+              <span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i>Accordé</span>
+            {% else %}
+              <span class="text-danger fw-bold"><i class="fas fa-times-circle me-1"></i>Non accordé</span>
+            {% endif %}
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </div>{# end left col #}
+
+  {# ── RIGHT COLUMN ─────────────────────────────────────────────────────── #}
+  <div class="col-lg-8">
+
+    {# Academic card #}
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-transparent border-bottom py-3">
+        <h5 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Parcours Académique</h5>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="p-3 bg-body-secondary rounded">
+              <small class="text-muted d-block mb-1">Établissement</small>
+              <span class="fw-bold">{{ student.institution ?: 'Non spécifié' }}</span>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 bg-body-secondary rounded">
+              <small class="text-muted d-block mb-1">Domaine d'Études</small>
+              <span class="fw-bold">{{ student.studyField ?: 'Non spécifié' }}</span>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 bg-body-secondary rounded">
+              <small class="text-muted d-block mb-1">Niveau d'Études</small>
+              <span class="fw-bold">{{ student.studyLevel ?: 'Non spécifié' }}</span>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 bg-body-secondary rounded">
+              <small class="text-muted d-block mb-1">Année d'arrivée au Sénégal</small>
+              <span class="fw-bold">{{ student.arrivalYear ?: 'N/A' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# Personal info card #}
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-transparent border-bottom py-3">
+        <h5 class="mb-0"><i class="fas fa-user me-2"></i>Informations Personnelles</h5>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="p-3 bg-body-secondary rounded">
+              <small class="text-muted d-block mb-2">Nationalité(s)</small>
+              {% if student.nationalities|length > 0 %}
+                {% for nat in student.nationalities %}
+                  <span class="badge bg-secondary me-1">{{ nat }}</span>
+                {% endfor %}
+              {% else %}
+                <span class="text-muted">N/A</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 bg-body-secondary rounded">
+              <small class="text-muted d-block mb-1">Date de Naissance</small>
+              <span class="fw-bold">
+                {% if student.birthDate %}{{ student.birthDate|date('d/m/Y') }}{% else %}Non renseignée{% endif %}
+              </span>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 bg-body-secondary rounded">
+              <small class="text-muted d-block mb-1">Type de Logement</small>
+              <span class="fw-bold">{{ student.housingType ?: 'N/A' }}</span>
+            </div>
+          </div>
+          {% if student.housingDetails %}
+          <div class="col-12">
+            <div class="p-3 bg-body-secondary rounded">
+              <small class="text-muted d-block mb-1">Précision Logement</small>
+              <span class="fw-bold">{{ student.housingDetails }}</span>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    {# Documents card #}
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-transparent border-bottom py-3">
+        <h5 class="mb-0"><i class="fas fa-folder-open me-2"></i>Documents</h5>
+      </div>
+      <div class="card-body">
+        {# Identity document #}
+        <div class="mb-4">
+          <strong class="d-block text-muted small mb-2"><i class="fas fa-id-card me-1"></i>Pièce d'identité / Photo</strong>
+          {% if hasIdentity %}
+            <div class="d-flex flex-wrap gap-2">
+              <a href="download.php?id={{ student.id }}&type=identite" class="btn btn-sm btn-info">
+                <i class="fas fa-download me-1"></i>Télécharger
+              </a>
+              <button type="button" class="btn btn-sm btn-primary"
+                      data-bs-toggle="modal" data-bs-target="#identiteModal{{ student.id }}">
+                <i class="fas fa-eye me-1"></i>Voir
+              </button>
+            </div>
+          {% else %}
+            <span class="text-muted fst-italic">Aucun document fourni</span>
+          {% endif %}
+        </div>
+
+        {# CV #}
+        <div>
+          <strong class="d-block text-muted small mb-2"><i class="fas fa-file-alt me-1"></i>Curriculum Vitae (CV)</strong>
+          {% if student.cvPath %}
+            <div class="d-flex flex-wrap gap-2">
+              <a href="download.php?id={{ student.id }}&type=cv" class="btn btn-sm btn-info">
+                <i class="fas fa-download me-1"></i>Télécharger
+              </a>
+              {% if cvIsPdf or cvIsImage %}
+                <button type="button" class="btn btn-sm btn-primary"
+                        data-bs-toggle="modal" data-bs-target="#cvModal{{ student.id }}">
+                  <i class="fas fa-eye me-1"></i>Voir
+                </button>
+                {% if cvIsPdf %}
+                  <button type="button" class="btn btn-sm btn-secondary"
+                          onclick="printPdf('{{ asset(student.cvPath) }}')">
+                    <i class="fas fa-print me-1"></i>Imprimer
+                  </button>
+                {% endif %}
+              {% endif %}
+            </div>
+          {% else %}
+            <span class="text-muted fst-italic">Aucun CV fourni</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    {# Project card #}
+    {% if student.postTrainingProject %}
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-transparent border-bottom py-3">
+        <h5 class="mb-0"><i class="fas fa-rocket me-2"></i>Projet Professionnel</h5>
+      </div>
+      <div class="card-body">
+        <p class="card-text" style="line-height:1.6;">{{ student.postTrainingProject|nl2br }}</p>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>{# end right col #}
+</div>{# end row #}
+
+{# Modals #}
+{% if hasIdentity %}
+<div class="modal fade" id="identiteModal{{ student.id }}" tabindex="-1" aria-hidden="true">
+  <div class="{{ identityIsImage ? 'modal-dialog modal-lg modal-dialog-centered' : 'modal-dialog modal-xl' }}">
+    <div class="modal-content {{ identityIsPdf ? 'h-100' }}" style="{{ identityIsPdf ? 'height:90vh;' }}">
+      <div class="modal-header">
+        <h5 class="modal-title">Pièce d'identité</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body {{ identityIsPdf ? 'p-0' : 'text-center' }}">
+        {% if identityIsImage %}
+          <img src="{{ asset(student.identityDocument) }}" class="img-fluid" alt="Pièce d'identité">
+        {% else %}
+          <iframe src="{{ asset(student.identityDocument) }}" width="100%" height="100%" style="border:none;min-height:80vh;"></iframe>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if student.cvPath and (cvIsPdf or cvIsImage) %}
+<div class="modal fade" id="cvModal{{ student.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content" style="height:90vh;">
+      <div class="modal-header">
+        <h5 class="modal-title">CV — {{ student.firstName }} {{ student.lastName }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center p-0">
+        {% if cvIsPdf %}
+          <iframe src="{{ asset(student.cvPath) }}" width="100%" height="100%" style="border:none;"></iframe>
+        {% else %}
+          <img src="{{ asset(student.cvPath) }}" class="img-fluid" style="max-height:100%;max-width:100%;" alt="CV">
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block javascripts %}
+<script>
+function printPdf(url) {
+  var iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.src = url;
+  document.body.appendChild(iframe);
+  iframe.onload = function () {
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+    setTimeout(function () { document.body.removeChild(iframe); }, 1000);
+  };
+}
+
+document.querySelectorAll('.btn-delete-student').forEach(function (btn) {
+  btn.addEventListener('click', function (e) {
+    e.preventDefault();
+    var frm = this.closest('form');
+    Swal.fire({
+      title: 'Êtes-vous sûr ?',
+      text: 'Cette action est irréversible !',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#CE1126',
+      cancelButtonColor: '#009460',
+      confirmButtonText: 'Oui, supprimer !',
+      cancelButtonText: 'Annuler'
+    }).then(function (result) {
+      if (result.isConfirmed) frm.submit();
+    });
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,211 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}AEESGS — Liste des étudiants{% endblock %}
+
+{% block body %}
+<div class="page-header">
+  <div>
+    <h1>Gestion des étudiants</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Étudiants</li>
+    </ol></nav>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="export.php" class="btn btn-outline-secondary btn-sm"><i class="fas fa-file-export me-1"></i> Exporter</a>
+  </div>
+</div>
+
+<div class="card shadow mb-4">
+  <div class="card-header">
+    <span class="chart-card-header"><i class="fas fa-user-graduate"></i> Liste des étudiants</span>
+  </div>
+  <div class="card-body">
+    <form method="GET" action="students.php" class="mb-4" id="filterForm">
+      <div class="row g-2">
+        <div class="col-12 col-md-3">
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control" name="search" id="searchInput"
+                   placeholder="Rechercher..." value="{{ filters.search|default('') }}">
+          </div>
+        </div>
+        <div class="col-12 col-md-2">
+          <select class="form-select auto-submit" name="gender">
+            <option value="">Tous les sexes</option>
+            <option value="Masculin" {{ filters.gender|default('') == 'Masculin' ? 'selected' }}>Masculin</option>
+            <option value="Féminin"  {{ filters.gender|default('') == 'Féminin'  ? 'selected' }}>Féminin</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-2">
+          <select class="form-select auto-submit" name="status">
+            <option value="">Tous les statuts</option>
+            <option value="ELEVE"     {{ filters.status|default('') == 'ELEVE'     ? 'selected' }}>Élève</option>
+            <option value="ETUDIANT"  {{ filters.status|default('') == 'ETUDIANT'  ? 'selected' }}>Étudiant</option>
+            <option value="STAGIAIRE" {{ filters.status|default('') == 'STAGIAIRE' ? 'selected' }}>Stagiaire</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <select class="form-select auto-submit" name="institution">
+            <option value="">Tous les établissements</option>
+            {% for inst in institutions %}
+              <option value="{{ inst }}" {{ filters.institution|default('') == inst ? 'selected' }}>{{ inst }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-1 d-flex align-items-center">
+          {% if filters|length > 0 %}
+            <a href="students.php" class="btn btn-outline-secondary btn-sm w-100" title="Effacer les filtres">
+              <i class="fas fa-times"></i>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </form>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Nom / Prénom</th>
+            <th>Établissement</th>
+            <th>Statut</th>
+            <th>Date inscription</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for student in students %}
+          <tr class="align-middle">
+            <td>
+              <div class="d-flex align-items-center">
+                <img src="{{ student.identityDocument ? asset(student.identityDocument) : asset('assets/img/placeholder.png') }}"
+                     class="rounded-circle me-2" width="40" height="40" style="object-fit: cover;"
+                     alt="Photo">
+                <div>
+                  <div class="fw-bold">{{ student.firstName }} {{ student.lastName }}</div>
+                  <small class="text-muted">{{ student.gender }}</small>
+                </div>
+              </div>
+            </td>
+            <td>{{ student.institution ?: '—' }}</td>
+            <td>
+              {% set statusBadge = 'secondary' %}
+              {% if student.status == 'ETUDIANT' %}{% set statusBadge = 'primary' %}
+              {% elseif student.status == 'ELEVE' %}{% set statusBadge = 'info' %}
+              {% elseif student.status == 'STAGIAIRE' %}{% set statusBadge = 'warning' %}
+              {% endif %}
+              <span class="badge bg-{{ statusBadge }}">{{ student.status }}</span>
+            </td>
+            <td class="text-nowrap">
+              {% if student.registrationDate %}
+                {{ student.registrationDate|date('d/m/Y') }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td class="text-nowrap">
+              <a href="student-details.php?id={{ student.id }}" class="btn btn-sm btn-outline-primary" title="Voir détails">
+                <i class="fas fa-eye"></i>
+              </a>
+              {% if session.role == 'admin' %}
+              <a href="edit-student.php?id={{ student.id }}" class="btn btn-sm btn-outline-secondary ms-1" title="Modifier">
+                <i class="fas fa-edit"></i>
+              </a>
+              <form method="POST" action="students.php" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="id" value="{{ student.id }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger ms-1 btn-delete-student" title="Supprimer">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" class="text-center py-4 text-muted">Aucun étudiant trouvé</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if totalPages > 1 %}
+    <nav aria-label="Page navigation" class="mt-3">
+      <ul class="pagination justify-content-center">
+        <li class="page-item {{ page <= 1 ? 'disabled' }}">
+          <a class="page-link" href="?page={{ page - 1 }}&perPage={{ perPage }}{% for k, v in filters %}&{{ k }}={{ v|url_encode }}{% endfor %}">Précédent</a>
+        </li>
+        {% for i in 1..totalPages %}
+          {% if i == 1 or i == totalPages or (i >= page - 2 and i <= page + 2) %}
+            <li class="page-item {{ i == page ? 'active' }}">
+              <a class="page-link" href="?page={{ i }}&perPage={{ perPage }}{% for k, v in filters %}&{{ k }}={{ v|url_encode }}{% endfor %}">{{ i }}</a>
+            </li>
+          {% elseif i == page - 3 or i == page + 3 %}
+            <li class="page-item disabled"><a class="page-link">…</a></li>
+          {% endif %}
+        {% endfor %}
+        <li class="page-item {{ page >= totalPages ? 'disabled' }}">
+          <a class="page-link" href="?page={{ page + 1 }}&perPage={{ perPage }}{% for k, v in filters %}&{{ k }}={{ v|url_encode }}{% endfor %}">Suivant</a>
+        </li>
+      </ul>
+    </nav>
+    {% endif %}
+
+    <div class="d-flex justify-content-center mt-3">
+      <form action="students.php" method="GET" class="d-flex align-items-center">
+        <input type="hidden" name="page" value="1">
+        {% for k, v in filters %}
+          <input type="hidden" name="{{ k }}" value="{{ v }}">
+        {% endfor %}
+        <label for="perPage" class="me-2">Afficher</label>
+        <select name="perPage" id="perPage" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+          {% for n in [10, 25, 50, 100] %}
+            <option value="{{ n }}" {{ perPage == n ? 'selected' }}>{{ n }}</option>
+          {% endfor %}
+        </select>
+        <span class="ms-2">étudiants par page</span>
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('filterForm');
+  const selects = form.querySelectorAll('.auto-submit');
+  const searchInput = document.getElementById('searchInput');
+
+  selects.forEach(s => s.addEventListener('change', () => form.submit()));
+
+  let timeout = null;
+  searchInput.addEventListener('input', function () {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => form.submit(), 500);
+  });
+
+  document.querySelectorAll('.btn-delete-student').forEach(button => {
+    button.addEventListener('click', function (e) {
+      e.preventDefault();
+      const frm = this.closest('form');
+      Swal.fire({
+        title: 'Êtes-vous sûr ?',
+        text: 'Cette action est irréversible !',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#CE1126',
+        cancelButtonColor: '#009460',
+        confirmButtonText: 'Oui, supprimer !',
+        cancelButtonText: 'Annuler'
+      }).then(result => {
+        if (result.isConfirmed) frm.submit();
+      });
+    });
+  });
+});
+</script>
+{% endblock %}

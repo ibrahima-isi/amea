@@ -1,0 +1,405 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}AEESGS — Modifier {{ student.firstName }} {{ student.lastName }}{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ asset('assets/css/tagify.css') }}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{% endblock %}
+
+{% block body %}
+<div class="page-header">
+  <div>
+    <h1>Modifier l'étudiant</h1>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+        <li class="breadcrumb-item"><a href="students.php">Étudiants</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Modifier</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+{% if errors|length > 0 %}
+  <div class="alert alert-danger">Veuillez corriger les erreurs ci-dessous.</div>
+{% endif %}
+
+<div class="row">
+  <div class="col-lg-10 mx-auto">
+    <div class="card shadow">
+      <div class="card-header">
+        <span class="chart-card-header"><i class="fas fa-user-edit"></i> Mettez à jour les informations de l'étudiant</span>
+      </div>
+      <div class="card-body">
+        <form
+          action="edit-student.php?id={{ student.id }}"
+          method="POST"
+          id="editStudentForm"
+          enctype="multipart/form-data"
+          novalidate
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+          <!-- Informations personnelles -->
+          <h3 class="registration-section-heading">
+            <span class="registration-section-title">Informations personnelles</span>
+          </h3>
+          <div class="row g-3 mb-4">
+
+            <div class="col-md-6">
+              <label for="last_name" class="form-label">Nom <span class="text-danger">*</span></label>
+              <input type="text"
+                     class="form-control {{ errors.last_name ? 'is-invalid' : '' }}"
+                     id="last_name" name="last_name"
+                     value="{{ formData.last_name|default('') }}"
+                     required>
+              <div class="text-danger">{{ errors.last_name|default('') }}</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="first_name" class="form-label">Prénom <span class="text-danger">*</span></label>
+              <input type="text"
+                     class="form-control {{ errors.first_name ? 'is-invalid' : '' }}"
+                     id="first_name" name="first_name"
+                     value="{{ formData.first_name|default('') }}"
+                     required>
+              <div class="text-danger">{{ errors.first_name|default('') }}</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Sexe <span class="text-danger">*</span></label>
+              <div class="form-check">
+                <input class="form-check-input {{ errors.gender ? 'is-invalid' : '' }}"
+                       type="radio" name="gender" id="genderMale"
+                       value="Masculin"
+                       {{ formData.gender|default('') == 'Masculin' ? 'checked' : '' }}
+                       required>
+                <label class="form-check-label" for="genderMale">Masculin</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input {{ errors.gender ? 'is-invalid' : '' }}"
+                       type="radio" name="gender" id="genderFemale"
+                       value="Féminin"
+                       {{ formData.gender|default('') == 'Féminin' ? 'checked' : '' }}
+                       required>
+                <label class="form-check-label" for="genderFemale">Féminin</label>
+              </div>
+              <div class="text-danger">{{ errors.gender|default('') }}</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="status" class="form-label">Statut <span class="text-danger">*</span></label>
+              <select class="form-select {{ errors.status ? 'is-invalid' : '' }}"
+                      id="status" name="status" required>
+                <option value="" disabled {{ formData.status|default('') == '' ? 'selected' : '' }}>Sélectionnez</option>
+                <option value="ELEVE"     {{ formData.status|default('') == 'ELEVE'     ? 'selected' : '' }}>Élève</option>
+                <option value="ETUDIANT"  {{ formData.status|default('') == 'ETUDIANT'  ? 'selected' : '' }}>Étudiant</option>
+                <option value="STAGIAIRE" {{ formData.status|default('') == 'STAGIAIRE' ? 'selected' : '' }}>Stagiaire</option>
+                <option value="GRADUATE"  {{ formData.status|default('') in ['GRADUATE','Diplômé'] ? 'selected' : '' }}>Diplômé</option>
+              </select>
+              <div class="text-danger">{{ errors.status|default('') }}</div>
+            </div>
+
+            <div class="col-md-12 mb-3">
+              <label for="nationalities" class="form-label">Nationalité <span class="text-danger">*</span></label>
+              <input name="nationalities" id="nationalities"
+                     class="form-control {{ errors.nationalities ? 'is-invalid' : '' }}"
+                     placeholder="Nationalité (max 5)"
+                     value="{{ formData.nationalities|default('') }}"
+                     required>
+              <div class="form-text">Tapez et sélectionnez parmi la liste.</div>
+              <div class="text-danger">{{ errors.nationalities|default('') }}</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="birth_date" class="form-label">Date de naissance</label>
+              {% set maxBirthDate = "now -15 years"|date("Y-m-d") %}
+              <input type="text"
+                     class="form-control {{ errors.birth_date ? 'is-invalid' : '' }}"
+                     id="birth_date" name="birth_date"
+                     value="{{ formData.birth_date|default('') }}"
+                     data-max-date="{{ maxBirthDate }}"
+                     placeholder="JJ/MM/AAAA">
+              <div class="text-danger">{{ errors.birth_date|default('') }}</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="phone" class="form-label">Téléphone <span class="text-danger">*</span></label>
+              <input type="tel"
+                     class="form-control {{ errors.phone ? 'is-invalid' : '' }}"
+                     id="phone" name="phone"
+                     value="{{ formData.phone|default('') }}"
+                     placeholder="Saisissez votre numéro sans l'indicatif du pays (9 chiffres)"
+                     required>
+              <div class="text-danger">{{ errors.phone|default('') }}</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+              <input type="email"
+                     class="form-control {{ errors.email ? 'is-invalid' : '' }}"
+                     id="email" name="email"
+                     value="{{ formData.email|default('') }}"
+                     placeholder="nom.prenom@exemple.com"
+                     required>
+              <div class="text-danger">{{ errors.email|default('') }}</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="photo" class="form-label">Pièce d'identité</label>
+              <input type="file"
+                     class="form-control {{ errors.identity_document ? 'is-invalid' : '' }}"
+                     id="photo" name="photo"
+                     accept="image/*,application/pdf">
+              <div class="text-danger">{{ errors.identity_document|default('') }}</div>
+              {% if student.identityDocument %}
+                <div class="mt-1 small text-muted">
+                  <i class="fas fa-check text-success me-1"></i>
+                  Document actuel enregistré — laissez vide pour le conserver.
+                </div>
+              {% endif %}
+            </div>
+
+          </div>
+
+          <!-- Contact et résidence -->
+          <h3 class="mb-0">
+            <button type="button"
+                    class="registration-section-heading registration-section-toggle"
+                    aria-expanded="false"
+                    aria-controls="contactResidenceSection">
+              <span class="registration-section-title">
+                Contact et résidence
+                <span class="registration-section-badge">(optionnel)</span>
+              </span>
+              <span class="registration-toggle-meta">
+                <span class="registration-toggle-label">Déplier</span>
+                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+              </span>
+            </button>
+          </h3>
+          <div id="contactResidenceSection" class="registration-section-panel" data-registration-section-panel>
+            <div class="row g-3">
+
+              <div class="col-md-6">
+                <label for="residence" class="form-label">Lieu de résidence au Sénégal</label>
+                <select class="form-select {{ errors.residence ? 'is-invalid' : '' }}"
+                        id="residence" name="residence">
+                  <option value="" {{ formData.residence|default('') == '' ? 'selected' : '' }}>Sélectionnez un lieu</option>
+                  {% for region, cities in locations %}
+                    <optgroup label="{{ region }}">
+                      {% for city in cities %}
+                        <option value="{{ city }}" {{ formData.residence|default('') == city ? 'selected' : '' }}>{{ city }}</option>
+                      {% endfor %}
+                    </optgroup>
+                  {% endfor %}
+                  <option value="Autre" {{ formData.residence|default('') == 'Autre' ? 'selected' : '' }}>Autre</option>
+                </select>
+                <div class="text-danger">{{ errors.residence|default('') }}</div>
+              </div>
+
+              <div class="col-md-6" id="other_residence_wrapper"
+                   style="{{ formData.residence|default('') == 'Autre' ? '' : 'display:none;' }}">
+                <label for="other_residence" class="form-label">Précisez le lieu de résidence</label>
+                <input type="text" class="form-control"
+                       id="other_residence" name="other_residence"
+                       value="{{ formData.other_residence|default('') }}">
+              </div>
+
+              <div class="col-md-6">
+                <label for="arrival_year" class="form-label">Année d'arrivée au Sénégal</label>
+                <select class="form-select" id="arrival_year" name="arrival_year">
+                  <option value="">Sélectionnez</option>
+                  {% for year in range("now"|date("Y"), 1990, -1) %}
+                    <option value="{{ year }}" {{ formData.arrival_year|default('') == year ? 'selected' : '' }}>{{ year }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label for="housing_type" class="form-label">Type de logement</label>
+                <select class="form-select {{ errors.housing_type ? 'is-invalid' : '' }}"
+                        id="housing_type" name="housing_type">
+                  <option value="" disabled {{ formData.housing_type|default('') == '' ? 'selected' : '' }}>Sélectionnez</option>
+                  {% for ht in ['Colocation', 'Famille', 'Hébergement temporaire', 'Location', 'Résidence universitaire', 'Autre'] %}
+                    <option value="{{ ht }}" {{ formData.housing_type|default('') == ht ? 'selected' : '' }}>{{ ht }}</option>
+                  {% endfor %}
+                </select>
+                <div class="text-danger">{{ errors.housing_type|default('') }}</div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="housing_details" class="form-label">Précisions sur le logement</label>
+                <input type="text" class="form-control"
+                       id="housing_details" name="housing_details"
+                       value="{{ formData.housing_details|default('') }}">
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Informations académiques -->
+          <h3 class="mb-0">
+            <button type="button"
+                    class="registration-section-heading registration-section-toggle"
+                    aria-expanded="false"
+                    aria-controls="academicSection">
+              <span class="registration-section-title">
+                Informations académiques
+                <span class="registration-section-badge">(optionnel)</span>
+              </span>
+              <span class="registration-toggle-meta">
+                <span class="registration-toggle-label">Déplier</span>
+                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+              </span>
+            </button>
+          </h3>
+          <div id="academicSection" class="registration-section-panel" data-registration-section-panel>
+            <div class="row g-3">
+
+              <div class="col-md-6">
+                <label for="institution" class="form-label">Établissement</label>
+                <select class="form-select {{ errors.institution ? 'is-invalid' : '' }}"
+                        id="institution" name="institution">
+                  <option value="" disabled {{ formData.institution|default('') == '' ? 'selected' : '' }}>Sélectionnez votre établissement</option>
+                  {% for school in schools %}
+                    <option value="{{ school }}" {{ formData.institution|default('') == school ? 'selected' : '' }}>{{ school }}</option>
+                  {% endfor %}
+                  <option value="Autre" {{ formData.institution|default('') == 'Autre' ? 'selected' : '' }}>Autre</option>
+                </select>
+                <div class="text-danger">{{ errors.institution|default('') }}</div>
+              </div>
+
+              <div class="col-md-6" id="other_institution_wrapper"
+                   style="{{ formData.institution|default('') == 'Autre' ? '' : 'display:none;' }}">
+                <label for="other_institution" class="form-label">Précisez l'établissement</label>
+                <input type="text" class="form-control"
+                       id="other_institution" name="other_institution"
+                       value="{{ formData.other_institution|default('') }}">
+              </div>
+
+              <div class="col-md-6" id="graduation_date_wrapper"
+                   style="{{ formData.status|default('') in ['GRADUATE','Diplômé'] ? '' : 'display:none;' }}">
+                <label for="graduation_date" class="form-label">Date de diplomation</label>
+                <input type="date" class="form-control"
+                       id="graduation_date" name="graduation_date"
+                       value="{{ formData.graduation_date|default('') }}">
+                <div class="form-text">Laissez vide pour utiliser la date d'aujourd'hui.</div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="study_field" class="form-label">Domaine d'études</label>
+                <select class="form-select {{ errors.study_field ? 'is-invalid' : '' }}"
+                        id="study_field" name="study_field">
+                  <option value="" disabled {{ formData.study_field|default('') == '' ? 'selected' : '' }}>Sélectionnez votre domaine d'études</option>
+                  {% for dom in domaines %}
+                    <option value="{{ dom }}" {{ formData.study_field|default('') == dom ? 'selected' : '' }}>{{ dom }}</option>
+                  {% endfor %}
+                  <option value="Autre" {{ formData.study_field|default('') == 'Autre' ? 'selected' : '' }}>Autre</option>
+                </select>
+                <div class="text-danger">{{ errors.study_field|default('') }}</div>
+              </div>
+
+              <div class="col-md-6" id="other_study_field_wrapper"
+                   style="{{ formData.study_field|default('') == 'Autre' ? '' : 'display:none;' }}">
+                <label for="other_study_field" class="form-label">Précisez le domaine d'études</label>
+                <input type="text" class="form-control"
+                       id="other_study_field" name="other_study_field"
+                       value="{{ formData.other_study_field|default('') }}">
+              </div>
+
+              <div class="col-md-6">
+                <label for="study_level" class="form-label">Niveau d'études</label>
+                <select class="form-select {{ errors.study_level ? 'is-invalid' : '' }}"
+                        id="study_level" name="study_level">
+                  <option value="" disabled {{ formData.study_level|default('') == '' ? 'selected' : '' }}>Sélectionnez votre niveau d'études</option>
+                  {% for niv in niveaux %}
+                    <option value="{{ niv }}" {{ formData.study_level|default('') == niv ? 'selected' : '' }}>{{ niv }}</option>
+                  {% endfor %}
+                  <option value="Autre" {{ formData.study_level|default('') == 'Autre' ? 'selected' : '' }}>Autre</option>
+                </select>
+                <div class="text-danger">{{ errors.study_level|default('') }}</div>
+              </div>
+
+              <div class="col-md-6" id="other_study_level_wrapper"
+                   style="{{ formData.study_level|default('') == 'Autre' ? '' : 'display:none;' }}">
+                <label for="other_study_level" class="form-label">Précisez le niveau d'études</label>
+                <input type="text" class="form-control"
+                       id="other_study_level" name="other_study_level"
+                       value="{{ formData.other_study_level|default('') }}">
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Projets futurs -->
+          <h3 class="mb-0">
+            <button type="button"
+                    class="registration-section-heading registration-section-toggle"
+                    aria-expanded="false"
+                    aria-controls="futureProjectSection">
+              <span class="registration-section-title">
+                Projets futurs
+                <span class="registration-section-badge">(optionnel)</span>
+              </span>
+              <span class="registration-toggle-meta">
+                <span class="registration-toggle-label">Déplier</span>
+                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+              </span>
+            </button>
+          </h3>
+          <div id="futureProjectSection" class="registration-section-panel" data-registration-section-panel>
+            <div class="mb-4">
+              <label for="post_training_project" class="form-label">Projet après formation</label>
+              <textarea class="form-control" id="post_training_project" name="post_training_project"
+                        rows="3" placeholder="Décrivez vos projets futurs...">{{ formData.post_training_project|default('') }}</textarea>
+            </div>
+            <div class="mb-4">
+              <label for="cv_file" class="form-label">Télécharger CV (PDF, PNG - max 5MB)</label>
+              <input type="file"
+                     class="form-control {{ errors.cv ? 'is-invalid' : '' }}"
+                     id="cv_file" name="cv_file"
+                     accept="application/pdf,image/png">
+              <div class="text-danger">{{ errors.cv|default('') }}</div>
+              {% if formData.cv_path|default('') %}
+                <div class="mt-2">
+                  CV actuel :
+                  <a href="{{ asset(formData.cv_path) }}" target="_blank" class="btn btn-sm btn-info">
+                    <i class="fas fa-download"></i> Télécharger
+                  </a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Boutons -->
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="students.php" class="btn btn-secondary"><i class="fas fa-times"></i> Annuler</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Enregistrer les modifications</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function () {
+  var sel  = document.getElementById('status');
+  var wrap = document.getElementById('graduation_date_wrapper');
+  if (sel && wrap) {
+    function toggleGrad() {
+      wrap.style.display = (sel.value === 'GRADUATE' || sel.value === 'Diplômé') ? 'block' : 'none';
+    }
+    sel.addEventListener('change', toggleGrad);
+    toggleGrad();
+  }
+})();
+</script>
+<script src="{{ asset('assets/js/tagify.min.js') }}"></script>
+<script src="{{ asset('assets/js/edit-student.js') }}"></script>
+{% endblock %}
