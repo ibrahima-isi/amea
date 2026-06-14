@@ -394,11 +394,6 @@ expect('findByKey() null for missing',             $settingRepo->findByKey('nope
 expect('getValue() returns value',                 $settingRepo->getValue('contact_phone') === '+221 33 000 0000');
 expect('getValue() returns default for missing',   $settingRepo->getValue('missing', 'def') === 'def');
 
-$replacements = $settingRepo->getFooterReplacements();
-expect('getFooterReplacements() has contact_email key', isset($replacements['{{contact_email}}']));
-expect('getFooterReplacements() has year key',     isset($replacements['{{year}}']));
-expect('getFooterReplacements() year is current',  $replacements['{{year}}'] === (string)date('Y'));
-
 // ─── 7. Service\UserService ───────────────────────────────────────────────────
 echo "\nService\\UserService\n";
 
@@ -598,52 +593,7 @@ expect('role() returns empty string when absent',  $sess3->role() === '');
 $sess3->set('role', 'admin');
 expect('role() returns admin',                     $sess3->role() === 'admin');
 
-// ─── 12. Core\TemplateEngine ─────────────────────────────────────────────────
-echo "\nCore\\TemplateEngine\n";
-
-use Amea\Core\TemplateEngine;
-
-// render() with empty path returns ''
-$tpl = new TemplateEngine(__DIR__ . '/..');
-expect('render() with empty path returns ""',      $tpl->render('') === '');
-
-// versionAssets() appends ?v= to local CSS
-$html    = '<link href="assets/css/app.css">';
-$result  = TemplateEngine::versionAssets($html, __DIR__ . '/..');
-$hasVersion = (bool)preg_match('/assets\/css\/app\.css\?v=\d+/', $result);
-expect('versionAssets() appends ?v= to CSS',       $hasVersion);
-
-// versionAssets() skips CDN URLs
-$cdn  = '<link href="https://cdn.example.com/style.css">';
-expect('versionAssets() skips CDN URLs',           TemplateEngine::versionAssets($cdn, '/') === $cdn);
-
-// versionAssets() skips protocol-relative URLs
-$proto = '<script src="//cdn.example.com/lib.js"></script>';
-expect('versionAssets() skips // URLs',            TemplateEngine::versionAssets($proto, '/') === $proto);
-
-// render() with a real template and vars
-$tmpTpl = sys_get_temp_dir() . '/amea_test_tpl_' . uniqid() . '.html';
-file_put_contents($tmpTpl, '<p>Hello {{name}}! Role: {{role}}</p>');
-$tplDir = dirname($tmpTpl);
-$tplFile = basename($tmpTpl);
-$tplEngine = new TemplateEngine($tplDir);
-$out = $tplEngine->render($tplFile, ['name' => 'World', 'role' => 'admin']);
-expect('render() substitutes {{name}}',            str_contains($out, 'Hello World!'));
-expect('render() substitutes {{role}}',            str_contains($out, 'Role: admin'));
-$outAbsolute = $tplEngine->render($tmpTpl, ['name' => 'Absolute', 'role' => 'path']);
-expect('render() accepts absolute template paths', str_contains($outAbsolute, 'Hello Absolute! Role: path'));
-@unlink($tmpTpl);
-
-// render() with missing template throws RuntimeException
-$threw = false;
-try {
-    $tpl->render('nonexistent/file.html');
-} catch (\RuntimeException) {
-    $threw = true;
-}
-expect('render() throws RuntimeException for missing template', $threw);
-
-// ─── 13. Service\EmailService ────────────────────────────────────────────────
+// ─── 12. Service\EmailService ────────────────────────────────────────────────
 echo "\nService\\EmailService\n";
 
 class EmailServiceProbe extends \Amea\Service\EmailService

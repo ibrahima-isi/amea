@@ -29,13 +29,5 @@ class SettingRepository
         return $stmt->execute([$key, $value]);
     }
 
-    public function getFooterReplacements(): array
-    {
-        return [
-            '{{contact_email}}' => htmlspecialchars($this->getValue('contact_email', ''), ENT_QUOTES, 'UTF-8'),
-            '{{contact_phone}}' => htmlspecialchars($this->getValue('contact_phone', ''), ENT_QUOTES, 'UTF-8'),
-            '{{association_name}}' => htmlspecialchars($this->getValue('association_name', 'AEESGS'), ENT_QUOTES, 'UTF-8'),
-            '{{year}}'          => (string)date('Y'),
-        ];
-    }
+
 }

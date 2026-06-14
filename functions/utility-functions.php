@@ -156,16 +156,6 @@ function getSetting(string $key, string $default = ''): string
     return $repo->getValue($key, $default);
 }
 
-function getFooterReplacements(): array
-{
-    global $conn;
-    static $repo = null;
-    if ($repo === null) {
-        $repo = new \Amea\Repository\SettingRepository($conn);
-    }
-    return $repo->getFooterReplacements();
-}
-
 // ─── Permissions ──────────────────────────────────────────────────────────────
 function hasPermission(string $module): bool
 {
@@ -202,8 +192,4 @@ function cleanData(?string $data): string
     return str_replace('"', '""', str_replace(["\r", "\n", "\t"], ' ', $data));
 }
 
-// ─── Asset versioning ─────────────────────────────────────────────────────────
-function addVersionToAssets(string $html): string
-{
-    return \Amea\Core\TemplateEngine::versionAssets($html, __DIR__ . '/..');
-}
+
