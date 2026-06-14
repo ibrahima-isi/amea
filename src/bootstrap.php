@@ -42,6 +42,13 @@ $router->add('POST', '/kyc-correction.php', 'CorrectionController@update');
 
 $router->add('GET', '/dashboard.php', 'DashboardController@index');
 
+// Student management
+$router->add('GET',  '/students.php',        'StudentController@index');
+$router->add('POST', '/students.php',        'StudentController@delete');
+$router->add('GET',  '/student-details.php', 'StudentController@show');
+$router->add('GET',  '/edit-student.php',    'StudentController@edit');
+$router->add('POST', '/edit-student.php',    'StudentController@update');
+
 // Add more routes as we migrate...
 
 return $router;
