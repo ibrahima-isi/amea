@@ -8,6 +8,11 @@
             "Amea\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Amea\\Tests\\": "tests/"
+        }
+    },
     "config": {
         "optimize-autoloader": true
     },
