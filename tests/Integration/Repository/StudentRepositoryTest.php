@@ -176,4 +176,24 @@ class StudentRepositoryTest extends TestCase
         $this->repo->save($this->makeStudent(['phone' => '771110002', 'email' => 'b@test.sn']));
         $this->assertSame(2, $this->repo->countAll());
     }
+
+    public function testFindByToken(): void
+    {
+        $id = $this->repo->save($this->makeStudent(['review_token' => 'abc123token']));
+        $student = $this->repo->findByToken('abc123token');
+        $this->assertInstanceOf(\Amea\Model\Student::class, $student);
+        $this->assertSame($id, $student->getId());
+    }
+
+    public function testFindByTokenReturnsNullForWrongToken(): void
+    {
+        $this->repo->save($this->makeStudent(['review_token' => 'abc123token']));
+        $this->assertNull($this->repo->findByToken('wrongtoken'));
+    }
+
+    public function testFindByTokenReturnsNullForEmptyToken(): void
+    {
+        $this->repo->save($this->makeStudent(['review_token' => 'abc123token']));
+        $this->assertNull($this->repo->findByToken(''));
+    }
 }

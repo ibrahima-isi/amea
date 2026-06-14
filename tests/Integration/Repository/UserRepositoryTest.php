@@ -164,4 +164,24 @@ class UserRepositoryTest extends TestCase
         $this->assertSame('alice@test.sn', $user->getEmail());
         $this->assertNull($this->repo->findByEmail('nobody@test.sn'));
     }
+
+    public function testIsSessionVersionCurrentReturnsTrueForCurrentVersion(): void
+    {
+        $id = $this->repo->save($this->makeUser());
+        $this->repo->incrementSessionVersion($id); // version is now 2
+        $this->assertTrue($this->repo->isSessionVersionCurrent($id, 2));
+    }
+
+    public function testIsSessionVersionCurrentReturnsFalseForStaleVersion(): void
+    {
+        $id = $this->repo->save($this->makeUser());
+        $this->repo->incrementSessionVersion($id); // version is now 2
+        $this->assertFalse($this->repo->isSessionVersionCurrent($id, 1));
+    }
+
+    public function testIsSessionVersionCurrentReturnsFalseForZero(): void
+    {
+        $id = $this->repo->save($this->makeUser());
+        $this->assertFalse($this->repo->isSessionVersionCurrent($id, 0));
+    }
 }
