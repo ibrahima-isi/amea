@@ -70,6 +70,14 @@ $router->add('GET',  '/export-preview.php', 'ExportController@preview');
 $router->add('GET',  '/settings.php', 'SettingsController@index');
 $router->add('POST', '/settings.php', 'SettingsController@update');
 
+// Slider
+$router->add('GET',  '/manage-slider.php', 'SliderController@index');
+$router->add('POST', '/manage-slider.php', 'SliderController@handlePost');
+
+// Upgrade levels
+$router->add('GET',  '/upgrade-levels.php',  'UpgradeController@index');
+$router->add('POST', '/confirm-upgrade.php', 'UpgradeController@confirm');
+
 // Add more routes as we migrate...
 
 return $router;
