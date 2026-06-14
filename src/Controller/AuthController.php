@@ -2,9 +2,9 @@
 
 namespace Amea\Controller;
 
+use Amea\Core\Container;
 use Amea\Service\AuthService;
 use Amea\Repository\UserRepository;
-use Amea\Config\Database;
 
 class AuthController extends BaseController
 {
@@ -13,8 +13,7 @@ class AuthController extends BaseController
     public function __construct()
     {
         parent::__construct();
-        $db = Database::fromEnv()->getConnection();
-        $userRepo = new UserRepository($db);
+        $userRepo = new UserRepository(Container::db());
         $this->auth = new AuthService($userRepo, $this->session, $this->flash);
     }
 
@@ -25,6 +24,12 @@ class AuthController extends BaseController
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+                $this->flash->set('error', 'La session a expiré. Veuillez réessayer.');
+                $this->redirect('login.php');
+                return;
+            }
+
             $username = $_POST['username'] ?? '';
             $password = $_POST['password'] ?? '';
 
@@ -35,7 +40,7 @@ class AuthController extends BaseController
             }
         }
 
-        $this->render('templates/login.html');
+        $this->render('auth/login.html.twig');
     }
 
     public function logout(): void

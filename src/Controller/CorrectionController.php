@@ -15,7 +15,7 @@ class CorrectionController extends BaseController
     public function __construct()
     {
         parent::__construct();
-        $db = \Amea\Config\Database::fromEnv()->getConnection();
+        $db = \Amea\Core\Container::db();
         $this->studentRepo = new StudentRepository($db);
         $this->fileUploader = new FileUploader(__DIR__ . '/../../');
         $this->studentService = new StudentService($this->studentRepo, $this->fileUploader);

@@ -5,6 +5,7 @@ namespace Amea\Controller;
 use Amea\Core\Container;
 use Amea\Core\FileUploader;
 use Amea\Repository\StudentRepository;
+use Amea\Service\EmailService;
 use Amea\Service\StudentService;
 
 class StudentController extends BaseController
@@ -12,6 +13,7 @@ class StudentController extends BaseController
     private StudentRepository $studentRepo;
     private StudentService $studentService;
     private \Amea\Core\FileUploader $uploader;
+    private EmailService $emailService;
 
     public function __construct()
     {
@@ -23,6 +25,13 @@ class StudentController extends BaseController
         $this->studentService = new StudentService(
             $this->studentRepo,
             $this->uploader
+        );
+        $this->emailService = new EmailService(
+            $_ENV['MAIL_USER'] ?? '',
+            $_ENV['MAIL_PASS'] ?? '',
+            'noreply@aeesgs.org',
+            'AEESGS Platform',
+            $this->view
         );
     }
 
@@ -286,21 +295,25 @@ class StudentController extends BaseController
             if (!is_file($templatePath)) {
                 return;
             }
-            $body = \renderEmailTemplate($templatePath, [
-                'id'          => $studentId,
-                'first_name'  => $data['first_name']  ?? '',
-                'last_name'   => $data['last_name']   ?? '',
-                'email'       => $data['email']       ?? '',
-                'phone'       => $data['phone']       ?? '',
-                'status'      => $data['status']      ?? '',
-                'institution' => $data['institution'] ?? '',
-                'study_field' => $data['study_field'] ?? '',
-                'study_level' => $data['study_level'] ?? '',
-                'residence'   => $data['residence']   ?? '',
-                'housing_type' => $data['housing_type'] ?? '',
-                'update_date' => date('d/m/Y à H:i'),
-            ]);
-            \sendMail($data['email'], 'Votre dossier a été mis à jour – AEESGS', $body);
+            $this->emailService->sendFromTemplate(
+                $data['email'],
+                'Votre dossier a été mis à jour – AEESGS',
+                $templatePath,
+                [
+                    'id'           => $studentId,
+                    'first_name'   => $data['first_name']   ?? '',
+                    'last_name'    => $data['last_name']    ?? '',
+                    'email'        => $data['email']        ?? '',
+                    'phone'        => $data['phone']        ?? '',
+                    'status'       => $data['status']       ?? '',
+                    'institution'  => $data['institution']  ?? '',
+                    'study_field'  => $data['study_field']  ?? '',
+                    'study_level'  => $data['study_level']  ?? '',
+                    'residence'    => $data['residence']    ?? '',
+                    'housing_type' => $data['housing_type'] ?? '',
+                    'update_date'  => date('d/m/Y à H:i'),
+                ]
+            );
         } catch (\Throwable) {
             // Non-critical — log silently
         }

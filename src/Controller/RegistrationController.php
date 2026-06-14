@@ -17,8 +17,7 @@ class RegistrationController extends BaseController
     public function __construct()
     {
         parent::__construct();
-        $db = \Amea\Config\Database::fromEnv()->getConnection();
-        $this->studentRepo = new StudentRepository($db);
+        $this->studentRepo = new StudentRepository(\Amea\Core\Container::db());
         
         // Setup EmailService
         $projectRoot = __DIR__ . '/../../';

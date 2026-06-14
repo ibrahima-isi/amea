@@ -2,8 +2,8 @@
 
 namespace Amea\Controller;
 
+use Amea\Core\Container;
 use Amea\Repository\SliderRepository;
-use Amea\Config\Database;
 
 class HomeController extends BaseController
 {
@@ -12,8 +12,7 @@ class HomeController extends BaseController
     public function __construct()
     {
         parent::__construct();
-        $db = Database::fromEnv()->getConnection();
-        $this->sliderRepo = new SliderRepository($db);
+        $this->sliderRepo = new SliderRepository(Container::db());
     }
 
     public function index(): void
