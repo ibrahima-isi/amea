@@ -43,7 +43,7 @@ class DashboardController extends BaseController
             'recent_month'    => $recentMonth,
             'school_labels'   => implode(', ', $schoolLabels),
             'school_values'   => implode(', ', $schoolValues),
-            'can_see_students' => true,
+            'can_see_students' => \hasPermission('students'),
             'can_export'      => $role === 'admin',
         ]);
     }
