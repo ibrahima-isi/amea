@@ -33,8 +33,7 @@ abstract class BaseController
         $twig = $this->view->getTwig();
         
         // Settings
-        $db = \Amea\Config\Database::fromEnv()->getConnection();
-        $settingRepo = new \Amea\Repository\SettingRepository($db);
+        $settingRepo = new \Amea\Repository\SettingRepository(\Amea\Core\Container::db());
         
         $twig->addGlobal('session', $_SESSION);
         $twig->addGlobal('flash', $this->flash->get());
