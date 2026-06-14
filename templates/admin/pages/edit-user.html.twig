@@ -1,0 +1,155 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}AEESGS - Modifier l'utilisateur{% endblock %}
+
+{% block body %}
+{% set displayData = formData is not empty ? formData : {
+  username: user.username,
+  email: user.email,
+  last_name: user.lastName,
+  first_name: user.firstName,
+  role: user.role,
+  is_active: user.active ? 1 : 0,
+  permissions: user.permissions
+} %}
+
+<div class="page-header">
+  <div>
+    <h1>Modifier l'utilisateur</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+      <li class="breadcrumb-item"><a href="users.php">Utilisateurs</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Modifier</li>
+    </ol></nav>
+  </div>
+</div>
+
+{% if errors is not empty %}
+<div class="alert alert-danger">Veuillez corriger les erreurs ci-dessous.</div>
+{% endif %}
+
+<div class="row">
+  <div class="col-md-8 mx-auto">
+    <div class="card shadow">
+      <div class="card-header">
+        <span class="chart-card-header"><i class="fas fa-user-edit"></i> Informations de l'utilisateur</span>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="edit-user.php?id={{ user.id }}" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="username" class="form-label">Nom d'utilisateur</label>
+              <input type="text"
+                     class="form-control {{ errors.username is defined ? 'is-invalid' : '' }}"
+                     id="username" name="username"
+                     value="{{ displayData.username }}" required>
+              {% if errors.username is defined %}
+                <div class="text-danger">{{ errors.username }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label">Email</label>
+              <input type="email"
+                     class="form-control {{ errors.email is defined ? 'is-invalid' : '' }}"
+                     id="email" name="email"
+                     value="{{ displayData.email }}"
+                     placeholder="nom.prenom@exemple.com" required>
+              {% if errors.email is defined %}
+                <div class="text-danger">{{ errors.email }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="last_name" class="form-label">Nom</label>
+              <input type="text"
+                     class="form-control {{ errors.last_name is defined ? 'is-invalid' : '' }}"
+                     id="last_name" name="last_name"
+                     value="{{ displayData.last_name }}" required>
+              {% if errors.last_name is defined %}
+                <div class="text-danger">{{ errors.last_name }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="first_name" class="form-label">Prénom</label>
+              <input type="text"
+                     class="form-control {{ errors.first_name is defined ? 'is-invalid' : '' }}"
+                     id="first_name" name="first_name"
+                     value="{{ displayData.first_name }}" required>
+              {% if errors.first_name is defined %}
+                <div class="text-danger">{{ errors.first_name }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="role" class="form-label">Rôle</label>
+              <select class="form-select" id="role" name="role" required>
+                <option value="user" {{ displayData.role == 'user' ? 'selected' : '' }}>Utilisateur</option>
+                <option value="admin" {{ displayData.role == 'admin' ? 'selected' : '' }}>Administrateur</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="is_active" class="form-label">Statut</label>
+              <select class="form-select" id="is_active" name="is_active" required>
+                <option value="1" {{ displayData.is_active == 1 ? 'selected' : '' }}>Actif</option>
+                <option value="0" {{ displayData.is_active == 0 ? 'selected' : '' }}>Inactif</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="permissionsSection" class="mt-4 border-top pt-3"
+               style="display: {{ displayData.role == 'admin' ? 'block' : 'none' }};">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h5 class="h6 mb-0"><i class="fas fa-lock me-2"></i>Permissions d'accès aux modules</h5>
+              {% if isSuperAdmin %}
+                <span class="badge bg-danger">Super Admin</span>
+              {% endif %}
+            </div>
+            <div class="row g-2">
+              {% set permLabels = {
+                'students': 'Étudiants',
+                'export': 'Export',
+                'users': 'Utilisateurs',
+                'slider': 'Carrousel',
+                'upgrade': 'Mise à niveau',
+                'documents': 'Documents',
+                'communications': 'Communications',
+                'settings': 'Paramètres'
+              } %}
+              {% for mod in modules %}
+              <div class="col-md-4">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox"
+                         name="permissions[]" value="{{ mod }}"
+                         id="perm_{{ mod }}"
+                         {{ (displayData.permissions is defined and mod in displayData.permissions) ? 'checked' : '' }}
+                         {{ isSuperAdmin ? 'disabled onclick="return false;"' : '' }}>
+                  <label class="form-check-label" for="perm_{{ mod }}">
+                    {{ permLabels[mod] ?? mod }}
+                  </label>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            <small class="text-muted d-block mt-2">
+              <i class="fas fa-info-circle me-1"></i>L'utilisateur avec l'ID 1 est le Super Admin et possède toutes les permissions par défaut.
+            </small>
+          </div>
+
+          <div class="mt-3 text-end">
+            <a href="users.php" class="btn btn-secondary">Annuler</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.getElementById('role').addEventListener('change', function () {
+  document.getElementById('permissionsSection').style.display =
+    this.value === 'admin' ? 'block' : 'none';
+});
+</script>
+{% endblock %}

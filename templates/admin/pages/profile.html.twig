@@ -1,3 +1,8 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}AEESGS - Profil Administrateur{% endblock %}
+
+{% block body %}
 <div class="page-header">
   <div>
     <h1>Profil Administrateur</h1>
@@ -8,10 +13,8 @@
   </div>
 </div>
 
-{{error_block}}
-{{success_block}}
-
 <div class="row">
+  {# ─── Left column: account card ─── #}
   <div class="col-md-4 mb-4">
     <div class="card shadow">
       <div class="card-header">
@@ -20,39 +23,45 @@
       <div class="card-body">
         <div class="text-center mb-4">
           <div class="avatar-placeholder rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center avatar-lg">
-            {{avatar_initials}}
+            {{ user.firstName|first|upper }}{{ user.lastName|first|upper }}
           </div>
-          <h4 class="fw-bold">{{display_name}}</h4>
-          <p class="mb-1 text-muted">Utilisateur: <strong>{{username}}</strong></p>
-          <span class="badge bg-primary">Rôle: {{role}}</span>
+          <h4 class="fw-bold">{{ user.firstName }} {{ user.lastName }}</h4>
+          <p class="mb-1 text-muted">Utilisateur: <strong>{{ user.username }}</strong></p>
+          <span class="badge bg-primary">Rôle: {{ user.role }}</span>
         </div>
         <hr>
-        <p class="mb-2"><i class="fas fa-envelope me-2"></i> {{email}}</p>
+        <p class="mb-2"><i class="fas fa-envelope me-2"></i> {{ user.email }}</p>
       </div>
     </div>
   </div>
 
+  {# ─── Right column: forms ─── #}
   <div class="col-md-8 mb-4">
+
+    {# Update profile form #}
     <div class="card shadow mb-4">
       <div class="card-header">
         <span class="chart-card-header"><i class="fas fa-user-pen"></i> Mettre à jour le profil</span>
       </div>
       <div class="card-body">
-        <form method="POST" action="{{form_action}}">
-          <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-          <input type="hidden" name="update_profile" value="1">
+        <form method="POST" action="profile.php">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <input type="hidden" name="action" value="update_profile">
           <div class="row g-3">
             <div class="col-md-6">
               <label for="last_name" class="form-label">Nom</label>
-              <input type="text" class="form-control" id="last_name" name="last_name" value="{{last_name}}" required>
+              <input type="text" class="form-control" id="last_name" name="last_name"
+                     value="{{ user.lastName }}" required>
             </div>
             <div class="col-md-6">
               <label for="first_name" class="form-label">Prénom</label>
-              <input type="text" class="form-control" id="first_name" name="first_name" value="{{first_name}}" required>
+              <input type="text" class="form-control" id="first_name" name="first_name"
+                     value="{{ user.firstName }}" required>
             </div>
             <div class="col-md-12">
               <label for="email" class="form-label">Email</label>
-              <input type="email" class="form-control" id="email" name="email" value="{{email}}" required placeholder="nom.prenom@exemple.com">
+              <input type="email" class="form-control" id="email" name="email"
+                     value="{{ user.email }}" placeholder="nom.prenom@exemple.com" required>
             </div>
           </div>
           <div class="mt-3 text-end">
@@ -63,14 +72,15 @@
       </div>
     </div>
 
+    {# Change password form #}
     <div class="card shadow">
       <div class="card-header">
         <span class="chart-card-header"><i class="fas fa-lock"></i> Changer le mot de passe</span>
       </div>
       <div class="card-body">
-        <form method="POST" action="{{form_action}}" id="passwordForm">
-          <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-          <input type="hidden" name="change_password" value="1">
+        <form method="POST" action="profile.php" id="passwordForm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <input type="hidden" name="action" value="change_password">
           <div class="mb-3">
             <label for="current_password" class="form-label">Mot de passe actuel</label>
             <input type="password" class="form-control" id="current_password" name="current_password" required>
@@ -86,27 +96,27 @@
           </div>
           <button type="submit" class="btn btn-primary"><i class="fas fa-key"></i> Changer le mot de passe</button>
         </form>
-        <hr>
-        <p class="text-muted small mb-2">Mot de passe oublié ?</p>
-        <form method="POST" action="{{form_action}}">
-          <input type="hidden" name="csrf_token" value="{{csrf_token}}">
-          <input type="hidden" name="request_password_reset" value="1">
-          <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="fas fa-envelope me-2"></i>Recevoir un lien de réinitialisation par e-mail</button>
-        </form>
       </div>
     </div>
-  </div>
-</div>
 
+  </div>{# end right col #}
+</div>
+{% endblock %}
+
+{% block javascripts %}
 <script>
-  document.getElementById('passwordForm')?.addEventListener('submit', function(e) {
-    var newPassword = document.getElementById('new_password').value;
-    var confirmPassword = document.getElementById('confirm_password').value;
-    if (newPassword !== confirmPassword) {
-      e.preventDefault(); alert('Les mots de passe ne correspondent pas.');
-    }
-    if (newPassword.length < 8) {
-      e.preventDefault(); alert('Le mot de passe doit contenir au moins 8 caractères.');
-    }
-  });
+document.getElementById('passwordForm')?.addEventListener('submit', function (e) {
+  var newPw  = document.getElementById('new_password').value;
+  var confPw = document.getElementById('confirm_password').value;
+  if (newPw !== confPw) {
+    e.preventDefault();
+    alert('Les mots de passe ne correspondent pas.');
+    return;
+  }
+  if (newPw.length < 8) {
+    e.preventDefault();
+    alert('Le mot de passe doit contenir au moins 8 caractères.');
+  }
+});
 </script>
+{% endblock %}
