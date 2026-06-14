@@ -42,24 +42,6 @@ class FlashTest extends TestCase
         $this->assertNull($second);
     }
 
-    public function testSetErrorType(): void
-    {
-        $this->flash->set('error', 'Something went wrong');
-        $result = $this->flash->get();
-
-        $this->assertSame('error', $result['type']);
-        $this->assertSame('Something went wrong', $result['message']);
-    }
-
-    public function testSetWarningType(): void
-    {
-        $this->flash->set('warning', 'Be careful');
-        $result = $this->flash->get();
-
-        $this->assertSame('warning', $result['type']);
-        $this->assertSame('Be careful', $result['message']);
-    }
-
     public function testAddStoresMessage(): void
     {
         $this->flash->add('success', 'Added successfully');

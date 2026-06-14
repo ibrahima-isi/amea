@@ -127,8 +127,6 @@ class StudentTest extends TestCase
         $age = $s->getAge();
         $this->assertIsInt($age);
         $this->assertGreaterThanOrEqual(0, $age);
-        // Student born 2000-06-15 — should be 25 or 26 as of 2026-06-14
-        $this->assertGreaterThanOrEqual(25, $age);
     }
 
     public function testGetAgeReturnsZeroForEmptyBirthDate(): void

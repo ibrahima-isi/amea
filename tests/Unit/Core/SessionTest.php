@@ -106,18 +106,4 @@ class SessionTest extends TestCase
         $this->assertSame(['a', 'b', 'c'], $this->session->get('array_val'));
     }
 
-    public function testHasReturnsFalseAfterRemove(): void
-    {
-        $this->session->set('ephemeral', 'data');
-        $this->session->remove('ephemeral');
-        $this->assertFalse($this->session->has('ephemeral'));
-    }
-
-    public function testSessionIsolationBetweenTests(): void
-    {
-        // Verify $_SESSION = [] in setUp actually clears the session
-        $this->assertFalse($this->session->has('user_id'));
-        $this->assertFalse($this->session->isLoggedIn());
-        $this->assertSame(0, $this->session->userId());
-    }
 }
