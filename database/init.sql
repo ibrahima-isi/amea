@@ -1,3 +1,7 @@
+-- DEPRECATED: schema.sql is the authoritative schema file.
+-- This file is kept only for historical reference. Do not apply it.
+-- Run `mysql -u root -p amea_db < schema.sql` to initialise from scratch.
+
 -- Structure de la base de données AMEA
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;

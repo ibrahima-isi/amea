@@ -13,12 +13,9 @@ class KYCController extends BaseController
     public function __construct()
     {
         parent::__construct();
-        $this->checkAdmin();
-        
-        $db = \Amea\Config\Database::fromEnv()->getConnection();
-        $this->studentRepo = new StudentRepository($db);
-        
-        $projectRoot = __DIR__ . '/../../';
+        $this->requireAdmin();
+
+        $this->studentRepo = new StudentRepository(\Amea\Core\Container::db());
         $this->emailService = new EmailService(
             $_ENV['MAIL_USER'] ?? '',
             $_ENV['MAIL_PASS'] ?? '',
@@ -26,14 +23,6 @@ class KYCController extends BaseController
             'AEESGS Platform',
             $this->view
         );
-    }
-
-    private function checkAdmin(): void
-    {
-        if (!$this->session->isLoggedIn() || $this->session->role() !== 'admin') {
-            $this->flash->add('error', 'Accès refusé. Réservé aux administrateurs.');
-            $this->redirect('/login.php');
-        }
     }
 
     public function index(): void
