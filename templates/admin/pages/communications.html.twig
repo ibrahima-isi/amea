@@ -1,0 +1,115 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Communications — AEESGS{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">Communications</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+                <li class="breadcrumb-item active">Communications</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+{# ─── Stats ────────────────────────────────────────────────────────────────── #}
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card text-center p-3">
+            <div class="h2 fw-bold text-primary">{{ stats.total }}</div>
+            <div class="text-muted small">Membres inscrits</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center p-3">
+            <div class="h2 fw-bold text-success">{{ stats.consented }}</div>
+            <div class="text-muted small">CGU acceptées</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center p-3">
+            <div class="h2 fw-bold text-warning">{{ stats.not_consented }}</div>
+            <div class="text-muted small">En attente de consentement</div>
+        </div>
+    </div>
+</div>
+
+{# ─── Compose form ─────────────────────────────────────────────────────────── #}
+<div class="card shadow-sm">
+    <div class="card-header">
+        <i class="fas fa-paper-plane me-1"></i> Envoyer un email en masse
+    </div>
+    <div class="card-body">
+        <form method="POST" action="communications.php">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label for="status" class="form-label">Filtrer par statut</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">Tous les statuts</option>
+                        <option value="ELEVE">Élève</option>
+                        <option value="ETUDIANT">Étudiant</option>
+                        <option value="STAGIAIRE">Stagiaire</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="institution" class="form-label">Filtrer par établissement</label>
+                    <select class="form-select" id="institution" name="institution">
+                        <option value="">Tous les établissements</option>
+                        {% for inst in institutions %}
+                        <option value="{{ inst }}">{{ inst }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3 d-flex align-items-center gap-2">
+                <button type="button" id="previewCount" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-eye me-1"></i> Aperçu destinataires
+                </button>
+                <span id="recipientCount" class="text-muted small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label for="subject" class="form-label">Sujet <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="subject" name="subject" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="body" class="form-label">Corps du message <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="body" name="body" rows="8" required placeholder="Rédigez votre message ici…"></textarea>
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane me-1"></i> Envoyer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.getElementById('previewCount')?.addEventListener('click', function () {
+    const status      = document.getElementById('status').value;
+    const institution = document.getElementById('institution').value;
+    const params      = new URLSearchParams({ status, institution });
+
+    fetch('communications-count.php?' + params.toString())
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('recipientCount').textContent =
+                data.count + ' destinataire(s) correspond' + (data.count > 1 ? 'ent' : '') + ' aux filtres.';
+        })
+        .catch(() => {
+            document.getElementById('recipientCount').textContent = 'Impossible de charger le compte.';
+        });
+});
+</script>
+{% endblock %}

@@ -78,6 +78,11 @@ $router->add('POST', '/manage-slider.php', 'SliderController@handlePost');
 $router->add('GET',  '/upgrade-levels.php',  'UpgradeController@index');
 $router->add('POST', '/confirm-upgrade.php', 'UpgradeController@confirm');
 
+// Communications
+$router->add('GET',  '/communications.php',       'CommunicationController@index');
+$router->add('POST', '/communications.php',       'CommunicationController@send');
+$router->add('GET',  '/communications-count.php', 'CommunicationController@count');
+
 // Add more routes as we migrate...
 
 return $router;
