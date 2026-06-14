@@ -66,6 +66,10 @@ $router->add('GET',  '/export.php',         'ExportController@index');
 $router->add('POST', '/export.php',         'ExportController@download');
 $router->add('GET',  '/export-preview.php', 'ExportController@preview');
 
+// Settings
+$router->add('GET',  '/settings.php', 'SettingsController@index');
+$router->add('POST', '/settings.php', 'SettingsController@update');
+
 // Add more routes as we migrate...
 
 return $router;

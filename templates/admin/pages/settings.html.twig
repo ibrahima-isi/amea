@@ -1,0 +1,71 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Paramètres de configuration — AEESGS{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">Paramètres de configuration</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+                <li class="breadcrumb-item active">Paramètres</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-lg border-0 mb-4 rounded-4">
+            <div class="card-header py-4 bg-primary text-white rounded-top-4">
+                <span><i class="fas fa-address-card me-1"></i> Informations de contact</span>
+            </div>
+            <div class="card-body p-5">
+                <form method="POST" action="settings.php">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label for="contact_email" class="form-label fw-bold">Adresse email de contact</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light border-0"><i class="fas fa-envelope text-primary"></i></span>
+                                <input type="email" class="form-control bg-light border-0" id="contact_email" name="contact_email"
+                                       value="{{ settings.contact_email }}" required>
+                            </div>
+                            <div class="form-text text-muted mt-2">Cette adresse sera affichée dans le pied de page du site.</div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label for="contact_phone" class="form-label fw-bold">Numéro de téléphone</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light border-0"><i class="fas fa-phone text-success"></i></span>
+                                <input type="text" class="form-control bg-light border-0" id="contact_phone" name="contact_phone"
+                                       value="{{ settings.contact_phone }}" required>
+                            </div>
+                            <div class="form-text text-muted mt-2">Ce numéro sera affiché dans le pied de page du site.</div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label for="association_name" class="form-label fw-bold">Nom de l'association</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light border-0"><i class="fas fa-building text-info"></i></span>
+                                <input type="text" class="form-control bg-light border-0" id="association_name" name="association_name"
+                                       value="{{ settings.association_name }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4 text-muted opacity-25">
+
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm">
+                            <i class="fas fa-save me-2"></i> Enregistrer les modifications
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
