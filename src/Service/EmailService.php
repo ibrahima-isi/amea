@@ -65,15 +65,21 @@ class EmailService
             return $this->handleMissingCredentials('email', $subject);
         }
 
-        // Async delivery is opt-in (MAIL_ASYNC=1). On shared hosting PHP_BINARY
-        // is often a non-CLI binary (e.g. lsphp): the exec'd worker dies before
-        // sending, but the backgrounded shell still exits 0, so the failure is
-        // invisible to us. Synchronous delivery is the only verifiable default.
+        // Async delivery is opt-in (MAIL_ASYNC=1) and works as a durable queue:
+        // the message is written to storage/mail-queue and delivered later by the
+        // cron worker (scripts/process-mail-queue.php). We no longer exec() a
+        // per-message worker — on shared hosting PHP_BINARY is often a non-CLI
+        // binary (e.g. lsphp) and the backgrounded process dies silently.
+        //
+        // If the queue cannot be written (e.g. unwritable directory), we fall
+        // back to a synchronous send so a broken queue never drops mail. With
+        // MAIL_ASYNC unset, delivery stays fully synchronous (the safe default).
         if ($this->asyncDeliveryEnabled()) {
             $queueFile = $this->writeQueueFile($to, $subject, $body, $replyTo);
-            if ($queueFile !== null && $this->launchWorker($queueFile)) {
+            if ($queueFile !== null) {
                 return true;
             }
+            error_log('[EmailService] Mail queue unavailable; falling back to synchronous send.');
         }
 
         return $this->send($to, $subject, $body, $replyTo);
@@ -150,10 +156,14 @@ class EmailService
             return null;
         }
 
+        $now = time();
         $payload = [
             'to' => $to,
             'subject' => $subject,
             'body' => $body,
+            'attempts' => 0,
+            'created_at' => $now,
+            'next_attempt_at' => $now,
         ];
         if ($replyTo !== null && $replyTo !== '') {
             $payload['replyTo'] = $replyTo;
@@ -178,28 +188,5 @@ class EmailService
         }
 
         return $queueFile;
-    }
-
-    private function launchWorker(string $queueFile): bool
-    {
-        $script = $this->projectRoot . '/scripts/send-email.php';
-        if (!is_file($script)) {
-            return false;
-        }
-        if (!function_exists('exec')) {
-            return false;
-        }
-
-        $command = escapeshellarg(PHP_BINARY) . ' '
-            . escapeshellarg($script) . ' '
-            . escapeshellarg($queueFile)
-            . ' > /dev/null 2>&1 &';
-
-        exec($command, $output, $exitCode);
-        if ($exitCode !== 0) {
-            return false;
-        }
-
-        return true;
     }
 }
