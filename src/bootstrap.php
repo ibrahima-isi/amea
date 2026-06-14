@@ -61,6 +61,11 @@ $router->add('POST', '/edit-user.php', 'UserController@update');
 $router->add('GET',  '/profile.php', 'ProfileController@show');
 $router->add('POST', '/profile.php', 'ProfileController@update');
 
+// Export
+$router->add('GET',  '/export.php',         'ExportController@index');
+$router->add('POST', '/export.php',         'ExportController@download');
+$router->add('GET',  '/export-preview.php', 'ExportController@preview');
+
 // Add more routes as we migrate...
 
 return $router;
