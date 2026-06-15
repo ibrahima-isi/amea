@@ -12,8 +12,12 @@ class StudentService
         private FileUploader $fileUploader
     ) {}
 
-    public function sanitizeAndValidate(array $post, array $files, ?int $excludeId = null): array
-    {
+    public function sanitizeAndValidate(
+        array $post,
+        array $files,
+        ?int $excludeId = null,
+        string $uploadBaseDir = 'uploads/students'
+    ): array {
         $errors = [];
         $input = [
             'last_name' => trim($post['last_name'] ?? ''),
@@ -113,16 +117,17 @@ class StudentService
         }
 
         // 7. Files
+        $uploadBaseDir = rtrim($uploadBaseDir, '/');
         $identityDocumentPath = null;
         if (!empty($files['photo']['name'])) {
-            $res = $this->fileUploader->handle($files['photo'], ['jpg','jpeg','png','pdf'], 2*1024*1024, 'uploads/students');
+            $res = $this->fileUploader->handle($files['photo'], ['jpg','jpeg','png','pdf'], 2*1024*1024, $uploadBaseDir);
             if ($res['success']) $identityDocumentPath = $res['filepath'];
             else $errors['identity_document'] = $res['message'];
         }
 
         $cvPath = null;
         if (!empty($files['cv_file']['name'])) {
-            $res = $this->fileUploader->handle($files['cv_file'], ['pdf','png'], 5*1024*1024, 'uploads/students/cvs');
+            $res = $this->fileUploader->handle($files['cv_file'], ['pdf','png'], 5*1024*1024, $uploadBaseDir . '/cvs');
             if ($res['success']) $cvPath = $res['filepath'];
             else $errors['cv'] = $res['message'];
         }

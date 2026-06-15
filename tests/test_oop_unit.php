@@ -846,6 +846,23 @@ $result = $uploader->handle(
 expect('handle() rejects fake webp MIME', !$result['success'] && $result['message'] === 'Type MIME invalide.');
 @unlink($fakeWebp);
 
+// finalize() — move a staged upload to its final directory
+$pendingRel = 'uploads/students/pending';
+$pendingAbs = __DIR__ . '/../' . $pendingRel;
+@mkdir($pendingAbs, 0775, true);
+$stagedName = 'finalize_test_' . uniqid() . '.jpg';
+file_put_contents($pendingAbs . '/' . $stagedName, 'fake-image-bytes');
+
+expect('finalize() null path → null',         $uploader->finalize(null, 'uploads/students') === null);
+expect('finalize() empty path → null',        $uploader->finalize('', 'uploads/students') === null);
+expect('finalize() blocks traversal source',  $uploader->finalize('../../../etc/passwd', 'uploads/students') === null);
+
+$finalRel = $uploader->finalize($pendingRel . '/' . $stagedName, 'uploads/test');
+expect('finalize() returns final relative path', $finalRel === 'uploads/test/' . $stagedName);
+expect('finalize() moved file to final dir',     is_file(__DIR__ . '/../uploads/test/' . $stagedName));
+expect('finalize() removed the staged file',     !is_file($pendingAbs . '/' . $stagedName));
+@unlink(__DIR__ . '/../uploads/test/' . $stagedName);
+
 // ─── 15. Service\ExportService ────────────────────────────────────────────────
 echo "\nService\\ExportService\n";
 

@@ -85,4 +85,36 @@ class FileUploader
         }
         return unlink($absolute);
     }
+
+    /**
+     * Move a previously-staged upload to its final directory and return the new
+     * relative path. Used to finalize files only once a registration is confirmed.
+     * Both source and destination are constrained to the uploads/ tree.
+     */
+    public function finalize(?string $stagedRelPath, string $targetDir): ?string
+    {
+        if (empty($stagedRelPath)) {
+            return null;
+        }
+        $uploadsDir = realpath(rtrim($this->projectRoot, '/') . '/uploads');
+        $source     = realpath(rtrim($this->projectRoot, '/') . '/' . ltrim($stagedRelPath, '/'));
+        if ($uploadsDir === false || $source === false || !str_starts_with($source, $uploadsDir)) {
+            return null;
+        }
+        if (!is_file($source)) {
+            return null;
+        }
+
+        $targetDir = trim($targetDir, '/');
+        $destDir   = rtrim($this->projectRoot, '/') . '/' . $targetDir;
+        if (!is_dir($destDir) && !mkdir($destDir, 0755, true) && !is_dir($destDir)) {
+            return null;
+        }
+
+        $filename = basename($source);
+        if (!rename($source, $destDir . '/' . $filename)) {
+            return null;
+        }
+        return $targetDir . '/' . $filename;
+    }
 }
