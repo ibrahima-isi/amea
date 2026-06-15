@@ -193,13 +193,13 @@ document.addEventListener('DOMContentLoaded', function () {
       e.preventDefault();
       const frm = this.closest('form');
       Swal.fire({
-        title: 'Êtes-vous sûr ?',
-        text: 'Cette action est irréversible !',
+        title: 'Déplacer vers la corbeille ?',
+        text: 'Le membre sera archivé 30 jours, puis supprimé définitivement. Vous pourrez le restaurer entre-temps.',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#CE1126',
         cancelButtonColor: '#009460',
-        confirmButtonText: 'Oui, supprimer !',
+        confirmButtonText: 'Oui, déplacer !',
         cancelButtonText: 'Annuler'
       }).then(result => {
         if (result.isConfirmed) frm.submit();

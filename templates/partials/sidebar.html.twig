@@ -18,6 +18,11 @@
             <span>Étudiants</span>
         </a>
 
+        <a href="trash.php" class="sidebar-link {% if 'trash.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
+            <i class="fas fa-trash-can"></i>
+            <span>Corbeille</span>
+        </a>
+
         <a href="export.php" class="sidebar-link {% if 'export.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
             <i class="fas fa-file-export"></i>
             <span>Export</span>

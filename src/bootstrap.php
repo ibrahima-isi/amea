@@ -49,6 +49,10 @@ $router->add('GET',  '/student-details.php', 'StudentController@show');
 $router->add('GET',  '/edit-student.php',    'StudentController@edit');
 $router->add('POST', '/edit-student.php',    'StudentController@update');
 
+// Trash / archived students
+$router->add('GET',  '/trash.php', 'TrashController@index');
+$router->add('POST', '/trash.php', 'TrashController@handlePost');
+
 // User management
 $router->add('GET',  '/users.php',     'UserController@index');
 $router->add('POST', '/users.php',     'UserController@delete');

@@ -272,14 +272,11 @@ class StudentController extends BaseController
         $id      = (int)($_POST['id'] ?? 0);
         $student = $this->studentRepo->findById($id);
         if ($student) {
-            if ($student->getIdentityDocument()) {
-                $this->uploader->safeDelete($student->getIdentityDocument());
-            }
-            if ($student->getCvPath()) {
-                $this->uploader->safeDelete($student->getCvPath());
-            }
-            $this->studentRepo->delete($id);
-            $this->flash->add('success', 'Membre supprimé.');
+            // Soft delete: move to trash and KEEP the files so the dossier can be
+            // restored. Permanent removal (incl. files) happens from the trash or
+            // automatically after the retention window via the purge cron.
+            $this->studentRepo->softDelete($id, (int)$this->session->get('user_id'));
+            $this->flash->add('success', 'Membre déplacé vers la corbeille. Il sera définitivement supprimé après 30 jours.');
         }
 
         $this->redirect('students.php');

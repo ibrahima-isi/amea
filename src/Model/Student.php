@@ -30,7 +30,8 @@ class Student
         private string  $kycStatus = 'PENDING_CONFIRMATION',
         private ?string $kycNotes = null,
         private ?string $kycUpdatedAt = null,
-        private ?string $reviewToken = null
+        private ?string $reviewToken = null,
+        private ?string $deletedAt = null
     ) {}
 
     public function getId(): int                          { return $this->id; }
@@ -60,6 +61,7 @@ class Student
     public function getKycNotes(): ?string                { return $this->kycNotes; }
     public function getKycUpdatedAt(): ?string            { return $this->kycUpdatedAt; }
     public function getReviewToken(): ?string             { return $this->reviewToken; }
+    public function getDeletedAt(): ?string               { return $this->deletedAt; }
 
     public function getNationalities(): array
     {
@@ -114,7 +116,8 @@ class Student
             kycStatus:            (string)($row['kyc_status'] ?? 'PENDING_CONFIRMATION'),
             kycNotes:             $row['kyc_notes'] ?? null,
             kycUpdatedAt:         $row['kyc_updated_at'] ?? null,
-            reviewToken:          $row['review_token'] ?? null
+            reviewToken:          $row['review_token'] ?? null,
+            deletedAt:            $row['deleted_at'] ?? null
         );
     }
 }
