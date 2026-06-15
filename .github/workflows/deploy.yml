@@ -48,12 +48,13 @@ jobs:
           MAIL_USER: ${{ secrets.MAIL_USER }}
           MAIL_PASS: ${{ secrets.MAIL_PASS }}
           APP_ENV: ${{ secrets.APP_ENV }}
+          MAIL_ASYNC: ${{ secrets.MAIL_ASYNC }}
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          envs: DB_HOST,DB_NAME,DB_USER,DB_PASS,APP_URL,MAIL_USER,MAIL_PASS,APP_ENV
+          envs: DB_HOST,DB_NAME,DB_USER,DB_PASS,APP_URL,MAIL_USER,MAIL_PASS,APP_ENV,MAIL_ASYNC
           script: |
             set -e
             cd ~/repositories/amea
@@ -69,6 +70,7 @@ jobs:
               --exclude='.github' \
               --exclude='.cpanel.yml' \
               --exclude='uploads/' \
+              --exclude='storage/' \
               --exclude='.env' \
               ~/repositories/amea/ ~/public_html/
 
@@ -84,8 +86,9 @@ jobs:
             printf "Options -Indexes\nOrder Deny,Allow\nDeny from all\n" > ~/public_html/vendor/.htaccess
 
             # Écriture du .env depuis les secrets GitHub
-            printf "DB_HOST=%s\nDB_NAME=%s\nDB_USER=%s\nDB_PASS=%s\nAPP_URL=%s\nMAIL_USER=%s\nMAIL_PASS=%s\nAPP_ENV=%s\n" \
-              "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" "$APP_URL" "$MAIL_USER" "$MAIL_PASS" "$APP_ENV" \
+            # MAIL_ASYNC: vide/absent ⇒ envoi synchrone (défaut sûr) ; "1" ⇒ file d'attente
+            printf "DB_HOST=%s\nDB_NAME=%s\nDB_USER=%s\nDB_PASS=%s\nAPP_URL=%s\nMAIL_USER=%s\nMAIL_PASS=%s\nAPP_ENV=%s\nMAIL_ASYNC=%s\n" \
+              "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" "$APP_URL" "$MAIL_USER" "$MAIL_PASS" "$APP_ENV" "$MAIL_ASYNC" \
               > ~/public_html/.env
             chmod 600 ~/public_html/.env
 
