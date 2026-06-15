@@ -148,10 +148,12 @@ function getFlashMessageClass(string $type): string
 // ─── Settings ─────────────────────────────────────────────────────────────────
 function getSetting(string $key, string $default = ''): string
 {
-    global $conn;
     static $repo = null;
     if ($repo === null) {
-        $repo = new \Amea\Repository\SettingRepository($conn);
+        // Legacy entry points set a global $conn; the OOP/router flow does not,
+        // so fall back to the Container singleton (the connection used everywhere).
+        $pdo  = $GLOBALS['conn'] ?? \Amea\Core\Container::db();
+        $repo = new \Amea\Repository\SettingRepository($pdo);
     }
     return $repo->getValue($key, $default);
 }
@@ -159,7 +161,6 @@ function getSetting(string $key, string $default = ''): string
 // ─── Permissions ──────────────────────────────────────────────────────────────
 function hasPermission(string $module): bool
 {
-    global $conn;
     static $cache = [];
     $uid = (int)($_SESSION['user_id'] ?? 0);
     if ($uid === 0) return false;
@@ -168,7 +169,10 @@ function hasPermission(string $module): bool
     if (isset($cache[$uid])) {
         return in_array($module, $cache[$uid], true);
     }
-    $repo        = new \Amea\Repository\UserRepository($conn);
+    // Legacy entry points set a global $conn; the OOP/router flow does not, so
+    // fall back to the Container singleton (otherwise this is a null PDO → 500).
+    $pdo         = $GLOBALS['conn'] ?? \Amea\Core\Container::db();
+    $repo        = new \Amea\Repository\UserRepository($pdo);
     $user        = $repo->findById($uid);
     $cache[$uid] = $user ? $user->getPermissions() : [];
     return in_array($module, $cache[$uid], true);

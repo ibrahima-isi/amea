@@ -50,6 +50,9 @@ $stmt = $conn->prepare("INSERT INTO users (id, role, permissions) VALUES (6, 'ad
 $stmt->execute([$allPerms]);
 // Admin with malformed JSON
 $conn->exec("INSERT INTO users (id, role, permissions) VALUES (7, 'admin', 'not-valid-json')");
+// Admin (ID 8) checked only AFTER the global $conn is removed, to exercise the
+// OOP/router code path where the DB must be resolved via Container::db().
+$conn->exec("INSERT INTO users (id, role, permissions) VALUES (8, 'admin', '[\"settings\"]')");
 
 // Helper: set a fake session state
 function setSession(int $uid, string $role = 'admin'): void {
@@ -187,6 +190,22 @@ $_SESSION = [
 ];
 expect('returns false for "slider" — user not in DB, session value ignored',  !hasPermission('slider'));
 expect('returns false for "upgrade" — user not in DB, session value ignored', !hasPermission('upgrade'));
+
+// ─── 13. OOP/router flow — no global $conn, DB resolved via Container ─────────
+// Regression: dashboard.php and other shims run through the router, which never
+// sets a global $conn. Before the fix, hasPermission() did `new UserRepository($conn)`
+// with $conn === null → "Call to a member function on null" → HTTP 500 for any
+// admin other than the Super Admin (ID 1). hasPermission() must instead resolve
+// the connection via Container::db(). UID 8 is used here because it has not been
+// queried yet, guaranteeing a cache miss so the DB path is actually exercised.
+echo "\nOOP/router flow — no global \$conn (resolves DB via Container)\n";
+
+\Amea\Core\Container::setDb($conn); // same SQLite handle the test seeded
+unset($GLOBALS['conn']);            // simulate the router/bootstrap request flow
+
+setSession(8);
+expect('hasPermission() works without a global $conn (granted module)',  hasPermission('settings'));
+expect('hasPermission() denies an ungranted module via Container path',  !hasPermission('users'));
 
 // ─── Summary ─────────────────────────────────────────────────────────────────
 echo "\n";
