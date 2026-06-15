@@ -79,7 +79,9 @@ $db->exec("
         kyc_status TEXT NOT NULL DEFAULT 'PENDING_CONFIRMATION',
         kyc_notes TEXT DEFAULT NULL,
         review_token TEXT DEFAULT NULL,
-        kyc_updated_at TEXT DEFAULT (datetime('now'))
+        kyc_updated_at TEXT DEFAULT (datetime('now')),
+        deleted_at TEXT DEFAULT NULL,
+        deleted_by INTEGER DEFAULT NULL
     );
 
     CREATE TABLE settings (

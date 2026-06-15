@@ -91,7 +91,9 @@ $db->exec("
         kyc_status           TEXT    DEFAULT 'PENDING_CONFIRMATION',
         kyc_notes            TEXT,
         review_token         TEXT,
-        kyc_updated_at       TEXT    DEFAULT CURRENT_TIMESTAMP
+        kyc_updated_at       TEXT    DEFAULT CURRENT_TIMESTAMP,
+        deleted_at           TEXT    DEFAULT NULL,
+        deleted_by           INTEGER DEFAULT NULL
     );
 ");
 
@@ -387,6 +389,43 @@ expect('updateField() throws on unknown field', $threwField);
 $stuRepo->delete($s3);
 expect('delete() removes student',           $stuRepo->findById($s3) === null);
 expect('countAll() after delete is 2',       $stuRepo->countAll() === 2);
+
+// ─── 4b. Soft delete / trash / restore / purge ────────────────────────────────
+echo "\nStudentRepository soft-delete workflow\n";
+
+// softDelete hides the row from all active queries
+expect('softDelete() returns true',          $stuRepo->softDelete($s2, 1) === true);
+expect('findById() excludes trashed',        $stuRepo->findById($s2) === null);
+expect('countAll() excludes trashed',        $stuRepo->countAll() === 1);
+expect('getStats() excludes trashed',        (int)$stuRepo->getStats()['total'] === 1);
+expect('softDelete() again returns false',   $stuRepo->softDelete($s2, 1) === false);
+
+// trashed rows are reachable via the trash-specific finders
+expect('findTrashedById() finds trashed',    $stuRepo->findTrashedById($s2)?->getId() === $s2);
+expect('findById() still null for trashed',  $stuRepo->findById($s2) === null);
+$trash = $stuRepo->findTrashedPaginated(1, 10);
+expect('findTrashedPaginated() total is 1',  $trash['total'] === 1);
+expect('findTrashedPaginated() item count 1',count($trash['items']) === 1);
+
+// restore brings it back to active
+expect('restore() returns true',             $stuRepo->restore($s2) === true);
+expect('findById() finds restored',          $stuRepo->findById($s2)?->getId() === $s2);
+expect('countAll() after restore is 2',      $stuRepo->countAll() === 2);
+expect('findTrashedPaginated() empty again', $stuRepo->findTrashedPaginated(1, 10)['total'] === 0);
+
+// forceDelete only removes trashed rows; active rows are guarded
+expect('forceDelete() refuses active row',   $stuRepo->forceDelete($s2) === false);
+$stuRepo->softDelete($s2, 1);
+expect('forceDelete() removes trashed row',  $stuRepo->forceDelete($s2) === true);
+expect('findTrashedById() gone after force', $stuRepo->findTrashedById($s2) === null);
+expect('countAll() after forceDelete is 1',  $stuRepo->countAll() === 1);
+
+// findPurgeable returns rows past the retention window only
+$stuRepo->softDelete($s1, 1);
+expect('findPurgeable() empty within window',count($stuRepo->findPurgeable(30)) === 0);
+$db->exec("UPDATE students SET deleted_at = '2020-01-01 00:00:00' WHERE id = {$s1}");
+$purgeable = $stuRepo->findPurgeable(30);
+expect('findPurgeable() finds expired row',  count($purgeable) === 1 && $purgeable[0]->getId() === $s1);
 
 // ─── 5. UserService permission edge cases ─────────────────────────────────────
 echo "\nUserService permission edge cases\n";

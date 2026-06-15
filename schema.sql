@@ -29,7 +29,10 @@ CREATE TABLE IF NOT EXISTS `students`
     `graduation_date`        date         DEFAULT NULL,
     `is_locked`              tinyint(1)   NOT NULL DEFAULT 0,
     `consent_privacy`        tinyint(1)   NOT NULL DEFAULT 0,
-    PRIMARY KEY (`id`)
+    `deleted_at`             datetime     DEFAULT NULL,
+    `deleted_by`             int(11)      DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_students_deleted_at` (`deleted_at`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_general_ci;

@@ -9,7 +9,7 @@ class StudentRepository
 
     public function findById(int $id): ?Student
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM students WHERE id = ?");
+        $stmt = $this->pdo->prepare("SELECT * FROM students WHERE id = ? AND deleted_at IS NULL");
         $stmt->execute([$id]);
         $row = $stmt->fetch();
         return $row ? Student::fromRow($row) : null;
@@ -17,10 +17,57 @@ class StudentRepository
 
     public function findByToken(string $token): ?Student
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM students WHERE review_token = ?");
+        $stmt = $this->pdo->prepare("SELECT * FROM students WHERE review_token = ? AND deleted_at IS NULL");
         $stmt->execute([$token]);
         $row = $stmt->fetch();
         return $row ? Student::fromRow($row) : null;
+    }
+
+    /** Active rows only — trashed students are fetched via findTrashed* methods. */
+    public function findTrashedById(int $id): ?Student
+    {
+        $stmt = $this->pdo->prepare("SELECT * FROM students WHERE id = ? AND deleted_at IS NOT NULL");
+        $stmt->execute([$id]);
+        $row = $stmt->fetch();
+        return $row ? Student::fromRow($row) : null;
+    }
+
+    /**
+     * Trashed (soft-deleted) students, most recently trashed first.
+     * @return array{items: Student[], total: int}
+     */
+    public function findTrashedPaginated(int $page, int $perPage): array
+    {
+        $offset = ($page - 1) * $perPage;
+
+        $total = (int)$this->pdo
+            ->query("SELECT COUNT(*) FROM students WHERE deleted_at IS NOT NULL")
+            ->fetchColumn();
+
+        $stmt = $this->pdo->prepare(
+            "SELECT * FROM students WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC LIMIT ? OFFSET ?"
+        );
+        $stmt->execute([$perPage, $offset]);
+
+        return [
+            'items' => array_map(fn($row) => Student::fromRow($row), $stmt->fetchAll()),
+            'total' => $total,
+        ];
+    }
+
+    /**
+     * Students whose trash retention window has elapsed and are ready for
+     * permanent deletion. The cutoff is computed in PHP for MySQL/SQLite parity.
+     * @return Student[]
+     */
+    public function findPurgeable(int $days): array
+    {
+        $cutoff = (new \DateTime())->modify("-{$days} days")->format('Y-m-d H:i:s');
+        $stmt = $this->pdo->prepare(
+            "SELECT * FROM students WHERE deleted_at IS NOT NULL AND deleted_at < ? ORDER BY deleted_at ASC"
+        );
+        $stmt->execute([$cutoff]);
+        return array_map(fn($row) => Student::fromRow($row), $stmt->fetchAll());
     }
 
     /** @return Student[] */
@@ -142,6 +189,34 @@ class StudentRepository
         return $stmt->execute([$id]);
     }
 
+    /** Move an active student to the trash (soft delete). */
+    public function softDelete(int $id, ?int $deletedBy = null): bool
+    {
+        $stmt = $this->pdo->prepare(
+            "UPDATE students SET deleted_at = ?, deleted_by = ? WHERE id = ? AND deleted_at IS NULL"
+        );
+        $stmt->execute([date('Y-m-d H:i:s'), $deletedBy, $id]);
+        return $stmt->rowCount() > 0;
+    }
+
+    /** Restore a trashed student back to active. */
+    public function restore(int $id): bool
+    {
+        $stmt = $this->pdo->prepare(
+            "UPDATE students SET deleted_at = NULL, deleted_by = NULL WHERE id = ? AND deleted_at IS NOT NULL"
+        );
+        $stmt->execute([$id]);
+        return $stmt->rowCount() > 0;
+    }
+
+    /** Permanently delete a trashed student. Guarded so active rows are never hard-deleted here. */
+    public function forceDelete(int $id): bool
+    {
+        $stmt = $this->pdo->prepare("DELETE FROM students WHERE id = ? AND deleted_at IS NOT NULL");
+        $stmt->execute([$id]);
+        return $stmt->rowCount() > 0;
+    }
+
     /** @return string[] */
     public function getDistinctEtablissements(): array
     {
@@ -177,7 +252,7 @@ class StudentRepository
                 SUM(CASE WHEN status = 'ETUDIANT'    THEN 1 ELSE 0 END) AS etudiants,
                 SUM(CASE WHEN status = 'STAGIAIRE'   THEN 1 ELSE 0 END) AS stagiaires,
                 SUM(CASE WHEN status = 'Diplômé(e)'  THEN 1 ELSE 0 END) AS diplomes
-             FROM students"
+             FROM students WHERE deleted_at IS NULL"
         )->fetch();
         return $row ?: [
             'total'      => 0,
@@ -193,7 +268,7 @@ class StudentRepository
     public function getRecentCount(int $days = 30): int
     {
         $stmt = $this->pdo->prepare(
-            "SELECT COUNT(*) FROM students WHERE registration_date >= DATE_SUB(NOW(), INTERVAL ? DAY)"
+            "SELECT COUNT(*) FROM students WHERE deleted_at IS NULL AND registration_date >= DATE_SUB(NOW(), INTERVAL ? DAY)"
         );
         $stmt->execute([$days]);
         return (int)$stmt->fetchColumn();
@@ -204,6 +279,7 @@ class StudentRepository
     {
         $stmt = $this->pdo->prepare(
             "SELECT institution AS nom, COUNT(*) AS count FROM students
+             WHERE deleted_at IS NULL
              GROUP BY institution ORDER BY count DESC LIMIT ?"
         );
         $stmt->execute([$limit]);
@@ -318,7 +394,8 @@ class StudentRepository
 
     private function buildWhereClause(array $filters): array
     {
-        $conditions = [];
+        // Active students only — trashed rows are excluded from every list/count.
+        $conditions = ['deleted_at IS NULL'];
         $params     = [];
 
         if (!empty($filters['kyc_status'])) {
