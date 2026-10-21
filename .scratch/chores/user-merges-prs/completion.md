@@ -2,4 +2,4 @@
 
 | Ticket | Title | Progress | PR |
 | --- | --- | --- | --- |
-| 01 | The user merges PRs into dev | in-review | #10 |
+| 01 | The user merges PRs into dev | done | #10 |
