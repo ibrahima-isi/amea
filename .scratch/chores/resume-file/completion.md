@@ -2,4 +2,4 @@
 
 | Ticket | Title | Progress | PR |
 | --- | --- | --- | --- |
-| 01 | Resume file | in-progress | |
+| 01 | Resume file | in-review | #8 |
