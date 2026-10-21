@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Single source of agent instructions for this repository. `CLAUDE.md` only points here.
+Single source of agent instructions for this repository. `CLAUDE.md` only points here. **Start every session by reading `resume.md`: it says where to resume.**
 
 **The rules under "Mandatory workflow" apply to every task, every time.** Where a skill's default conflicts with a rule here, this file wins.
 
@@ -47,6 +47,10 @@ Issues, specs and tickets are markdown files under `.scratch/`, grouped by natur
 ### Questions: interactive
 
 Ask every grilling and brainstorming question (`grilling`, `grill-me`, `grill-with-docs`, `brainstorming`) through the `AskUserQuestion` tool: one decision per question, recommended option first.
+
+### Resume point
+
+`resume.md` at the repo root says where to resume. Read it at the start of every session. Rewrite it whenever you state a resume point and as the last step of every task: repository state, ordered next steps, open risks. Ship the update in the task's PR (a docs-only PR when no task is open). It holds the current state only; history lives in git and the Change log.
 
 ### Keeping this file current
 
@@ -121,6 +125,7 @@ Newest first. "Before" records what applied until that date.
 
 | Date | Instruction | Before |
 | --- | --- | --- |
+| 2026-10-21 | `resume.md` at the repo root always holds where to resume; read it at session start and rewrite it whenever a resume point is stated. | Resume points were given only in chat replies and were lost between sessions. |
 | 2026-10-21 | The user promotes `dev` to `main` personally; agents never push to or open PRs into `main`. | Promotion was defined as an agent fast-forward push (`git push origin dev:main`); the new ruleset `stop-push-to-main-and-dev` (PRs only, squash only, signed commits) rejects that push. |
 | 2026-10-21 | In the desktop app, worktree-per-ticket means one session per ticket whose folder is the worktree `{issue-slug}-{NN}` (a session cannot write into another worktree's files); create a worktree from inside another with an absolute path so it does not nest. | Only `git worktree add .claude/worktrees/<issue-slug>-<NN> -b <issue-slug>-<NN> dev` was described, with no mention of sessions or of creating a worktree from inside another. |
 | 2026-10-21 | A branch whose code already exists in `main` or `dev` may be deleted without asking. | Each branch deletion needed the user's yes; the 16 local and 2 remote branches were approved in batches. |
