@@ -2,4 +2,4 @@
 
 | Ticket | Title | Progress | PR |
 | --- | --- | --- | --- |
-| 01 | AGENTS.md promotion rules | in-progress | |
+| 01 | AGENTS.md promotion rules | in-review | #7 |
