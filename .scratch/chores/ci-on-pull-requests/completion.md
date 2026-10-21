@@ -2,4 +2,4 @@
 
 | Ticket | Title | Progress | PR |
 | --- | --- | --- | --- |
-| 01 | CI workflow on pull requests | in-review | #6 |
+| 01 | CI workflow on pull requests | done | #6 |
