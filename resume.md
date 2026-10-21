@@ -21,7 +21,7 @@ Where to pick up work. Read this at the start of every session. Rewrite it whene
 
 ## Open items and risks
 
-- Push-triggered `CI` runs on `dev` by merge: #6 yes, #7 no (`gh pr merge`), #8 no (`gh pr merge`), #9 yes (button). GitHub's event feed shows a push event only for the merges that fired a run. The root cause is not proven; the merge policy above avoids it. If agents ever need to merge, a `workflow_dispatch` trigger on `ci.yml` would restore the post-merge re-test.
+- Push-triggered `CI` runs on `dev` by merge: #6 yes (`gh pr merge`), #7 no (`gh pr merge`), #8 no (`gh pr merge`), #9 yes (button). GitHub's event feed shows a push event only for the merges that fired a run. Cause unknown and no pattern proven (`gh`: 1 of 3 fired; button: 1 of 1). The button is the only path confirmed to fire it. A `workflow_dispatch` trigger on `ci.yml` would allow a manual re-run on `dev` if a run is ever missing.
 - The `test` check is not a required status check in the ruleset (the user's call).
 - `scripts/purge-trashed-students.php` permanently deletes trashed students after 30 days and assumes a database backup runs first. The user confirmed the cron jobs run; a pre-purge backup is not confirmed.
 - Untracked files in the primary checkout, not touched: `.phpunit.result.cache` (should be gitignored) and `docs/superpowers/plans/2026-06-13-full-oop-migration.md` (stale, the OOP migration shipped).
