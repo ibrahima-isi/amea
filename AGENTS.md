@@ -29,7 +29,8 @@ This project is live in production and holds sensitive member data (IDs, CVs, ph
 - When creating a worktree from inside another worktree, pass an absolute path to `git worktree add` so it does not nest under the current one.
 - Long-living branches: `dev` and `main`. Every other branch is short-lived.
 - Merge every ticket PR into `dev` by **squash** (`gh pr merge --squash`), the only merge method: one commit per ticket, linear history, no merge commit.
-- All changes reach `main` through `dev`. Promote by fast-forward: `git push origin dev:main`. `main` and `dev` keep identical history. A push to `main` deploys (see Commands).
+- All changes reach `main` through `dev`. The user promotes `dev` to `main` personally; agents stop once `dev` is merged and green, and do not push to or open PRs into `main`. A push to `main` deploys (see Commands).
+- GitHub ruleset `stop-push-to-main-and-dev` guards `main` and `dev`: PR required, squash only, signed commits, linear history, no force-push or deletion. Sign commits with `GitSigningKeyISI` (the only registered GitHub Signing Key); a commit signed by any other key is rejected as unverified.
 - After the squash merge, remove that work: `git worktree remove <path>`, `git branch -D <branch>` (a squashed branch is never an ancestor of `dev`, so `-d` refuses), `git push origin --delete <branch>`.
 - A branch, local or remote, whose code already exists in `main` or `dev` may be deleted without asking. Proof, any one of: the branch is an ancestor of `main`/`dev`; `git cherry <base> <branch>` shows no `+` lines; its PR is `MERGED` and the branch tip equals the PR's head commit. A branch holding code that is in neither follows Production safety.
 
@@ -120,6 +121,7 @@ Newest first. "Before" records what applied until that date.
 
 | Date | Instruction | Before |
 | --- | --- | --- |
+| 2026-10-21 | The user promotes `dev` to `main` personally; agents never push to or open PRs into `main`. | Promotion was defined as an agent fast-forward push (`git push origin dev:main`); the new ruleset `stop-push-to-main-and-dev` (PRs only, squash only, signed commits) rejects that push. |
 | 2026-10-21 | In the desktop app, worktree-per-ticket means one session per ticket whose folder is the worktree `{issue-slug}-{NN}` (a session cannot write into another worktree's files); create a worktree from inside another with an absolute path so it does not nest. | Only `git worktree add .claude/worktrees/<issue-slug>-<NN> -b <issue-slug>-<NN> dev` was described, with no mention of sessions or of creating a worktree from inside another. |
 | 2026-10-21 | A branch whose code already exists in `main` or `dev` may be deleted without asking. | Each branch deletion needed the user's yes; the 16 local and 2 remote branches were approved in batches. |
 | 2026-10-21 | Squash is the only PR merge method (no merge commit, no rebase merge), and `dev` is promoted to `main` by fast-forward (`git push origin dev:main`), not by PR. | Merge method unspecified: GitHub allowed merge commits, squash and rebase, and `main` holds 19 merge commits (latest 2026-06-14). Promotion was defined earlier today as a PR from `dev` into `main`. |
