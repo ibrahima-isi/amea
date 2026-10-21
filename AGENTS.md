@@ -25,6 +25,8 @@ This project is live in production and holds sensitive member data (IDs, CVs, ph
 - Do every implementation in a git worktree, one per ticket, created from `dev`:
   `git worktree add .claude/worktrees/<issue-slug>-<NN> -b <issue-slug>-<NN> dev`
 - Name the worktree and its branch `{issue-slug}-{NN}`: the issue's folder name plus the ticket number (`soft-delete-students-03`).
+- In the Claude desktop app, worktree-per-ticket means one session per ticket: the session's folder is the worktree named `{issue-slug}-{NN}`. A session cannot write into another worktree's files, so a ticket is implemented in its own session, never from a sibling's.
+- When creating a worktree from inside another worktree, pass an absolute path to `git worktree add` so it does not nest under the current one.
 - Long-living branches: `dev` and `main`. Every other branch is short-lived.
 - Merge every ticket PR into `dev` by **squash** (`gh pr merge --squash`), the only merge method: one commit per ticket, linear history, no merge commit.
 - All changes reach `main` through `dev`. Promote by fast-forward: `git push origin dev:main`. `main` and `dev` keep identical history. A push to `main` deploys (see Commands).
@@ -62,14 +64,20 @@ composer install                      # dependencies (phpmailer, twig)
 php -S localhost:8000                 # dev server (needs .env + MySQL; compose.yml provides MySQL 8)
 mysql -u root -p amea_db < schema.sql # load schema
 
-# Tests — plain PHP scripts (no PHPUnit). Run individually:
+# Tests — four plain-PHP scripts, then PHPUnit (phpunit.xml). Run individually:
 php tests/test_oop_unit.php
 php tests/test_oop_integration.php
 php tests/test_permissions_unit.php
 php tests/test_password_reset_security.php
+./vendor/bin/phpunit --colors=never
 ```
 
-Tests use SQLite in-memory, so no MySQL is required to run them. CI (`.github/workflows/deploy.yml`) runs the four tests above on push to `main` and deploys to production via SSH only if they pass — every push to `main` deploys.
+Tests use SQLite in-memory, so no MySQL is required to run them. The four scripts and PHPUnit together are the suite, and CI runs all of it:
+
+- `.github/workflows/ci.yml` runs the suite on every pull request into `dev` or `main` and on every push to `dev`.
+- `.github/workflows/deploy.yml` runs the same suite on push to `main` and deploys to production via SSH only if it passes — every push to `main` deploys.
+
+Run the full suite locally before opening a pull request. Other scripts under `tests/` are not run by CI.
 
 Migrations are idempotent PHP CLI scripts in `migrations/`, run manually in order (`php migrations/NN_*.php`). Schema changes go in a new migration plus `schema.sql`.
 
@@ -112,6 +120,7 @@ Newest first. "Before" records what applied until that date.
 
 | Date | Instruction | Before |
 | --- | --- | --- |
+| 2026-10-21 | In the desktop app, worktree-per-ticket means one session per ticket whose folder is the worktree `{issue-slug}-{NN}` (a session cannot write into another worktree's files); create a worktree from inside another with an absolute path so it does not nest. | Only `git worktree add .claude/worktrees/<issue-slug>-<NN> -b <issue-slug>-<NN> dev` was described, with no mention of sessions or of creating a worktree from inside another. |
 | 2026-10-21 | A branch whose code already exists in `main` or `dev` may be deleted without asking. | Each branch deletion needed the user's yes; the 16 local and 2 remote branches were approved in batches. |
 | 2026-10-21 | Squash is the only PR merge method (no merge commit, no rebase merge), and `dev` is promoted to `main` by fast-forward (`git push origin dev:main`), not by PR. | Merge method unspecified: GitHub allowed merge commits, squash and rebase, and `main` holds 19 merge commits (latest 2026-06-14). Promotion was defined earlier today as a PR from `dev` into `main`. |
 | 2026-10-21 | The project is live in production with sensitive data: every delete or drop in code, database or `uploads/` needs the user's explicit approval in chat, with exact targets stated first. | No project rule; destructive actions were governed only by the tool's default permission prompts. |
