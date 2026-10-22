@@ -114,10 +114,10 @@
                         <div class="col-md-6 text-center">
                             <div class="detail-label mb-2">Pièce d'Identité</div>
                             {% if student.identityDocument %}
-                                <a href="{{ asset(student.identityDocument) }}" target="_blank">
-                                    <img src="{{ asset(student.identityDocument) }}" class="kyc-doc-preview mb-2" onerror="this.src='{{ asset('assets/img/placeholder.png') }}'">
+                                <a href="download.php?id={{ student.id }}&type=identite&inline=1" target="_blank">
+                                    <img src="download.php?id={{ student.id }}&type=identite&inline=1" class="kyc-doc-preview mb-2" onerror="this.src='{{ asset('assets/img/placeholder.png') }}'">
                                 </a>
-                                <div><a href="{{ asset(student.identityDocument) }}" download class="btn btn-sm btn-outline-primary">Télécharger</a></div>
+                                <div><a href="download.php?id={{ student.id }}&type=identite&inline=1" download class="btn btn-sm btn-outline-primary">Télécharger</a></div>
                             {% else %}
                                 <div class="alert alert-warning py-2 small">Non fournie</div>
                             {% endif %}
@@ -129,8 +129,8 @@
                                     <i class="fas fa-file-pdf fa-4x text-danger"></i>
                                 </div>
                                 <div>
-                                    <a href="{{ asset(student.cvPath) }}" target="_blank" class="btn btn-sm btn-outline-primary me-2">Voir</a>
-                                    <a href="{{ asset(student.cvPath) }}" download class="btn btn-sm btn-outline-primary">Télécharger</a>
+                                    <a href="download.php?id={{ student.id }}&type=cv&inline=1" target="_blank" class="btn btn-sm btn-outline-primary me-2">Voir</a>
+                                    <a href="download.php?id={{ student.id }}&type=cv&inline=1" download class="btn btn-sm btn-outline-primary">Télécharger</a>
                                 </div>
                             {% else %}
                                 <div class="alert alert-warning py-2 small">Non fourni</div>
