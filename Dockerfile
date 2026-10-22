@@ -4,9 +4,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libicu-dev libzip-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
     libonig-dev unzip git \
   && docker-php-ext-configure gd --with-freetype --with-jpeg \
-  && docker-php-ext-install -j"$(nproc)" pdo_mysql mysqli intl mbstring gd zip opcache \
+  && docker-php-ext-install -j"$(nproc)" pdo_mysql mysqli intl mbstring gd zip bcmath opcache \
   && a2enmod rewrite headers expires \
   && rm -rf /var/lib/apt/lists/*
+
+RUN printf 'variables_order = "EGPCS"\n' > /usr/local/etc/php/conf.d/zz-amea-env.ini
 
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 WORKDIR /var/www/html
