@@ -1,0 +1,49 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_NAME: ${DB_NAME:?set DB_NAME}
+      DB_USER: ${DB_USER:?set DB_USER}
+      DB_PASS: ${DB_PASS:?set DB_PASS}
+      APP_URL: ${APP_URL:?set APP_URL}
+      APP_ENV: ${APP_ENV:-production}
+      MAIL_USER: ${MAIL_USER:?set MAIL_USER}
+      MAIL_PASS: ${MAIL_PASS:?set MAIL_PASS}
+      MAIL_ASYNC: "0"
+    volumes:
+      - amea_uploads:/var/www/html/uploads
+      - amea_storage:/var/www/html/storage
+      - amea_logs:/var/www/html/logs
+    networks:
+      - default
+
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?set MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DB_NAME:?set DB_NAME}
+      MARIADB_USER: ${DB_USER:?set DB_USER}
+      MARIADB_PASSWORD: ${DB_PASS:?set DB_PASS}
+    volumes:
+      - amea_db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "healthcheck.sh --connect --innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks:
+      - default
+
+volumes:
+  amea_db:
+  amea_uploads:
+  amea_storage:
+  amea_logs:
