@@ -23,6 +23,7 @@ services:
       - amea_logs:/var/www/html/logs
     networks:
       - default
+      - dokploy-network
 
   db:
     image: mariadb:10.11
@@ -47,3 +48,7 @@ volumes:
   amea_uploads:
   amea_storage:
   amea_logs:
+
+networks:
+  dokploy-network:
+    external: true
