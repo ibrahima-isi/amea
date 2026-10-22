@@ -20,9 +20,11 @@ ErrorDocument 404 /404-handler.php
     RewriteRule ^(admin|adm|administrator|wp-admin|wp-login\.php|phpmyadmin|pma|myadmin)(/.*)?$ /404-handler.php [L]
     RewriteRule ^(amanda|apache|bin|ftp|guest|http|log|shell|backup|cgi-bin|cgi|test|old|tmp|temp|web|www|cpanel|webmail|roundcube|plesk)(/.*)?$ /404-handler.php [L]
 
-    # Forcer HTTPS
-    RewriteCond %{HTTPS} off
-    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    # HTTPS is terminated by the trusted Traefik reverse proxy.
+    # Traefik must overwrite X-Forwarded-Proto from untrusted clients.
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !^https$ [NC]
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
     # Front Controller: Send all non-existent requests to index.php
     RewriteCond %{REQUEST_FILENAME} !-f
