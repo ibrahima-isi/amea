@@ -17,7 +17,7 @@ class DownloadController extends BaseController
 
     public function serve(): void
     {
-        $this->requireAuth();
+        $this->requireAdmin();
 
         $id   = (int)($_GET['id'] ?? 0);
         $type = $_GET['type'] ?? '';
@@ -53,7 +53,7 @@ class DownloadController extends BaseController
         $uploadsDir = realpath(__DIR__ . '/../../uploads');
         $realFile   = realpath($absolutePath);
 
-        if ($uploadsDir === false || $realFile === false || !str_starts_with($realFile, $uploadsDir)) {
+        if ($uploadsDir === false || $realFile === false || !str_starts_with($realFile, $uploadsDir . DIRECTORY_SEPARATOR)) {
             http_response_code(403);
             exit('Accès interdit.');
         }
@@ -78,9 +78,10 @@ class DownloadController extends BaseController
         }
 
         header('Content-Type: ' . $mimeType);
-        header('Content-Disposition: attachment; filename="' . $cleanName . '"');
+        $disposition = (($_GET['inline'] ?? '') === '1') ? 'inline' : 'attachment';
+        header('Content-Disposition: ' . $disposition . '; filename="' . $cleanName . '"');
         header('Content-Length: ' . filesize($realFile));
-        header('Cache-Control: no-cache, must-revalidate');
+        header('Cache-Control: private, no-store');
         header('X-Content-Type-Options: nosniff');
 
         readfile($realFile);

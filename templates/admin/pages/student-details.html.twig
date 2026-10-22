@@ -50,7 +50,7 @@
       <div class="card-body text-center pt-4">
         {% if hasIdentity and identityIsImage %}
           <a href="#" data-bs-toggle="modal" data-bs-target="#identiteModal{{ student.id }}">
-            <img src="{{ asset(student.identityDocument) }}" alt="Photo"
+            <img src="download.php?id={{ student.id }}&type=identite&inline=1" alt="Photo"
                  class="rounded-circle img-thumbnail mb-3"
                  style="width:150px;height:150px;object-fit:cover;">
           </a>
@@ -283,7 +283,7 @@
                 </button>
                 {% if cvIsPdf %}
                   <button type="button" class="btn btn-sm btn-secondary"
-                          onclick="printPdf('{{ asset(student.cvPath) }}')">
+                          onclick="printPdf('download.php?id={{ student.id }}&type=cv&inline=1')">
                     <i class="fas fa-print me-1"></i>Imprimer
                   </button>
                 {% endif %}
@@ -322,9 +322,9 @@
       </div>
       <div class="modal-body {{ identityIsPdf ? 'p-0' : 'text-center' }}">
         {% if identityIsImage %}
-          <img src="{{ asset(student.identityDocument) }}" class="img-fluid" alt="Pièce d'identité">
+          <img src="download.php?id={{ student.id }}&type=identite&inline=1" class="img-fluid" alt="Pièce d'identité">
         {% else %}
-          <iframe src="{{ asset(student.identityDocument) }}" width="100%" height="100%" style="border:none;min-height:80vh;"></iframe>
+          <iframe src="download.php?id={{ student.id }}&type=identite&inline=1" width="100%" height="100%" style="border:none;min-height:80vh;"></iframe>
         {% endif %}
       </div>
     </div>
@@ -342,9 +342,9 @@
       </div>
       <div class="modal-body text-center p-0">
         {% if cvIsPdf %}
-          <iframe src="{{ asset(student.cvPath) }}" width="100%" height="100%" style="border:none;"></iframe>
+          <iframe src="download.php?id={{ student.id }}&type=cv&inline=1" width="100%" height="100%" style="border:none;"></iframe>
         {% else %}
-          <img src="{{ asset(student.cvPath) }}" class="img-fluid" style="max-height:100%;max-width:100%;" alt="CV">
+          <img src="download.php?id={{ student.id }}&type=cv&inline=1" class="img-fluid" style="max-height:100%;max-width:100%;" alt="CV">
         {% endif %}
       </div>
     </div>
