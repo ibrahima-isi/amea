@@ -9,7 +9,7 @@ Tracker: local Markdown, configured in [issue-tracker.md](docs/agents/issue-trac
 
 ## Current state
 
-Planning only. No implementation, release, or production validation is complete.
+Ticket 01 baseline implemented and validated locally. Tickets 02–09, final integration, CI and production release remain pending.
 
 - [x] Gather UI and separation decisions and review direction B.
 - [x] Independent design builder review: no important planning gaps reported.
@@ -27,7 +27,7 @@ Mark implementation complete only after behavior is implemented and relevant che
 
 ## Blockers and next work
 
-Planning and publication are complete. Ticket 01 is the unblocked frontier; tickets 02–09 remain gated by dependencies. Implementation has not started and is not claimed by this setup task. Logo and existing public content reuse are approved below. Production/DNS changes require explicit approval.
+Planning and publication are complete. Ticket 01 is implemented and locally verified; ticket 02 is the next frontier. Tickets 03–09 remain gated by dependencies. Logo and existing public content reuse are approved below. Production/DNS changes require explicit approval.
 
 ## Asset and content approvals — 2026-10-23
 
@@ -42,11 +42,11 @@ Existing Dockerfile and .dockerignore edits are unrelated changes and must be pr
 
 ## Implementation progress
 
-All nine tickets and dependencies are approved and published; every implementation criterion remains unchecked. ready-for-agent describes triage readiness; blockers determine execution eligibility.
+All nine tickets and dependencies are approved and published; ticket 01 criteria are verified locally. ready-for-agent describes triage readiness; blockers determine execution eligibility.
 
 | Ticket | Blocked by | Status | Evidence / PR |
 |---|---|---|---|
-| [01 — Characterize member and staff journeys](.scratch/ui-and-app-separation/issues/01-characterize-member-and-staff-journeys.md) | None | Published; not started | None |
+| [01 — Characterize member and staff journeys](.scratch/ui-and-app-separation/issues/01-characterize-member-and-staff-journeys.md) | None | Implemented; locally verified | HTTP baseline + PHP regressions; see evidence below |
 | [02 — Deliver the community homepage](.scratch/ui-and-app-separation/issues/02-deliver-community-homepage.md) | 01 | Published; not started | None |
 | [03 — Modernize registration through confirmation](.scratch/ui-and-app-separation/issues/03-modernize-registration-confirmation.md) | 02 | Published; not started | None |
 | [04 — Modernize secure completion, correction, and consent](.scratch/ui-and-app-separation/issues/04-modernize-completion-correction-consent.md) | 02 | Published; not started | None |
@@ -67,3 +67,16 @@ All nine tickets and dependencies are approved and published; every implementati
 Passed: exactly nine individual tickets; approved dependency graph; ready-for-agent statuses; all implementation criteria unchecked; local links resolve; one Agent skills block; CLAUDE.md/GEMINI.md retain their one-line redirects. Local tracker files are not Git-ignored. Documentation whitespace checks passed. No product tests were needed or run for this documentation-only publication.
 
 Next: ticket 01, Characterize member and staff journeys. No implementation is complete or underway.
+
+
+## Ticket 01 — isolated journey baseline (2026-10-23)
+
+Implemented on `feat/ui-separation-01`, based on integration `66d4768`. No production application behavior changed. The isolated runner copies code into a disposable temporary application, injects synthetic SQLite through the existing Container seam, sanitizes subprocess environments, excludes existing `.env`/uploads/storage, disables templated email through existing APP_ENV=test behavior, and starts no workers.
+
+Verified locally: 15 HTTP assertions including valid uploaded registration through confirmation, owner/foreign-session staged-document access, invalid CSRF, staff login, anonymous document denial and authorized staff access to the persisted synthetic PDF. PHPUnit 140 tests / 240 assertions passed with 10 existing deprecations; standalone permissions 47/47, OOP unit 186/186, OOP integration 78/78, password security 24/24. Test fixture PHP syntax and whitespace passed. PHP runtime 8.5.12; CI uses 8.4.
+
+The synchronized CI already targets dev/main PRs and dev pushes; ticket 01 adds isolated HTTP journeys to that workflow without deployment. Workflow configured; remote CI, PR merge and release are not claimed. Inventory: [routes, sessions, uploads and worker ownership](docs/testing/ui-separation-baseline.md). Runner safety and limitations: [HTTP baseline](tests/http/README.md).
+
+Limitations: no interactive browser/JavaScript or visual checks yet; loopback test cookies do not qualify Secure-cookie/TLS behavior; a test-only SQLite dialect bridge translates INSERT IGNORE, so MySQL is not qualified. Actual two-app routing/session/storage isolation, browser screenshots and deployment persistence/rollback remain successor-ticket work. No production, DNS, SMTP delivery or external restoration was exercised.
+
+Next: ticket 02 after integration of this ticket. Ticket triage remains ready-for-agent; execution evidence and checked criteria record verified completion separately.

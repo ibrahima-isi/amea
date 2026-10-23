@@ -1,0 +1,9 @@
+# Isolated HTTP baseline
+
+Run `composer install` then `python3 tests/http/baseline.py` (Python 3 standard library, PHP with SQLite/fileinfo and the normal application extensions).
+
+The runner copies application code and dependencies into a fresh OS temporary directory. It never copies `.env`, uploads, storage, or existing sessions/database. Both PHP subprocesses receive a minimal environment without host DB/SMTP credentials. A synthetic SQLite database is injected through the existing Container boundary; `APP_ENV=test` suppresses templated mail using the existing EmailService behavior. No worker runs. Temporary uploads and session data are deleted when the runner exits, including after assertions fail. Test entry points reject non-temporary roots and non-test SAPIs. The server binds only loopback on an ephemeral port.
+
+Scenarios execute real HTTP requests with separate cookie jars: CSRF rejection, valid registration with a synthetic PDF, owner/foreign-session staged previews, confirmation and success message, anonymous download denial, staff login, authorized persisted document download. Assertions inspect HTTP status, redirects, response bodies and privacy headers; they do not inspect session internals or persisted rows.
+
+Limitations: HTTP only, no JavaScript/layout/keyboard rendering yet; the current single application is characterized, not separation. Loopback HTTP uses a test session started before the production session configurator, so Secure-cookie/TLS behavior is not qualified. The SQLite adapter translates MySQL `INSERT IGNORE INTO` into SQLite `INSERT OR IGNORE INTO`; MySQL migrations/constraints and concurrent delivery require the isolated deployment rehearsal. Test delivery suppression proves no email is sent, not external delivery. Upload persistence is shown in a disposable copy, not across container replacements.
