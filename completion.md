@@ -91,3 +91,9 @@ TDD: homepage identity/empty-state HTTP tracer failed before template changes; r
 **Blocked acceptance criterion:** current `assets/img/logo.png` is invalid ASCII `fakeimage` (9 bytes), despite approval of the intended logo path. Templates use AEESGS textual fallback; a decodable official logo is still required. Parent requested its correct path/link. Ticket02 is not fully resolved and tickets03/04 remain gated. No production changes or release performed.
 
 Ticket02 review follow-up: actual Chrome at320px verified full-document width and paused carousel button bounds; no clipping reproduced, no CSS change needed. Two retained browser assertions added; combined suite27 HTTP/26 browser passed. Logo remains the only ticket02 blocker.
+
+## Partial integration review — 2026-10-23
+
+Standards review reported no actionable findings. Spec review reported no confirmed deviations beyond the explicit logo blocker. Focused Chrome verification confirmed headline/control fit at 320px without document overflow or carousel controls outside bounds; no CSS fix was needed. These partial reviews do not resolve ticket 02's logo blocker or complete the full specification or release qualification.
+
+Partial ticket 02 integration head `363293a1e88e88733d179fdc173c0dff7eebbfef` passed [CI run 40027550070](https://github.com/ibrahima-isi/amea/actions/runs/40027550070). This evidence applies only to that revision; subsequent fixes and handoff documentation require fresh exact-head CI before claiming their remote validation.

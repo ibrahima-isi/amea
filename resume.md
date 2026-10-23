@@ -1,29 +1,25 @@
 # Resume point
 
-Where to pick up work. Read this at the start of every session. Rewrite it whenever a resume point is stated and as the last step of every task, shipping the update in that task's PR. This file holds the current state only; history lives in git and in the Change log of `AGENTS.md`.
+**Last updated:** 2026-10-23, during UI modernization and application separation.
 
-**Last updated:** 2026-10-21, after PR #9 and `user-merges-prs` ticket 01.
+## Current work
 
-## Repository state
-
-- `main` is production, at `325fe14` (last deploy 2026-06-15, CI green). `dev` is `main` plus squash commits for the agent setup (#5), CI on pull requests (#6), the promotion rules (#7), the resume file (#8, #9) and the merge policy. All of it is docs, tracker files and a CI workflow; no application code.
-- GitHub has only `dev` and `main`. Ruleset `stop-push-to-main-and-dev` guards both: PR required, squash only, signed commits, linear history, no force-push or deletion. Admins can bypass it; agents do not.
-- The user promotes `dev` to `main` personally. Agents stop once `dev` is merged and green.
-- The user merges ticket PRs into `dev` with the GitHub "Squash and merge" button. Agents open the PR, wait for a green `test` check, hand it over, and clean up once it shows `MERGED`.
-- Commits are signed with `GitSigningKeyISI`, set repo-locally.
-- Tracker (`.scratch/`): `chores/ci-on-pull-requests` done, `chores/agents-md-promotion-rules` done, `chores/resume-file` done (tickets 01 and 02), `chores/user-merges-prs` done, `chores/triage-orphan-tests` needs-triage.
+- Integration branch: `feat/ui-and-app-separation`; draft PR [#13](https://github.com/ibrahima-isi/amea/pull/13) targets `dev`.
+- Authoritative scope: [.scratch/ui-and-app-separation/spec.md](.scratch/ui-and-app-separation/spec.md), nine tickets under its `issues/` directory, and root [completion.md](completion.md).
+- Ticket 01 is implemented and locally verified. Its integration head `3f5bd785cbaf7ecdd121120c4774861cd72c7baa` passed [CI run 40026239502](https://github.com/ibrahima-isi/amea/actions/runs/40026239502).
+- Ticket 02 is partially implemented and merged into integration: community homepage, public layout, responsive light/dark styling, accessible carousel and staff photo publication correction. Local checks passed: 27 HTTP assertions, 26 Chrome assertions including full-document/control fit at 320px, PHPUnit and standalone PHP regressions. Evidence and screenshots: [community-homepage.md](docs/testing/community-homepage.md).
+- Partial ticket 02 integration head `363293a1e88e88733d179fdc173c0dff7eebbfef` passed [CI run 40027550070](https://github.com/ibrahima-isi/amea/actions/runs/40027550070). Later revisions require their own exact-head CI; this is not final-spec validation.
+- Ticket 02 remains incomplete: `assets/img/logo.png` currently contains invalid nine-byte ASCII `fakeimage`. The intended logo path is approved, and reuse of existing public text/photos is approved, but a decodable official logo file is required. The homepage uses a textual AEESGS fallback.
+- Tickets 03 and 04 remain gated by ticket 02; tickets 05–09 remain gated by their documented dependencies. The full specification, final integration, release and rollback qualification are incomplete.
 
 ## Resume from here
 
-1. **User:** promote `dev` to `main` when ready. It is docs, tracker files and a workflow only, so the deploy it triggers changes nothing visible.
-2. **Next work item:** triage `chores/triage-orphan-tests`. Run a grilling session with interactive questions, decide per script, then write tickets. Three scripts fail (`test_filter_option_nulls`, `test_students_search_placeholders`, `test_permissions_integration`) and three pass (`test_document_reconcile`, `test_js_string_literal`, `test_kyc_schema`); CI runs none of them. Deleting any script needs the user's explicit approval.
-3. **After that:** the product backlog is empty. The next feature or fix comes from the user: grill, then spec, then tickets.
+1. Obtain the valid official logo file/path from the user and complete ticket 02's remaining acceptance criterion, with validation and completion evidence.
+2. Continue the approved dependency graph on the integration branch: 03/04, then 05, 06/07, 08 and 09. Use isolated implementer worktrees and integration merges.
+3. Keep PR #13 draft until the full specification and required reviews/checks are complete. Report local checks, remote CI, merge and release separately.
 
-## Open items and risks
+## Boundaries
 
-- Push-triggered `CI` runs on `dev` by merge: #6 yes (`gh pr merge`), #7 no (`gh pr merge`), #8 no (`gh pr merge`), #9 yes (button). GitHub's event feed shows a push event only for the merges that fired a run. Cause unknown and no pattern proven (`gh`: 1 of 3 fired; button: 1 of 1). The button is the only path confirmed to fire it. A `workflow_dispatch` trigger on `ci.yml` would allow a manual re-run on `dev` if a run is ever missing.
-- The `test` check is not a required status check in the ruleset (the user's call).
-- `scripts/purge-trashed-students.php` permanently deletes trashed students after 30 days and assumes a database backup runs first. The user confirmed the cron jobs run; a pre-purge backup is not confirmed.
-- Untracked files in the primary checkout, not touched: `.phpunit.result.cache` (should be gitignored) and `docs/superpowers/plans/2026-06-13-full-oop-migration.md` (stale, the OOP migration shipped).
-- No `GLOSSARY.md` or `docs/adr/` yet. The first `/domain-modeling` session should seed them (member, KYC, trash).
-- `GEMINI.md` duplicates the project description and is not kept in sync with `AGENTS.md`.
+- No production, DNS, real SMTP delivery or external restoration actions have been performed or qualified by this work. Production changes require explicit approval.
+- Preserve unrelated primary-checkout edits to `Dockerfile`, `.dockerignore` and `GEMINI.md`. `CLAUDE.md` retains the user's `read AGENTS.md` redirect.
+- Current `AGENTS.md` and `docs/agents/` instructions are authoritative over conflicting historical policies. Use the local Markdown tracker; do not create remote issues.
