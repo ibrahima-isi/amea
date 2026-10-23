@@ -61,7 +61,7 @@
                 <div class="col-md-4 text-center mb-4">
                   <div class="mb-3">
                     <img
-                      src="{{ student.identityDocument ? asset(student.identityDocument) : asset('assets/img/placeholder.png') }}"
+                      src="{{ student.identityDocument ? 'registration-preview.php?type=identite' : asset('assets/img/placeholder.png') }}"
                       alt="Photo d'identité"
                       class="img-thumbnail rounded-circle shadow-sm"
                       style="width: 150px; height: 150px; object-fit: cover"
@@ -136,7 +136,7 @@
                       <div class="detail-row">
                         <span class="detail-label">CV:</span>
                         <span class="detail-value">
-                            <a href="{{ asset(student.cvPath) }}" download class="btn btn-sm btn-info me-2"><i class="fas fa-download"></i> Télécharger</a>
+                            <a href="{{ 'registration-preview.php?type=cv' }}" download class="btn btn-sm btn-info me-2"><i class="fas fa-download"></i> Télécharger</a>
                             <button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#cvModal"><i class="fas fa-eye"></i> Voir</button>
                         </span>
                       </div>
@@ -172,9 +172,9 @@
                     </div>
                     <div class="modal-body text-center p-0">
                         {% if student.cvPath|lower|slice(-3) == 'pdf' %}
-                            <iframe src="{{ asset(student.cvPath) }}" width="100%" height="100%" style="border:none;"></iframe>
+                            <iframe src="{{ 'registration-preview.php?type=cv' }}" width="100%" height="100%" style="border:none;"></iframe>
                         {% else %}
-                            <img src="{{ asset(student.cvPath) }}" class="img-fluid" style="max-height: 100%; max-width: 100%;">
+                            <img src="{{ 'registration-preview.php?type=cv' }}" class="img-fluid" style="max-height: 100%; max-width: 100%;">
                         {% endif %}
                     </div>
                 </div>
