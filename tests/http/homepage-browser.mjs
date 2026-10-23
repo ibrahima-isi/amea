@@ -67,6 +67,9 @@ try {
     await check("document.documentElement.scrollWidth <= innerWidth",'mobile has no horizontal overflow');
     await evaluate("document.querySelector('.theme-switcher').click()");
     await screenshot('homepage-mobile-light.png');
+    await cdp('Emulation.setDeviceMetricsOverride',{width:320,height:844,deviceScaleFactor:1,mobile:true});
+    await check("document.documentElement.scrollWidth <= innerWidth",'320px homepage has no horizontal overflow');
+    await check("(() => {const gallery=document.querySelector('.community-gallery').getBoundingClientRect();return [...document.querySelectorAll('.gallery-controls button')].every(button=>{const r=button.getBoundingClientRect();return r.left>=gallery.left&&r.right<=gallery.right&&r.top>=gallery.top&&r.bottom<=gallery.bottom;});})()",'320px paused carousel controls remain fully inside gallery');
     await evaluate('localStorage.removeItem("theme")');
     await cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'dark'},{name:'prefers-reduced-motion',value:'reduce'}]});
     await navigate();
