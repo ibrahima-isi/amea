@@ -44,14 +44,15 @@ with tempfile.TemporaryDirectory(prefix='amea-http-') as directory:
     def client():
         return urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()), NoRedirect())
     member, stranger, staff = client(), client(), client()
-    def request(browser, path, data=None, multipart=False):
+    def request(browser, path, data=None, multipart=False, image=False):
         headers = {}
         if multipart:
             boundary = 'AMEAfixtureBoundary'
             parts = []
             for key, value in data.items():
                 parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{key}"\r\n\r\n{value}\r\n'.encode())
-            parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="photo"; filename="fixture.pdf"\r\nContent-Type: application/pdf\r\n\r\n'.encode() + b'%PDF-1.4\nSafe synthetic document\n%%EOF\n' + f'\r\n--{boundary}--\r\n'.encode())
+            filename, field, mime, content = ('fixture.jpg', 'slider_image', 'image/jpeg', (ROOT / 'assets/img/presidents.jpg').read_bytes()) if image else ('fixture.pdf', 'photo', 'application/pdf', b'%PDF-1.4\nSafe synthetic document\n%%EOF\n')
+            parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{field}"; filename="{filename}"\r\nContent-Type: {mime}\r\n\r\n'.encode() + content + f'\r\n--{boundary}--\r\n'.encode())
             payload = b''.join(parts)
             headers['Content-Type'] = f'multipart/form-data; boundary={boundary}'
         else:
@@ -74,6 +75,8 @@ with tempfile.TemporaryDirectory(prefix='amea-http-') as directory:
                 break
             except urllib.error.URLError:
                 time.sleep(.1)
+        status, _, home = request(stranger, '/')
+        check(status == 200 and b'AEESGS' in home and b'community-empty' in home, 'homepage shows association identity and useful empty carousel state')
         token = csrf(member, '/register.php')
         status, headers, _ = request(member, '/register.php', {'csrf_token': 'invalid'})
         check(status == 302 and headers.get('Location') == 'register.php', 'registration rejects invalid CSRF')
@@ -96,6 +99,26 @@ with tempfile.TemporaryDirectory(prefix='amea-http-') as directory:
         check(status == 302 and headers.get('Location') == 'dashboard.php', 'staff can sign in')
         status, headers, body = request(staff, '/download.php?id=1&type=identite')
         check(status == 200 and b'Safe synthetic document' in body and headers.get('Cache-Control') == 'private, no-store', 'authorized staff downloads persisted document')
+        token = csrf(staff, '/manage-slider.php')
+        status, headers, _ = request(staff, '/manage-slider.php', {'csrf_token': token, 'caption': 'Une communauté <solidaire>', 'display_order': '1'}, True, True)
+        status, _, body = request(stranger, '/')
+        check(status == 200 and b'Une communaut' in body and b'&lt;solidaire&gt;' in body and b'uploads/slider/' in body and b'data-carousel-pause' not in body, 'staff photo and escaped caption appear publicly; single photo has no rotation controls')
+        if os.environ.get('AMEA_BROWSER_CHECK') == '1':
+            subprocess.run(['node', str(ROOT / 'tests/http/homepage-browser.mjs'), base, str(ROOT / 'docs/testing/screenshots'), 'single'], check=True, timeout=60)
+        token = csrf(staff, '/manage-slider.php')
+        request(staff, '/manage-slider.php', {'csrf_token': token, 'caption': 'Ensemble au Sénégal', 'display_order': '2'}, True, True)
+        status, _, body = request(stranger, '/')
+        check(status == 200 and b'data-carousel-pause' in body and b'Photo suivante' in body, 'multiple staff photos expose accessible carousel controls')
+        if os.environ.get('AMEA_BROWSER_CHECK') == '1':
+            subprocess.run(['node', str(ROOT / 'tests/http/homepage-browser.mjs'), base, str(ROOT / 'docs/testing/screenshots')], check=True, timeout=120)
+        for image_id in ['1', '2']:
+            token = csrf(staff, '/manage-slider.php')
+            request(staff, '/manage-slider.php', {'csrf_token': token, '_action': 'delete', 'id': image_id})
+        status, _, body = request(stranger, '/')
+        check(status == 200 and b'community-empty' in body and b'uploads/slider/' not in body, 'staff removal restores useful public empty state')
+        if os.environ.get('AMEA_BROWSER_CHECK') == '1':
+            subprocess.run(['node', str(ROOT / 'tests/http/homepage-browser.mjs'), base, str(ROOT / 'docs/testing/screenshots'), 'empty'], check=True, timeout=60)
+
     except Exception:
         log.flush()
         print((app / 'server.log').read_text())

@@ -10,6 +10,6 @@ CREATE TABLE study_fields (id INTEGER PRIMARY KEY, name TEXT);
 CREATE TABLE study_levels (id INTEGER PRIMARY KEY, name TEXT);
 CREATE TABLE locations (id INTEGER PRIMARY KEY, region TEXT, name TEXT);
 DELETE FROM users;");
-$stmt = $db->prepare('INSERT INTO users (username,password,role,email) VALUES (?,?,?,?)');
-$stmt->execute(['fixture-admin', password_hash('fixture-password', PASSWORD_DEFAULT), 'admin', 'staff@example.invalid']);
+$stmt = $db->prepare('INSERT INTO users (username,password,role,email,permissions) VALUES (?,?,?,?,?)');
+$stmt->execute(['fixture-admin', password_hash('fixture-password', PASSWORD_DEFAULT), 'admin', 'staff@example.invalid', '["slider"]']);
 $db->exec("VACUUM INTO 'fixture.sqlite'");
