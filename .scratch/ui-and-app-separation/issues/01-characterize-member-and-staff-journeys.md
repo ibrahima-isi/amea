@@ -12,6 +12,10 @@
 
 ## Acceptance criteria
 
-- [ ] Baseline HTTP/browser scenarios cover a valid registration and authorized/unauthorized document access with safe fixtures.
-- [ ] Existing PHP regression checks run; gaps and route/session/worker ownership inventory are recorded.
-- [ ] Feature PRs targeting dev receive relevant CI checks without deployment.
+- [x] Baseline HTTP/browser scenarios cover a valid registration and authorized/unauthorized document access with safe fixtures.
+- [x] Existing PHP regression checks run; gaps and route/session/worker ownership inventory are recorded.
+- [x] Feature PRs targeting dev receive relevant CI checks without deployment.
+
+## Execution evidence
+
+Implemented in `feat/ui-separation-01`: [baseline and inventory](../../../docs/testing/ui-separation-baseline.md), [HTTP harness](../../../tests/http/README.md). All three criteria verified locally; HTTP rather than interactive browser baseline. CI workflow configured for dev PRs, remote run remains separate evidence. See root completion record for counts and limitations.
