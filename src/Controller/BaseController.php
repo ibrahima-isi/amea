@@ -35,6 +35,7 @@ abstract class BaseController
         // Settings
         $settingRepo = new \Amea\Repository\SettingRepository(\Amea\Core\Container::db());
         
+        $twig->addGlobal('public_logo_available', @getimagesize(__DIR__ . '/../../assets/img/logo.png') !== false);
         $twig->addGlobal('session', $_SESSION);
         $twig->addGlobal('flash', $this->flash->get());
         $twig->addGlobal('csrf_token', \generateCsrfToken());

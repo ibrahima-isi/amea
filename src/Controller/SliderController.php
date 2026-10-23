@@ -69,7 +69,7 @@ class SliderController extends BaseController
         }
 
         $this->sliderRepo->save([
-            'image_path'    => $result['path'],
+            'image_path'    => $result['filepath'],
             'caption'       => trim($_POST['caption'] ?? ''),
             'display_order' => (int)($_POST['display_order'] ?? 0),
         ]);
