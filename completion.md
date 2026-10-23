@@ -27,7 +27,14 @@ Mark implementation complete only after behavior is implemented and relevant che
 
 ## Blockers and next work
 
-Planning and publication are complete. Ticket 01 is the unblocked frontier; tickets 02–09 remain gated by dependencies. Implementation has not started and is not claimed by this setup task. Real logo and public content review remain release prerequisites. Production/DNS changes require explicit approval.
+Planning and publication are complete. Ticket 01 is the unblocked frontier; tickets 02–09 remain gated by dependencies. Implementation has not started and is not claimed by this setup task. Logo and existing public content reuse are approved below. Production/DNS changes require explicit approval.
+
+## Asset and content approvals — 2026-10-23
+
+- [x] User explicitly confirmed `assets/img/logo.png` is the correct official logo.
+- [x] User explicitly approved reusing the existing public texts and photos already published in the carousel.
+
+These approvals remove the corresponding asset/content blockers; implementation and validation remain separate requirements.
 
 ## Working-tree boundary
 
