@@ -9,7 +9,7 @@ Tracker: local Markdown, configured in [issue-tracker.md](docs/agents/issue-trac
 
 ## Current state
 
-Ticket 01 baseline implemented and validated locally. Tickets 02–09, final integration, CI and production release remain pending.
+Ticket 01 baseline implemented and validated locally. Ticket 02 UI/carousel implemented and locally validated; verified logo remains blocked. Tickets 03–09, final integration, CI and production release remain pending.
 
 - [x] Gather UI and separation decisions and review direction B.
 - [x] Independent design builder review: no important planning gaps reported.
@@ -27,7 +27,7 @@ Mark implementation complete only after behavior is implemented and relevant che
 
 ## Blockers and next work
 
-Planning and publication are complete. Ticket 01 is implemented and locally verified; ticket 02 is the next frontier. Tickets 03–09 remain gated by dependencies. Logo and existing public content reuse are approved below. Production/DNS changes require explicit approval.
+Planning and publication are complete. Ticket 01 is implemented and locally verified. Ticket 02 UI/carousel is locally validated, but a valid official logo file is missing. Tickets 03–09 remain gated by dependencies. Intended logo and existing public content reuse are approved below. Production/DNS changes require explicit approval.
 
 ## Asset and content approvals — 2026-10-23
 
@@ -47,7 +47,7 @@ All nine tickets and dependencies are approved and published; ticket 01 criteria
 | Ticket | Blocked by | Status | Evidence / PR |
 |---|---|---|---|
 | [01 — Characterize member and staff journeys](.scratch/ui-and-app-separation/issues/01-characterize-member-and-staff-journeys.md) | None | Implemented; locally verified | HTTP baseline + PHP regressions; see evidence below |
-| [02 — Deliver the community homepage](.scratch/ui-and-app-separation/issues/02-deliver-community-homepage.md) | 01 | Published; not started | None |
+| [02 — Deliver the community homepage](.scratch/ui-and-app-separation/issues/02-deliver-community-homepage.md) | 01 | Implemented; logo criterion blocked | [Local evidence](docs/testing/community-homepage.md) |
 | [03 — Modernize registration through confirmation](.scratch/ui-and-app-separation/issues/03-modernize-registration-confirmation.md) | 02 | Published; not started | None |
 | [04 — Modernize secure completion, correction, and consent](.scratch/ui-and-app-separation/issues/04-modernize-completion-correction-consent.md) | 02 | Published; not started | None |
 | [05 — Rehearse independently deployed public and staff login](.scratch/ui-and-app-separation/issues/05-rehearse-independent-apps-login.md) | 03, 04 | Published; not started | None |
@@ -80,3 +80,12 @@ The synchronized CI already targets dev/main PRs and dev pushes; ticket 01 adds 
 Limitations: no interactive browser/JavaScript or visual checks yet; loopback test cookies do not qualify Secure-cookie/TLS behavior; a test-only SQLite dialect bridge translates INSERT IGNORE, so MySQL is not qualified. Actual two-app routing/session/storage isolation, browser screenshots and deployment persistence/rollback remain successor-ticket work. No production, DNS, SMTP delivery or external restoration was exercised.
 
 Next: ticket 02 after integration of this ticket. Ticket triage remains ready-for-agent; execution evidence and checked criteria record verified completion separately.
+
+
+## Ticket 02 — community homepage (2026-10-23)
+
+Implemented direction B on `feat/ui-separation-02`: independent reusable public layout/CSS, responsive neutral light/dark themes and Guinea accents, association introduction/themes/registration links, backend-fed photo captions, accessible automatic/pause/manual carousel with reduced-motion and single/empty handling. Existing staff layout remains unchanged. Fixed the existing uploader result-key mismatch preventing staff photo publication. Public flash JSON uses hex escaping and text is HTML escaped.
+
+TDD: homepage identity/empty-state HTTP tracer failed before template changes; real permitted staff photo upload failed with NOT NULL image_path before the one-key uploader fix, then passed. Final combined suite: 27 HTTP assertions and 24 real-browser assertions passed. Browser/HTTP evidence and four inspected screenshots: [community homepage](docs/testing/community-homepage.md). PHPUnit 140/240 passed with 10 existing deprecations; standalone permissions47/OOP186/integration78/password24 all passed. Changed PHP syntax and whitespace passed. Ticket01 integration head `3f5bd785` CI passed [run40026239502](https://github.com/ibrahima-isi/amea/actions/runs/40026239502) per parent verification; ticket02 remote CI remains unclaimed.
+
+**Blocked acceptance criterion:** current `assets/img/logo.png` is invalid ASCII `fakeimage` (9 bytes), despite approval of the intended logo path. Templates use AEESGS textual fallback; a decodable official logo is still required. Parent requested its correct path/link. Ticket02 is not fully resolved and tickets03/04 remain gated. No production changes or release performed.

@@ -5,6 +5,20 @@ if (PHP_SAPI !== 'cli-server' || !str_starts_with(basename(dirname(__DIR__, 2)),
     http_response_code(404);
     exit;
 }
+// Serve only public static assets from the disposable copy; never private uploads.
+$path = rawurldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '');
+$root = realpath(__DIR__ . '/../..');
+$file = realpath($root . $path);
+$publicAsset = str_starts_with($path, '/assets/') || str_starts_with($path, '/uploads/slider/');
+if ($publicAsset && $file && str_starts_with($file, $root . '/') && is_file($file)) {
+    $types = ['css' => 'text/css', 'js' => 'application/javascript', 'png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'webp' => 'image/webp'];
+    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+    if (isset($types[$ext])) {
+        header('Content-Type: ' . $types[$ext]);
+        readfile($file);
+        exit;
+    }
+}
 require __DIR__ . '/../../vendor/autoload.php';
 require __DIR__ . '/../../functions/utility-functions.php';
 $_ENV['APP_ENV'] = 'test';
