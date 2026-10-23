@@ -92,4 +92,3 @@ Approved historical breakdown. All nine tickets are now published separately in 
 - [ ] Run full workflow/accessibility/theme/browser and PHP regression checks on the final candidate.
 - [ ] Record content/logo review, schema compatibility, backup/restore rehearsal, rollout order, rollback steps, and remaining external blockers.
 - [ ] No production/DNS/real-email actions occur without explicit approval; completion tracker separates local, CI, merge, and release evidence.
-
