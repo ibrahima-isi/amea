@@ -14,6 +14,13 @@ class Session
 
     private function configure(): void
     {
+        if (defined('AMEA_APP')) {
+            // Fixed image identity, never Host or forwarded headers. No Domain cookie.
+            session_name('AMEA_' . strtoupper(AMEA_APP));
+            session_save_path('/var/lib/amea/sessions');
+            ini_set('session.cookie_domain', '');
+            ini_set('session.cookie_path', '/');
+        }
         ini_set('session.cookie_lifetime', '0');
         ini_set('session.gc_maxlifetime',  (string)self::LIFETIME);
         ini_set('session.cookie_httponly', '1');
@@ -34,7 +41,7 @@ class Session
     {
         if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > self::LIFETIME) {
             $this->destroy();
-            header('Location: login.php');
+            header('Location: ' . (defined('AMEA_APP') && AMEA_APP === 'public' ? 'register.php' : 'login.php'));
             exit();
         }
         $_SESSION['last_activity'] = time();

@@ -20,6 +20,10 @@ class AuthController extends BaseController
     public function login(): void
     {
         if ($this->session->isLoggedIn()) {
+            if (defined('AMEA_APP') && AMEA_APP === 'staff') {
+                $this->render('auth/ready.html.twig');
+                return;
+            }
             $this->redirect('dashboard.php');
         }
 
@@ -34,7 +38,7 @@ class AuthController extends BaseController
             $password = $_POST['password'] ?? '';
 
             if ($this->auth->attempt($username, $password)) {
-                $this->redirect('dashboard.php');
+                $this->redirect(defined('AMEA_APP') && AMEA_APP === 'staff' ? 'login.php' : 'dashboard.php');
             } else {
                 $this->flash->set('error', 'Identifiants invalides.');
             }
