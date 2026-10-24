@@ -51,7 +51,7 @@ All nine tickets and dependencies are approved and published; tickets 01–05 cr
 | [03 — Modernize registration through confirmation](.scratch/ui-and-app-separation/issues/03-modernize-registration-confirmation.md) | 02 | Implemented; locally verified | See journey evidence below |
 | [04 — Modernize secure completion, correction, and consent](.scratch/ui-and-app-separation/issues/04-modernize-completion-correction-consent.md) | 02 | Implemented; locally verified | See journey evidence below |
 | [05 — Rehearse independently deployed public and staff login](.scratch/ui-and-app-separation/issues/05-rehearse-independent-apps-login.md) | 03, 04 | Implemented; locally verified | [HTTPS/MySQL evidence](docs/testing/app-separation-login.md) |
-| [06 — Move staff member review and private documents](.scratch/ui-and-app-separation/issues/06-move-staff-member-document-management.md) | 05 | Published; not started | None |
+| [06 — Move staff member review and private documents](.scratch/ui-and-app-separation/issues/06-move-staff-member-document-management.md) | 05 | Implemented; locally verified | [Member rehearsal](docs/testing/app-separation-members.md) |
 | [07 — Move staff content and operational tools](.scratch/ui-and-app-separation/issues/07-move-staff-operational-tools.md) | 05 | Implemented and locally verified; integration/review pending | [Tools proof](docs/testing/app-separation-tools.md) |
 | [08 — Preserve links and finish route isolation](.scratch/ui-and-app-separation/issues/08-preserve-links-route-isolation.md) | 06, 07 | Published; not started | None |
 | [09 — Verify integrated release and rehearse rollback](.scratch/ui-and-app-separation/issues/09-verify-release-rollback.md) | 08 | Published; not started | None |
@@ -152,3 +152,5 @@ Verified synthetic HTTPS/MySQL administration: member shared across applications
 ## Ticket 07 — staff tools and shared jobs (2026-10-24)
 
 Locally verified existing staff controllers without redesign: carousel, communications, exports, settings, account administration, profile and progression. Actual disposable MySQL/two-host HTTPS proof: 84 HTTP assertions, 9 Chrome assertions, and one overlapping-worker proof (three synthetic messages delivered exactly once). PHPUnit141/241, standalone186/78/47/24 and legacyHTTP35+28 passed. [Evidence and reproduction](docs/testing/app-separation-tools.md). Jobs profile stays disabled until approved cutover disables old cron; no real SMTP/purge/production action. Integration/final code review/exact-head CI remain separate milestones.
+
+Ticket06 integration follow-up: merged `6a77e2e`, then verified111 HTTP/schema+10 Chrome on the exact merged src/templates using cached verified PHP images with read-only mounts. Fresh build stopped before compilation at Docker Hub composer metadata timeout; no fresh final-image claim. Final build/CI remains09. Source changes and original PHP/legacy HTTP evidence are unchanged; current synthetic resources cleaned.
