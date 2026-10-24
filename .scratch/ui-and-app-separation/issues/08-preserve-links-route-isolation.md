@@ -12,6 +12,10 @@
 
 ## Acceptance criteria
 
-- [ ] Legacy staff GET URLs redirect to matching destinations with login and validated local return paths.
-- [ ] Old form submissions recover safely without replaying actions across hosts.
-- [ ] Complete route matrix proves public/staff isolation including downloads, recovery, and AJAX/auxiliary endpoints.
+- [x] Legacy staff GET URLs redirect to matching destinations with login and validated local return paths.
+- [x] Old form submissions recover safely without replaying actions across hosts.
+- [x] Complete route matrix proves public/staff isolation including downloads, recovery, and AJAX/auxiliary endpoints.
+
+## Execution evidence
+
+All criteria verified through freshly built isolated HTTPS/MySQL applications: 249 HTTP/schema checks,13 Chrome checks,84 tools HTTP checks and concurrent owner proof; PHP and legacy suites passed. [Detailed evidence](../../../docs/testing/app-separation-links.md). No production cutover claimed.

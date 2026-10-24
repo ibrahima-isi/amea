@@ -26,13 +26,14 @@ def check(condition, message):
     print('PASS:', message)
 
 if __name__ == '__main__':
+    check(request('public', '/students.php?page=2')[1].get('Location') == 'https://staff.amea.test:' + str(STAFF_PORT) + '/students.php?page=2', 'legacy staff page redirects to fixed staff origin')
     for app, allowed, denied in [('public', '/register.php', '/login.php'), ('staff', '/login.php', '/register.php')]:
         status, headers, body = request(app, allowed)
         check(status == 200, app + ' allowed entry renders')
-        check(request(app, denied)[0] == 404, app + ' wrong-app PHP unavailable')
+        check(request(app, denied)[0] == (302 if app == 'public' else 404), app + ' wrong-app PHP never executes')
         for path in ['/.env', '/src/bootstrap.php', '/config/database.php', '/vendor/autoload.php', '/schema.sql', '/uploads/students/private.pdf', '/index.php/dashboard.php']:
             check(request(app, path)[0] == 404, app + ' denies ' + path)
-    check(request('public', '/dashboard.php')[0] == 404, 'public denies staff dashboard')
+    check(request('public', '/dashboard.php')[1].get('Location') == 'https://staff.amea.test:' + str(STAFF_PORT) + '/dashboard.php', 'public redirects without executing staff dashboard')
     check(request('staff', '/dashboard.php')[0] == 302, 'staff dashboard requires authentication')
     for app, path, method in [('public', '/legal-notice.php', 'POST'), ('public', '/registration-preview.php', 'POST'), ('public', '/register.php', 'DELETE'), ('staff', '/login.php', 'OPTIONS')]:
         check(request(app, path, method=method)[0] == 405, app + ' rejects unsupported ' + method + ' without legacy dispatch')

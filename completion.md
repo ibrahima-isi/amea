@@ -9,7 +9,7 @@ Tracker: local Markdown, configured in [issue-tracker.md](docs/agents/issue-trac
 
 ## Current state
 
-Tickets 01–07 are integrated and locally verified. Ticket 08 is the next frontier; ticket 09 remains blocked by 08. Final fresh-image qualification, full-spec code review, exact-head CI and production release remain separate milestones.
+Tickets 01–07 are integrated and locally verified. Ticket08 is implemented and locally verified for integration; ticket09 is next after that merge. Final fresh-image qualification, full-spec code review, exact-head CI and production release remain separate milestones.
 
 - [x] Gather UI and separation decisions and review direction B.
 - [x] Independent design builder review: no important planning gaps reported.
@@ -27,7 +27,7 @@ Mark implementation complete only after behavior is implemented and relevant che
 
 ## Blockers and next work
 
-Tickets 01–07 are implemented, integrated and locally verified, including the supplied official logo. Proceed with ticket 08, then 09 and the final independent Standards/Spec code review. Ticket 06 merged behavior passed using cached images and read-only source mounts after a Docker Hub composer metadata timeout; a final fresh build remains mandatory in 09/CI. Agent capacity is available. Production/DNS changes require explicit approval.
+Tickets 01–07 are implemented, integrated and locally verified, including the supplied official logo. Integrate locally verified ticket08, then execute09 and the final independent Standards/Spec code review. Ticket 06 merged behavior passed using cached images and read-only source mounts after a Docker Hub composer metadata timeout; ticket08 now passed on freshly built images, including the merged06/07 code; final candidate qualification remains09. Agent capacity is available. Production/DNS changes require explicit approval.
 
 ## Asset and content approvals — 2026-10-23
 
@@ -42,7 +42,7 @@ Existing Dockerfile and .dockerignore edits are unrelated changes and must be pr
 
 ## Implementation progress
 
-All nine tickets and dependencies are approved and published; tickets 01–07 criteria are verified locally. ready-for-agent describes triage readiness; blockers determine execution eligibility.
+All nine tickets and dependencies are approved and published; tickets 01–08 criteria are verified locally. ready-for-agent describes triage readiness; blockers determine execution eligibility.
 
 | Ticket | Blocked by | Status | Evidence / PR |
 |---|---|---|---|
@@ -53,7 +53,7 @@ All nine tickets and dependencies are approved and published; tickets 01–07 cr
 | [05 — Rehearse independently deployed public and staff login](.scratch/ui-and-app-separation/issues/05-rehearse-independent-apps-login.md) | 03, 04 | Implemented; locally verified | [HTTPS/MySQL evidence](docs/testing/app-separation-login.md) |
 | [06 — Move staff member review and private documents](.scratch/ui-and-app-separation/issues/06-move-staff-member-document-management.md) | 05 | Implemented; locally verified | [Member rehearsal](docs/testing/app-separation-members.md) |
 | [07 — Move staff content and operational tools](.scratch/ui-and-app-separation/issues/07-move-staff-operational-tools.md) | 05 | Implemented; integrated and locally verified | [Tools proof](docs/testing/app-separation-tools.md) |
-| [08 — Preserve links and finish route isolation](.scratch/ui-and-app-separation/issues/08-preserve-links-route-isolation.md) | 06, 07 | Published; not started | None |
+| [08 — Preserve links and finish route isolation](.scratch/ui-and-app-separation/issues/08-preserve-links-route-isolation.md) | 06, 07 | Implemented; locally verified | [Link/route proof](docs/testing/app-separation-links.md) |
 | [09 — Verify integrated release and rehearse rollback](.scratch/ui-and-app-separation/issues/09-verify-release-rollback.md) | 08 | Published; not started | None |
 
 ## Publication evidence
@@ -160,3 +160,9 @@ Ticket06 integration follow-up: merged `6a77e2e`, then verified111 HTTP/schema+1
 Both staff tickets are integrated. Member rehearsal: 111 HTTP/schema +10 actual Chrome checks; tools: 84 HTTP +9 Chrome checks and one competing-worker proof for three synthetic messages exactly once. PHP141/241, standalone335 and legacyHTTP35+28 passed. Ticket06's latest merged behavior used cached images with explicit read-only source/template mounts after a Docker Hub metadata timeout; this is not final image qualification.
 
 Ticket05 independent Standards/Spec reviews found no confirmed deviations; exact integration head `c15218d1e87cff82b93f28ed01c47abf01785793` passed [CI run40088586043](https://github.com/ibrahima-isi/amea/actions/runs/40088586043), including test and apps-rehearsal jobs. Subsequent heads need fresh CI. Next: 08, then 09/final code review. PR stays draft; no production action.
+
+## Ticket 08 — compatible links and route isolation (2026-10-24)
+
+Fixed configured-origin legacy staff GET redirects, vetted query preservation, safe409 stale POST recovery without action replay, single-use validated local login return including expired/revoked sessions, complete explicit route/method/private/AJAX/encoded-path boundary and cross-app navigation/email origins. Public member links and existing roles/CSRF remain compatible.
+
+Final fresh-image proof:249 HTTP/schema +13 actual Chrome; tools84 HTTP +concurrent job proof; PHP141/241 (10 existing deprecations), standalone47/186/78/24 and legacy35/28 pass. [Executed evidence and screenshots](docs/testing/app-separation-links.md). No production/DNS/SMTP. Ticket09 and final independent code review/CI remain pending.

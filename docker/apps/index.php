@@ -7,15 +7,38 @@ if (!in_array($appIdentity, ['public', 'staff'], true)) {
 }
 define('AMEA_APP', $appIdentity);
 chdir('/opt/amea');
+require_once '/opt/amea/vendor/autoload.php';
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $routes = require '/opt/amea-apps/routes.php';
 $path = $path === '/index.php' ? '/' : $path;
+define('AMEA_STAFF_PATHS', $routes['staff']);
+if ($appIdentity === 'public' && $path !== '/' && in_array($path, $routes['staff'], true)) {
+    $staffOrigin = \Amea\Core\StaffNavigation::origin();
+    if ($staffOrigin === null) {
+        http_response_code(503);
+        exit('Administration temporairement indisponible.');
+    }
+    if ($_SERVER['REQUEST_METHOD'] === 'GET' && in_array('GET', \Amea\Core\StaffNavigation::methods($path), true)) {
+        $target = \Amea\Core\StaffNavigation::legacyTarget($path, (string)($_SERVER['QUERY_STRING'] ?? ''));
+        header('Location: ' . $staffOrigin . ($target ?? $path), true, 302);
+        exit;
+    }
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        http_response_code(409);
+        header('Content-Type: text/html; charset=UTF-8');
+        $login = htmlspecialchars($staffOrigin . '/login.php', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        echo '<!doctype html><html lang="fr"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Formulaire déplacé</title><main><h1>Ce formulaire a changé d’adresse</h1><p>Votre action n’a pas été exécutée. Connectez-vous à l’administration, puis ouvrez un nouveau formulaire pour la reprendre.</p><a href="' . $login . '">Se connecter à l’administration</a></main></html>';
+        exit;
+    }
+    http_response_code(405);
+    header('Allow: ' . implode(', ', array_unique(array_merge(array_intersect(['GET'], \Amea\Core\StaffNavigation::methods($path)), ['POST']))));
+    exit('Méthode non autorisée.');
+}
 if (!in_array($path, $routes[$appIdentity], true)) {
     http_response_code(404);
     exit('Page introuvable.');
 }
-$postRoutes = ['/register.php', '/registration-details.php', '/kyc-correction.php', '/accept-cgu.php', '/login.php', '/forgot-password.php', '/reset-password.php', '/students.php', '/edit-student.php', '/kyc-detail.php', '/trash.php', '/manage-slider.php', '/communications.php', '/export.php', '/settings.php', '/users.php', '/add-user.php', '/edit-user.php', '/profile.php', '/upgrade-levels.php', '/confirm-upgrade.php'];
-$allowedMethods = $path === '/confirm-upgrade.php' ? ['POST'] : (in_array($path, $postRoutes, true) ? ['GET', 'POST'] : ['GET']);
+$allowedMethods = \Amea\Core\StaffNavigation::methods($path);
 if (!in_array($_SERVER['REQUEST_METHOD'], $allowedMethods, true)) {
     http_response_code(405);
     header('Allow: ' . implode(', ', $allowedMethods));

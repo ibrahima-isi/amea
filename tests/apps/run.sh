@@ -35,6 +35,7 @@ python3 tests/apps/registration.py --legacy-enums
 "${compose[@]}" exec -T public php /dev/stdin after < tests/apps/migration-proof.php
 "${compose[@]}" exec -u www-data -T staff php < tests/apps/fixture.php
 python3 tests/apps/routes.py
+python3 tests/apps/links.py
 python3 tests/apps/journeys.py
 python3 tests/apps/registration.py
 "${compose[@]}" exec -u www-data -T staff php < tests/apps/member-fixture.php

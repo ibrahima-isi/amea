@@ -24,7 +24,7 @@
     <footer class="public-footer">
         <div class="public-container footer-grid">
             <div><a class="public-brand" href="/">AEESGS</a><p>Plateforme de recensement des élèves, étudiants et stagiaires guinéens au Sénégal.</p></div>
-            <nav aria-label="Liens utiles"><a href="register.php">S’enregistrer</a><a href="legal-notice.php">Mentions légales</a><a href="login.php">Connexion</a>{% if session.user_id %}<a href="dashboard.php">Tableau de bord</a>{% endif %}</nav>
+            <nav aria-label="Liens utiles"><a href="register.php">S’enregistrer</a><a href="legal-notice.php">Mentions légales</a><a href="{{ staff_login_url }}">Connexion</a>{% if session.user_id %}<a href="dashboard.php">Tableau de bord</a>{% endif %}</nav>
             {% if settings.contact_email or settings.contact_phone %}<div><h2>Contact</h2><p>{{ settings.contact_email }}<br>{{ settings.contact_phone }}</p></div>{% endif %}
         </div>
         <div class="public-container footer-credit">&copy; {{ settings.year }} AEESGS. Tous droits réservés. Développé par <a href="https://gui-connect.com/">GUI CONNECT</a>.</div>

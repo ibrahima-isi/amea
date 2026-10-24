@@ -3,6 +3,7 @@
 namespace Amea\Controller;
 
 use Amea\Core\Container;
+use Amea\Core\StaffNavigation;
 use Amea\Service\AuthService;
 use Amea\Repository\UserRepository;
 
@@ -19,8 +20,17 @@ class AuthController extends BaseController
 
     public function login(): void
     {
+        $staffApplication = defined('AMEA_APP') && AMEA_APP === 'staff';
+        if ($staffApplication && array_key_exists('return_to', $_GET)) {
+            $requested = $_GET['return_to'];
+            $target = is_string($requested) ? StaffNavigation::localTarget($requested) : null;
+            $this->session->remove('staff_return_to');
+            if ($target !== null) {
+                $this->session->set('staff_return_to', $target);
+            }
+        }
         if ($this->session->isLoggedIn()) {
-            $this->redirect('dashboard.php');
+            $this->redirect($staffApplication ? StaffNavigation::loginDestination($this->session) : 'dashboard.php');
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -34,7 +44,7 @@ class AuthController extends BaseController
             $password = $_POST['password'] ?? '';
 
             if ($this->auth->attempt($username, $password)) {
-                $this->redirect('dashboard.php');
+                $this->redirect($staffApplication ? StaffNavigation::loginDestination($this->session) : 'dashboard.php');
             } else {
                 $this->flash->set('error', 'Identifiants invalides.');
             }

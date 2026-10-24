@@ -21,6 +21,12 @@ session_id('syntheticexpiredstaffsession');
 session_start();
 $_SESSION = ['user_id' => (int)$conn->query("SELECT id FROM users WHERE username='revoked'")->fetchColumn(), 'last_activity' => time() - 1801];
 session_write_close();
+foreach (['syntheticexpiredstafflink' => [time() - 1801, 1], 'syntheticrevokedstafflink' => [time(), 0]] as $id => [$activity, $version]) {
+    session_id($id);
+    session_start();
+    $_SESSION = ['user_id' => (int)$conn->query("SELECT id FROM users WHERE username='revoked'")->fetchColumn(), 'session_version' => $version, 'last_activity' => $activity];
+    session_write_close();
+}
 echo "Synthetic fixture ready\n";
 @mkdir('/opt/amea/uploads/slider', 0770, true);
 copy('/opt/amea/assets/img/presidents.jpg', '/opt/amea/uploads/slider/synthetic-public.jpg');

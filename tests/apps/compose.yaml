@@ -24,6 +24,7 @@ services:
       DB_USER: amea
       DB_PASS: synthetic-only
       APP_ENV: test
+      STAFF_APP_URL: https://staff.amea.test:${AMEA_STAFF_PORT:-19443}
       PUBLIC_APP_URL: https://public.amea.test:${AMEA_PUBLIC_PORT:-18443}
       APP_URL: https://public.amea.test:${AMEA_PUBLIC_PORT:-18443}
     volumes:
