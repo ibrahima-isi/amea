@@ -86,7 +86,7 @@ with tempfile.TemporaryDirectory(prefix='amea-http-') as directory:
         payload = dict(csrf_token=token, last_name='Retained', first_name='Aminata', gender='Féminin', status='ETUDIANT', phone='', email='a@example.invalid')
         request(member, correction, payload)
         status, _, body = request(member, correction)
-        check(status == 200 and b'value="Retained"' in body and b'invalid-feedback' in body, 'correction validation retains entered data and exposes field errors')
+        check(status == 200 and b'value="Retained"' in body and b'is-invalid' in body, 'correction validation retains entered data and exposes field errors')
         for bad in ['', 'z' * 64, 'b' * 64, 'c' * 64, 'd' * 64]:
             status, headers, body = request(stranger, '/kyc-correction.php?token=' + bad)
             check(status == 302 and headers.get('Location') == '/', 'invalid, revoked, deleted or ineligible correction fails safely: ' + bad[:1])
@@ -105,7 +105,7 @@ with tempfile.TemporaryDirectory(prefix='amea-http-') as directory:
         status, _, body = request(member, consent, dict(csrf_token=token, action='accept'))
         check(b'Consentement enregistr' in body, 'consent acceptance is saved')
         status, _, body = request(member, consent)
-        check(b'Mise à jour des CGU' in body, 'accepted member sees consent update state')
+        check('Mise à jour des CGU'.encode() in body, 'accepted member sees consent update state')
         status, headers, _ = request(stranger, '/download.php?id=1&type=identite')
         check(status == 302 and headers.get('Location') == 'login.php', 'token possession does not authorize private downloads')
         if os.environ.get('AMEA_BROWSER_CHECK') == '1':
