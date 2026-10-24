@@ -9,7 +9,7 @@
 .public-form-page .form-label { font-weight:600; }
 .public-form-page .btn { min-height:44px; padding:.65rem 1rem; white-space:normal; }
 .public-form-page .btn-primary,.public-form-page .btn-success { background:var(--public-green); color:var(--public-on-green); border-color:var(--public-green); }
-.public-form-page a { color:var(--public-green); }
+.public-form-page a:not(.btn) { color:var(--public-green); }
 .public-form-page .btn { text-decoration:none; }
 .public-form-page :focus-visible { outline:3px solid var(--public-focus); outline-offset:3px; }
 .public-form-page .registration-section-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; width:100%; padding:1rem 0; margin:1.5rem 0 1rem; background:none; border:0; border-bottom:2px solid var(--public-line); color:var(--public-text); text-align:left; }
@@ -25,3 +25,6 @@
 .public-form-page .tagify { --tags-border-color:var(--public-line); --tags-focus-border-color:var(--public-focus); --tag-bg:var(--public-soft); --tag-text-color:var(--public-text); width:100%; color:var(--public-text); }
 @media(max-width:575.98px) { .public-form-page .card-header,.public-form-page .card-body { padding:1.25rem; } .public-form-page .registration-section-heading { gap:.5rem; } .public-form-page .registration-toggle-label { display:none; } .public-form-page .card-footer>* { width:100%; } .public-form-page .card-footer button { width:100%; } }
 @media(prefers-reduced-motion:reduce) { .public-form-page .registration-section-panel { transition:none; } }
+.public-form-page a.btn-secondary,.public-form-page a.btn-warning,.public-form-page a.btn-info { color:var(--bs-btn-color); }
+.public-form-page .tagify { --readonly-striped:0; --input-color:var(--public-text); background:var(--public-surface); }
+.public-form-page .text-danger { color:var(--public-red)!important; }
