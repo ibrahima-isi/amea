@@ -25,3 +25,10 @@ FROM shared AS public
 RUN printf 'public' > /opt/amea-apps/identity
 FROM shared AS staff
 RUN printf 'staff' > /opt/amea-apps/identity
+
+# No HTTP process: only this explicitly enabled service owns shared scheduled work.
+FROM shared AS jobs
+COPY scripts scripts
+RUN printf 'jobs' > /opt/amea-apps/identity
+USER www-data
+CMD ["sh", "/opt/amea-apps/jobs.sh"]

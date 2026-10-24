@@ -52,7 +52,7 @@ All nine tickets and dependencies are approved and published; tickets 01–05 cr
 | [04 — Modernize secure completion, correction, and consent](.scratch/ui-and-app-separation/issues/04-modernize-completion-correction-consent.md) | 02 | Implemented; locally verified | See journey evidence below |
 | [05 — Rehearse independently deployed public and staff login](.scratch/ui-and-app-separation/issues/05-rehearse-independent-apps-login.md) | 03, 04 | Implemented; locally verified | [HTTPS/MySQL evidence](docs/testing/app-separation-login.md) |
 | [06 — Move staff member review and private documents](.scratch/ui-and-app-separation/issues/06-move-staff-member-document-management.md) | 05 | Published; not started | None |
-| [07 — Move staff content and operational tools](.scratch/ui-and-app-separation/issues/07-move-staff-operational-tools.md) | 05 | Published; not started | None |
+| [07 — Move staff content and operational tools](.scratch/ui-and-app-separation/issues/07-move-staff-operational-tools.md) | 05 | Implemented and locally verified; integration/review pending | [Tools proof](docs/testing/app-separation-tools.md) |
 | [08 — Preserve links and finish route isolation](.scratch/ui-and-app-separation/issues/08-preserve-links-route-isolation.md) | 06, 07 | Published; not started | None |
 | [09 — Verify integrated release and rehearse rollback](.scratch/ui-and-app-separation/issues/09-verify-release-rollback.md) | 08 | Published; not started | None |
 
@@ -142,3 +142,7 @@ Separate public/staff image targets with physical web roots, route/method allowl
 Executed: 76 HTTP/schema checks + 8 Chrome HTTPS checks, legacy HTTP 35 + token 28, PHPUnit 141/241 (10 existing deprecations), standalone 47/186/78/24. Details: [rehearsal](docs/testing/app-separation-login.md). Synthetic resources were cleaned; no production/email/DNS actions.
 
 The root agent completed and executed the initial checkpoint while implementer capacity was unavailable; the implementer has resumed and finalized ticket 05. Independent review of 05 and remaining implementers/reviews for 06–09 remain pending. Previous exact head `581e70942865db507c9c68ed4c891ea9ae845275` passed [CI run 40086277814](https://github.com/ibrahima-isi/amea/actions/runs/40086277814); current head requires its own CI. PR stays draft.
+
+## Ticket 07 — staff tools and shared jobs (2026-10-24)
+
+Locally verified existing staff controllers without redesign: carousel, communications, exports, settings, account administration, profile and progression. Actual disposable MySQL/two-host HTTPS proof: 84 HTTP assertions, 9 Chrome assertions, and one overlapping-worker proof (three synthetic messages delivered exactly once). PHPUnit141/241, standalone186/78/47/24 and legacyHTTP35+28 passed. [Evidence and reproduction](docs/testing/app-separation-tools.md). Jobs profile stays disabled until approved cutover disables old cron; no real SMTP/purge/production action. Integration/final code review/exact-head CI remain separate milestones.
