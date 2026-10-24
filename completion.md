@@ -9,7 +9,7 @@ Tracker: local Markdown, configured in [issue-tracker.md](docs/agents/issue-trac
 
 ## Current state
 
-Ticket 01 baseline implemented and validated locally. Ticket 02 homepage, carousel and official logo implemented and locally validated. Tickets 03–09, final integration, CI and production release remain pending.
+Tickets 01–04 are implemented and locally verified on integration. Ticket 05 independent application split and deployment rehearsal is in progress. Tickets 06–09 remain gated; final integration, exact-head CI and production release remain separate milestones.
 
 - [x] Gather UI and separation decisions and review direction B.
 - [x] Independent design builder review: no important planning gaps reported.
@@ -27,7 +27,7 @@ Mark implementation complete only after behavior is implemented and relevant che
 
 ## Blockers and next work
 
-Planning and publication are complete. Ticket 01 is implemented and locally verified. Ticket 02 is implemented and locally verified, including the official logo supplied on 2026-10-24. Tickets 03/04 are the next frontier; tickets 05–09 remain gated by dependencies. Intended logo and existing public content reuse are approved below. Production/DNS changes require explicit approval.
+Tickets 01–04 are implemented and locally verified, including the official logo supplied on 2026-10-24. Ticket 05 is in progress; tickets 06/07 remain gated by 05 and 08/09 by their documented dependencies. Public content reuse is approved. Production/DNS changes require explicit approval.
 
 ## Asset and content approvals — 2026-10-23
 
@@ -42,15 +42,15 @@ Existing Dockerfile and .dockerignore edits are unrelated changes and must be pr
 
 ## Implementation progress
 
-All nine tickets and dependencies are approved and published; ticket 01 criteria are verified locally. ready-for-agent describes triage readiness; blockers determine execution eligibility.
+All nine tickets and dependencies are approved and published; tickets 01–04 criteria are verified locally. ready-for-agent describes triage readiness; blockers determine execution eligibility.
 
 | Ticket | Blocked by | Status | Evidence / PR |
 |---|---|---|---|
 | [01 — Characterize member and staff journeys](.scratch/ui-and-app-separation/issues/01-characterize-member-and-staff-journeys.md) | None | Implemented; locally verified | HTTP baseline + PHP regressions; see evidence below |
 | [02 — Deliver the community homepage](.scratch/ui-and-app-separation/issues/02-deliver-community-homepage.md) | 01 | Implemented; locally verified | [Local evidence](docs/testing/community-homepage.md) |
-| [03 — Modernize registration through confirmation](.scratch/ui-and-app-separation/issues/03-modernize-registration-confirmation.md) | 02 | Published; not started | None |
-| [04 — Modernize secure completion, correction, and consent](.scratch/ui-and-app-separation/issues/04-modernize-completion-correction-consent.md) | 02 | Published; not started | None |
-| [05 — Rehearse independently deployed public and staff login](.scratch/ui-and-app-separation/issues/05-rehearse-independent-apps-login.md) | 03, 04 | Published; not started | None |
+| [03 — Modernize registration through confirmation](.scratch/ui-and-app-separation/issues/03-modernize-registration-confirmation.md) | 02 | Implemented; locally verified | See journey evidence below |
+| [04 — Modernize secure completion, correction, and consent](.scratch/ui-and-app-separation/issues/04-modernize-completion-correction-consent.md) | 02 | Implemented; locally verified | See journey evidence below |
+| [05 — Rehearse independently deployed public and staff login](.scratch/ui-and-app-separation/issues/05-rehearse-independent-apps-login.md) | 03, 04 | In progress | Independent application split/rehearsal underway |
 | [06 — Move staff member review and private documents](.scratch/ui-and-app-separation/issues/06-move-staff-member-document-management.md) | 05 | Published; not started | None |
 | [07 — Move staff content and operational tools](.scratch/ui-and-app-separation/issues/07-move-staff-operational-tools.md) | 05 | Published; not started | None |
 | [08 — Preserve links and finish route isolation](.scratch/ui-and-app-separation/issues/08-preserve-links-route-isolation.md) | 06, 07 | Published; not started | None |
@@ -128,3 +128,9 @@ Ticket04 typography follow-up: after ticket03's shared H1 sans-serif correction,
 ## Partial review — tickets 03/04 (2026-10-24)
 
 Independent Spec review found no deviations; Standards review found no violations and identified one P3 duplicated HTTP harness. Extracted the existing disposable copy, sanitized process environment, loopback server lifecycle/cleanup, independent cookie clients, multipart requests and CSRF helpers into test-only `tests/http/harness.py`. Both entry points retain their journey assertions; token fixtures remain opt-in. Reran registration HTTP35 and token HTTP28 successfully after the extraction. Browser layouts and production code were unchanged; earlier screenshot evidence remains applicable. Full-spec review remains pending later tickets.
+
+## Integration status and reviews — 2026-10-24
+
+Tickets 03/04 are integrated and locally verified. Standards review found no hard issues; Spec review found no confirmed deviations. The P3 duplication finding was fixed by shared `tests/http/harness.py`; rerun baseline 35 HTTP and token 28 HTTP assertions passed. Review fixes do not qualify a new token TTL; existing invalid/revoked/status checks remain the documented boundary.
+
+Official-logo integration head `178994c1ca1327b6efc28c934fa4b6b6db4de58b` passed [CI run 40052482901](https://github.com/ibrahima-isi/amea/actions/runs/40052482901). Tickets 03/04 and subsequent documentation require exact-head remote CI; none is claimed here. Ticket 05 is in progress; 06/07 remain gated. Full-spec completion and production release are not claimed.
