@@ -2,7 +2,7 @@
 .public-form-page { --bs-body-color:var(--public-text); --bs-body-bg:var(--public-surface); --bs-secondary-color:var(--public-muted); --bs-tertiary-bg:var(--public-soft); --bs-border-color:var(--public-line); color:var(--public-text); }
 .public-form-page .card { background:var(--public-surface); color:var(--public-text); border:1px solid var(--public-line); border-radius:12px; box-shadow:none!important; }
 .public-form-page .card-header { background:var(--public-soft); padding:2rem; border-bottom:1px solid var(--public-line); }
-.public-form-page h1 { max-width:30ch; color:var(--public-text); font-family:Georgia,serif; line-height:1.2; }
+.public-form-page h1 { max-width:30ch; color:var(--public-text); font-family:inherit; line-height:1.2; }
 .public-form-page .card-body { padding:2rem; }
 .public-form-page .text-muted,.public-form-page .form-text { color:var(--public-muted)!important; }
 .public-form-page .form-control,.public-form-page .form-select { background-color:var(--public-surface); color:var(--public-text); border-color:var(--public-line); min-height:44px; }
