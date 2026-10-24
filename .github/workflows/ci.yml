@@ -17,6 +17,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  apps-rehearsal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Rehearse isolated public and staff targets
+        env:
+          AMEA_SKIP_BROWSER: '1'
+        run: bash tests/apps/run.sh
+
   # Regression checks only; no deployment.
   # The test suite uses SQLite in-memory, so it needs no secrets and no database.
   test:
