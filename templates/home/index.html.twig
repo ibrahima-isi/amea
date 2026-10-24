@@ -16,7 +16,7 @@
             <figcaption><span>La vie de notre communauté</span>{% if image.caption %}<p>{{ image.caption }}</p>{% endif %}</figcaption>
         </figure>
         {% else %}
-        <div class="community-empty">{% if public_logo_available %}<img src="{{ asset('assets/img/logo.png') }}" alt="" width="160" height="160">{% else %}<strong class="empty-brand">AEESGS</strong>{% endif %}<p>Élèves, étudiants et stagiaires guinéens au Sénégal</p><span>La vie de notre communauté, bientôt en images.</span></div>
+        <div class="community-empty">{% if public_logo_available %}<img src="{{ asset('assets/img/logo.png') }}" alt="" width="960" height="677">{% else %}<strong class="empty-brand">AEESGS</strong>{% endif %}<p>Élèves, étudiants et stagiaires guinéens au Sénégal</p><span>La vie de notre communauté, bientôt en images.</span></div>
         {% endfor %}
         {% if slider_images|length > 1 %}
         <div class="gallery-controls" hidden>

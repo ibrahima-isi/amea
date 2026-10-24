@@ -9,7 +9,7 @@ Tracker: local Markdown, configured in [issue-tracker.md](docs/agents/issue-trac
 
 ## Current state
 
-Ticket 01 baseline implemented and validated locally. Ticket 02 UI/carousel implemented and locally validated; verified logo remains blocked. Tickets 03–09, final integration, CI and production release remain pending.
+Ticket 01 baseline implemented and validated locally. Ticket 02 homepage, carousel and official logo implemented and locally validated. Tickets 03–09, final integration, CI and production release remain pending.
 
 - [x] Gather UI and separation decisions and review direction B.
 - [x] Independent design builder review: no important planning gaps reported.
@@ -27,7 +27,7 @@ Mark implementation complete only after behavior is implemented and relevant che
 
 ## Blockers and next work
 
-Planning and publication are complete. Ticket 01 is implemented and locally verified. Ticket 02 UI/carousel is locally validated, but a valid official logo file is missing. Tickets 03–09 remain gated by dependencies. Intended logo and existing public content reuse are approved below. Production/DNS changes require explicit approval.
+Planning and publication are complete. Ticket 01 is implemented and locally verified. Ticket 02 is implemented and locally verified, including the official logo supplied on 2026-10-24. Tickets 03/04 are the next frontier; tickets 05–09 remain gated by dependencies. Intended logo and existing public content reuse are approved below. Production/DNS changes require explicit approval.
 
 ## Asset and content approvals — 2026-10-23
 
@@ -47,7 +47,7 @@ All nine tickets and dependencies are approved and published; ticket 01 criteria
 | Ticket | Blocked by | Status | Evidence / PR |
 |---|---|---|---|
 | [01 — Characterize member and staff journeys](.scratch/ui-and-app-separation/issues/01-characterize-member-and-staff-journeys.md) | None | Implemented; locally verified | HTTP baseline + PHP regressions; see evidence below |
-| [02 — Deliver the community homepage](.scratch/ui-and-app-separation/issues/02-deliver-community-homepage.md) | 01 | Implemented; logo criterion blocked | [Local evidence](docs/testing/community-homepage.md) |
+| [02 — Deliver the community homepage](.scratch/ui-and-app-separation/issues/02-deliver-community-homepage.md) | 01 | Implemented; locally verified | [Local evidence](docs/testing/community-homepage.md) |
 | [03 — Modernize registration through confirmation](.scratch/ui-and-app-separation/issues/03-modernize-registration-confirmation.md) | 02 | Published; not started | None |
 | [04 — Modernize secure completion, correction, and consent](.scratch/ui-and-app-separation/issues/04-modernize-completion-correction-consent.md) | 02 | Published; not started | None |
 | [05 — Rehearse independently deployed public and staff login](.scratch/ui-and-app-separation/issues/05-rehearse-independent-apps-login.md) | 03, 04 | Published; not started | None |
@@ -88,12 +88,21 @@ Implemented direction B on `feat/ui-separation-02`: independent reusable public 
 
 TDD: homepage identity/empty-state HTTP tracer failed before template changes; real permitted staff photo upload failed with NOT NULL image_path before the one-key uploader fix, then passed. Final combined suite: 27 HTTP assertions and 26 real-browser assertions passed. Browser/HTTP evidence and four inspected screenshots: [community homepage](docs/testing/community-homepage.md). PHPUnit 140/240 passed with 10 existing deprecations; standalone permissions47/OOP186/integration78/password24 all passed. Changed PHP syntax and whitespace passed. Ticket01 integration head `3f5bd785` CI passed [run40026239502](https://github.com/ibrahima-isi/amea/actions/runs/40026239502) per parent verification; ticket02 remote CI remains unclaimed.
 
-**Blocked acceptance criterion:** current `assets/img/logo.png` is invalid ASCII `fakeimage` (9 bytes), despite approval of the intended logo path. Templates use AEESGS textual fallback; a decodable official logo is still required. Parent requested its correct path/link. Ticket02 is not fully resolved and tickets03/04 remain gated. No production changes or release performed.
+**Historical blocker (resolved 2026-10-24):** at the 2026-10-23 partial delivery, `assets/img/logo.png` was invalid ASCII `fakeimage` (9 bytes), despite approval of the intended logo path. Templates used AEESGS textual fallback; a decodable official logo was required. Parent requested its correct path/link. Ticket02 was not fully resolved and tickets03/04 remained gated at that revision. No production changes or release performed.
 
-Ticket02 review follow-up: actual Chrome at320px verified full-document width and paused carousel button bounds; no clipping reproduced, no CSS change needed. Two retained browser assertions added; combined suite27 HTTP/26 browser passed. Logo remains the only ticket02 blocker.
+Ticket02 review follow-up: actual Chrome at320px verified full-document width and paused carousel button bounds; no clipping reproduced, no CSS change needed. Two retained browser assertions added; combined suite27 HTTP/26 browser passed. At that partial revision, the logo remained the only ticket02 blocker (resolved below).
 
 ## Partial integration review — 2026-10-23
 
 Standards review reported no actionable findings. Spec review reported no confirmed deviations beyond the explicit logo blocker. Focused Chrome verification confirmed headline/control fit at 320px without document overflow or carousel controls outside bounds; no CSS fix was needed. These partial reviews do not resolve ticket 02's logo blocker or complete the full specification or release qualification.
 
 Partial ticket 02 integration head `363293a1e88e88733d179fdc173c0dff7eebbfef` passed [CI run 40027550070](https://github.com/ibrahima-isi/amea/actions/runs/40027550070). This evidence applies only to that revision; subsequent fixes and handoff documentation require fresh exact-head CI before claiming their remote validation.
+
+
+## Ticket 02 — official logo completion (2026-10-24)
+
+The user supplied the official 960×677 PNG. Its exact original bytes replace the invalid file in `assets/img/logo.png`; SHA-256 `7411e10e3ec99af4cd2a9d739b30921e85287dc7651e2a09a1001fb06f0e7d75`. No generated, cropped or edited logo was substituted. Header and empty-state sizing preserve the complete image aspect ratio in both themes; circular cropping was removed.
+
+TDD: a real-browser decoded-logo assertion failed against the old invalid asset, then passed with the supplied PNG. Final local run: 27 HTTP assertions and 32 Chrome assertions passed, including image decoding/original dimensions and uncropped aspect ratio across single/multiple/empty states, both themes, 320px/mobile/desktop, keyboard and carousel behavior. Four screenshots refreshed and inspected. PHPUnit140 tests/240 assertions passed with10 existing deprecations; standalone permissions47/47, OOP186/186, integration78/78, password24/24 passed. Whitespace and byte-for-byte source comparison passed.
+
+All ticket02 acceptance criteria are now verified locally. Active logo blocker removed; tickets03/04 are next. Remote exact-head CI, integration merge, full-spec validation and production release remain separate pending milestones.

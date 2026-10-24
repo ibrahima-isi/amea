@@ -14,8 +14,8 @@
 
 - [x] Neutral surfaces, Guinea accents, responsive layout, keyboard focus, and reduced motion match the selected direction.
 - [x] Staff photo/caption edits appear publicly; autoplay, pause, manual controls, and empty/single-image states work.
-- [ ] Use reviewed public media and a verified real logo; unresolved assets remain explicit blockers.
+- [x] Use reviewed public media and a verified real logo; unresolved assets remain explicit blockers.
 
 ## Execution evidence
 
-Implemented and locally verified UI/carousel behavior; see [browser and HTTP evidence](../../../docs/testing/community-homepage.md) and root completion.md. Ticket remains incomplete: approved logo path contains invalid ASCII bytes, so the verified-real-logo criterion is blocked pending a valid asset.
+Implemented and locally verified UI/carousel behavior; see [browser and HTTP evidence](../../../docs/testing/community-homepage.md) and root completion.md. Completed locally on 2026-10-24: user-supplied official PNG copied unchanged and decoded/uncropped display verified in the browser. All criteria checked after 27 HTTP and 32 Chrome assertions plus PHP regressions passed. See completion.md for exact validation and pending integration/CI milestones.
