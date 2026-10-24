@@ -109,9 +109,9 @@ h3 {
 }
 .public-brand img {
     object-fit:contain;
-    border-radius:50%;
+    width:76px;
+    height:auto;
     background:white;
-    padding:3px;
 }
 .public-brand small {
     display:block;
@@ -285,7 +285,8 @@ h3 {
     background:var(--public-soft);
 }
 .community-empty img {
-    border-radius:50%;
+    width:160px;
+    height:auto;
     margin-bottom:2rem;
     background:#fff;
 }
@@ -443,8 +444,8 @@ h3 {
         font-size:1.2rem;
     }
     .public-brand img {
-        width:44px;
-        height:44px;
+        width:64px;
+        height:auto;
     }
     .public-nav nav {
         order:3;

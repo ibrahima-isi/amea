@@ -36,6 +36,8 @@ try {
     await cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'light'},{name:'prefers-reduced-motion',value:'no-preference'}]});
     await navigate();
     await check("document.documentElement.dataset.bsTheme === 'light'",'light theme follows device');
+    await check("(() => {const logo=document.querySelector('.public-brand img');return !!logo&&logo.complete&&logo.naturalWidth===960&&logo.naturalHeight===677;})()",'official logo decodes at its original dimensions');
+    await check("[...document.querySelectorAll('.public-brand img, .community-empty img')].every(img=>{const r=img.getBoundingClientRect();return Math.abs(r.width/r.height-960/677)<.01&&getComputedStyle(img).borderRadius==='0px';})",'official logo keeps its full uncropped aspect ratio');
     if (state !== 'multiple') {
         await check("!document.querySelector('[data-carousel-pause]')", `${state} state has no rotation controls`);
         await check("document.documentElement.scrollWidth <= innerWidth", `${state} state has no overflow`);
