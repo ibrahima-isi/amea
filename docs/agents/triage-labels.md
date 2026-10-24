@@ -1,6 +1,6 @@
 # Triage Labels
 
-The skills speak in terms of five canonical triage roles. This file maps those roles to the actual label strings used in this repo's issue tracker. Labels are recorded as a `Status:` line near the top of each ticket file (e.g. `Status: ready-for-agent`).
+The skills speak in terms of five canonical triage roles. This file maps those roles to the actual label strings used in this repo's issue tracker.
 
 | Label in mattpocock/skills | Label in our tracker | Meaning                                  |
 | -------------------------- | -------------------- | ---------------------------------------- |
@@ -12,6 +12,4 @@ The skills speak in terms of five canonical triage roles. This file maps those r
 
 When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the corresponding label string from this table.
 
-Triage state (`Status:` in the ticket) and delivery progress (`Progress` in `completion.md`) are separate: a ticket is triaged once, then moves `todo` → `done` in `completion.md`.
-
-Edit the "Label in our tracker" column to match whatever vocabulary you actually use.
+These are local Status values; no remote labels are created. Implementation progress is recorded separately in completion.md.

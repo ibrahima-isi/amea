@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AEESGS{% endblock %}</title>
+    <script src="{{ asset('assets/js/theme.js') }}"></script>
+    {% block base_stylesheets %}{% endblock %}
+    <link rel="stylesheet" href="{{ asset('assets/css/public.css') }}">
+    {% block stylesheets %}{% endblock %}
+</head>
+<body class="public-site">
+    <a class="skip-link" href="#main-content">Aller au contenu</a>
+    {% if flash %}<script id="flash-data" type="application/json">{{ flash|json_encode(15)|raw }}</script>
+    <div class="public-flash" role="status">{{ flash.message }}</div>{% endif %}
+    <header class="public-header">
+        <div class="public-container public-nav">
+            <a class="public-brand" href="/" aria-label="AEESGS, accueil">{% if public_logo_available %}<img src="{{ asset('assets/img/logo.png') }}" width="960" height="677" alt="">{% endif %}<span>AEESGS<small>Guinéens au Sénégal</small></span></a>
+            <nav aria-label="Navigation principale"><a href="/#association">L’association</a><a href="register.php">S’enregistrer</a></nav>
+            <button class="theme-switcher public-theme" type="button"><span class="theme-label">Changer le thème</span></button>
+        </div>
+    </header>
+    <main id="main-content" tabindex="-1">{% block body %}{% endblock %}</main>
+    <footer class="public-footer">
+        <div class="public-container footer-grid">
+            <div><a class="public-brand" href="/">AEESGS</a><p>Plateforme de recensement des élèves, étudiants et stagiaires guinéens au Sénégal.</p></div>
+            <nav aria-label="Liens utiles"><a href="register.php">S’enregistrer</a><a href="legal-notice.php">Mentions légales</a><a href="login.php">Connexion</a>{% if session.user_id %}<a href="dashboard.php">Tableau de bord</a>{% endif %}</nav>
+            {% if settings.contact_email or settings.contact_phone %}<div><h2>Contact</h2><p>{{ settings.contact_email }}<br>{{ settings.contact_phone }}</p></div>{% endif %}
+        </div>
+        <div class="public-container footer-credit">&copy; {{ settings.year }} AEESGS. Tous droits réservés. Développé par <a href="https://gui-connect.com/">GUI CONNECT</a>.</div>
+    </footer>
+    {% block javascripts %}{% endblock %}
+</body>
+</html>

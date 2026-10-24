@@ -22,6 +22,9 @@ class EmailService
 
     public function send(string $to, string $subject, string $body, ?string $replyTo = null): bool
     {
+        if ($this->shouldSkipDelivery()) {
+            return true;
+        }
         $mail = new PHPMailer(true);
         try {
             $mail->isSMTP();

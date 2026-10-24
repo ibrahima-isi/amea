@@ -119,6 +119,52 @@ class RegistrationController extends BaseController
         ]);
     }
 
+    /**
+     * Preview only files staged by this browser's pending registration.
+     * Does not require an account; possession of the active registration session
+     * is the authorization boundary.
+     */
+    public function preview(): void
+    {
+        $type = (string)($_GET['type'] ?? '');
+        if (!in_array($type, ['identite', 'cv'], true)) {
+            http_response_code(400);
+            return;
+        }
+
+        $pending = $_SESSION['pending_registration']['db_data'] ?? [];
+        $relative = $type === 'identite'
+            ? ($pending['identity_document'] ?? null)
+            : ($pending['cv_path'] ?? null);
+
+        if (!is_string($relative) || $relative === '') {
+            http_response_code(404);
+            return;
+        }
+
+        $root = realpath(__DIR__ . '/../../uploads/students/pending');
+        $file = realpath(__DIR__ . '/../../' . ltrim($relative, '/'));
+        if ($root === false || $file === false
+            || !str_starts_with($file, $root . DIRECTORY_SEPARATOR)
+            || !is_file($file)) {
+            http_response_code(404);
+            return;
+        }
+
+        $mime = mime_content_type($file);
+        if (!in_array($mime, ['image/jpeg', 'image/png', 'application/pdf'], true)) {
+            http_response_code(415);
+            return;
+        }
+
+        header('Content-Type: ' . $mime);
+        header('Content-Disposition: inline');
+        header('Content-Length: ' . filesize($file));
+        header('Cache-Control: private, no-store');
+        header('X-Content-Type-Options: nosniff');
+        readfile($file);
+    }
+
     public function confirm(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
