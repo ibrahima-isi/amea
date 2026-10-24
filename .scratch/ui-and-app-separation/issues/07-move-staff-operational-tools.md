@@ -12,6 +12,10 @@
 
 ## Acceptance criteria
 
-- [ ] Existing tool permissions and user-visible behavior are preserved without staff redesign.
-- [ ] Carousel changes appear publicly; exports stay authorized; email behavior is tested through safe substitutes.
-- [ ] One shared background-job owner is configured and duplicate execution is checked.
+- [x] Existing tool permissions and user-visible behavior are preserved without staff redesign.
+- [x] Carousel changes appear publicly; exports stay authorized; email behavior is tested through safe substitutes.
+- [x] One shared background-job owner is configured and duplicate execution is checked.
+
+## Execution evidence
+
+Locally verified and integrated: [staff tools and shared jobs proof](../../../docs/testing/app-separation-tools.md), 84 HTTP checks, 9 Chrome checks and one concurrent-worker proof with three synthetic messages exactly once. Full-spec review and exact-head CI remain separate milestones.

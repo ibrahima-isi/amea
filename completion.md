@@ -9,7 +9,7 @@ Tracker: local Markdown, configured in [issue-tracker.md](docs/agents/issue-trac
 
 ## Current state
 
-Tickets 01–04 are integrated and locally verified; ticket 05 is implemented and locally verified for integration. Tickets 06/07 are the next frontier; 08/09 retain their blockers; final integration, exact-head CI and production release remain separate milestones.
+Tickets 01–07 are integrated and locally verified. Ticket 08 is the next frontier; ticket 09 remains blocked by 08. Final fresh-image qualification, full-spec code review, exact-head CI and production release remain separate milestones.
 
 - [x] Gather UI and separation decisions and review direction B.
 - [x] Independent design builder review: no important planning gaps reported.
@@ -27,7 +27,7 @@ Mark implementation complete only after behavior is implemented and relevant che
 
 ## Blockers and next work
 
-Tickets 01–04 are implemented and locally verified, including the official logo supplied on 2026-10-24. Ticket 05 local qualification passed; integrate it before starting 06/07, then preserve 08/09 dependencies. Further implementer/reviewer delegation is blocked by the tool usage limit. Public content reuse is approved. Production/DNS changes require explicit approval.
+Tickets 01–07 are implemented, integrated and locally verified, including the supplied official logo. Proceed with ticket 08, then 09 and the final independent Standards/Spec code review. Ticket 06 merged behavior passed using cached images and read-only source mounts after a Docker Hub composer metadata timeout; a final fresh build remains mandatory in 09/CI. Agent capacity is available. Production/DNS changes require explicit approval.
 
 ## Asset and content approvals — 2026-10-23
 
@@ -42,7 +42,7 @@ Existing Dockerfile and .dockerignore edits are unrelated changes and must be pr
 
 ## Implementation progress
 
-All nine tickets and dependencies are approved and published; tickets 01–05 criteria are verified locally. ready-for-agent describes triage readiness; blockers determine execution eligibility.
+All nine tickets and dependencies are approved and published; tickets 01–07 criteria are verified locally. ready-for-agent describes triage readiness; blockers determine execution eligibility.
 
 | Ticket | Blocked by | Status | Evidence / PR |
 |---|---|---|---|
@@ -52,7 +52,7 @@ All nine tickets and dependencies are approved and published; tickets 01–05 cr
 | [04 — Modernize secure completion, correction, and consent](.scratch/ui-and-app-separation/issues/04-modernize-completion-correction-consent.md) | 02 | Implemented; locally verified | See journey evidence below |
 | [05 — Rehearse independently deployed public and staff login](.scratch/ui-and-app-separation/issues/05-rehearse-independent-apps-login.md) | 03, 04 | Implemented; locally verified | [HTTPS/MySQL evidence](docs/testing/app-separation-login.md) |
 | [06 — Move staff member review and private documents](.scratch/ui-and-app-separation/issues/06-move-staff-member-document-management.md) | 05 | Implemented; locally verified | [Member rehearsal](docs/testing/app-separation-members.md) |
-| [07 — Move staff content and operational tools](.scratch/ui-and-app-separation/issues/07-move-staff-operational-tools.md) | 05 | Implemented and locally verified; integration/review pending | [Tools proof](docs/testing/app-separation-tools.md) |
+| [07 — Move staff content and operational tools](.scratch/ui-and-app-separation/issues/07-move-staff-operational-tools.md) | 05 | Implemented; integrated and locally verified | [Tools proof](docs/testing/app-separation-tools.md) |
 | [08 — Preserve links and finish route isolation](.scratch/ui-and-app-separation/issues/08-preserve-links-route-isolation.md) | 06, 07 | Published; not started | None |
 | [09 — Verify integrated release and rehearse rollback](.scratch/ui-and-app-separation/issues/09-verify-release-rollback.md) | 08 | Published; not started | None |
 
@@ -154,3 +154,9 @@ Verified synthetic HTTPS/MySQL administration: member shared across applications
 Locally verified existing staff controllers without redesign: carousel, communications, exports, settings, account administration, profile and progression. Actual disposable MySQL/two-host HTTPS proof: 84 HTTP assertions, 9 Chrome assertions, and one overlapping-worker proof (three synthetic messages delivered exactly once). PHPUnit141/241, standalone186/78/47/24 and legacyHTTP35+28 passed. [Evidence and reproduction](docs/testing/app-separation-tools.md). Jobs profile stays disabled until approved cutover disables old cron; no real SMTP/purge/production action. Integration/final code review/exact-head CI remain separate milestones.
 
 Ticket06 integration follow-up: merged `6a77e2e`, then verified111 HTTP/schema+10 Chrome on the exact merged src/templates using cached verified PHP images with read-only mounts. Fresh build stopped before compilation at Docker Hub composer metadata timeout; no fresh final-image claim. Final build/CI remains09. Source changes and original PHP/legacy HTTP evidence are unchanged; current synthetic resources cleaned.
+
+## Integration checkpoint — tickets 06/07 (2026-10-24)
+
+Both staff tickets are integrated. Member rehearsal: 111 HTTP/schema +10 actual Chrome checks; tools: 84 HTTP +9 Chrome checks and one competing-worker proof for three synthetic messages exactly once. PHP141/241, standalone335 and legacyHTTP35+28 passed. Ticket06's latest merged behavior used cached images with explicit read-only source/template mounts after a Docker Hub metadata timeout; this is not final image qualification.
+
+Ticket05 independent Standards/Spec reviews found no confirmed deviations; exact integration head `c15218d1e87cff82b93f28ed01c47abf01785793` passed [CI run40088586043](https://github.com/ibrahima-isi/amea/actions/runs/40088586043), including test and apps-rehearsal jobs. Subsequent heads need fresh CI. Next: 08, then 09/final code review. PR stays draft; no production action.
