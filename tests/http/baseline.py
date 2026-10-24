@@ -77,6 +77,8 @@ with tempfile.TemporaryDirectory(prefix='amea-http-') as directory:
                 time.sleep(.1)
         status, _, home = request(stranger, '/')
         check(status == 200 and b'AEESGS' in home and b'community-empty' in home, 'homepage shows association identity and useful empty carousel state')
+        status, _, registration = request(member, '/register.php')
+        check(b'public-form-page' in registration and b'public-header' in registration and registration.count(b'<main') == 1, 'registration uses accessible shared public shell')
         token = csrf(member, '/register.php')
         status, headers, _ = request(member, '/register.php', {'csrf_token': 'invalid'})
         check(status == 302 and headers.get('Location') == 'register.php', 'registration rejects invalid CSRF')
