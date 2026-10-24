@@ -30,8 +30,10 @@ if __name__ == '__main__':
         status, headers, body = request(app, allowed)
         check(status == 200, app + ' allowed entry renders')
         check(request(app, denied)[0] == 404, app + ' wrong-app PHP unavailable')
-        for path in ['/.env', '/src/bootstrap.php', '/config/database.php', '/vendor/autoload.php', '/schema.sql', '/uploads/students/private.pdf', '/dashboard.php', '/index.php/dashboard.php']:
+        for path in ['/.env', '/src/bootstrap.php', '/config/database.php', '/vendor/autoload.php', '/schema.sql', '/uploads/students/private.pdf', '/index.php/dashboard.php']:
             check(request(app, path)[0] == 404, app + ' denies ' + path)
+    check(request('public', '/dashboard.php')[0] == 404, 'public denies staff dashboard')
+    check(request('staff', '/dashboard.php')[0] == 302, 'staff dashboard requires authentication')
     for app, path, method in [('public', '/legal-notice.php', 'POST'), ('public', '/registration-preview.php', 'POST'), ('public', '/register.php', 'DELETE'), ('staff', '/login.php', 'OPTIONS')]:
         check(request(app, path, method=method)[0] == 405, app + ' rejects unsupported ' + method + ' without legacy dispatch')
     check(request('public', '/assets/img/WhatsApp%20Image%202025-04-28%20at%2022.07.41_c84e18a5.jpg')[0] == 200, 'approved image filenames with spaces remain available')
