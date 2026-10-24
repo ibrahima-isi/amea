@@ -28,3 +28,5 @@
 .public-form-page a.btn-secondary,.public-form-page a.btn-warning,.public-form-page a.btn-info { color:var(--bs-btn-color); }
 .public-form-page .tagify { --readonly-striped:0; --input-color:var(--public-text); background:var(--public-surface); }
 .public-form-page .text-danger { color:var(--public-red)!important; }
+.public-form-page .btn-outline-secondary { color:var(--public-muted); border-color:var(--public-muted); }
+.public-form-page .text-primary { color:var(--public-green)!important; }
