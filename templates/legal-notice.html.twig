@@ -1,18 +1,20 @@
-{% extends 'layouts/base.html.twig' %}
+{% extends 'layouts/public-forms.html.twig' %}
 
 {% block title %}Conditions Générales d'Utilisation et Politique de Confidentialité — AEESGS{% endblock %}
 
 {% block stylesheets %}
+{{ parent() }}
 <style>
     .legal-content h3 { margin-top: 1.5rem; font-size: 1.5rem; border-bottom: 2px solid var(--bs-border-color, #eee); padding-bottom: 0.5rem; }
     .legal-content h4 { margin-top: 1.2rem; font-size: 1.2rem; }
-    .legal-content p { text-align: justify; line-height: 1.6; }
+    .legal-content p { text-align: start; line-height: 1.6; }
     .legal-content ul { padding-left: 1.5rem; }
     .legal-header { background-color: var(--bs-tertiary-bg, #f8f9fa); padding: 3rem 0; margin-bottom: 2rem; border-bottom: 1px solid var(--bs-border-color, #e9ecef); }
 </style>
 {% endblock %}
 
 {% block body %}
+<div class="public-form-page">
 <div class="legal-header text-center">
     <div class="container">
         <h1 class="display-5 fw-bold">Mentions Légales et Politique de Confidentialité</h1>
@@ -29,10 +31,10 @@
             </div>
 
             <section id="cgu">
-                <h3>1. Conditions Générales d'Utilisation (CGU)</h3>
+                <h2 class="h3">1. Conditions Générales d'Utilisation (CGU)</h2>
                 <p>L'accès et l'utilisation de la plateforme de recensement de l'Amicale des Élèves, Étudiants et Stagiaires Guinéens au Sénégal (AEESGS) sont soumis aux présentes conditions. L'inscription implique l'acceptation sans réserve de ces dernières.</p>
 
-                <h4>Objet de la plateforme</h4>
+                <h3 class="h4">Objet de la plateforme</h3>
                 <p>Cette plateforme a pour but exclusif de recenser les ressortissants guinéens (élèves, étudiants, stagiaires) résidant au Sénégal afin de faciliter :</p>
                 <ul>
                     <li>L'assistance sociale et administrative.</li>
@@ -42,24 +44,24 @@
             </section>
 
             <section id="privacy">
-                <h3>2. Politique de Confidentialité et Protection des Données</h3>
+                <h2 class="h3">2. Politique de Confidentialité et Protection des Données</h2>
                 <p>Conformément à la <strong>Loi n° 2008-12 du 25 janvier 2008</strong> portant sur la protection des données à caractère personnel au Sénégal, ainsi qu'aux directives de la CEDEAO et aux conventions de l'Union Africaine, nous nous engageons à protéger votre vie privée.</p>
 
-                <h4>Collecte et Finalité (Art. 35)</h4>
+                <h3 class="h4">Collecte et Finalité (Art. 35)</h3>
                 <p>Les données collectées (identité, contact, cursus, etc.) sont adéquates, pertinentes et non excessives au regard des finalités de gestion de la communauté estudiantine guinéenne. Elles ne sont utilisées que pour les besoins de l'association et de ses partenaires institutionnels.</p>
 
-                <h4>Consentement (Art. 4.4 et Art. 33)</h4>
+                <h3 class="h4">Consentement (Art. 4.4 et Art. 33)</h3>
                 <p>En cochant la case de consentement lors de l'inscription, vous manifestez votre volonté libre, spécifique et informée d'accepter le traitement de vos données personnelles par l'AEESGS.</p>
 
-                <h4>Sécurité des Données (Art. 71)</h4>
+                <h3 class="h4">Sécurité des Données (Art. 71)</h3>
                 <p>L'AEESGS et son équipe technique mettent en œuvre toutes les mesures techniques et organisationnelles nécessaires pour garantir la sécurité, la confidentialité et l'intégrité de vos données, et pour empêcher qu'elles ne soient déformées, endommagées ou que des tiers non autorisés y aient accès.</p>
 
-                <h4>Vos Droits (Art. 62 à 69)</h4>
+                <h3 class="h4">Vos Droits (Art. 62 à 69)</h3>
                 <p>Vous disposez à tout moment d'un droit d'accès, de rectification, et d'opposition pour motifs légitimes aux données vous concernant. Pour exercer ce droit, vous pouvez contacter le bureau exécutif de l'AEESGS ou utiliser les fonctionnalités de modification de votre profil sur la plateforme.</p>
             </section>
 
             <section id="waiver">
-                <h3>3. Clause de Non-Responsabilité et Renonciation</h3>
+                <h2 class="h3">3. Clause de Non-Responsabilité et Renonciation</h2>
                 <div class="card bg-body-secondary border-0 mb-3">
                     <div class="card-body">
                         <p class="mb-0 fw-bold text-secondary">
@@ -80,5 +82,6 @@
 
         </div>
     </div>
+</div>
 </div>
 {% endblock %}
