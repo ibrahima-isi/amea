@@ -9,7 +9,7 @@ Tracker: local Markdown, configured in [issue-tracker.md](docs/agents/issue-trac
 
 ## Current state
 
-Tickets 01–07 are integrated and locally verified. Ticket08 is implemented and locally verified for integration; ticket09 is next after that merge. Final fresh-image qualification, full-spec code review, exact-head CI and production release remain separate milestones.
+Tickets 01–08 are integrated and locally verified. Ticket09 is the next frontier. Final fresh-image qualification, full-spec code review, exact-head CI and production release remain separate milestones.
 
 - [x] Gather UI and separation decisions and review direction B.
 - [x] Independent design builder review: no important planning gaps reported.
@@ -27,7 +27,7 @@ Mark implementation complete only after behavior is implemented and relevant che
 
 ## Blockers and next work
 
-Tickets 01–07 are implemented, integrated and locally verified, including the supplied official logo. Integrate locally verified ticket08, then execute09 and the final independent Standards/Spec code review. Ticket 06 merged behavior passed using cached images and read-only source mounts after a Docker Hub composer metadata timeout; ticket08 now passed on freshly built images, including the merged06/07 code; final candidate qualification remains09. Agent capacity is available. Production/DNS changes require explicit approval.
+Tickets 01–08 are implemented, integrated and locally verified, including the supplied official logo. Execute09 and the final independent Standards/Spec code review. Ticket 06 merged behavior passed using cached images and read-only source mounts after a Docker Hub composer metadata timeout; ticket08 now passed on freshly built images, including the merged06/07 code; final candidate qualification remains09. Agent capacity is available. Production/DNS changes require explicit approval.
 
 ## Asset and content approvals — 2026-10-23
 
@@ -166,3 +166,7 @@ Ticket05 independent Standards/Spec reviews found no confirmed deviations; exact
 Fixed configured-origin legacy staff GET redirects, vetted query preservation, safe409 stale POST recovery without action replay, single-use validated local login return including expired/revoked sessions, complete explicit route/method/private/AJAX/encoded-path boundary and cross-app navigation/email origins. Public member links and existing roles/CSRF remain compatible.
 
 Final fresh-image proof:249 HTTP/schema +13 actual Chrome; tools84 HTTP +concurrent job proof; PHP141/241 (10 existing deprecations), standalone47/186/78/24 and legacy35/28 pass. [Executed evidence and screenshots](docs/testing/app-separation-links.md). No production/DNS/SMTP. Ticket09 and final independent code review/CI remain pending.
+
+## Integration checkpoint — ticket08 (2026-10-24)
+
+Ticket08 is integrated after its fresh-image qualification:249 HTTP/schema +13 Chrome, tools84 HTTP/concurrent job proof and PHP/legacy regressions. The historical06 cached-image limitation is closed by fresh ticket08 builds and by exact integration head `ff3a8abac51eda2bec3e115b603c7e788de472f8`, which passed [CI run40141368826](https://github.com/ibrahima-isi/amea/actions/runs/40141368826), including the fresh apps-rehearsal image build/member suite. Subsequent heads require fresh CI. Ticket09 and final full-spec Standards/Spec code review remain pending.
