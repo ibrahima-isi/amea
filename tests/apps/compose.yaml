@@ -24,6 +24,7 @@ services:
       DB_USER: amea
       DB_PASS: synthetic-only
       APP_ENV: test
+      PUBLIC_APP_URL: https://public.amea.test:${AMEA_PUBLIC_PORT:-18443}
       APP_URL: https://public.amea.test:${AMEA_PUBLIC_PORT:-18443}
     volumes:
       - uploads:/opt/amea/uploads
@@ -44,6 +45,21 @@ services:
       - uploads:/opt/amea/uploads
       - storage:/opt/amea/storage
       - staff_sessions:/var/lib/amea/sessions
+    depends_on:
+      mysql:
+        condition: service_healthy
+  jobs:
+    profiles: [jobs]
+    build:
+      context: ../..
+      dockerfile: docker/Dockerfile.apps
+      target: jobs
+    environment:
+      <<: *environment
+      AMEA_TRASH_BACKUP_CONFIRMED: '0'
+    volumes:
+      - uploads:/opt/amea/uploads
+      - storage:/opt/amea/storage
     depends_on:
       mysql:
         condition: service_healthy
