@@ -21,3 +21,5 @@ Chrome: 61 assertions cover correction, consent and legal pages at 1440px, 390px
 ## Boundaries
 
 Review tokens have no elapsed-time TTL in the existing schema/repository. “Invalid or expired” is qualified here through absent/revoked/deleted/status-invalid records; no time-based expiry is claimed or introduced. Refusal/deletion request preserves existing behavior: request notification is acknowledged without deleting the record; real SMTP delivery is untested. HTTP uses loopback sessions and SQLite fixtures, so it does not qualify TLS cookies, MySQL, two-app isolation, deployment or persistence. Those remain later tickets.
+
+Typography follow-up: shared public form headings inherit the approved B sans-serif font. The token HTTP28/Chrome61 suite was rerun and all12 captures refreshed after that shared CSS correction; no PHP behavior changed.
