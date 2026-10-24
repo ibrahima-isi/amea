@@ -12,6 +12,10 @@
 
 ## Acceptance criteria
 
-- [ ] Business rules and URLs stay unchanged; validation retains valid input.
-- [ ] Only the owning member session can preview staged files.
-- [ ] Registration and staff editing retain aligned fields/rules; evidence covers both themes and mobile/keyboard use.
+- [x] Business rules and URLs stay unchanged; validation retains valid input.
+- [x] Only the owning member session can preview staged files.
+- [x] Registration and staff editing retain aligned fields/rules; evidence covers both themes and mobile/keyboard use.
+
+## Verification
+
+Implemented on `feat/ui-separation-03`. Evidence: [registration public journey](../../../docs/testing/registration-public-journey.md); execution and limits recorded in root completion.md. Local validation complete; integration/remote CI/release tracked separately.
