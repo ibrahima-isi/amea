@@ -11,7 +11,7 @@ $root = realpath(__DIR__ . '/../..');
 $file = realpath($root . $path);
 $publicAsset = str_starts_with($path, '/assets/') || str_starts_with($path, '/uploads/slider/');
 if ($publicAsset && $file && str_starts_with($file, $root . '/') && is_file($file)) {
-    $types = ['css' => 'text/css', 'js' => 'application/javascript', 'png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'webp' => 'image/webp'];
+    $types = ['json' => 'application/json', 'css' => 'text/css', 'js' => 'application/javascript', 'png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'webp' => 'image/webp'];
     $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
     if (isset($types[$ext])) {
         header('Content-Type: ' . $types[$ext]);
