@@ -27,12 +27,16 @@
               <div class="row">
                 <div class="col-md-4 text-center mb-4">
                   <div class="mb-3">
+                    {% if student.identityDocument and student.identityDocument|lower|slice(-3) == 'pdf' %}
+                    <a class="btn btn-outline-secondary" href="registration-preview.php?type=identite" target="_blank" rel="noopener">Voir ma pièce d’identité (PDF)</a>
+                    {% else %}
                     <img
                       src="{{ student.identityDocument ? 'registration-preview.php?type=identite' : asset('assets/img/placeholder.png') }}"
-                      alt="Photo d'identité"
+                      alt="Pièce d’identité"
                       class="img-thumbnail rounded-circle shadow-sm"
                       style="width: 150px; height: 150px; object-fit: cover"
                     />
+                    {% endif %}
                   </div>
                   <h3 class="text-primary">{{ student.firstName }} {{ student.lastName }}</h3>
                   <p class="text-muted mb-1">{{ student.status }}</p>
