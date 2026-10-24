@@ -9,12 +9,12 @@
 - Ticket 01 is implemented and locally verified. Its integration head `3f5bd785cbaf7ecdd121120c4774861cd72c7baa` passed [CI run 40026239502](https://github.com/ibrahima-isi/amea/actions/runs/40026239502).
 - Ticket 02 homepage and official logo are integrated and locally verified: 27 HTTP / 32 Chrome assertions plus PHP regressions; see [homepage evidence](docs/testing/community-homepage.md). Exact logo integration head `178994c1ca1327b6efc28c934fa4b6b6db4de58b` passed [CI run 40052482901](https://github.com/ibrahima-isi/amea/actions/runs/40052482901).
 - Tickets 03/04 are integrated and locally verified: registration 35 HTTP / 12 Chrome assertions, completion/correction/consent 28 HTTP / 61 Chrome assertions, PHP regressions and refreshed screenshots. Standards/Spec reviews found no remaining confirmed issues; the P3 shared HTTP harness finding is fixed and both HTTP suites passed again.
-- Ticket 05 independent public/staff application split and deployment rehearsal is in progress. Tickets 06/07 remain gated by 05; 08/09 retain their documented dependencies. Exact-head remote CI for 03/04 and subsequent revisions remains pending; full-spec completion, release and rollback qualification are incomplete.
+- Ticket 05 is implemented and locally verified: 76 HTTP/schema checks and 8 HTTPS Chrome checks plus legacy/PHP regressions; see docs/testing/app-separation-login.md. New staff target is authentication-only and cannot replace current administration yet. Tickets 06/07 are next after integration, then 08/09. Agent capacity is available again; independent review of 05 and remaining delegation are pending. Full-spec completion, release and rollback qualification are incomplete. Exact head 581e709 passed CI run 40086277814; later heads require fresh CI.
 
 ## Resume from here
 
-1. Complete and validate ticket 05, using `docker/Dockerfile.apps` to preserve the user's existing Dockerfile edits.
-2. Continue 06/07, then 08 and 09 when their blockers are verified complete. Use isolated implementer worktrees and integration merges.
+1. Integrate the locally verified ticket 05 checkpoint and verify exact-head CI. Run its independent review; original Dockerfile edits remain preserved.
+2. Resume implementer delegation. Continue 06/07, then 08 and 09 when their blockers are verified complete. Use isolated implementer worktrees and integration merges.
 3. Keep PR #13 draft until the full specification and required reviews/checks are complete. Record exact-head CI separately from local evidence, merge and release.
 
 ## Boundaries

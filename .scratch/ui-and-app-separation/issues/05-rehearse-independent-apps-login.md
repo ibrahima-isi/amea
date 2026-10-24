@@ -12,6 +12,10 @@
 
 ## Acceptance criteria
 
-- [ ] Separate build/deploy targets expose a public route set and a staff authentication surface in rehearsal.
-- [ ] Shared PHP rules and schema compatibility remain; host-scoped cookies/session storage prevent crossover.
-- [ ] Existing administration stays usable while the new staff surface is expanded; partial targets cannot be cut over prematurely.
+- [x] Separate build/deploy targets expose a public route set and a staff authentication surface in rehearsal.
+- [x] Shared PHP rules and schema compatibility remain; host-scoped cookies/session storage prevent crossover.
+- [x] Existing administration stays usable while the new staff surface is expanded; partial targets cannot be cut over prematurely.
+
+## Execution evidence
+
+Locally verified: [application/identity rehearsal](../../../docs/testing/app-separation-login.md). 76 HTTP/schema checks, 8 actual HTTPS Chrome checks, legacy HTTP 35 + token 28, PHPUnit 141/241 and standalone regressions passed. Staff target remains partial; 06/07 are the next frontier. Independent review and exact-head CI are separate pending milestones.

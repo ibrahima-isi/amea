@@ -9,7 +9,7 @@ Tracker: local Markdown, configured in [issue-tracker.md](docs/agents/issue-trac
 
 ## Current state
 
-Tickets 01–04 are implemented and locally verified on integration. Ticket 05 independent application split and deployment rehearsal is in progress. Tickets 06–09 remain gated; final integration, exact-head CI and production release remain separate milestones.
+Tickets 01–04 are integrated and locally verified; ticket 05 is implemented and locally verified for integration. Tickets 06/07 are the next frontier; 08/09 retain their blockers; final integration, exact-head CI and production release remain separate milestones.
 
 - [x] Gather UI and separation decisions and review direction B.
 - [x] Independent design builder review: no important planning gaps reported.
@@ -27,7 +27,7 @@ Mark implementation complete only after behavior is implemented and relevant che
 
 ## Blockers and next work
 
-Tickets 01–04 are implemented and locally verified, including the official logo supplied on 2026-10-24. Ticket 05 is in progress; tickets 06/07 remain gated by 05 and 08/09 by their documented dependencies. Public content reuse is approved. Production/DNS changes require explicit approval.
+Tickets 01–04 are implemented and locally verified, including the official logo supplied on 2026-10-24. Ticket 05 local qualification passed; integrate it before starting 06/07, then preserve 08/09 dependencies. Further implementer/reviewer delegation is blocked by the tool usage limit. Public content reuse is approved. Production/DNS changes require explicit approval.
 
 ## Asset and content approvals — 2026-10-23
 
@@ -42,7 +42,7 @@ Existing Dockerfile and .dockerignore edits are unrelated changes and must be pr
 
 ## Implementation progress
 
-All nine tickets and dependencies are approved and published; tickets 01–04 criteria are verified locally. ready-for-agent describes triage readiness; blockers determine execution eligibility.
+All nine tickets and dependencies are approved and published; tickets 01–05 criteria are verified locally. ready-for-agent describes triage readiness; blockers determine execution eligibility.
 
 | Ticket | Blocked by | Status | Evidence / PR |
 |---|---|---|---|
@@ -50,7 +50,7 @@ All nine tickets and dependencies are approved and published; tickets 01–04 cr
 | [02 — Deliver the community homepage](.scratch/ui-and-app-separation/issues/02-deliver-community-homepage.md) | 01 | Implemented; locally verified | [Local evidence](docs/testing/community-homepage.md) |
 | [03 — Modernize registration through confirmation](.scratch/ui-and-app-separation/issues/03-modernize-registration-confirmation.md) | 02 | Implemented; locally verified | See journey evidence below |
 | [04 — Modernize secure completion, correction, and consent](.scratch/ui-and-app-separation/issues/04-modernize-completion-correction-consent.md) | 02 | Implemented; locally verified | See journey evidence below |
-| [05 — Rehearse independently deployed public and staff login](.scratch/ui-and-app-separation/issues/05-rehearse-independent-apps-login.md) | 03, 04 | In progress | Independent application split/rehearsal underway |
+| [05 — Rehearse independently deployed public and staff login](.scratch/ui-and-app-separation/issues/05-rehearse-independent-apps-login.md) | 03, 04 | Implemented; locally verified | [HTTPS/MySQL evidence](docs/testing/app-separation-login.md) |
 | [06 — Move staff member review and private documents](.scratch/ui-and-app-separation/issues/06-move-staff-member-document-management.md) | 05 | Published; not started | None |
 | [07 — Move staff content and operational tools](.scratch/ui-and-app-separation/issues/07-move-staff-operational-tools.md) | 05 | Published; not started | None |
 | [08 — Preserve links and finish route isolation](.scratch/ui-and-app-separation/issues/08-preserve-links-route-isolation.md) | 06, 07 | Published; not started | None |
@@ -134,3 +134,11 @@ Independent Spec review found no deviations; Standards review found no violation
 Tickets 03/04 are integrated and locally verified. Standards review found no hard issues; Spec review found no confirmed deviations. The P3 duplication finding was fixed by shared `tests/http/harness.py`; rerun baseline 35 HTTP and token 28 HTTP assertions passed. Review fixes do not qualify a new token TTL; existing invalid/revoked/status checks remain the documented boundary.
 
 Official-logo integration head `178994c1ca1327b6efc28c934fa4b6b6db4de58b` passed [CI run 40052482901](https://github.com/ibrahima-isi/amea/actions/runs/40052482901). Tickets 03/04 and subsequent documentation require exact-head remote CI; none is claimed here. Ticket 05 is in progress; 06/07 remain gated. Full-spec completion and production release are not claimed.
+
+## Ticket 05 — independent identity rehearsal (2026-10-24)
+
+Separate public/staff image targets with physical web roots, route/method allowlists, separate secure host-only sessions/storage, shared database/files and preserved legacy deployment. New migration 06 expands enum compatibility without editing applied migrations, preserving existing values/order/default/collation/comment.
+
+Executed: 76 HTTP/schema checks + 8 Chrome HTTPS checks, legacy HTTP 35 + token 28, PHPUnit 141/241 (10 existing deprecations), standalone 47/186/78/24. Details: [rehearsal](docs/testing/app-separation-login.md). Synthetic resources were cleaned; no production/email/DNS actions.
+
+The root agent completed and executed the initial checkpoint while implementer capacity was unavailable; the implementer has resumed and finalized ticket 05. Independent review of 05 and remaining implementers/reviews for 06–09 remain pending. Previous exact head `581e70942865db507c9c68ed4c891ea9ae845275` passed [CI run 40086277814](https://github.com/ibrahima-isi/amea/actions/runs/40086277814); current head requires its own CI. PR stays draft.
