@@ -124,3 +124,7 @@ TDD public-shell tracer failed before implementation then passed. Local final ev
 Ticket03 visual review follow-up: removed the unintended Georgia heading override so public forms inherit the approved direction B sans typography. After integrating `c075de3`, reran35 HTTP +12 Chrome checks successfully, including320px registration/review overflow checks; refreshed eight screenshots and inspected mobile heading fit. CSS-only correction; PHP suites were not repeated for this visual-only change.
 
 Ticket04 typography follow-up: after ticket03's shared H1 sans-serif correction, reran token HTTP28/Chrome61 on the merged tree and refreshed all12 correction/consent/legal captures. No PHP change; previous PHP regression evidence remains applicable.
+
+## Partial review — tickets 03/04 (2026-10-24)
+
+Independent Spec review found no deviations; Standards review found no violations and identified one P3 duplicated HTTP harness. Extracted the existing disposable copy, sanitized process environment, loopback server lifecycle/cleanup, independent cookie clients, multipart requests and CSRF helpers into test-only `tests/http/harness.py`. Both entry points retain their journey assertions; token fixtures remain opt-in. Reran registration HTTP35 and token HTTP28 successfully after the extraction. Browser layouts and production code were unchanged; earlier screenshot evidence remains applicable. Full-spec review remains pending later tickets.
