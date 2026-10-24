@@ -365,7 +365,7 @@
               {% if formData.cv_path|default('') %}
                 <div class="mt-2">
                   CV actuel :
-                  <a href="{{ asset(formData.cv_path) }}" target="_blank" class="btn btn-sm btn-info">
+                  <a href="download.php?id={{ student.id }}&amp;type=cv" target="_blank" class="btn btn-sm btn-info">
                     <i class="fas fa-download"></i> Télécharger
                   </a>
                 </div>

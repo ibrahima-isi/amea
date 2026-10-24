@@ -22,3 +22,5 @@
 - No production, DNS, real SMTP delivery or external restoration actions have been performed or qualified by this work. Production changes require explicit approval.
 - Preserve unrelated primary-checkout edits to `Dockerfile`, `.dockerignore` and `GEMINI.md`. `CLAUDE.md` retains the user's `read AGENTS.md` redirect.
 - Current `AGENTS.md` and `docs/agents/` instructions are authoritative over conflicting historical policies. Use the local Markdown tracker; do not create remote issues.
+
+Ticket 06 locally complete: staff dashboard/members/KYC/trash/private downloads and shared public correction proven via real TLS/MySQL/Chrome; see docs/testing/app-separation-members.md. Ticket 07 runs in parallel, then 08/09 and full review. Exact-head CI remains separate.

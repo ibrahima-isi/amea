@@ -30,8 +30,8 @@ status, _, body = staff.get('/login.php', {'csrf_token': csrf, 'username': 'vali
 check(status == 200 and b'Connexion Administration' in body, 'invalid staff login stays unauthenticated')
 status, headers, _ = staff.get('/login.php', {'csrf_token': csrf, 'username': 'valid', 'password': 'Fixture-password-123!'})
 check(status == 302, 'valid staff login authenticates')
-status, _, body = staff.get('/login.php')
-check(status == 200 and b'Connexion r' in body and b'ussie' in body, 'authenticated staff has usable rehearsal landing')
+status, _, body = staff.get('/dashboard.php')
+check(status == 200 and b'Tableau' in body, 'authenticated staff has usable dashboard')
 
 # Copy even the same session ID under the target cookie name: storage must remain separate.
 public_id = public.cookie.split('=', 1)[1]

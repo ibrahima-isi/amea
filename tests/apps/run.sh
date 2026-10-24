@@ -7,7 +7,7 @@ project="${AMEA_REHEARSAL_PROJECT:-amea-ui-test-${RANDOM}-$$}"
 [[ -z "$(docker ps -aq --filter label=com.docker.compose.project="$project")" ]] || { echo "Project already exists" >&2; exit 1; }
 [[ -z "$(docker volume ls -q --filter label=com.docker.compose.project="$project")" ]] || { echo "Project volumes already exist" >&2; exit 1; }
 compose=(docker compose -p "$project" -f tests/apps/compose.yaml)
-cleanup() { "${compose[@]}" down -v --remove-orphans; }
+cleanup() { result=$?; if [[ "$result" != 0 ]]; then "${compose[@]}" logs --tail 40 public staff; fi; "${compose[@]}" down -v --remove-orphans; }
 trap cleanup EXIT
 "${compose[@]}" up -d --build
 for migration in 00_init_schema.php 01_migration_add_settings_table.php 02_migration_add_user_session_version.php 03_migration_fix_role_enum.php 04_migration_add_kyc_workflow.php 05_migration_add_soft_delete.php; do
@@ -37,6 +37,8 @@ python3 tests/apps/registration.py --legacy-enums
 python3 tests/apps/routes.py
 python3 tests/apps/journeys.py
 python3 tests/apps/registration.py
+"${compose[@]}" exec -u www-data -T staff php < tests/apps/member-fixture.php
+python3 tests/apps/members.py
 if [[ "${AMEA_SKIP_BROWSER:-0}" != "1" ]]; then
     node tests/apps/browser.mjs "${AMEA_SCREENSHOT_DIR:-/private/tmp/amea-app-browser}"
 fi

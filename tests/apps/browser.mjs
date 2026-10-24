@@ -49,13 +49,19 @@ try {
     const sent=await evaluate("fetch('/login.php').then(r=>r.text()).then(t=>t.includes('Connexion Administration'))");
     assert(sent);console.log('PASS browser: public session does not authenticate staff');
     await evaluate("document.querySelector('[name=username]').value='expired';document.querySelector('[name=password]').value='Fixture-password-123!';document.querySelector('form').submit()");
-    for(let i=0;i<100;i++){await wait(100);if(await evaluate("document.body.innerText.includes('Connexion réussie')"))break;}
-    await check("document.body.innerText.includes('Connexion réussie')", 'real browser staff login succeeds');
+    for(let i=0;i<100;i++){await wait(100);if(await evaluate("document.body.innerText.includes('Tableau de bord')"))break;}
+    await check("document.body.innerText.includes('Tableau de bord')", 'real browser staff login succeeds');
     await mkdir(out,{recursive:true});
-    let shot=await cdp('Page.captureScreenshot',{format:'png'});await writeFile(path.join(out,'staff-login-ready.png'),Buffer.from(shot.data,'base64'));
+    let shot=await cdp('Page.captureScreenshot',{format:'png'});await writeFile(path.join(out,'staff-dashboard.png'),Buffer.from(shot.data,'base64'));
+    await navigate(staff+'/students.php?search=SharedMember');
+    await check("document.body.innerText.includes('SharedMember')", 'browser member listing displays shared dossier');
+    const memberLink=await evaluate("document.querySelector('a[href*=\"student-details.php?id=\"]').getAttribute('href')");
+    await navigate(staff+'/'+memberLink);
+    await check("document.body.innerText.includes('StaffEdited')", 'browser opens corrected and edited member detail');
+    shot=await cdp('Page.captureScreenshot',{format:'png'});await writeFile(path.join(out,'staff-member-detail.png'),Buffer.from(shot.data,'base64'));
     await navigate(base+'/register.php');
     await check("!!document.querySelector('#registrationForm')", 'authenticated staff browser retains independent public journey');
-    await check("!document.body.innerText.includes('Connexion réussie')", 'staff state does not replace public registration');
+    await check("!document.body.innerText.includes('Tableau de bord')", 'staff state does not replace public registration');
     shot=await cdp('Page.captureScreenshot',{format:'png'});await writeFile(path.join(out,'public-registration-isolated.png'),Buffer.from(shot.data,'base64'));
 } finally {
     if (shutdown) await Promise.race([shutdown().catch(() => {}), new Promise(resolve => setTimeout(resolve, 1500))]);
