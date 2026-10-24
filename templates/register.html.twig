@@ -1,23 +1,24 @@
-{% extends 'layouts/base.html.twig' %}
+{% extends 'layouts/public-forms.html.twig' %}
 
 {% block title %}AEESGS - Enregistrement{% endblock %}
 
 {% block stylesheets %}
+    {{ parent() }}
     <link rel="stylesheet" href="{{ asset('assets/css/tagify.css') }}" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 {% endblock %}
 
 {% block body %}
-    <main class="py-5">
+    <div class="public-form-page py-5">
       <div class="container">
         <div class="row">
           <div class="col-lg-10 mx-auto">
             <div class="card shadow">
               <div class="card-header">
-                <h2 class="h4 mb-0">
+                <h1 class="h2 mb-0">
                   Formulaire d'enregistrement des élèves, étudiants et
                   stagiaires guinéens au Sénégal
-                </h2>
+                </h1>
               </div>
               <div class="card-body">
                 {% if is_correction %}
@@ -369,10 +370,11 @@
           </div>
         </div>
       </div>
-    </main>
+    </div>
 {% endblock %}
 
 {% block javascripts %}
+    {{ parent() }}
     <script src="https://npmcdn.com/flatpickr/dist/flatpickr.min.js"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/fr.js"></script>
     <script src="{{ asset('assets/js/tagify.min.js') }}"></script>

@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // === Flatpickr Initialization for Date de naissance ===
   const birthDateInput = document.getElementById("birth_date");
-  if (birthDateInput) {
+  if (birthDateInput && typeof flatpickr === "function") {
     flatpickr(birthDateInput, {
       locale: "fr",
       dateFormat: "Y-m-d", // The format that will be submitted with the form
