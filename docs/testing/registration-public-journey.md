@@ -7,3 +7,5 @@ Red/green: a real HTTP assertion for a shared public shell and single main landm
 Eight screenshots in `screenshots/registration-*.png` show registration and review, 1440px desktop/390px mobile, light/dark. Desktop light and mobile light/dark inspected; updated contrast of Tagify and secondary links. PDF identity uses a protected preview link rather than a broken image. Review wording distinguishes pending confirmation from successful persistence.
 
 PHPUnit140 tests/240 assertions passed (10 existing deprecations). Standalone permissions47, OOP186, integration78, password24 passed on PHP8.5.12. Remote CI, MySQL/TLS isolation, real SMTP and production release are not qualified by these checks; later isolation/release tickets own those boundaries.
+
+Visual review follow-up: public form h1 inherits the approved bold sans family; the unintended serif override was removed.35 HTTP/12 Chrome checks passed again after integrationc075de3; eight screenshots refreshed, mobile title fit inspected and320px registration/review overflow checks passed.
