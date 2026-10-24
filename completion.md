@@ -107,6 +107,14 @@ TDD: a real-browser decoded-logo assertion failed against the old invalid asset,
 
 All ticket02 acceptance criteria are now verified locally. Active logo blocker removed; tickets03/04 are next. Remote exact-head CI, integration merge, full-spec validation and production release remain separate pending milestones.
 
+## Ticket 04 — secure correction, consent and legal journeys (2026-10-24)
+
+Public correction uses ticket03's shared form shell; consent and legal pages now use the public header/footer, themed surfaces, semantic headings and visible keyboard focus. Consent actions retain their POST/CSRF/token contracts and legal content remains unchanged. Fixed existing correction GET fatal (`getAnneeArrivee` → existing `getArrivalYear`). Direct EmailService delivery now applies the existing nonproduction suppression before transport setup, making deletion-request tests safe.
+
+TDD: direct-mail sentinel failed before the suppression guard, then passed; real valid-token HTTP GET failed with the missing getter before its one-line fix, then passed. Final local qualification: token HTTP28 assertions and Chrome61 assertions,12 screenshots,1440/390/320px light/dark/reduced-motion/keyboard; see [member completion evidence](docs/testing/member-completion.md). PHPUnit141/241 passed with10 existing deprecations; standalone OOP186, integration78, permissions47, password24 passed; changed PHP syntax and whitespace passed. Remote exact-head CI, integration merge and full-spec release remain separate milestones.
+
+Existing review tokens have no time-based expiry; tested absent/revoked/deleted/status-invalid links fail safely. No TTL semantics invented. Test email is suppressed, so real delivery is not qualified. Private anonymous download remains denied. Loopback SQLite does not qualify deployment/TLS/two-app isolation.
+
 ## Ticket 03 — registration through confirmation (2026-10-24)
 
 Implemented shared public form shell, responsive light/dark registration and review, keyboard section controls, readable field errors and protected PDF identity preview. Correction shares this template with accurate correction copy and existing optional consent semantics. Staff fields/backend rules preserved; optional Flatpickr absence no longer prevents the rest of registration/staff editing JavaScript initialization. Static fixture serves the actual countries JSON.
