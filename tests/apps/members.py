@@ -33,7 +33,7 @@ for route in ['kyc-list.php','trash.php']:
 document='/download.php?id='+member_id+'&type=identite'
 check(b'Shared synthetic identity' in admin.get(document)[2], 'authorized staff downloads shared document')
 check(request('staff',document)[0] == 302, 'anonymous staff document denied')
-check(request('public',document)[0] == 404, 'public document route unavailable')
+check(request('public',document)[0] == 302 and request('public',document)[1].get('Location', '').startswith('https://staff.amea.test:'), 'public document bookmark requires staff host authentication')
 reader=Client('staff'); token=reader.csrf('/login.php')
 reader.get('/login.php',dict(csrf_token=token,username='member-reader',password='Fixture-password-123!'))
 for route in ['/edit-student.php?id='+member_id,'/kyc-list.php','/trash.php',document]:

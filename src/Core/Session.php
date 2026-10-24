@@ -40,8 +40,13 @@ class Session
     private function checkExpiry(): void
     {
         if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > self::LIFETIME) {
+            $returnTarget = StaffNavigation::requestedTarget();
             $this->destroy();
-            header('Location: ' . (defined('AMEA_APP') && AMEA_APP === 'public' ? 'register.php' : 'login.php'));
+            $login = defined('AMEA_APP') && AMEA_APP === 'public' ? 'register.php' : 'login.php';
+            if ($returnTarget !== null) {
+                $login .= '?return_to=' . rawurlencode($returnTarget);
+            }
+            header('Location: ' . $login);
             exit();
         }
         $_SESSION['last_activity'] = time();
