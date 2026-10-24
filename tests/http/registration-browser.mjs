@@ -63,6 +63,7 @@ try {
     for(let i=0;i<100;i++){await wait(100);if(await evaluate("location.pathname.includes('registration-details')"))break;}
     await check("location.pathname.includes('registration-details')",'browser submits registration to review');
     await check("!!document.querySelector('a[href=\"registration-preview.php?type=identite\"]')",'PDF identity preview is a usable protected document link');
+    await cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
     await screenshot('registration-review-mobile-light.png');
     await evaluate("document.querySelector('.theme-switcher').click()");
     await wait(300);
