@@ -12,6 +12,10 @@
 
 ## Acceptance criteria
 
-- [ ] Existing valid URLs/tokens continue working and invalid/expired links fail safely.
-- [ ] Correction and consent preserve business behavior and private-file authorization.
-- [ ] Both themes, validation, keyboard and mobile journeys are verified.
+- [x] Existing valid URLs/tokens continue working and invalid/expired links fail safely.
+- [x] Correction and consent preserve business behavior and private-file authorization.
+- [x] Both themes, validation, keyboard and mobile journeys are verified.
+
+## Completion evidence
+
+Verified locally 2026-10-24; see root `completion.md` and `docs/testing/member-completion.md`. No time-based review-token expiry exists; revoked/deleted/status-invalid links qualified. Remote CI and release remain separate.
