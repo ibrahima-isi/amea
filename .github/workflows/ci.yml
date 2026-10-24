@@ -43,4 +43,6 @@ jobs:
           ./vendor/bin/phpunit --colors=never
 
       - name: Run isolated HTTP journeys
-        run: python3 tests/http/baseline.py
+        run: |
+          python3 tests/http/baseline.py
+          python3 tests/http/tokens.py
