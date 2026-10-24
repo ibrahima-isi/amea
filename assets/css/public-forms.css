@@ -1,0 +1,27 @@
+/* Shared member journeys, using the association's public palette. */
+.public-form-page { --bs-body-color:var(--public-text); --bs-body-bg:var(--public-surface); --bs-secondary-color:var(--public-muted); --bs-tertiary-bg:var(--public-soft); --bs-border-color:var(--public-line); color:var(--public-text); }
+.public-form-page .card { background:var(--public-surface); color:var(--public-text); border:1px solid var(--public-line); border-radius:12px; box-shadow:none!important; }
+.public-form-page .card-header { background:var(--public-soft); padding:2rem; border-bottom:1px solid var(--public-line); }
+.public-form-page h1 { max-width:30ch; color:var(--public-text); font-family:Georgia,serif; line-height:1.2; }
+.public-form-page .card-body { padding:2rem; }
+.public-form-page .text-muted,.public-form-page .form-text { color:var(--public-muted)!important; }
+.public-form-page .form-control,.public-form-page .form-select { background-color:var(--public-surface); color:var(--public-text); border-color:var(--public-line); min-height:44px; }
+.public-form-page .form-label { font-weight:600; }
+.public-form-page .btn { min-height:44px; padding:.65rem 1rem; white-space:normal; }
+.public-form-page .btn-primary,.public-form-page .btn-success { background:var(--public-green); color:var(--public-on-green); border-color:var(--public-green); }
+.public-form-page a { color:var(--public-green); }
+.public-form-page .btn { text-decoration:none; }
+.public-form-page :focus-visible { outline:3px solid var(--public-focus); outline-offset:3px; }
+.public-form-page .registration-section-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; width:100%; padding:1rem 0; margin:1.5rem 0 1rem; background:none; border:0; border-bottom:2px solid var(--public-line); color:var(--public-text); text-align:left; }
+.public-form-page .registration-section-title { font-size:1.15rem; font-weight:700; }
+.public-form-page .registration-section-badge,.public-form-page .registration-toggle-meta { font-size:.85rem; color:var(--public-muted); font-weight:400; }
+.public-form-page .registration-toggle-meta { display:inline-flex; gap:.5rem; align-items:center; }
+.public-form-page .registration-section-panel { overflow:hidden; height:0; opacity:0; transition:height .2s,opacity .2s; }
+.public-form-page .registration-section-panel.is-open { opacity:1; }
+.public-form-page .detail-row { display:flex; gap:1rem; flex-wrap:wrap; border-bottom:1px solid var(--public-line); padding:.8rem 0; overflow-wrap:anywhere; }
+.public-form-page .detail-label { flex:1 1 10rem; color:var(--public-muted); font-weight:600; }
+.public-form-page .detail-value { flex:1 1 12rem; min-width:0; }
+.public-form-page .section-title { color:var(--public-green); margin:1.7rem 0 .6rem; }
+.public-form-page .tagify { --tags-border-color:var(--public-line); --tags-focus-border-color:var(--public-focus); --tag-bg:var(--public-soft); --tag-text-color:var(--public-text); width:100%; color:var(--public-text); }
+@media(max-width:575.98px) { .public-form-page .card-header,.public-form-page .card-body { padding:1.25rem; } .public-form-page .registration-section-heading { gap:.5rem; } .public-form-page .registration-toggle-label { display:none; } .public-form-page .card-footer>* { width:100%; } .public-form-page .card-footer button { width:100%; } }
+@media(prefers-reduced-motion:reduce) { .public-form-page .registration-section-panel { transition:none; } }
