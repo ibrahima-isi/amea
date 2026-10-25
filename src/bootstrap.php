@@ -29,6 +29,7 @@ $router->add('GET', '/logout.php', 'AuthController@logout');
 $router->add('GET', '/register.php', 'RegistrationController@showForm');
 $router->add('POST', '/register.php', 'RegistrationController@register');
 $router->add('GET', '/registration-details.php', 'RegistrationController@review');
+$router->add('GET', '/registration-preview.php', 'RegistrationController@preview');
 $router->add('POST', '/registration-details.php', 'RegistrationController@confirm');
 
 // Admin KYC Dashboard

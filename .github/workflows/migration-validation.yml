@@ -1,0 +1,42 @@
+name: Migration validation (no deploy)
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [infra/dokploy-migration]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  php-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo, pdo_sqlite, fileinfo
+          coverage: none
+      - name: Validate PHP syntax
+        run: |
+          find src -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          php -l registration-preview.php
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+      - name: Unit and integration tests
+        run: |
+          php tests/test_permissions_unit.php
+          php tests/test_oop_unit.php
+          php tests/test_oop_integration.php
+          php tests/test_password_reset_security.php
+          ./vendor/bin/phpunit --colors=never
+      - name: Verify migration access rules
+        run: |
+          grep -Fq 'Require all denied' docker/apache-security.conf
+          grep -Fq 'X-Forwarded-Proto' .htaccess
+          grep -Fq "RegistrationController@preview" src/bootstrap.php
+          grep -Fq 'requireAdmin()' src/Controller/DownloadController.php

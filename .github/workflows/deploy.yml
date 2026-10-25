@@ -1,14 +1,15 @@
-name: Deploy to Namecheap
+name: PHP CI (no deployment)
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
-  # ── Unit tests run on the GitHub Actions runner (no external DB needed) ──────
-  # The test suite uses SQLite in-memory, so it works without any secrets.
-  # If any test fails the deploy job is skipped entirely.
   test:
     runs-on: ubuntu-latest
     steps:
@@ -31,66 +32,3 @@ jobs:
           php tests/test_oop_integration.php
           php tests/test_password_reset_security.php
           ./vendor/bin/phpunit --colors=never
-
-  # ── Deploy only when tests pass ───────────────────────────────────────────────
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.2.5
-        env:
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASS: ${{ secrets.DB_PASS }}
-          APP_URL: ${{ secrets.APP_URL }}
-          MAIL_USER: ${{ secrets.MAIL_USER }}
-          MAIL_PASS: ${{ secrets.MAIL_PASS }}
-          APP_ENV: ${{ secrets.APP_ENV }}
-          MAIL_ASYNC: ${{ secrets.MAIL_ASYNC }}
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SERVER_PORT }}
-          envs: DB_HOST,DB_NAME,DB_USER,DB_PASS,APP_URL,MAIL_USER,MAIL_PASS,APP_ENV,MAIL_ASYNC
-          script: |
-            set -e
-            cd ~/repositories/amea
-            git fetch origin main
-            git reset --hard origin/main
-
-            echo "Downloading latest composer.phar to ensure compatibility..."
-            wget -qO composer.phar https://getcomposer.org/composer-stable.phar
-            php composer.phar install --no-dev --optimize-autoloader
-
-            rsync -a --delete \
-              --exclude='.git' \
-              --exclude='.github' \
-              --exclude='.cpanel.yml' \
-              --exclude='uploads/' \
-              --exclude='storage/' \
-              --exclude='.env' \
-              ~/repositories/amea/ ~/public_html/
-
-            # S'assurer que les fichiers de versioning ne sont jamais exposés
-            rm -rf ~/public_html/.git
-            rm -rf ~/public_html/.github
-            rm -f ~/public_html/.cpanel.yml
-
-            # Déployer le .htaccess de uploads/ (exclu du rsync pour préserver les fichiers uploadés)
-            cp ~/repositories/amea/uploads/.htaccess ~/public_html/uploads/.htaccess
-
-            # Protéger vendor/ (généré par composer, absent du repo)
-            printf "Options -Indexes\nOrder Deny,Allow\nDeny from all\n" > ~/public_html/vendor/.htaccess
-
-            # Écriture du .env depuis les secrets GitHub
-            # MAIL_ASYNC: vide/absent ⇒ envoi synchrone (défaut sûr) ; "1" ⇒ file d'attente
-            printf "DB_HOST=%s\nDB_NAME=%s\nDB_USER=%s\nDB_PASS=%s\nAPP_URL=%s\nMAIL_USER=%s\nMAIL_PASS=%s\nAPP_ENV=%s\nMAIL_ASYNC=%s\n" \
-              "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" "$APP_URL" "$MAIL_USER" "$MAIL_PASS" "$APP_ENV" "$MAIL_ASYNC" \
-              > ~/public_html/.env
-            chmod 600 ~/public_html/.env
-
-            find ~/public_html -type d -exec chmod 755 {} \;
-            find ~/public_html -type f -not -name '.env' -exec chmod 644 {} \;
