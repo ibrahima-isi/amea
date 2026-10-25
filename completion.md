@@ -9,7 +9,7 @@ Tracker: local Markdown, configured in [issue-tracker.md](docs/agents/issue-trac
 
 ## Current state
 
-Tickets 01–08 are integrated and locally verified; ticket09 final local qualification is complete for integration. All nine implementation criteria are verified locally. Full-spec independent code review, exact-head CI, merge and production release remain separate milestones.
+Tickets 01–09 are integrated and locally verified. All nine implementation criteria are verified locally. Full-spec independent code review, exact-head CI, merge and production release remain separate milestones.
 
 - [x] Gather UI and separation decisions and review direction B.
 - [x] Independent design builder review: no important planning gaps reported.
@@ -27,7 +27,7 @@ Mark implementation complete only after behavior is implemented and relevant che
 
 ## Blockers and next work
 
-All nine tickets are implemented and locally verified; integrate09, then run the requested full independent Standards/Spec review and address its findings. Exact-head CI must be verified before PR readiness. Production MariaDB/storage/backups/SMTP/DNS and cutover remain explicitly unqualified and require approval; see the rollout runbook. No production action is part of this delivery.
+All nine tickets are implemented, integrated and locally verified; run the requested full independent Standards/Spec review and address its findings. Exact-head CI must be verified before PR readiness. Production MariaDB/storage/backups/SMTP/DNS and cutover remain explicitly unqualified and require approval; see the rollout runbook. No production action is part of this delivery.
 
 ## Asset and content approvals — 2026-10-23
 
