@@ -42,3 +42,7 @@ if __name__ == '__main__':
     check(request('public', '/uploads/slider/synthetic.php.jpg')[0] in [403, 404], 'uploaded PHP filenames cannot execute')
 
     check(request('public', '/uploads/slider/synthetic-private')[0] in [403, 404], 'extensionless slider files are unavailable')
+
+    for app in ['public', 'staff']:
+        for method in ['TRACE', 'PATCH', 'PUT']:
+            check(request(app, '/register.php' if app == 'public' else '/login.php', method=method)[0] == 405, app + ' denies unsupported ' + method)

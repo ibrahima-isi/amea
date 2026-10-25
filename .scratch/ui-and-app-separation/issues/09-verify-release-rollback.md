@@ -12,7 +12,11 @@
 
 ## Acceptance criteria
 
-- [ ] Build/start each target independently; replace containers and verify database/upload persistence in isolation.
-- [ ] Run full workflow/accessibility/theme/browser and PHP regression checks on the final candidate.
-- [ ] Record content/logo review, schema compatibility, backup/restore rehearsal, rollout order, rollback steps, and remaining external blockers.
-- [ ] No production/DNS/real-email actions occur without explicit approval; completion tracker separates local, CI, merge, and release evidence.
+- [x] Build/start each target independently; replace containers and verify database/upload persistence in isolation.
+- [x] Run full workflow/accessibility/theme/browser and PHP regression checks on the final candidate.
+- [x] Record content/logo review, schema compatibility, backup/restore rehearsal, rollout order, rollback steps, and remaining external blockers.
+- [x] No production/DNS/real-email actions occur without explicit approval; completion tracker separates local, CI, merge, and release evidence.
+
+## Execution evidence
+
+Locally executed qualification: [release evidence](../../../docs/testing/release-qualification.md). 352 HTTP/schema/operational +22 HTTPS Chrome checks, one competing-worker proof, full PHP and public browser regressions pass. Real image rollback/forward and separate SQL/uploads/storage restore verified through HTTP records/file hashes. Production approval and external qualifications remain outside this local delivery; final independent review and exact-head CI are separate milestones.

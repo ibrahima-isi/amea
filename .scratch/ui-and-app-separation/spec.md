@@ -2,7 +2,7 @@
 
 **Status:** ready-for-agent
 
-Published to the configured local Markdown tracker on 2026-10-23. Test boundaries and nine-ticket breakdown approved. No product implementation has started.
+Published to the configured local Markdown tracker on 2026-10-23. Test boundaries and nine-ticket breakdown approved. Implementation and validation state is recorded in the root completion.md.
 
 ## Problem Statement
 
@@ -92,4 +92,4 @@ Approved test boundaries:
 
 The agreed design is the source for detailed visual intent. Mockups are exploratory, not production code or approved final copy. The real logo and reviewed public content are release prerequisites. Before an approved production transition, verify backups and a restore path and review a rollback procedure. An isolated rehearsal can be delivered without production authorization.
 
-The configured tracker is local Markdown with five default triage statuses. Nine implementation tickets are published separately in dependency order. Read tracker configuration before changing status. Record execution evidence in the root completion record; ready-for-agent does not override blockers. No product implementation has started.
+The configured tracker is local Markdown with five default triage statuses. Nine implementation tickets are published separately in dependency order. Read tracker configuration before changing status. Record execution evidence in the root completion record; ready-for-agent does not override blockers. Implementation and validation state is recorded in the root completion.md.
