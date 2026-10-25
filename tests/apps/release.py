@@ -5,7 +5,8 @@ from http.client import HTTPException
 import routes as http
 
 project = sys.argv[1]
-assert re.fullmatch(r'amea-ui-test-[a-z0-9-]+', project)
+if not re.fullmatch(r'amea-ui-test-[a-z0-9-]+', project):
+    raise RuntimeError('Only an owned amea-ui-test-* project is accepted')
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 compose_file = ROOT / 'tests/apps/compose.yaml'
 source_env = os.environ.copy()
@@ -66,7 +67,8 @@ def storage_hash(name, env=None):
 
 for kind in ['container', 'volume']:
     args = ['docker', 'ps', '-aq', '--filter', 'label=com.docker.compose.project=' + restore_project] if kind == 'container' else ['docker', 'volume', 'ls', '-q', '--filter', 'label=com.docker.compose.project=' + restore_project]
-    assert subprocess.check_output(args).strip() == b'', 'Restore project must be fresh'
+    if subprocess.check_output(args).strip():
+        raise RuntimeError('Restore project must be fresh')
 
 with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
     directory = pathlib.Path(temporary)
