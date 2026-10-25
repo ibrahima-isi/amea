@@ -9,7 +9,7 @@ Tracker: local Markdown, configured in [issue-tracker.md](docs/agents/issue-trac
 
 ## Current state
 
-Tickets 01–09 are integrated and locally verified. All nine implementation criteria are verified locally. Full-spec independent code review, exact-head CI, merge and production release remain separate milestones.
+Tickets 01–09 are integrated and locally verified. All nine implementation criteria are verified locally. The requested full-spec independent Standards/Spec review is complete with zero actionable or confirmed findings. Exact-head CI/readiness is reported by PR13 checks and final delivery; merge and production release remain separate milestones.
 
 - [x] Gather UI and separation decisions and review direction B.
 - [x] Independent design builder review: no important planning gaps reported.
@@ -27,7 +27,7 @@ Mark implementation complete only after behavior is implemented and relevant che
 
 ## Blockers and next work
 
-All nine tickets are implemented, integrated and locally verified; run the requested full independent Standards/Spec review and address its findings. Exact-head CI must be verified before PR readiness. Production MariaDB/storage/backups/SMTP/DNS and cutover remain explicitly unqualified and require approval; see the rollout runbook. No production action is part of this delivery.
+All nine tickets are implemented, integrated and locally verified; the final independent Standards/Spec review reported zero findings. Exact delivered-head CI/readiness is available in PR13 checks and the final delivery; readiness requires successful checks. Production MariaDB/storage/backups/SMTP/DNS and cutover remain explicitly unqualified and require approval; see the rollout runbook. No production action is part of this delivery.
 
 ## Asset and content approvals — 2026-10-23
 
@@ -178,3 +178,9 @@ Fresh candidate images built and independently started; public/staff/MySQL repla
 Official logo/public content approval is retained. Existing production DB/network/volumes are external inputs to the new compose proposal; no database engine migration or production deployment is inferred. Actual MariaDB10.11, production storage/backups, SMTP, DNS and cutover remain external prerequisites. All owned rehearsal resources were cleaned.
 
 Exact ticket08 integration `7cf99d8268342ac71b5596739653e61419a0f070` passed [CI run40143965267](https://github.com/ibrahima-isi/amea/actions/runs/40143965267). The delivered09 head has its own PR checks. Full-spec independent review and any fixes follow this implementation checkpoint; PR readiness and merge are not claimed here.
+
+## Final independent code review — 2026-10-25
+
+Completed after all nine tickets on fixed source `18dcea0125bfa6e6b94b84a0b2287e6994642643`, baseline `039949a1899934a92c70d8deec79ba9c0b7203a4`: **Standards0 actionable findings; Spec0 confirmed findings**. No corrective code change was required. [Separate reports and scope](docs/testing/final-code-review.md). The recording change is documentation-only; tests were not repeated for it.
+
+Implementation, local qualification and requested final review are complete. Exact delivered-head CI and PR readiness are reported by [PR13 checks](https://github.com/ibrahima-isi/amea/pull/13/checks) and final delivery. The user controls squash merge into dev. No production approval, deployment, DNS or real SMTP action is implied.
