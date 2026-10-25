@@ -1,23 +1,24 @@
-{% extends 'layouts/base.html.twig' %}
+{% extends 'layouts/public-forms.html.twig' %}
 
 {% block title %}AEESGS - Enregistrement{% endblock %}
 
 {% block stylesheets %}
+    {{ parent() }}
     <link rel="stylesheet" href="{{ asset('assets/css/tagify.css') }}" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 {% endblock %}
 
 {% block body %}
-    <main class="py-5">
+    <div class="public-form-page py-5">
       <div class="container">
         <div class="row">
           <div class="col-lg-10 mx-auto">
             <div class="card shadow">
               <div class="card-header">
-                <h2 class="h4 mb-0">
-                  Formulaire d'enregistrement des élèves, étudiants et
-                  stagiaires guinéens au Sénégal
-                </h2>
+                <h1 class="h2 mb-0">
+                  {% if is_correction %}Corriger votre dossier{% else %}Formulaire d'enregistrement des élèves, étudiants et
+                  stagiaires guinéens au Sénégal{% endif %}
+                </h1>
               </div>
               <div class="card-body">
                 {% if is_correction %}
@@ -28,9 +29,9 @@
                 {% endif %}
 
                 <p class="text-muted mb-4">
-                  Veuillez remplir ce formulaire pour vous enregistrer dans la
+                  {% if is_correction %}Mettez à jour les informations demandées, puis enregistrez vos corrections pour une nouvelle vérification.{% else %}Veuillez remplir ce formulaire pour vous enregistrer dans la
                   base de données des élèves, étudiants et stagiaires guinéens
-                  au Sénégal.
+                  au Sénégal.{% endif %}
                 </p>
 
                 <form
@@ -339,12 +340,12 @@
 
                   <!-- Mentions légales et consentement -->
                   <h3 class="registration-section-heading">
-                    <span class="registration-section-title">Mentions légales et consentement <span class="registration-section-badge text-danger">(obligatoire)</span></span>
+                    <span class="registration-section-title">Mentions légales et consentement <span class="registration-section-badge {{ not is_correction ? 'text-danger' : '' }}">{{ is_correction ? '(optionnel)' : '(obligatoire)' }}</span></span>
                   </h3>
                   <div id="legalConsentSection" class="registration-section-panel is-open" style="height:auto; opacity:1; transform:none;" aria-hidden="false">
                     <div class="mb-4">
                       <div class="form-check {{ errors.consent_privacy ? 'is-invalid' : '' }}">
-                        <input class="form-check-input" type="checkbox" name="consent_privacy" id="consentPrivacy" value="1" {{ formData.consent_privacy ? 'checked' : '' }} required />
+                        <input class="form-check-input" type="checkbox" name="consent_privacy" id="consentPrivacy" value="1" {{ formData.consent_privacy ? 'checked' : '' }} {{ not is_correction ? 'required' : '' }} />
                         <label class="form-check-label" for="consentPrivacy">
                           J'accepte les <a href="legal-notice.php" target="_blank" class="text-decoration-underline">Conditions Générales d'Utilisation</a>
                           et la <a href="legal-notice.php#privacy" target="_blank" class="text-decoration-underline">Politique de Confidentialité</a>.
@@ -369,10 +370,11 @@
           </div>
         </div>
       </div>
-    </main>
+    </div>
 {% endblock %}
 
 {% block javascripts %}
+    {{ parent() }}
     <script src="https://npmcdn.com/flatpickr/dist/flatpickr.min.js"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/fr.js"></script>
     <script src="{{ asset('assets/js/tagify.min.js') }}"></script>

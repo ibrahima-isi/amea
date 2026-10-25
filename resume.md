@@ -1,29 +1,21 @@
 # Resume point
 
-Where to pick up work. Read this at the start of every session. Rewrite it whenever a resume point is stated and as the last step of every task, shipping the update in that task's PR. This file holds the current state only; history lives in git and in the Change log of `AGENTS.md`.
+**Last updated:** 2026-10-25, after final independent integration code review.
 
-**Last updated:** 2026-10-21, after PR #9 and `user-merges-prs` ticket 01.
+## Current state
 
-## Repository state
+- Integration branch `feat/ui-and-app-separation`; PR [#13](https://github.com/ibrahima-isi/amea/pull/13) targets protected `dev`. Authoritative scope: `.scratch/ui-and-app-separation/spec.md`; root `completion.md` records ticket evidence.
+- Tickets01–09 are integrated and locally verified. Ticket09 local qualification:352 HTTP/schema/operational checks,22 real HTTPS Chrome checks, one concurrent-worker proof. Separate public/staff/jobs builds, independent web starts, web/MySQL container replacement, real retained-image rollback/forward, and separate SQL/uploads/storage restore all pass. See `docs/testing/release-qualification.md`.
+- Final PHP141/241 (10 existing deprecations), standalone335 checks, legacy HTTP35+28 and public Chrome44+61 pass. Screenshots are under `docs/testing/screenshots/`. Official logo and public content reuse are user-approved.
+- Final independent Standards/Spec review is complete on source `18dcea0125bfa6e6b94b84a0b2287e6994642643`, baseline `039949a1899934a92c70d8deec79ba9c0b7203a4`: Standards0 actionable findings, Spec0 confirmed findings. See `docs/testing/final-code-review.md`.
+- Current exact delivered-head CI and readiness are reported by [PR13 checks](https://github.com/ibrahima-isi/amea/pull/13/checks) and final delivery; historical green runs are not evidence for later revisions.
 
-- `main` is production, at `325fe14` (last deploy 2026-06-15, CI green). `dev` is `main` plus squash commits for the agent setup (#5), CI on pull requests (#6), the promotion rules (#7), the resume file (#8, #9) and the merge policy. All of it is docs, tracker files and a CI workflow; no application code.
-- GitHub has only `dev` and `main`. Ruleset `stop-push-to-main-and-dev` guards both: PR required, squash only, signed commits, linear history, no force-push or deletion. Admins can bypass it; agents do not.
-- The user promotes `dev` to `main` personally. Agents stop once `dev` is merged and green.
-- The user merges ticket PRs into `dev` with the GitHub "Squash and merge" button. Agents open the PR, wait for a green `test` check, hand it over, and clean up once it shows `MERGED`.
-- Commits are signed with `GitSigningKeyISI`, set repo-locally.
-- Tracker (`.scratch/`): `chores/ci-on-pull-requests` done, `chores/agents-md-promotion-rules` done, `chores/resume-file` done (tickets 01 and 02), `chores/user-merges-prs` done, `chores/triage-orphan-tests` needs-triage.
+## Next actions
 
-## Resume from here
+1. Complete delivery against exact-head PR13 checks: mark ready only after successful checks and clean owned implementer worktrees. No remaining implementation or review finding is recorded.
+2. User review and squash merge into protected `dev`; agents do not merge or deploy automatically. Read current PR checks/readiness rather than assuming a historical status.
+3. Production is a separate approved operation: review `docs/operations/public-staff-rollout.md` and `compose.apps.dokploy.yml`, verify actual MariaDB10.11/data/network/volume ownership and live backups/restoration, record exact image/proxy rollback, and disable former cron before enabling one new jobs owner.
 
-1. **User:** promote `dev` to `main` when ready. It is docs, tracker files and a workflow only, so the deploy it triggers changes nothing visible.
-2. **Next work item:** triage `chores/triage-orphan-tests`. Run a grilling session with interactive questions, decide per script, then write tickets. Three scripts fail (`test_filter_option_nulls`, `test_students_search_placeholders`, `test_permissions_integration`) and three pass (`test_document_reconcile`, `test_js_string_literal`, `test_kyc_schema`); CI runs none of them. Deleting any script needs the user's explicit approval.
-3. **After that:** the product backlog is empty. The next feature or fix comes from the user: grill, then spec, then tickets.
+## Boundaries
 
-## Open items and risks
-
-- Push-triggered `CI` runs on `dev` by merge: #6 yes (`gh pr merge`), #7 no (`gh pr merge`), #8 no (`gh pr merge`), #9 yes (button). GitHub's event feed shows a push event only for the merges that fired a run. Cause unknown and no pattern proven (`gh`: 1 of 3 fired; button: 1 of 1). The button is the only path confirmed to fire it. A `workflow_dispatch` trigger on `ci.yml` would allow a manual re-run on `dev` if a run is ever missing.
-- The `test` check is not a required status check in the ruleset (the user's call).
-- `scripts/purge-trashed-students.php` permanently deletes trashed students after 30 days and assumes a database backup runs first. The user confirmed the cron jobs run; a pre-purge backup is not confirmed.
-- Untracked files in the primary checkout, not touched: `.phpunit.result.cache` (should be gitignored) and `docs/superpowers/plans/2026-06-13-full-oop-migration.md` (stale, the OOP migration shipped).
-- No `GLOSSARY.md` or `docs/adr/` yet. The first `/domain-modeling` session should seed them (member, KYC, trash).
-- `GEMINI.md` duplicates the project description and is not kept in sync with `AGENTS.md`.
+No production/DNS/real SMTP or external restoration was performed. Local MySQL8/synthetic fixtures do not qualify production MariaDB or storage. New production compose is a proposal reusing existing external DB/network/data volumes, not a new database. Preserve unrelated primary-checkout edits to `Dockerfile`, `.dockerignore` and `GEMINI.md`; current AGENTS/tracker instructions remain authoritative.

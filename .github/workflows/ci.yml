@@ -17,7 +17,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ── Same tests that gate the production deploy (.github/workflows/deploy.yml) ─
+  apps-rehearsal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Rehearse isolated public and staff targets
+        env:
+          AMEA_SKIP_BROWSER: '1'
+        run: bash tests/apps/run.sh
+
+  # Regression checks only; no deployment.
   # The test suite uses SQLite in-memory, so it needs no secrets and no database.
   test:
     runs-on: ubuntu-latest
@@ -29,7 +40,7 @@ jobs:
         uses: shivammathur/setup-php@8358ee0e2e8afe63c2fb8253d1d52085811ab1e5 # v2
         with:
           php-version: '8.4'
-          extensions: pdo, pdo_sqlite
+          extensions: pdo, pdo_sqlite, fileinfo, mbstring, gd
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
@@ -41,3 +52,8 @@ jobs:
           php tests/test_oop_integration.php
           php tests/test_password_reset_security.php
           ./vendor/bin/phpunit --colors=never
+
+      - name: Run isolated HTTP journeys
+        run: |
+          python3 tests/http/baseline.py
+          python3 tests/http/tokens.py

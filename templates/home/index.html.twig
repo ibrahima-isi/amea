@@ -1,98 +1,45 @@
-{% extends 'layouts/base.html.twig' %}
-
-{% block title %}AEESGS - Accueil{% endblock %}
-
+{% extends 'layouts/public.html.twig' %}
+{% block title %}AEESGS — Guinéens au Sénégal{% endblock %}
 {% block body %}
-    <!-- Bannière principale -->
-    <section class="hero text-white py-5">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6">
-                    <h1>Bienvenue sur la plateforme <strong class="text-light-beige">AEESGS</strong></h1>
-                    <p class="lead">Recensement des élèves, étudiants et stagiaires guinéens au Sénégal</p>
-                    <p>Cette plateforme permet aux élèves, étudiants et stagiaires guinéens résidant au Sénégal de s'enregistrer afin de faciliter la communication, l'entraide et la coordination des activités communautaires.</p>
-                    <a href="register.php" class="btn btn-light btn-lg mt-3">
-                        <i class="fas fa-user-plus"></i> S'enregistrer maintenant
-                    </a>
-                </div>
-                <div class="col-lg-6 d-none d-lg-block">
-                    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
-                        <div class="carousel-indicators">
-                            {% for image in slider_images %}
-                                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ loop.index0 }}" class="{{ loop.first ? 'active' : '' }}" aria-current="{{ loop.first ? 'true' : 'false' }}" aria-label="Slide {{ loop.index }}"></button>
-                            {% endfor %}
-                        </div>
-                        <div class="carousel-inner">
-                            {% for image in slider_images %}
-                                <div class="carousel-item {{ loop.first ? 'active' : '' }}">
-                                    <img src="{{ image.image_path }}" class="d-block w-100 carousel-img-fixed" alt="{{ image.title }}">
-                                    <div class="carousel-caption d-none d-md-block">
-                                        <h5>{{ image.title }}</h5>
-                                        <p>{{ image.caption }}</p>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden">Previous</span>
-                        </button>
-                        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
-                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden">Next</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
+<section class="community-hero public-container">
+    <div class="hero-intro">
+        <p class="community-location"><span class="guinea-colors" aria-hidden="true"><i></i><i></i><i></i></span> Guinée &amp; Sénégal</p>
+        <h1>Élèves, étudiants,<br>stagiaires.<br>Une communauté.</h1>
+        <p class="hero-lead">Recensement des élèves, étudiants et stagiaires guinéens au Sénégal</p>
+        <p>Cette plateforme permet aux élèves, étudiants et stagiaires guinéens résidant au Sénégal de s'enregistrer afin de faciliter la communication, l'entraide et la coordination des activités communautaires.</p>
+        <a href="register.php" class="public-button">S’enregistrer maintenant <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="community-gallery" role="region" aria-roledescription="carrousel" aria-label="La vie de notre communauté" data-community-carousel>
+        {% for image in slider_images %}
+        <figure class="community-slide" role="group" aria-roledescription="diapositive" aria-label="{{ loop.index }} sur {{ slider_images|length }}" {% if not loop.first %}hidden{% endif %}>
+            <img src="{{ image.image_path }}" alt="{{ image.caption ?: 'La communauté AEESGS' }}" width="960" height="1080" {% if not loop.first %}loading="lazy"{% endif %}>
+            <figcaption><span>La vie de notre communauté</span>{% if image.caption %}<p>{{ image.caption }}</p>{% endif %}</figcaption>
+        </figure>
+        {% else %}
+        <div class="community-empty">{% if public_logo_available %}<img src="{{ asset('assets/img/logo.png') }}" alt="" width="960" height="677">{% else %}<strong class="empty-brand">AEESGS</strong>{% endif %}<p>Élèves, étudiants et stagiaires guinéens au Sénégal</p><span>La vie de notre communauté, bientôt en images.</span></div>
+        {% endfor %}
+        {% if slider_images|length > 1 %}
+        <div class="gallery-controls" hidden>
+            <button type="button" data-carousel-prev aria-label="Photo précédente">←</button>
+            <span data-carousel-count aria-live="off">1 / {{ slider_images|length }}</span>
+            <button type="button" data-carousel-next aria-label="Photo suivante">→</button>
+            <button type="button" data-carousel-pause aria-pressed="false">Mettre en pause</button>
         </div>
-    </section>
-
-    <!-- À propos de l'association -->
-    <section class="py-5 bg-white">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-8 mx-auto text-center">
-                    <h2 class="text-dark">À propos de l'<strong class="text-primary">AEESGS</strong></h2>
-                    <p class="lead text-primary"><strong><span class="aeesgs-highlight">L'Amicale des Eleves, Etudiants et Stagiaires Guineens au Senegal</span></strong></p>
-                    <p>L'<strong class="text-primary">AEESGS</strong> est une organisation qui vise à rassembler et à soutenir tous les élèves, étudiants et stagiaires guinéens poursuivant leurs études au Sénégal. Notre mission est de faciliter leur intégration, de promouvoir l'excellence académique et de renforcer les liens de solidarité entre les membres de notre communauté.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Caractéristiques -->
-    <section class="bg-light py-5">
-        <div class="container">
-            <h2 class="text-center mb-4 text-dark">Pourquoi s'enregistrer ?</h2>
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="card h-100 card-shadow">
-                        <div class="card-body text-center">
-                            <i class="fas fa-users fa-3x text-primary mb-3"></i>
-                            <h3 class="card-title h5 text-dark">Rejoindre la communauté</h3>
-                            <p class="card-text">Faites partie d'un réseau solide d'élèves, étudiants et stagiaires guinéens au Sénégal pour partager vos expériences.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card h-100 card-shadow">
-                        <div class="card-body text-center">
-                            <i class="fas fa-info-circle fa-3x text-primary mb-3"></i>
-                            <h3 class="card-title h5 text-dark">Rester informé</h3>
-                            <p class="card-text">Recevez des informations importantes concernant les activités, les opportunités et les événements.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card h-100 card-shadow">
-                        <div class="card-body text-center">
-                            <i class="fas fa-hands-helping fa-3x text-primary mb-3"></i>
-                            <h3 class="card-title h5 text-dark">Bénéficier de soutien</h3>
-                            <p class="card-text">Accédez à des ressources d'aide et d'orientation pour vos études et votre séjour au Sénégal.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+        <p class="carousel-announcement sr-only" aria-live="polite" aria-atomic="true"></p>
+        {% endif %}
+    </div>
+</section>
+<section id="association" class="association-section">
+    <div class="public-container association-grid"><h2>L’Amicale des élèves, étudiants et stagiaires guinéens au Sénégal.</h2><div><p>L'<strong>AEESGS</strong> est une organisation qui vise à rassembler et à soutenir tous les élèves, étudiants et stagiaires guinéens poursuivant leurs études au Sénégal.</p><p>Notre mission est de faciliter leur intégration, de promouvoir l'excellence académique et de renforcer les liens de solidarité entre les membres de notre communauté.</p></div></div>
+</section>
+<section class="public-container community-themes">
+    <h2>Pourquoi s’enregistrer ?</h2>
+    <div class="themes-grid">
+        <article><span class="theme-symbol solidarity" aria-hidden="true">↗</span><h3>Rejoindre la communauté</h3><p>Faites partie d'un réseau solide d'élèves, étudiants et stagiaires guinéens au Sénégal pour partager vos expériences.</p></article>
+        <article><span class="theme-symbol information" aria-hidden="true">＋</span><h3>Rester informé</h3><p>Recevez des informations importantes concernant les activités, les opportunités et les événements.</p></article>
+        <article><span class="theme-symbol support" aria-hidden="true">↔</span><h3>Bénéficier de soutien</h3><p>Accédez à des ressources d'aide et d'orientation pour vos études et votre séjour au Sénégal.</p></article>
+    </div>
+    <a href="register.php" class="public-button">S’enregistrer maintenant <span aria-hidden="true">↗</span></a>
+</section>
 {% endblock %}
+{% block javascripts %}<script src="{{ asset('assets/js/community-carousel.js') }}" defer></script>{% endblock %}

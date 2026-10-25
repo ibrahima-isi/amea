@@ -1,0 +1,7 @@
+/* Consent decisions remain readable in either public theme. */
+.public-consent-page .text-primary { color:var(--public-green)!important; }
+.public-consent-page h1 { margin-inline:auto; }
+[data-bs-theme="dark"] .public-consent-page .btn-outline-danger { color:#ff9eaa; border-color:#ff9eaa; }
+[data-bs-theme="dark"] .public-consent-page .btn-outline-danger:hover { color:#201013; background:#ff9eaa; }
+.public-consent-page form { max-width:100%; }
+.public-consent-page .btn { max-width:100%; }

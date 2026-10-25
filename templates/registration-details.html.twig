@@ -1,71 +1,42 @@
-{% extends 'layouts/base.html.twig' %}
+{% extends 'layouts/public-forms.html.twig' %}
 
 {% block title %}Détails de l'inscription - AEESGS{% endblock %}
 
-{% block stylesheets %}
-    <style>
-      .detail-row {
-        border-bottom: 1px solid var(--bs-border-color);
-        padding: 12px 0;
-      }
-      .detail-row:last-child {
-        border-bottom: none;
-      }
-      .detail-label {
-        font-weight: 600;
-        color: var(--bs-secondary-color);
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        width: 40%;
-        display: inline-block;
-      }
-      .detail-value {
-        color: var(--bs-body-color);
-        width: 55%;
-        display: inline-block;
-      }
-      .section-title {
-        color: var(--brand-primary);
-        border-bottom: 2px solid var(--brand-accent);
-        padding-bottom: 5px;
-        margin-bottom: 20px;
-        margin-top: 20px;
-      }
-    </style>
-{% endblock %}
-
 {% block body %}
-    <div class="container py-5">
+    <div class="public-form-page container py-5">
       <div class="row justify-content-center">
         <div class="col-lg-10">
           <div class="alert alert-success shadow-sm mb-4 border-left-success">
             <h4 class="alert-heading">
-              <i class="fas fa-check-circle"></i> Inscription réussie !
+              <i class="fas fa-check-circle"></i> Vérifiez votre dossier
             </h4>
             <p>
-              Votre inscription a été enregistrée avec succès. Veuillez vérifier
+              Votre dossier est prêt à être confirmé. Veuillez vérifier
               les informations ci-dessous. Vous pouvez les modifier si
               nécessaire avant de valider votre dossier.
             </p>
           </div>
 
           <div class="card shadow-lg border-0">
-            <div class="card-header bg-primary text-white py-3">
-              <h4 class="m-0">
+            <div class="card-header py-3">
+              <h1 class="h2 m-0">
                 <i class="fas fa-id-card"></i> Récapitulatif de votre inscription
-              </h4>
+              </h1>
             </div>
             <div class="card-body p-4">
               <div class="row">
                 <div class="col-md-4 text-center mb-4">
                   <div class="mb-3">
+                    {% if student.identityDocument and student.identityDocument|lower|slice(-3) == 'pdf' %}
+                    <a class="btn btn-outline-secondary" href="registration-preview.php?type=identite" target="_blank" rel="noopener">Voir ma pièce d’identité (PDF)</a>
+                    {% else %}
                     <img
                       src="{{ student.identityDocument ? 'registration-preview.php?type=identite' : asset('assets/img/placeholder.png') }}"
-                      alt="Photo d'identité"
+                      alt="Pièce d’identité"
                       class="img-thumbnail rounded-circle shadow-sm"
                       style="width: 150px; height: 150px; object-fit: cover"
                     />
+                    {% endif %}
                   </div>
                   <h3 class="text-primary">{{ student.firstName }} {{ student.lastName }}</h3>
                   <p class="text-muted mb-1">{{ student.status }}</p>
@@ -146,7 +117,7 @@
                 </div>
               </div>
             </div>
-            <div class="card-footer p-3 d-flex justify-content-between" style="background-color: var(--bs-tertiary-bg); border-top: 1px solid var(--bs-border-color);">
+            <div class="card-footer p-3 d-flex flex-wrap gap-3 justify-content-between" style="background-color: var(--bs-tertiary-bg); border-top: 1px solid var(--bs-border-color);">
               <a href="register.php?action=edit" class="btn btn-warning btn-lg">
                 <i class="fas fa-edit"></i> Modifier mes informations
               </a>
@@ -168,13 +139,13 @@
                 <div class="modal-content" style="height: 90vh;">
                     <div class="modal-header">
                         <h5 class="modal-title">Mon CV</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                     </div>
                     <div class="modal-body text-center p-0">
                         {% if student.cvPath|lower|slice(-3) == 'pdf' %}
-                            <iframe src="{{ 'registration-preview.php?type=cv' }}" width="100%" height="100%" style="border:none;"></iframe>
+                            <iframe title="Aperçu de votre CV" src="{{ 'registration-preview.php?type=cv' }}" width="100%" height="100%" style="border:none;"></iframe>
                         {% else %}
-                            <img src="{{ 'registration-preview.php?type=cv' }}" class="img-fluid" style="max-height: 100%; max-width: 100%;">
+                            <img alt="Aperçu de votre CV" src="{{ 'registration-preview.php?type=cv' }}" class="img-fluid" style="max-height: 100%; max-width: 100%;">
                         {% endif %}
                     </div>
                 </div>

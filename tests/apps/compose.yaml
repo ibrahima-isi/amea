@@ -1,0 +1,78 @@
+# Isolated rehearsal only. Never use this synthetic database as a live deployment.
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: synthetic-root-only
+      MYSQL_DATABASE: amea_rehearsal
+      MYSQL_USER: amea
+      MYSQL_PASSWORD: synthetic-only
+    volumes:
+      - database:/var/lib/mysql
+    healthcheck:
+      test: [CMD, mysql, --protocol=TCP, -h, 127.0.0.1, -uamea, -psynthetic-only, amea_rehearsal, -e, SELECT 1]
+      interval: 2s
+      retries: 60
+  public:
+    build:
+      context: ../..
+      dockerfile: docker/Dockerfile.apps
+      target: public
+    environment: &environment
+      DB_HOST: mysql
+      DB_NAME: amea_rehearsal
+      DB_USER: amea
+      DB_PASS: synthetic-only
+      APP_ENV: test
+      STAFF_APP_URL: https://staff.amea.test:${AMEA_STAFF_PORT:-19443}
+      PUBLIC_APP_URL: https://public.amea.test:${AMEA_PUBLIC_PORT:-18443}
+      APP_URL: https://public.amea.test:${AMEA_PUBLIC_PORT:-18443}
+    volumes:
+      - uploads:/opt/amea/uploads
+      - storage:/opt/amea/storage
+      - public_sessions:/var/lib/amea/sessions
+    depends_on:
+      mysql:
+        condition: service_healthy
+  staff:
+    build:
+      context: ../..
+      dockerfile: docker/Dockerfile.apps
+      target: staff
+    environment:
+      <<: *environment
+      APP_URL: https://staff.amea.test:${AMEA_STAFF_PORT:-19443}
+    volumes:
+      - uploads:/opt/amea/uploads
+      - storage:/opt/amea/storage
+      - staff_sessions:/var/lib/amea/sessions
+    depends_on:
+      mysql:
+        condition: service_healthy
+  jobs:
+    profiles: [jobs]
+    build:
+      context: ../..
+      dockerfile: docker/Dockerfile.apps
+      target: jobs
+    environment:
+      <<: *environment
+      AMEA_TRASH_BACKUP_CONFIRMED: '0'
+    volumes:
+      - uploads:/opt/amea/uploads
+      - storage:/opt/amea/storage
+    depends_on:
+      mysql:
+        condition: service_healthy
+  tls:
+    image: caddy:2-alpine
+    ports: ["127.0.0.1:${AMEA_PUBLIC_PORT:-18443}:18443", "127.0.0.1:${AMEA_STAFF_PORT:-19443}:19443"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on: [public, staff]
+volumes:
+  database:
+  uploads:
+  storage:
+  public_sessions:
+  staff_sessions:
