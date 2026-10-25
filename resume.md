@@ -1,29 +1,20 @@
 # Resume point
 
-**Last updated:** 2026-10-24, during UI modernization and application separation.
+**Last updated:** 2026-10-25, after ticket09 local release qualification.
 
-## Current work
+## Current state
 
-- Integration branch: `feat/ui-and-app-separation`; draft PR [#13](https://github.com/ibrahima-isi/amea/pull/13) targets `dev`.
-- Authoritative scope: [.scratch/ui-and-app-separation/spec.md](.scratch/ui-and-app-separation/spec.md), nine tickets under its `issues/` directory, and root [completion.md](completion.md).
-- Ticket 01 is implemented and locally verified. Its integration head `3f5bd785cbaf7ecdd121120c4774861cd72c7baa` passed [CI run 40026239502](https://github.com/ibrahima-isi/amea/actions/runs/40026239502).
-- Ticket 02 homepage and official logo are integrated and locally verified: 27 HTTP / 32 Chrome assertions plus PHP regressions; see [homepage evidence](docs/testing/community-homepage.md). Exact logo integration head `178994c1ca1327b6efc28c934fa4b6b6db4de58b` passed [CI run 40052482901](https://github.com/ibrahima-isi/amea/actions/runs/40052482901).
-- Tickets 03/04 are integrated and locally verified: registration 35 HTTP / 12 Chrome assertions, completion/correction/consent 28 HTTP / 61 Chrome assertions, PHP regressions and refreshed screenshots. Standards/Spec reviews found no remaining confirmed issues; the P3 shared HTTP harness finding is fixed and both HTTP suites passed again.
-- Tickets 05–07 are integrated and locally verified. The staff target now includes member administration, authorized documents, carousel, communications, exports, settings, accounts/profile/progression, and a disabled-by-default designated jobs profile. Original administration remains preserved.
-- Member rehearsal passed111 HTTP/schema +10 Chrome; tools passed84 HTTP +9 Chrome plus one competing-worker proof (three synthetic messages exactly once). PHP141/241, standalone335 and legacyHTTP35+28 passed. See docs/testing/app-separation-members.md and app-separation-tools.md.
-- Historical06 source-mount limitation is closed by ticket08: freshly built images passed the combined member/route/session suite. Ticket08 is integrated and locally verified (249 HTTP/schema +13 Chrome), with ticket09 and final independent review remaining.
-- Ticket05 independent Standards/Spec reviews found no confirmed deviations. Exact integration head `c15218d1e87cff82b93f28ed01c47abf01785793` passed [CI run40088586043](https://github.com/ibrahima-isi/amea/actions/runs/40088586043). Later heads require their own CI.
+- Integration branch `feat/ui-and-app-separation`; draft PR [#13](https://github.com/ibrahima-isi/amea/pull/13) targets protected `dev`. Authoritative scope: `.scratch/ui-and-app-separation/spec.md`; root `completion.md` records ticket evidence.
+- Tickets01–08 are integrated and locally verified. Ticket09 is implemented and locally qualified for integration:352 HTTP/schema/operational checks,22 real HTTPS Chrome checks, one concurrent-worker proof. Separate public/staff/jobs builds, independent web starts, web/MySQL container replacement, real retained-image rollback/forward, and separate SQL/uploads/storage restore all pass. See `docs/testing/release-qualification.md`.
+- Final PHP141/241 (10 existing deprecations), standalone335 checks, legacy HTTP35+28 and public Chrome44+61 pass. Screenshots are under `docs/testing/screenshots/`. Official logo and public content reuse are user-approved.
+- Exact ticket08 head7cf99d8268342ac71b5596739653e61419a0f070 passed CI run40143965267. Current delivered-head status must be read from PR checks; historical CI is not final-head evidence.
 
-## Resume from here
+## Next actions
 
-1. Execute ticket09. Ticket08 is integrated: fresh images passed249 HTTP/schema +13 Chrome checks; tools84 HTTP, concurrent owner and PHP/legacy regressions passed. See docs/testing/app-separation-links.md.
-2. Qualify final fresh builds, persistence/container replacement, isolated backup/restore/rollback and full regression/browser checks. Exact prior integration `ff3a8abac51eda2bec3e115b603c7e788de472f8` passed CI run40141368826 including fresh apps-rehearsal/member checks; later heads need their own CI.
-3. Run full integration Standards/Spec code review, fix findings, verify exact-final-head CI, then mark PR13 ready. Keep production/DNS/real-email actions outside this delivery.
+1. Integrate ticket09 and run the requested full independent Standards/Spec code review. Fix every actionable finding through one implementer and revalidate the affected boundaries.
+2. Verify exact-final-head CI, mark PR13 ready only after implementation/review/checks are complete, then clean owned implementer worktrees. The user controls merging/deployment.
+3. Production is a separate approved operation: review `docs/operations/public-staff-rollout.md` and `compose.apps.dokploy.yml`, verify actual MariaDB10.11/data/network/volume ownership and live backups/restoration, record exact image/proxy rollback, and disable former cron before enabling one new jobs owner.
 
 ## Boundaries
 
-- No production, DNS, real SMTP delivery or external restoration actions have been performed or qualified by this work. Production changes require explicit approval.
-- Preserve unrelated primary-checkout edits to `Dockerfile`, `.dockerignore` and `GEMINI.md`. `CLAUDE.md` retains the user's `read AGENTS.md` redirect.
-- Current `AGENTS.md` and `docs/agents/` instructions are authoritative over conflicting historical policies. Use the local Markdown tracker; do not create remote issues.
-
-Ticket08 checkpoint: implementation and local criteria complete; no production cutover. Fresh08 images include integrated06/07 source. Real prior ff3a8ab images are preserved locally as `amea-ui-prior-public:ff3a8ab` and `amea-ui-prior-staff:ff3a8ab` for ticket09 rollback (source built before08 changes; only the initial test tracer differed).
+No production/DNS/real SMTP or external restoration was performed. Local MySQL8/synthetic fixtures do not qualify production MariaDB or storage. New production compose is a proposal reusing existing external DB/network/data volumes, not a new database. Preserve unrelated primary-checkout edits to `Dockerfile`, `.dockerignore` and `GEMINI.md`; current AGENTS/tracker instructions remain authoritative.

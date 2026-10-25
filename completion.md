@@ -9,7 +9,7 @@ Tracker: local Markdown, configured in [issue-tracker.md](docs/agents/issue-trac
 
 ## Current state
 
-Tickets 01–08 are integrated and locally verified. Ticket09 is the next frontier. Final fresh-image qualification, full-spec code review, exact-head CI and production release remain separate milestones.
+Tickets 01–08 are integrated and locally verified; ticket09 final local qualification is complete for integration. All nine implementation criteria are verified locally. Full-spec independent code review, exact-head CI, merge and production release remain separate milestones.
 
 - [x] Gather UI and separation decisions and review direction B.
 - [x] Independent design builder review: no important planning gaps reported.
@@ -18,8 +18,8 @@ Tickets 01–08 are integrated and locally verified. Ticket09 is the next fronti
 - [x] Publish synthesized specification with ready-for-agent triage.
 - [x] Approve ticket granularity and blocking dependencies — all nine tickets and their blockers approved.
 - [x] Publish nine separate tickets and record identifiers/dependencies here.
-- [ ] Implement and validate each approved ticket.
-- [ ] Record final integration evidence and remaining release blockers.
+- [x] Implement and validate each approved ticket locally.
+- [x] Record final local qualification evidence and remaining external release prerequisites.
 
 ## Evidence and completion rules
 
@@ -27,7 +27,7 @@ Mark implementation complete only after behavior is implemented and relevant che
 
 ## Blockers and next work
 
-Tickets 01–08 are implemented, integrated and locally verified, including the supplied official logo. Execute09 and the final independent Standards/Spec code review. Ticket 06 merged behavior passed using cached images and read-only source mounts after a Docker Hub composer metadata timeout; ticket08 now passed on freshly built images, including the merged06/07 code; final candidate qualification remains09. Agent capacity is available. Production/DNS changes require explicit approval.
+All nine tickets are implemented and locally verified; integrate09, then run the requested full independent Standards/Spec review and address its findings. Exact-head CI must be verified before PR readiness. Production MariaDB/storage/backups/SMTP/DNS and cutover remain explicitly unqualified and require approval; see the rollout runbook. No production action is part of this delivery.
 
 ## Asset and content approvals — 2026-10-23
 
@@ -42,7 +42,7 @@ Existing Dockerfile and .dockerignore edits are unrelated changes and must be pr
 
 ## Implementation progress
 
-All nine tickets and dependencies are approved and published; tickets 01–08 criteria are verified locally. ready-for-agent describes triage readiness; blockers determine execution eligibility.
+All nine tickets and dependencies are approved and published; tickets 01–09 criteria are verified locally. ready-for-agent describes triage readiness; blockers determine execution eligibility.
 
 | Ticket | Blocked by | Status | Evidence / PR |
 |---|---|---|---|
@@ -54,7 +54,7 @@ All nine tickets and dependencies are approved and published; tickets 01–08 cr
 | [06 — Move staff member review and private documents](.scratch/ui-and-app-separation/issues/06-move-staff-member-document-management.md) | 05 | Implemented; locally verified | [Member rehearsal](docs/testing/app-separation-members.md) |
 | [07 — Move staff content and operational tools](.scratch/ui-and-app-separation/issues/07-move-staff-operational-tools.md) | 05 | Implemented; integrated and locally verified | [Tools proof](docs/testing/app-separation-tools.md) |
 | [08 — Preserve links and finish route isolation](.scratch/ui-and-app-separation/issues/08-preserve-links-route-isolation.md) | 06, 07 | Implemented; locally verified | [Link/route proof](docs/testing/app-separation-links.md) |
-| [09 — Verify integrated release and rehearse rollback](.scratch/ui-and-app-separation/issues/09-verify-release-rollback.md) | 08 | Published; not started | None |
+| [09 — Verify integrated release and rehearse rollback](.scratch/ui-and-app-separation/issues/09-verify-release-rollback.md) | 08 | Implemented; locally verified | [Release qualification](docs/testing/release-qualification.md) |
 
 ## Publication evidence
 
@@ -170,3 +170,11 @@ Final fresh-image proof:249 HTTP/schema +13 actual Chrome; tools84 HTTP +concurr
 ## Integration checkpoint — ticket08 (2026-10-24)
 
 Ticket08 is integrated after its fresh-image qualification:249 HTTP/schema +13 Chrome, tools84 HTTP/concurrent job proof and PHP/legacy regressions. The historical06 cached-image limitation is closed by fresh ticket08 builds and by exact integration head `ff3a8abac51eda2bec3e115b603c7e788de472f8`, which passed [CI run40141368826](https://github.com/ibrahima-isi/amea/actions/runs/40141368826), including the fresh apps-rehearsal image build/member suite. Subsequent heads require fresh CI. Ticket09 and final full-spec Standards/Spec code review remain pending.
+
+## Ticket09 — integrated local release qualification (2026-10-25)
+
+Fresh candidate images built and independently started; public/staff/MySQL replacement preserved shared records and private/public file hashes. Real retained pre-08 image rollback and forward transition preserved the same data. Separate fresh SQL/uploads/storage restoration passed HTTPS byte/record checks and private-file denial. Final run:352 HTTP/schema/operational,22 Chrome and one competing-worker proof; final legacy HTTP35+28, Chrome44+61, PHPUnit141/241 and standalone335 checks passed. [Executed evidence and limits](docs/testing/release-qualification.md); [rollout/rollback proposal](docs/operations/public-staff-rollout.md).
+
+Official logo/public content approval is retained. Existing production DB/network/volumes are external inputs to the new compose proposal; no database engine migration or production deployment is inferred. Actual MariaDB10.11, production storage/backups, SMTP, DNS and cutover remain external prerequisites. All owned rehearsal resources were cleaned.
+
+Exact ticket08 integration `7cf99d8268342ac71b5596739653e61419a0f070` passed [CI run40143965267](https://github.com/ibrahima-isi/amea/actions/runs/40143965267). The delivered09 head has its own PR checks. Full-spec independent review and any fixes follow this implementation checkpoint; PR readiness and merge are not claimed here.
