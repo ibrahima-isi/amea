@@ -30,11 +30,18 @@ Match adjacent code: four-space PHP indentation, PascalCase classes, camelCase m
 
 ## Testing Guidelines
 
-Use PHPUnit 11 with `*Test.php` files under `tests/Unit/` or `tests/Integration/`; standalone checks use `test_*.php`. Existing tests use SQLite fixtures. Add regression coverage for changed behavior. No numeric coverage threshold is configured. Run relevant suites and the CI command set before requesting review. SQLite-backed tests do not require MySQL. The current `deploy.yml` runs tests on pushes and PRs targeting `main`, without deployment; consult workflow files for actual branch triggers.
+Use PHPUnit 11 with `*Test.php` files under `tests/Unit/` or `tests/Integration/`; standalone checks use `test_*.php`. Existing tests use SQLite fixtures. Add regression coverage for changed behavior. No numeric coverage threshold is configured. Run relevant suites and the CI command set before requesting review. SQLite-backed tests do not require MySQL. Keep all GitHub Actions CI and other workflows in the single file `.github/workflows/ci.yml`; consult that file for actual triggers. This is the required convention; existing workflows must be consolidated when workflow changes are in scope.
 
 ## Commit & Pull Request Guidelines
 
 Use existing prefixes such as `feat:`, `fix:`, `security:`, `infra:`, `ci:`, and `docs:`. Push feature branches and open PRs into `dev`; `dev` and `main` are protected long-lived branches. Describe behavior, link relevant issues, report validation, and include screenshots for UI changes. Omit Co-Authored-By and Claude attribution trailers.
+
+- Create every commit with a cryptographic signature, including local merge commits. If signing fails or a created commit is unsigned, abort the operation and resolve signing before proceeding. Never disable signing or retry with an unsigned commit.
+- Perform all edits, commits, and tests in an isolated Git worktree based on the task's selected starting branch. Keep the original checkout untouched; read-only inspection is allowed.
+- Temporary working branches are allowed locally in isolated worktrees and on the remote for PRs. Target every PR at `dev`.
+- Enable auto-merge into `dev` only when all required checks pass on the latest PR commit and all repository protections are satisfied. Earlier green checks are insufficient.
+- After the PR has actually merged into remote `dev`, integrate its merged result into local `main` from an isolated worktree. A PR being ready to merge is insufficient. Do not push remote `main` as part of this operation.
+- After integration, remove the task's temporary worktree and branches when their work is safely preserved. The steady state is only `main` locally and `dev` plus `main` on the remote. Preserve unrelated work and branches; defer their cleanup until safe and authorized.
 
 ## Security & Collaboration
 
