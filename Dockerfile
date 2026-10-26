@@ -1,4 +1,5 @@
 FROM php:8.4-apache-bookworm
+RUN echo "session.upload_progress.enabled=0" > /usr/local/etc/php/conf.d/security.ini
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libicu-dev libzip-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev \

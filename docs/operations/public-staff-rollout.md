@@ -24,6 +24,8 @@ Never run `down -v` against the existing application/database stack. The new con
 
 Stop the new jobs owner first. Keep the database and shared volumes intact. Restore the recorded previous app image/proxy routes using the same existing data; keep expanded migration06 in place. Do not delete data, narrow enum values or restore an older database over new submissions as an automatic rollback step.
 
+Keep the per-container `tmpfs` mount at `/opt/amea/storage/cache` for public, staff and jobs, including retained images. Twig regenerates compiled templates from each image on first use; exclude `storage/cache` from backups and restores so compiled templates cannot be reintroduced from another version. Uploads, mail queue, job locks and other persistent storage remain shared.
+
 Recheck authorized private documents, public registration and staff login. Re-enable exactly one previously recorded scheduler only after the new owner is stopped. If data restoration is required, stop writes and separately approve the selected backup and recovery point; that is a data recovery operation, not an image rollback.
 
 The local test retained the real pre-08 public image from `ff3a8abac51eda2bec3e115b603c7e788de472f8`, observed its old HTTP404 staff-link behavior, then restored the candidate's HTTP302 behavior while DB/private/public file hashes remained identical. This qualifies that local version rollback and forward transition. It does not qualify an arbitrary historical image or the actual production cutover/restore; repeat the rehearsal with the exact production image and dataset before approval.

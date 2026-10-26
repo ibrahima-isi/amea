@@ -184,3 +184,22 @@ Exact ticket08 integration `7cf99d8268342ac71b5596739653e61419a0f070` passed [CI
 Completed after all nine tickets on fixed source `18dcea0125bfa6e6b94b84a0b2287e6994642643`, baseline `039949a1899934a92c70d8deec79ba9c0b7203a4`: **Standards0 actionable findings; Spec0 confirmed findings**. No corrective code change was required. [Separate reports and scope](docs/testing/final-code-review.md). The recording change is documentation-only; tests were not repeated for it.
 
 Implementation, local qualification and requested final review are complete. Exact delivered-head CI and PR readiness are reported by [PR13 checks](https://github.com/ibrahima-isi/amea/pull/13/checks) and final delivery. The user controls squash merge into dev. No production approval, deployment, DNS or real SMTP action is implied.
+
+## PR13 follow-up — Twig cache isolation (2026-10-25)
+
+- [x] Reproduce template cache contamination between independent images.
+- [x] Keep compiled templates private to each container, including rollback images and jobs.
+- [x] Verify the regression and record local evidence separately from CI/publication.
+
+The authorized correction concerns the shared Twig cache only. Existing unrelated edits to Dockerfile, .dockerignore and GEMINI.md are preserved.
+
+The new `tests/apps/cache.py` first failed with “Rollback image reused a template compiled by the newer image”, then passed with per-container writable tmpfs caches in both Compose configurations. It exercises the real View/Twig path with identical template names and differing sources in isolated containers. Public, staff and jobs retain shared persistent storage outside `storage/cache`; backups in the release rehearsal exclude compiled templates. The rollout procedure records the same cache boundary for retained images.
+
+Local verification: fresh-image `AMEA_SKIP_BROWSER=1 AMEA_PUBLIC_PORT=18449 AMEA_STAFF_PORT=19449 bash tests/apps/run.sh` passed **353 HTTP/schema/operational checks**, including independent images, shared job ownership, replacements, real retained-image rollback/forward and separate SQL/files restoration. PHPUnit **141 tests/241 assertions** passed (10 existing deprecations); standalone checks **47/186/78/24**, historical HTTP **35+28**, production Compose resolution, shell/Python syntax and `git diff --check` passed. Logs: `/private/tmp/amea-cache-rehearsal.log`, `/private/tmp/amea-cache-phpunit.log` and `/private/tmp/amea-cache-*.log`. All owned synthetic containers/volumes were removed. Browser checks were skipped for this infrastructure-only fix. No commit, push, new-head CI, merge or production change is claimed.
+
+
+### Follow-up PR validation (2026-10-26)
+
+The remaining local changes were transferred to an isolated worktree based on `origin/dev` (`c97c9d0`). Fresh validation passed: PHPUnit 141 tests/241 assertions (10 existing deprecations), standalone PHP suites 47/186/78/24, both historical HTTP journeys, shell/Python syntax, `git diff --check`, and the complete browser-skipped container rehearsal including cache isolation, actual retained-image rollback, forward deployment and separate SQL/files restore. Logs: `/private/tmp/amea-cache-pr-php.log` and `/private/tmp/amea-cache-pr-validation.log`. Owned synthetic containers and volumes were removed.
+
+The linked dev run `40245874838` failed while creating restore containers with `storage/cache: file exists`; PHP checks passed. The per-container cache fix passed the corresponding full restore locally. The follow-up PR must still pass CI on its own final head before merge and cleanup. No production action is authorized or claimed.

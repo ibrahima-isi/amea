@@ -31,6 +31,8 @@ services:
       - uploads:/opt/amea/uploads
       - storage:/opt/amea/storage
       - public_sessions:/var/lib/amea/sessions
+    tmpfs:
+      - /opt/amea/storage/cache:uid=33,gid=33,mode=0770
     depends_on:
       mysql:
         condition: service_healthy
@@ -46,6 +48,8 @@ services:
       - uploads:/opt/amea/uploads
       - storage:/opt/amea/storage
       - staff_sessions:/var/lib/amea/sessions
+    tmpfs:
+      - /opt/amea/storage/cache:uid=33,gid=33,mode=0770
     depends_on:
       mysql:
         condition: service_healthy
@@ -61,6 +65,8 @@ services:
     volumes:
       - uploads:/opt/amea/uploads
       - storage:/opt/amea/storage
+    tmpfs:
+      - /opt/amea/storage/cache:uid=33,gid=33,mode=0770
     depends_on:
       mysql:
         condition: service_healthy

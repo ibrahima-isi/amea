@@ -120,7 +120,7 @@ with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
     with sql.open('wb') as output:
         command(project,'exec','-T','mysql','mysqldump','--single-transaction','--no-tablespaces','-uamea','-psynthetic-only','amea_rehearsal',stdout=output)
     with files.open('wb') as output:
-        command(project,'exec','-T','public','tar','-C','/opt/amea','-cf','-','uploads','storage',stdout=output)
+        command(project,'exec','-T','public','tar','-C','/opt/amea','--exclude=storage/cache','-cf','-','uploads','storage',stdout=output)
     assert sql.stat().st_size and files.stat().st_size
     try:
         command(restore_project,'up','-d','--no-build',env=restore_env,override=forward)
