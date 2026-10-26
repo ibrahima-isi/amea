@@ -50,6 +50,7 @@ else:
     raise SystemExit('Isolated HTTPS services did not become ready')
 PY
 "${compose[@]}" exec -u www-data -T staff php < tests/apps/fixture.php
+python3 tests/apps/cache.py "$project"
 "${compose[@]}" exec -T public php /dev/stdin before < tests/apps/migration-proof.php
 python3 tests/apps/registration.py --legacy-enums
 "${compose[@]}" exec -T public php migrations/06_expand_member_enum_compatibility.php

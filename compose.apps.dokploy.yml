@@ -24,6 +24,9 @@ services:
       - storage:/opt/amea/storage
       - logs:/opt/amea/logs
       - public_sessions:/var/lib/amea/sessions
+    # Compiled templates belong to this container, never to the shared data volume.
+    tmpfs:
+      - /opt/amea/storage/cache:uid=33,gid=33,mode=0770
     networks: [data, proxy]
   staff:
     image: ${AMEA_STAFF_IMAGE:?set immutable staff image}
@@ -40,6 +43,8 @@ services:
       - storage:/opt/amea/storage
       - logs:/opt/amea/logs
       - staff_sessions:/var/lib/amea/sessions
+    tmpfs:
+      - /opt/amea/storage/cache:uid=33,gid=33,mode=0770
     networks: [data, proxy]
   jobs:
     profiles: [jobs]
@@ -56,6 +61,8 @@ services:
       - uploads:/opt/amea/uploads
       - storage:/opt/amea/storage
       - logs:/opt/amea/logs
+    tmpfs:
+      - /opt/amea/storage/cache:uid=33,gid=33,mode=0770
     networks: [data]
 volumes:
   uploads:
