@@ -77,6 +77,9 @@ class CorrectionController extends BaseController
 
         // Update DB
         $dbData = $data['db_data'];
+        // A correction without replacement uploads must retain the shared dossier.
+        $dbData['identity_document'] ??= $student->getIdentityDocument();
+        $dbData['cv_path'] ??= $student->getCvPath();
         $dbData['kyc_status'] = 'UNDER_REVIEW'; // Back to review
         $dbData['is_locked']  = 1;
         
@@ -106,7 +109,7 @@ class CorrectionController extends BaseController
             'phone' => $student->getPhone(),
             'email' => $student->getEmail(),
             'nationalities' => json_encode(array_map(fn($n) => ['value' => $n], $student->getNationalities())),
-            'arrival_year' => $student->getAnneeArrivee(),
+            'arrival_year' => $student->getArrivalYear(),
             'housing_type' => $student->getHousingType(),
             'housing_details' => $student->getHousingDetails(),
             'post_training_project' => $student->getPostTrainingProject(),

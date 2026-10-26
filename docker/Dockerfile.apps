@@ -1,0 +1,34 @@
+FROM php:8.4-apache-bookworm AS shared
+RUN apt-get update && apt-get install -y --no-install-recommends libpng-dev libjpeg62-turbo-dev libfreetype6-dev libonig-dev unzip git \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j"$(nproc)" pdo_mysql mbstring gd \
+    && a2enmod rewrite ssl headers && rm -rf /var/lib/apt/lists/*
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+WORKDIR /opt/amea
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
+COPY src src
+COPY config config
+COPY functions functions
+COPY templates templates
+COPY assets assets
+COPY migrations migrations
+COPY *.php ./
+COPY docker/apps /opt/amea-apps
+RUN printf 'variables_order = "EGPCS"\ndisplay_errors = Off\nlog_errors = On\n' > /usr/local/etc/php/conf.d/zz-amea-env.ini \
+    && mkdir -p /var/www/amea /var/lib/amea/sessions /opt/amea/uploads /opt/amea/storage/mail-queue /opt/amea/storage/cache /opt/amea/logs \
+    && cp /opt/amea-apps/index.php /var/www/amea/index.php \
+    && cp -r assets /var/www/amea/assets \
+    && cp /opt/amea-apps/apache.conf /etc/apache2/sites-available/000-default.conf \
+    && chown -R www-data:www-data /var/lib/amea /opt/amea/uploads /opt/amea/storage /opt/amea/logs
+FROM shared AS public
+RUN printf 'public' > /opt/amea-apps/identity
+FROM shared AS staff
+RUN printf 'staff' > /opt/amea-apps/identity
+
+# No HTTP process: only this explicitly enabled service owns shared scheduled work.
+FROM shared AS jobs
+COPY scripts scripts
+RUN printf 'jobs' > /opt/amea-apps/identity
+USER www-data
+CMD ["sh", "/opt/amea-apps/jobs.sh"]

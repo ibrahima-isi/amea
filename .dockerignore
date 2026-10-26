@@ -12,7 +12,6 @@ tests
 .vscode
 *.sql
 *.tar.gz
-*.log
 composer.phar
 vendor
 node_modules

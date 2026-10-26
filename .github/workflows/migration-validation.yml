@@ -1,6 +1,8 @@
 name: Migration validation (no deploy)
 
 on:
+  pull_request:
+    branches: [dev, main]
   push:
     branches: [infra/dokploy-migration]
   workflow_dispatch:
