@@ -22,7 +22,7 @@ class PasswordResetController extends BaseController
         );
         $this->resetService = new PasswordResetService(
             Container::db(),
-            (string)($_ENV['APP_URL'] ?? 'http://localhost'),
+            (string)($_ENV['STAFF_APP_URL'] ?? $_ENV['APP_URL'] ?? 'http://localhost'),
             __DIR__ . '/../../'
         );
     }

@@ -17,9 +17,13 @@ if (!empty($_SESSION['user_id'])) {
         $sessionVersion = (int)($_SESSION['session_version'] ?? 0);
 
         if (!$repo->isSessionVersionCurrent((int)$_SESSION['user_id'], $sessionVersion)) {
+            $returnTarget = \Amea\Core\StaffNavigation::requestedTarget();
             $_SESSION = [];
             session_regenerate_id(true);
             $_SESSION['last_activity'] = time();
+            if ($returnTarget !== null) {
+                $_SESSION['staff_return_to'] = $returnTarget;
+            }
             $_SESSION['flash_message'] = [
                 'type' => 'warning',
                 'message' => 'Votre session a expiré. Veuillez vous reconnecter.',

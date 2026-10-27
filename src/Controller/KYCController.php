@@ -144,7 +144,7 @@ class KYCController extends BaseController
             [
                 'student' => $student,
                 'notes'   => $notes,
-                'link'    => rtrim((string)($_ENV['APP_URL'] ?? ''), '/') . '/kyc-correction.php?token=' . $token
+                'link'    => rtrim((string)($_ENV['PUBLIC_APP_URL'] ?? $_ENV['APP_URL'] ?? ''), '/') . '/kyc-correction.php?token=' . $token
             ],
             'contact@aeesgs.org'
         );
