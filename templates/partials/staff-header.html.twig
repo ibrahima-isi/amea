@@ -1,5 +1,23 @@
+{% set staff_page_labels = {
+    'dashboard.php': 'Tableau de bord',
+    'students.php': 'Étudiants',
+    'student-details.php': 'Dossier étudiant',
+    'edit-student.php': 'Modifier un étudiant',
+    'trash.php': 'Corbeille',
+    'export.php': 'Export',
+    'kyc-list.php': 'Validation KYC',
+    'kyc-detail.php': 'Dossier KYC',
+    'users.php': 'Utilisateurs',
+    'add-user.php': 'Ajouter un utilisateur',
+    'edit-user.php': 'Modifier un utilisateur',
+    'manage-slider.php': 'Carrousel',
+    'upgrade-levels.php': 'Mise à niveau',
+    'communications.php': 'Communications',
+    'settings.php': 'Paramètres',
+    'profile.php': 'Mon profil'
+} %}
 <header class="staff-topbar">
     <button id="staff-menu-toggle" class="btn btn-outline-secondary" type="button" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Ouvrir le menu"><i class="fas fa-bars" aria-hidden="true"></i></button>
-    <div class="staff-breadcrumb"><span>Administration</span><strong>{{ staff_route|replace({'.php': '', '-': ' '})|capitalize }}</strong></div>
+    <div class="staff-breadcrumb"><span>Administration</span><strong>{{ staff_page_labels[staff_route]|default('Espace administration') }}</strong></div>
     <div class="staff-toolbar"><button class="btn btn-outline-secondary theme-switcher" type="button"><span class="theme-label">Mode sombre</span></button><a href="profile.php" class="staff-profile">{{ session.first_name|default('Mon') }} {{ session.last_name|default('profil') }}</a><a href="logout.php" class="btn btn-outline-danger" aria-label="Déconnexion"><i class="fas fa-sign-out-alt" aria-hidden="true"></i><span class="d-none d-md-inline"> Déconnexion</span></a></div>
 </header>
