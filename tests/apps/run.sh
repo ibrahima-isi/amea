@@ -50,6 +50,7 @@ else:
     raise SystemExit('Isolated HTTPS services did not become ready')
 PY
 "${compose[@]}" exec -u www-data -T staff php < tests/apps/fixture.php
+python3 tests/apps/visual-refresh.py --empty
 python3 tests/apps/cache.py "$project"
 "${compose[@]}" exec -T public php /dev/stdin before < tests/apps/migration-proof.php
 python3 tests/apps/registration.py --legacy-enums
@@ -62,12 +63,14 @@ python3 tests/apps/links.py
 python3 tests/apps/journeys.py
 python3 tests/apps/registration.py
 "${compose[@]}" exec -u www-data -T staff php < tests/apps/member-fixture.php
+python3 tests/apps/visual-refresh.py --populated
 python3 tests/apps/members.py
 if [[ "${AMEA_SKIP_BROWSER:-0}" != "1" ]]; then
     node tests/apps/browser.mjs "${AMEA_SCREENSHOT_DIR:-/private/tmp/amea-app-browser}"
 fi
 
 "${compose[@]}" exec -u www-data -T staff php < tests/apps/tools-fixture.php
+python3 tests/apps/visual-refresh.py --tools
 python3 tests/apps/tools.py
 if [[ "${AMEA_SKIP_BROWSER:-0}" != "1" ]]; then
     node tests/apps/tools-browser.mjs "${AMEA_SCREENSHOT_DIR:-/private/tmp/amea-app-browser}"
