@@ -1,5 +1,15 @@
 # UI modernization and application separation — Completion tracker
 
+## New requirement — independent public entry (2026-10-28)
+
+The user explicitly superseded ticket08's public-to-staff link/redirect compatibility. Public staff URLs must return local 404 responses, with no staff Location header or recovery link. Public navigation no longer offers staff sign-in or a session-dependent dashboard link. Authentication, permissions, private-file controls and validated internal staff login returns remain intact.
+
+Implemented in isolated worktree `/private/tmp/amea-local-20261027`, with the original checkout unchanged. Removed the public bridge from the container entry point, obsolete staff-login Twig global and legacy URL builder. Public Compose configuration no longer receives STAFF_APP_URL; staff retains its own origin for password recovery. Tests now assert denial instead of legacy redirects and cover public navigation pages.
+
+Local evidence: **357 rehearsal PASS lines** (HTTP/schema/operational checks including independent starts, cache isolation, replacement, rollback/forward and restoration), PHPUnit **141 tests / 241 assertions** (10 existing deprecations), standalone suites **47/186/78/24**, historical HTTP suites **35+28**. Browser scripts were updated and syntax-checked; real browser QA was unavailable because local browser use is disabled in Work settings. Logs are under `local-runtime/separation-*.log` in that worktree.
+
+The demonstration stack was rebuilt with these changes without replacing its database or volumes. See [ADR](docs/adr/0001-independent-public-and-staff-entry.md) and [design progress](.scratch/ui-visual-refresh/completion.md). No commit, PR, remote CI, merge or production deployment is claimed. Physical subprojects are deferred; on 2026-10-28 the user explicitly confirmed keeping the member database and files shared temporarily. The root PHP server is the historical combined application; the verified separated HTTP boundary is the public/staff Docker targets. A [complete visual refresh design](docs/superpowers/specs/2026-10-28-public-backoffice-visual-refresh-design.md) is proposed for final approval; it is not visual implementation evidence.
+
 ## Authoritative scope
 
 Design: [UI and app separation](docs/superpowers/specs/2026-10-23-ui-and-app-separation-design.md).

@@ -36,9 +36,7 @@ abstract class BaseController
         $settingRepo = new \Amea\Repository\SettingRepository(\Amea\Core\Container::db());
         
         $twig->addGlobal('public_logo_available', @getimagesize(__DIR__ . '/../../assets/img/logo.png') !== false);
-        $staffOrigin = \Amea\Core\StaffNavigation::origin();
         $publicOrigin = defined('AMEA_APP') && AMEA_APP === 'staff' ? \Amea\Core\StaffNavigation::publicOrigin() : null;
-        $twig->addGlobal('staff_login_url', $staffOrigin !== null ? $staffOrigin . '/login.php' : 'login.php');
         $twig->addGlobal('public_home_url', $publicOrigin !== null ? $publicOrigin . '/' : '/');
         $twig->addGlobal('public_register_url', $publicOrigin !== null ? $publicOrigin . '/register.php' : 'register.php');
         $twig->addGlobal('session', $_SESSION);

@@ -22,11 +22,6 @@ final class StaffNavigation
         return in_array($path, $postRoutes, true) ? ['GET', 'POST'] : ['GET'];
     }
 
-    public static function origin(): ?string
-    {
-        return self::configuredOrigin('STAFF_APP_URL');
-    }
-
     public static function publicOrigin(): ?string
     {
         return self::configuredOrigin('PUBLIC_APP_URL');
@@ -43,21 +38,6 @@ final class StaffNavigation
             return null;
         }
         return rtrim($url, '/');
-    }
-
-    public static function legacyTarget(string $path, string $queryString): ?string
-    {
-        if (self::localTarget($path, true) === null) {
-            return null;
-        }
-        parse_str($queryString, $query);
-        $query = array_intersect_key($query, array_flip(self::QUERY_KEYS[$path] ?? []));
-        foreach ($query as $key => $value) {
-            if (!is_string($value) || strlen($value) > 512 || preg_match('/[\x00-\x1f\x7f]/', $value)) {
-                unset($query[$key]);
-            }
-        }
-        return $path . ($query ? '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986) : '');
     }
 
     public static function localTarget(string $target, bool $allowAuthentication = false): ?string
