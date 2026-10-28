@@ -20,7 +20,7 @@
                 <table class="table table-hover align-middle" id="kycTable" width="100%" cellspacing="0">
                     <thead class="table-light">
                         <tr>
-                            <th>Étudiant</th>
+                            <th>Adhérent</th>
                             <th>Email / Tél</th>
                             <th>Statut</th>
                             <th>Date Inscription</th>
@@ -32,8 +32,12 @@
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <img src="{{ student.identityDocument ? asset(student.identityDocument) : asset('assets/img/placeholder.png') }}" 
-                                         class="rounded-circle me-2" width="40" height="40" style="object-fit: cover;">
+                                    {% set identityExt = student.identityDocument ? student.identityDocument|split('.')|last|lower : '' %}
+                                    {% if identityExt in ['jpg', 'jpeg', 'png', 'gif'] %}
+                                    <img src="download.php?id={{ student.id }}&type=identite&inline=1" alt="Pièce d’identité de {{ student.firstName }} {{ student.lastName }}" class="rounded me-2" width="40" height="40" style="object-fit: cover;">
+                                    {% elseif student.identityDocument %}
+                                    <a href="download.php?id={{ student.id }}&type=identite&inline=1" target="_blank" rel="noopener" class="dossier-file-icon me-2" aria-label="Ouvrir la pièce d’identité de {{ student.firstName }} {{ student.lastName }}"><i class="fas fa-file-pdf" aria-hidden="true"></i></a>
+                                    {% else %}<span class="dossier-file-icon me-2" aria-label="Aucun justificatif"><i class="fas fa-user" aria-hidden="true"></i></span>{% endif %}
                                     <div>
                                         <div class="fw-bold">{{ student.firstName }} {{ student.lastName }}</div>
                                         <small class="text-muted text-uppercase">{{ student.status }}</small>

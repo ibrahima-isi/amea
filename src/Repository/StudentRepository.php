@@ -7,6 +7,18 @@ class StudentRepository
 {
     public function __construct(private \PDO $pdo) {}
 
+    /** Active dossiers awaiting staff review, oldest first. @return Student[] */
+    public function findReviewQueue(int $limit = 6): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT * FROM students WHERE deleted_at IS NULL AND kyc_status = ? ORDER BY registration_date ASC, id ASC LIMIT ?'
+        );
+        $stmt->bindValue(1, 'UNDER_REVIEW', \PDO::PARAM_STR);
+        $stmt->bindValue(2, max(1, min(50, $limit)), \PDO::PARAM_INT);
+        $stmt->execute();
+        return array_map(fn($row) => Student::fromRow($row), $stmt->fetchAll());
+    }
+
     public function findById(int $id): ?Student
     {
         $stmt = $this->pdo->prepare("SELECT * FROM students WHERE id = ? AND deleted_at IS NULL");
