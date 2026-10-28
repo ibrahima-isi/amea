@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-28",
+  "source_commit": "4ab4f3bcfe5861c4894b051a3cb53c55b182e597",
+  "environment": "isolated local demonstration",
+  "browser_qa": "unavailable: local browser use disabled in Work settings",
+  "assets": [
+    {
+      "origin": "https://localhost:18443",
+      "path": "assets/css/public.css",
+      "http_status": 200,
+      "sha256": "aabf77884e822568954bc5913e381b72a2b6318008ca46e827bca5fdbfb87791"
+    },
+    {
+      "origin": "https://localhost:18443",
+      "path": "assets/css/public-forms.css",
+      "http_status": 200,
+      "sha256": "c71c952f8951a511b7960cdaeb8945af8647f33b8e0d410f00512d1a7c02e3e0"
+    },
+    {
+      "origin": "https://localhost:19443",
+      "path": "assets/css/admin.css",
+      "http_status": 200,
+      "sha256": "9ccd0d967f38a01334d9c603b60ebc684278c436340245a10ac62b84d036b6ea"
+    },
+    {
+      "origin": "https://localhost:19443",
+      "path": "assets/js/admin-shell.js",
+      "http_status": 200,
+      "sha256": "f931b4f3c0756db015132706aad5beb778c25b75ba863890815266b9e26e2a00"
+    }
+  ]
+}

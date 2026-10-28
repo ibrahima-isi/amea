@@ -22,7 +22,7 @@ L'utilisateur constate une présence excessive du vert sur le site public et dem
 - Décision durable : [entrées indépendantes](../../docs/adr/0001-independent-public-and-staff-entry.md).
 - Les protections d'accès staff et les refus de routes restent nécessaires. Supprimer une passerelle n'autorise pas de retirer les contrôles d'authentification.
 
-## Proposition présentée, en attente de retour visuel
+## Proposition présentée puis approuvée
 
 - Administration : tableau de bord opérationnel, liste des adhérents, dossier individuel avec justificatifs, connexion.
 - Site public : accueil sobre avec photographie existante, texte bleu nuit, bouton rouge et repère tricolore ponctuel.
@@ -36,13 +36,13 @@ L'utilisateur constate une présence excessive du vert sur le site public et dem
 
 1. Direction visuelle : confirmée.
 2. Priorité d'accueil : dossiers à traiter, confirmée.
-3. Évaluation des maquettes : en attente.
+3. Évaluation et cadrage final : validés le 28 octobre.
    - Densité de la liste, organisation du dossier et placement des justificatifs.
    - Équilibre des couleurs et photographie de l'accueil public.
-4. Après retours : périmètre final, déclinaison sombre/mobile et écrans secondaires ; reformulation commune avant toute implémentation produit.
+4. Réalisation autorisée et exécutée ; qualification visuelle réelle encore en attente du navigateur.
 
 ## Limites
 
-Cadrage proposé pour validation finale : [refonte public et back-office](../../docs/superpowers/specs/2026-10-28-public-backoffice-visual-refresh-design.md).
+Cadrage approuvé : [refonte public et back-office](../../docs/superpowers/specs/2026-10-28-public-backoffice-visual-refresh-design.md).
 
-La refonte visuelle reste exploratoire. La suppression explicite des passerelles public → back-office est maintenant implémentée et vérifiée localement dans ce worktree ; voir completion.md. Aucun commit, publication ou livraison distante revendiqué. Les choix visuels restent réversibles. Le glossaire existant ne reçoit pas de terminologie nouvelle.
+La refonte visuelle et la suppression des passerelles sont implémentées dans le worktree isolé, avec commits signés et tests serveur documentés. Les maquettes restent des références exploratoires. La qualification visuelle ne peut pas être déclarée complète tant que le navigateur est indisponible ; publication/CI/fusion suivent leurs propres preuves.

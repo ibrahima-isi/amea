@@ -1,5 +1,17 @@
 # UI modernization and application separation — Completion tracker
 
+## Approved visual refresh — local implementation (2026-10-28)
+
+The complete design and implementation were approved interactively, including all existing back-office modules, the warm public palette, light/dark/mobile support and temporarily shared member data/files. No project-directory or database separation was performed.
+
+- Signed implementation commits: `5e37e4f` (admin shell/auth), `6a40e7e` (French navigation/contrast), `235d45f` (server-backed review queue and adjacent private document previews), `d0dd15a` (warm public/member pages), `4ab4f3b` (preserved staff-to-public registration journey), `241e784` (integrated HTTP qualification). Every signature verified.
+- Per-task source reviews found three initial navigation/contrast issues, corrected and re-reviewed; subsequent dossier/public/HTTP reviews found no actionable findings. Whole-branch review is a separate gate.
+- Final synthetic rehearsal: **404 PASS assertions**, exit 0, including empty/populated queues, ordinary-user dossier confidentiality, existing module access, actual image rollback/forward, SQL/files restoration and cleanup. Four PHP suites pass **47/186/78/24**, PHPUnit **143 tests / 250 assertions** (10 existing deprecations), historical HTTP **35+28**. See [qualification](docs/testing/visual-refresh.md).
+- Demonstration stack rebuilt with new interfaces and existing data/files: public `https://localhost:18443/`, staff `https://localhost:19443/login.php`. **26 HTTPS smoke checks pass**; [served CSS/JS proof](docs/testing/evidence/2026-10-28-refresh-served.json) matches local hashes for four assets.
+- Browser QA remains unavailable: the user confirmed enabling it, but supported tool discovery still returns `Local browser use is disabled in Work settings`. No screenshots or actual responsive/theme/keyboard/PDF rendering evidence claimed. Any PR remains draft pending this qualification; no auto-merge or production deployment follows from these local results.
+
+Current execution details: [refresh completion](.scratch/ui-visual-refresh/completion.md). Original checkout untouched. Temporary runtime files, environment, caches and vendor dependencies are excluded from commits.
+
 ## New requirement — independent public entry (2026-10-28)
 
 The user explicitly superseded ticket08's public-to-staff link/redirect compatibility. Public staff URLs must return local 404 responses, with no staff Location header or recovery link. Public navigation no longer offers staff sign-in or a session-dependent dashboard link. Authentication, permissions, private-file controls and validated internal staff login returns remain intact.

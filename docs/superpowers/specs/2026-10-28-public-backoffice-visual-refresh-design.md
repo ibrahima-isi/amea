@@ -1,6 +1,6 @@
 # Refonte visuelle du public et du back-office AEESGS
 
-Statut : cadrage proposé, validation finale attendue. Entretien : [.scratch/ui-visual-refresh/design.md](../../../.scratch/ui-visual-refresh/design.md).
+Statut : approuvé par réponse interactive le 28 octobre 2026, réalisation autorisée. Entretien : [.scratch/ui-visual-refresh/design.md](../../../.scratch/ui-visual-refresh/design.md).
 
 ## Intention
 
@@ -78,6 +78,6 @@ Cette règle porte sur le sens public → back-office. Les liens existants du st
 
 La suppression des passerelles est déjà implémentée et vérifiée localement, avec 357 lignes PASS dans la répétition Docker, 141 tests PHPUnit / 241 assertions, les suites PHP et HTTP habituelles et 26 contrôles sur la stack de démonstration. Ces preuves concernent la frontière d'accès, pas l'implémentation de la nouvelle identité visuelle.
 
-L'organisation du back-office est validée. La déclinaison publique chaleureuse, les déclinaisons sombre et mobile ainsi que l'extension homogène à tous les modules sont présentées ici pour validation finale. Les maquettes sont exploratoires et leurs actions simulées. Le navigateur automatisé est actuellement désactivé dans les réglages Work ; aucune nouvelle QA visuelle n'est revendiquée depuis cette désactivation.
+L'utilisateur a validé le cadrage complet et demandé de passer à la réalisation : organisation du back-office, déclinaison publique chaleureuse, modes sombre/mobile et extension homogène à tous les modules. Les maquettes restent des références exploratoires et leurs actions sont simulées. Le navigateur automatisé est actuellement désactivé dans les réglages Work ; aucune nouvelle QA visuelle n'est revendiquée depuis cette désactivation.
 
-Après confirmation du cadrage commun : établir les tickets locaux et le plan de réalisation, puis implémenter les interfaces en worktree isolé. La réorganisation en sous-projets et la séparation des données restent hors de cette étape.
+Réalisation suivie par le [plan](../plans/2026-10-28-public-backoffice-refresh.md) et les tickets locaux, en worktree isolé. La réorganisation en sous-projets et la séparation des données restent hors de cette étape.
