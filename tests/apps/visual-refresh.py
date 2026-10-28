@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only HTTP qualification at the runner's empty and populated fixture stages."""
+"""HTTP qualification at the runner's empty, populated and tools fixture stages."""
 import re
 import sys
 from routes import request, check
@@ -71,6 +71,24 @@ else:
               and b'assets/js/admin-shell.js' in body,
               'served permitted tools module includes shared admin shell ' + path)
     check('Paramètres'.encode() in dashboard, 'French tools navigation: Paramètres')
+    status, _, form = admin.go('/export.php')
+    check(status == 200, 'PDF export form available')
+    token = re.search(rb'name="csrf_token"\s+value="([^"]+)"', form).group(1).decode()
+    status, headers, _ = admin.go('/export.php', {
+        'csrf_token': token, 'fields[]': 'last_name', 'export_format': 'pdf'})
+    check(status == 302 and headers.get('Location', '').endswith('export-preview.php'),
+          'PDF export redirects to standalone preview')
+    status, _, preview = admin.go('/export-preview.php')
+    check(status == 200 and b'Legacy' in preview, 'PDF preview renders actual synthetic Legacy value')
+    check(b'window.print();' in preview and b'export.php' in links(preview),
+          'PDF preview retains native print control and return link')
+    check(all(value in preview for value in [b'assets/js/theme.js', b'assets/css/admin.css',
+          b'assets/css/export-preview.css', b'admin-app admin-export-preview',
+          b'theme-switcher', b'theme-label']), 'PDF preview serves staff theme assets and control')
+    status, headers, _ = admin.go('/export-preview.php')
+    check(status == 302 and headers.get('Location', '').endswith('export.php'),
+          'PDF preview consumes export session data after first render')
+
 auth_routes = ['/login.php', '/forgot-password.php']
 if sys.argv[1] == '--empty':
     auth_routes.append('/reset-password.php?token=' + 'a' * 64)
