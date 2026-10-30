@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-30",
+  "pr": "https://github.com/ibrahima-isi/amea/pull/18",
+  "pre_merge_head": "bb2745e482ad4a38bf3f5902fb644e9b3155c3e5",
+  "original_stacked_base": "4b16e1644bcf34c28db0d3922fd7687ddf9a0a8d",
+  "merged_dev": "23b5c556221c432084288c85988718e5e1f245ef",
+  "identical_dev_and_original_base_tree": "87eef96adfb0a94c0c8b29821fa83d462f19c679",
+  "merge_tree_reproduced_conflicts": [
+    "GLOSSARY.md",
+    "completion.md",
+    "src/Controller/BaseController.php",
+    "templates/layouts/public.html.twig",
+    "templates/partials/sidebar.html.twig",
+    "templates/partials/staff-header.html.twig"
+  ],
+  "cause": "PR17 squash preserves content but loses original ancestry; merge-base remained 01e6a3b",
+  "resolution": "Reconcile dev ancestry preserving validated journal tree; only completion, plan and this evidence updated. No code discarded because dev tree equals original stacked base. No force push.",
+  "independent_strategy_review": "PASS: identical full trees, original base ancestor of journal HEAD, signed ours merge appropriate for this exact dev only",
+  "local_validation": {
+    "phpunit_tests": 159,
+    "phpunit_assertions": 310,
+    "existing_deprecations": 10,
+    "standalone_pass_counts": [
+      48,
+      186,
+      78,
+      24
+    ],
+    "historical_http_pass_counts": [
+      35,
+      28
+    ]
+  },
+  "current_head_remote_ci": "must be checked after signed merge publication; previous bb2745e CI is historical evidence",
+  "browser_qa": "still open",
+  "auto_merge": "disabled before repair",
+  "production_changes": false
+}

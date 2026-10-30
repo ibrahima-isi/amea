@@ -1,0 +1,4 @@
+{% extends 'layouts/admin.html.twig' %}
+{% block title %}Aperçu — Journal{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('assets/css/journal.css') }}">{% endblock %}
+{% block body %}<div class="journal"><a href="edit-journal.php?id={{ post.id }}">Retour à la modification</a>{% include 'journal/article.html.twig' with {'post':post,'cover_url':cover_url} only %}</div>{% endblock %}

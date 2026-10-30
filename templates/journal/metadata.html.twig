@@ -1,0 +1,4 @@
+<p class="journal-meta">{{ {'ACTIVITY':'Activité','REPORT':'Compte rendu','ANNOUNCEMENT':'Annonce'}[post.type] }}{% if now|default(null) and post.type == 'ACTIVITY' and post.activity_start_at <= now and post.activity_end_at >= now %} · En cours{% endif %} · AEESGS{% if post.published_at %} · <time datetime="{{ post.published_at|date('Y-m-d\\TH:i:sP', 'Africa/Dakar') }}">{{ post.published_at|date('d/m/Y', 'Africa/Dakar') }}</time>{% endif %}</p>
+{% if post.type == 'ACTIVITY' and post.activity_start_at %}
+<p class="journal-dates">{{ post.activity_start_at|date('d/m/Y', 'Africa/Dakar') }}{% if post.activity_start_time_set %} à {{ post.activity_start_at|date('H:i', 'Africa/Dakar') }}{% endif %}{% if post.activity_end_at %} — {{ post.activity_end_at|date('d/m/Y', 'Africa/Dakar') }}{% if post.activity_end_time_set %} à {{ post.activity_end_at|date('H:i', 'Africa/Dakar') }}{% endif %}{% endif %}{% if post.location %} · {{ post.location }}{% endif %}</p>
+{% endif %}

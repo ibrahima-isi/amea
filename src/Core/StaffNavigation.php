@@ -11,6 +11,8 @@ final class StaffNavigation
         '/trash.php' => ['page'], '/download.php' => ['id', 'type'], '/edit-user.php' => ['id'],
         '/communications-count.php' => ['status', 'institution'],
         '/reset-password.php' => ['token'],
+        '/manage-journal.php' => ['page', 'type', 'status'], '/edit-journal.php' => ['id'],
+        '/journal-preview.php' => ['id'], '/journal-preview-cover.php' => ['id'],
     ];
 
     public static function methods(string $path): array
@@ -18,7 +20,7 @@ final class StaffNavigation
         if ($path === '/confirm-upgrade.php') {
             return ['POST'];
         }
-        $postRoutes = ['/register.php', '/registration-details.php', '/kyc-correction.php', '/accept-cgu.php', '/login.php', '/forgot-password.php', '/reset-password.php', '/students.php', '/edit-student.php', '/kyc-detail.php', '/trash.php', '/manage-slider.php', '/communications.php', '/export.php', '/settings.php', '/users.php', '/add-user.php', '/edit-user.php', '/profile.php'];
+        $postRoutes = ['/register.php', '/registration-details.php', '/kyc-correction.php', '/accept-cgu.php', '/login.php', '/forgot-password.php', '/reset-password.php', '/students.php', '/edit-student.php', '/kyc-detail.php', '/trash.php', '/manage-slider.php', '/edit-journal.php', '/communications.php', '/export.php', '/settings.php', '/users.php', '/add-user.php', '/edit-user.php', '/profile.php'];
         return in_array($path, $postRoutes, true) ? ['GET', 'POST'] : ['GET'];
     }
 

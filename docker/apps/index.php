@@ -27,5 +27,7 @@ if ($appIdentity === 'staff' && $path === '/') {
     exit;
 }
 $router = require '/opt/amea/src/bootstrap.php';
-require '/opt/amea/config/session.php';
+if ($appIdentity !== 'public' || !in_array($path, $routes['public_stateless'], true)) {
+    require '/opt/amea/config/session.php';
+}
 $router->dispatch();

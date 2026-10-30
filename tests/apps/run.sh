@@ -57,6 +57,7 @@ python3 tests/apps/registration.py --legacy-enums
 "${compose[@]}" exec -T public php migrations/06_expand_member_enum_compatibility.php
 "${compose[@]}" exec -T public php migrations/06_expand_member_enum_compatibility.php
 "${compose[@]}" exec -T public php /dev/stdin after < tests/apps/migration-proof.php
+"${compose[@]}" exec -T public php migrations/07_create_association_journal.php
 "${compose[@]}" exec -u www-data -T staff php < tests/apps/fixture.php
 python3 tests/apps/routes.py
 python3 tests/apps/links.py
@@ -72,6 +73,9 @@ fi
 "${compose[@]}" exec -u www-data -T staff php < tests/apps/tools-fixture.php
 python3 tests/apps/visual-refresh.py --tools
 python3 tests/apps/tools.py
+"${compose[@]}" exec -u www-data -T staff php < tests/apps/journal-fixture.php
+"${compose[@]}" exec -u www-data -T public php < tests/apps/journal-session-fixture.php
+python3 tests/apps/journal.py
 if [[ "${AMEA_SKIP_BROWSER:-0}" != "1" ]]; then
     node tests/apps/tools-browser.mjs "${AMEA_SCREENSHOT_DIR:-/private/tmp/amea-app-browser}"
 fi
