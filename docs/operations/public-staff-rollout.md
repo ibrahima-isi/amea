@@ -1,6 +1,6 @@
 # Public/staff rollout and rollback
 
-This is an unexecuted production procedure. The isolated rehearsal is recorded in [release qualification](../testing/release-qualification.md). Production, DNS, real SMTP, actual backups and external restoration require explicit approval; no such actions were performed.
+This is an unexecuted production procedure. Reproduce the isolated rehearsal using the [testing guide](../testing/README.md). Production, DNS, real SMTP, actual backups and external restoration require explicit approval; no such actions were performed.
 
 ## Inventory and recovery prerequisites
 

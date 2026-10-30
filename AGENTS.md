@@ -55,7 +55,7 @@ Add schema changes as new idempotent PHP CLI scripts in `migrations/` and update
 
 ### Issue tracker
 
-Use local Markdown specs and numbered tickets under `.scratch/<feature-slug>/`. Read `docs/agents/issue-tracker.md` before creating, updating, or resolving work items.
+Use local Markdown specs and numbered tickets under `.scratch/<feature-slug>/`. Keep feature designs and plans alongside them; `docs/` is for maintained guides and ADRs. Read `docs/agents/issue-tracker.md` before creating, updating, or resolving work items.
 
 ### Triage labels
 
