@@ -1,5 +1,15 @@
 # UI modernization and application separation — Completion tracker
 
+## Association journal — local implementation (2026-10-30)
+
+Fully approved journal design implemented on its own managed worktree/branch `feat/association-journal`, based on PR17 code4b16e16 (still a declared unmerged prerequisite). Three content types, draft/publication/withdrawal, permissioned private editing, controlled JPEG/PNG/WebP covers, anonymous published-only reading, automatic activity archives, stable URLs/first publication date, pagination and three recent homepage entries. Concurrency, validation-error state and anonymous-session review findings were fixed and re-reviewed; global source review's sole P3 French-label finding fixed in signed7dc5faa and scoped PASS.
+
+Local evidence: **534 HTTPS PASS assertions + jobs proof**, PHP **159 tests /310assertions** (10existingdeprecations), standalone **48/186/78/24**, historical HTTP **35+28**; rollback/forward, additive migration07 repeated after publication, SQL/files restore preserve real article/cover bytes. No strict RED claim for Task3/4 cases where RED was not executed. Details: [journal qualification](docs/testing/association-journal.md), [tracker](.scratch/association-journal/completion.md).
+
+Existing synthetic demo updated only after manual database-identity verification: migration07 additive, records2students/4users unchanged,0journalposts seeded. Real journal HTTPS18443, independent staffHTTPS19443, anonymous read-only loopbackHTTP18447; no staff endpoints/POST on that facade. **33 local runtime checks and four served asset hashes** pass on code7dc5faa; evidence JSON under docs/testing/evidence/2026-10-30/.
+
+Resumption on 2026-10-30 preserved the existing worktree and added **21 public HTTP checks PASS** without seeding content; [resumption evidence](docs/testing/evidence/2026-10-30/journal-resumption.json). GitHub reads confirm PR17 OPEN/DRAFT/unmerged and no remote journal branch/PR. The supported browser is unavailable and its inventory contains no controllable browsers, so real responsive/theme/keyboard/authenticated-browser proof remains open. Journal branch not remotely published, no journal PR/CI/merge or production deployment claimed. Keep any subsequent PRdraft until browser QA and PR17 dependency/protections are resolved; do not change remote main or clean active demo mounts.
+
 ## Approved visual refresh — local implementation (2026-10-28)
 
 The complete design and implementation were approved interactively, including all existing back-office modules, the warm public palette, light/dark/mobile support and temporarily shared member data/files. No project-directory or database separation was performed.

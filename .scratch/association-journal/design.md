@@ -20,4 +20,4 @@ Une maquette exploratoire publique est préparée le 29 octobre et disponible lo
 
 Les boutons Accueil/Inscription expliquent leur future destination publique dans cette maquette ; ils ne remplacent pas les parcours existants. Le circuit éditorial et l’archivage ont depuis été confirmés par réponse interactive explicite, sans assimiler le message « continue » précédent à ces réponses.
 
-Le périmètre éditorial, le circuit de publication et l’archivage ci-dessus sont confirmés. Les détails complémentaires du cadrage complet sont proposés à la validation finale. Aucune route, table, interface de gestion ou logique de publication n’est implémentée par cette étape. Aucun ajout au périmètre de la PR de refonte en cours ni déploiement.
+Le cadrage complet a été validé le30octobre et sa réalisation autorisée. Routes, données, gestion et lecture réelles sont implémentées dans le worktree dédié ; [preuves et limites](completion.md). Aucun ajout à la PR17 ni déploiement de production. La démonstration synthétique locale a reçu la migration additive après contrôle explicite de son identité, sans réinitialisation ni contenu fictif.

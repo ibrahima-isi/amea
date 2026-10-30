@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-30",
+  "source_commit": "7dc5faa356f94c2fa2e5ca89e41bb1f49c25ebf2",
+  "checks": [
+    "real HTTP journal view all anonymous and empty",
+    "public view all has no staff access",
+    "real HTTP journal view upcoming anonymous and empty",
+    "public view upcoming has no staff access",
+    "real HTTP journal view reports anonymous and empty",
+    "public view reports has no staff access",
+    "real HTTP journal view announcements anonymous and empty",
+    "public view announcements has no staff access",
+    "real HTTP journal view archives anonymous and empty",
+    "public view archives has no staff access",
+    "HTTP reading facade rejects private route /manage-journal.php",
+    "HTTP reading facade rejects private route /manage-journal.php",
+    "HTTP reading facade rejects private route /edit-journal.php",
+    "HTTP reading facade rejects private route /edit-journal.php",
+    "HTTP reading facade rejects private route /journal-preview.php",
+    "HTTP reading facade rejects private route /journal-preview.php",
+    "HTTP reading facade rejects private route /journal-preview-cover.php",
+    "HTTP reading facade rejects private route /journal-preview-cover.php",
+    "HTTP reading facade rejects private route /login.php",
+    "HTTP reading facade rejects private route /login.php",
+    "HTTPS missing journal record rejected anonymously /journal-article.php?slug=missing",
+    "HTTPS missing journal record rejected anonymously /journal-cover.php?slug=missing",
+    "missing cover privacy headers",
+    "real homepage retains journal public navigation",
+    "direct staff login form",
+    "existing demo admin authenticates",
+    "existing authorized admin sees real journal manager",
+    "real editor serves CSRF and cover field",
+    "invalid CSRF cannot create demo journal content",
+    "served asset matches source assets/css/public.css",
+    "served asset matches source assets/css/journal.css",
+    "served asset matches source assets/css/admin.css",
+    "served asset matches source assets/js/theme.js"
+  ],
+  "assets": [
+    {
+      "origin": "https://localhost:18443",
+      "path": "assets/css/public.css",
+      "sha256": "aabf77884e822568954bc5913e381b72a2b6318008ca46e827bca5fdbfb87791"
+    },
+    {
+      "origin": "https://localhost:18443",
+      "path": "assets/css/journal.css",
+      "sha256": "1626867686429770327946cfa347028617fd4381d20c2baaf8d03cb6d63abb4f"
+    },
+    {
+      "origin": "https://localhost:19443",
+      "path": "assets/css/admin.css",
+      "sha256": "9ccd0d967f38a01334d9c603b60ebc684278c436340245a10ac62b84d036b6ea"
+    },
+    {
+      "origin": "https://localhost:19443",
+      "path": "assets/js/theme.js",
+      "sha256": "fb9884e09a47b5857f6ee9eba44658498063cb3ed4ecb3f61a52b2ac385f54f7"
+    }
+  ],
+  "browser_qa": "blocked: supported browser tool reports local browser disabled in Work settings; no screenshot claim",
+  "database_migration": "07 only, verified synthetic amea_rehearsal, no seeded publications"
+}

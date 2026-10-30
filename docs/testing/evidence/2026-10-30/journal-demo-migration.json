@@ -1,0 +1,12 @@
+{
+  "database": "amea_rehearsal",
+  "before": {
+    "students": 2,
+    "users": 4
+  },
+  "after": {
+    "students": 2,
+    "users": 4
+  },
+  "journal_posts": 0
+}

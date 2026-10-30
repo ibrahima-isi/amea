@@ -67,4 +67,4 @@ Inscription à un événement, billetterie/paiement, commentaires, espace contri
 
 ## Prochaine étape
 
-Relire ce cadrage comme un constructeur, puis confirmer la description complète avec l’utilisateur. Les éléments proposés — éditeur simple, couverture unique, aperçu sur l’accueil et détails de dates — ne sont pas présentés comme des décisions utilisateur déjà prises. Après validation finale : plan et tickets locaux, puis réalisation autorisée dans un worktree dédié.
+Le constructeur a relu le cadrage sans question importante manquante, puis l'utilisateur l'a intégralement validé le30octobre2026 et a autorisé la réalisation, y compris l'éditeur simple, la couverture unique, l'intégration à l'accueil et les détails de dates. [Plan](../plans/2026-10-30-association-journal.md), [suivi local](../../../.scratch/association-journal/completion.md). La réalisation est maintenant vérifiée côté serveur et dans la démonstration locale ; les étapes navigateur/CI/fusion restent distinctes.
