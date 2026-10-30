@@ -19,3 +19,21 @@ The association’s visitor-facing space for introduction, community photography
 **Administration**:
 The staff-facing space for managing member records, reviewing documents, communicating, and maintaining association content.
 _Also called_: Back-office
+
+**Journal de l’amicale**:
+Espace public d’information de l’AEESGS réunissant les activités à venir, les comptes rendus d’activités passées et les annonces de l’association.
+
+**Activité à venir**:
+Activité de l’association annoncée avant son déroulement pour informer la communauté.
+
+**Compte rendu d’activité**:
+Publication racontant une activité qui a déjà eu lieu.
+
+**Annonce**:
+Information officielle que l’association souhaite porter à la connaissance de sa communauté.
+
+**Brouillon du journal**:
+Publication préparée pour le journal de l’amicale qui n’est pas accessible au public.
+
+**Activité archivée**:
+Activité terminée dont la page reste consultable dans le journal, sans apparaître parmi les activités à venir. Son archivage ne constitue pas un compte rendu.
