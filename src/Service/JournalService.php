@@ -32,6 +32,35 @@ final class JournalService
     {
         $this->assertActor($actorId);
         $existing = $id === null ? null : $this->requirePost($id);
+        $values = $this->prepare($existing, $input, $actorId, $publish, $trustedCover);
+        if ($existing === null) {
+            $values['slug'] = $this->slug($values['title']);
+            $values['created_by'] = $actorId;
+            $values['created_at'] = $values['updated_at'];
+            $id = $this->posts->insert($values);
+        } elseif (!$this->posts->update($id, $values, (int)$existing['revision'])) {
+            throw new JournalConflictException();
+        }
+        return $this->requirePost($id);
+    }
+
+    public function validate(?int $id, array $input, int $actorId, bool $publish = false): void
+    {
+        $this->assertActor($actorId);
+        $existing = $id === null ? null : $this->requirePost($id);
+        $this->prepare($existing, $input, $actorId, $publish, null);
+    }
+
+    private function prepare(?array $existing, array $input, int $actorId, bool $publish, ?array $trustedCover): array
+    {
+        if ($existing !== null && array_key_exists('revision', $input)) {
+            $revision = is_string($input['revision']) || is_int($input['revision'])
+                ? filter_var($input['revision'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]])
+                : false;
+            if ($revision === false || $revision !== (int)$existing['revision']) {
+                throw new JournalConflictException();
+            }
+        }
         $form = $this->formValues($existing);
         foreach (self::INPUTS as $field) {
             if (!array_key_exists($field, $input)) {
@@ -112,24 +141,22 @@ final class JournalService
         $values['updated_by'] = $actorId;
         $values['updated_at'] = $now;
         $values['published_at'] = $existing['published_at'] ?? ($status === 'PUBLISHED' ? $now : null);
-        if ($existing === null) {
-            $values['slug'] = $this->slug($form['title']);
-            $values['created_by'] = $actorId;
-            $values['created_at'] = $now;
-            $id = $this->posts->insert($values);
-        } else {
-            $this->posts->update($id, $values);
-        }
-        return $this->requirePost($id);
+        return $values;
     }
 
-    public function withdraw(int $id, int $actorId): array
+    public function withdraw(int $id, int $actorId, ?int $expectedRevision = null): array
     {
         $this->assertActor($actorId);
-        $this->requirePost($id);
-        $this->posts->update($id, [
+        $existing = $this->requirePost($id);
+        if ($expectedRevision !== null && $expectedRevision !== (int)$existing['revision']) {
+            throw new JournalConflictException();
+        }
+        $changed = $this->posts->update($id, [
             'status' => 'DRAFT', 'updated_by' => $actorId, 'updated_at' => $this->now(),
-        ]);
+        ], (int)$existing['revision']);
+        if (!$changed) {
+            throw new JournalConflictException();
+        }
         return $this->requirePost($id);
     }
 

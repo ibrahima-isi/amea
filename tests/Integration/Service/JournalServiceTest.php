@@ -113,4 +113,88 @@ final class JournalServiceTest extends TestCase
         ], 1, true);
         self::assertSame('2026-10-30 12:00:00', $post['published_at']);
     }
+
+    public function testConcurrentEditCannotUndoWithdrawal(): void
+    {
+        [$posts, $writer, $racing] = $this->interleavedServices();
+        $post = $writer->save(null, [
+            'type' => 'ANNOUNCEMENT', 'title' => 'Information',
+            'summary' => 'Résumé', 'body' => 'Texte publié',
+        ], 1, true);
+        $racing->afterRead = fn() => $writer->withdraw($post['id'], 1);
+        $editor = new JournalService($racing);
+        $conflict = false;
+        try {
+            $editor->save($post['id'], ['body' => 'Modification concurrente'], 1);
+        } catch (\RuntimeException) {
+            $conflict = true;
+        }
+        self::assertTrue($conflict, 'A stale editorial operation must be rejected.');
+        self::assertNull($posts->findPublishedBySlug($post['slug']));
+    }
+
+    public function testConcurrentFirstPublicationsCannotReplaceFirstDate(): void
+    {
+        [$posts, $writer, $racing] = $this->interleavedServices();
+        $post = $writer->save(null, [
+            'type' => 'REPORT', 'title' => 'Notre activité',
+            'summary' => 'Résumé', 'body' => 'Texte',
+        ], 1);
+        $racing->afterRead = fn() => $writer->save($post['id'], [], 1, true);
+        $later = new JournalService($racing, fn() => new \DateTimeImmutable('2026-11-02 12:00:00', new \DateTimeZone('Africa/Dakar')));
+        $conflict = false;
+        try {
+            $later->save($post['id'], [], 1, true);
+        } catch (\RuntimeException) {
+            $conflict = true;
+        }
+        self::assertTrue($conflict);
+        self::assertSame('2026-10-30 12:00:00', $posts->findPublishedBySlug($post['slug'])['published_at']);
+    }
+
+    public function testStaleFormRevisionCannotOverwriteAnotherEdit(): void
+    {
+        [$posts, $service] = $this->service();
+        $draft = $service->save(null, ['type' => 'REPORT', 'title' => 'Premier titre'], 1);
+        $latest = $service->save($draft['id'], ['title' => 'Titre corrigé', 'revision' => $draft['revision']], 1);
+        self::assertSame(2, $latest['revision']);
+        try {
+            $service->save($draft['id'], ['title' => 'Ancien formulaire', 'revision' => $draft['revision']], 1);
+            self::fail('A stale form revision must be rejected.');
+        } catch (\Amea\Service\JournalConflictException) {
+            self::assertSame('Titre corrigé', $posts->findById($draft['id'])['title']);
+        }
+    }
+
+    public function testValidationBeforeUploadDoesNotPersistContent(): void
+    {
+        [$posts, $service] = $this->service();
+        $service->validate(null, ['type' => 'REPORT', 'title' => 'Un brouillon'], 1);
+        self::assertSame(0, $posts->findAdminPage()['total']);
+        $post = $service->save(null, ['type' => 'REPORT', 'title' => 'Titre original'], 1);
+        $service->validate($post['id'], ['title' => 'Validation seule'], 1);
+        self::assertSame('Titre original', $posts->findById($post['id'])['title']);
+        self::assertSame(1, $posts->findById($post['id'])['revision']);
+    }
+
+    private function interleavedServices(): array
+    {
+        $db = makeTestDb();
+        $posts = new JournalRepository($db);
+        $writer = new JournalService($posts, fn() => new \DateTimeImmutable('2026-10-30 12:00:00', new \DateTimeZone('Africa/Dakar')));
+        $racing = new class($db) extends JournalRepository {
+            public ?\Closure $afterRead = null;
+            public function findById(int $id): ?array
+            {
+                $snapshot = parent::findById($id);
+                if ($this->afterRead !== null) {
+                    $callback = $this->afterRead;
+                    $this->afterRead = null;
+                    $callback();
+                }
+                return $snapshot;
+            }
+        };
+        return [$posts, $writer, $racing];
+    }
 }

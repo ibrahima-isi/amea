@@ -24,7 +24,7 @@
 
 ## Fixed module interfaces
 
-New table `journal_posts`: id, type, status, slug(unique), title, summary, body, cover_path(nullable), cover_mime(nullable), cover_alt, activity_start_at(nullable), activity_end_at(nullable), activity_start_time_set(bool), activity_end_time_set(bool), location(nullable), published_at(nullable), created_by, updated_by, created_at, updated_at. Datetimes are formatted `Y-m-d H:i:s` in Africa/Dakar (same UTC offset, but keep explicit zone). No destructive FK cascade into publications.
+New table `journal_posts`: id, revision(default1), type, status, slug(unique), title, summary, body, cover_path(nullable), cover_mime(nullable), cover_alt, activity_start_at(nullable), activity_end_at(nullable), activity_start_time_set(bool), activity_end_time_set(bool), location(nullable), published_at(nullable), created_by, updated_by, created_at, updated_at. Datetimes are formatted `Y-m-d H:i:s` in Africa/Dakar (same UTC offset, but keep explicit zone). No destructive FK cascade into publications. Revision-based compare-and-set protects concurrent state/date writes.
 
 `JournalRepository(PDO $pdo)` exposes:
 
@@ -35,7 +35,7 @@ findAdminPage(int $page = 1, int $perPage = 20, array $filters = []): array; // 
 findPublicPage(string $view, int $page, int $perPage, string $now): array; // items,total
 findRecentPublished(int $limit = 3): array;
 insert(array $values): int;
-update(int $id, array $values): bool;
+update(int $id, array $values, int $expectedRevision): bool; // atomic CAS, increments revision; false if stale
 ```
 
 Public views: all/upcoming/reports/announcements/archives, whitelist only. upcoming: published ACTIVITY ending at or after now; archives: published ACTIVITY ending before now. all includes all published types, with normal pagination. New list limits bounded1..50; page >=1. All/default/reports/announcements newest published_at/id first; upcoming oldest start/id first; archive newest end/id first. Bind values; SQL field/order fragments come solely from internal whitelist.
@@ -44,14 +44,17 @@ Public views: all/upcoming/reports/announcements/archives, whitelist only. upcom
 
 ```php
 save(?int $id, array $input, int $actorId, bool $publish = false, ?array $trustedCover = null): array;
-withdraw(int $id, int $actorId): array;
+validate(?int $id, array $input, int $actorId, bool $publish = false): void; // same validation, no writes
+withdraw(int $id, int $actorId, ?int $expectedRevision = null): array;
 ```
 
 Input whitelist: type,title,summary,body,cover_alt,activity_start_date,activity_start_time,activity_end_date,activity_end_time,location,remove_cover. Cover path/MIME never accepted from posted input; trustedCover is produced by the media service. Title1..180 and validtype needed for draft. Publish requires summary1..320 and body1..50000, required event dates/place, nonempty alt if cover; editing existing PUBLISHED must also validate publish completeness. Draft may be incomplete, but provided dates/times must be valid. Missing event end date defaults to start date; absent hours normalize start00:00:00/end23:59:59 with flags preserving the original optional-time representation. Reject end<start, invalid dates and array-valued text; non-ACTIVITY clears event fields. Immutable first published_at and URL, updated_at on change. Missing ID throws OutOfBoundsException; validation throws InvalidArgumentException with safe French message. Generate stable unique ASCII slug with random suffix on creation; changing title never changes it. Existing published edit remains published. remove_cover clears association, not physical file deletion. created_by/updated_by are internal only.
 
+For an existing record, posted revision is a concurrency precondition, never an editable value. Staff forms must include and validate it for save/publish/withdraw. Service read+write also checks the captured revision atomically; stale state raises `JournalConflictException` (safe French message, controller409). The migration is still unapplied, so revision belongs in new migration07, baseline and SQLite fixture. `validate()` permits field checks before storing an upload without duplicating business rules or modifying content.
+
 ## Task 1: Schema, persistence and editorial state machine
 
-**Files:** create `migrations/07_create_association_journal.php`, `src/Repository/JournalRepository.php`, `src/Service/JournalService.php`, `tests/Integration/Repository/JournalRepositoryTest.php`, `tests/Integration/Service/JournalServiceTest.php`; modify `schema.sql`, `tests/bootstrap.php` to add empty SQLite journal fixture schema.
+**Files:** create `migrations/07_create_association_journal.php`, `src/Repository/JournalRepository.php`, `src/Service/JournalService.php`, `src/Service/JournalConflictException.php`, `tests/Integration/Repository/JournalRepositoryTest.php`, `tests/Integration/Service/JournalServiceTest.php`; modify `schema.sql`, `tests/bootstrap.php` to add empty SQLite journal fixture schema.
 
 **Consumes:** existing PDO/service conventions and makeTestDb(). **Produces:** exact module interfaces/table above; no routes or UI yet.
 
@@ -66,6 +69,7 @@ ORDER BY activity_start_at ASC, id ASC LIMIT ? OFFSET ?
 
 - [ ] GREEN repository seam, then service RED tests: draft invisible; publish visible; withdraw invisible; republish preserves slug/first date; invalidcalendar/end-before-start rejected; no-hour same-day event ends23:59:59 and flags roundtrip; duplicate title generates distinct slug; notices/reports cannot retain event dates. Use closure `fn() => new DateTimeImmutable('2026-10-30 12:00:00', new DateTimeZone('Africa/Dakar'))` and explicit later clock for expiry boundary tests.
 - [ ] Implement service using input whitelist and explicit clock/validation above. Only a positive actorId is accepted; permissions are controller responsibility, tested at HTTP seam later. No mass-assignment of author/status/slug/timestamps/cover path. Re-run focused service tests.
+- [ ] Regression RED/GREEN for deterministic interleaved edit/withdraw and first publication, with two real services sharing a DB through a public repository timing seam. Assert atomic revision rejects stale writes and preserves privacy/first date; verify pre-upload validate performs no insert/update.
 - [ ] Run full PHPUnit once, PHP syntax and diff check. Create signed `feat: add journal persistence and editorial lifecycle`; verify signature and report RED/GREEN, exact method signatures and checks.
 
 ## Task 2: Private management, secure covers and permissions

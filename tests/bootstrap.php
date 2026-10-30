@@ -91,6 +91,7 @@ function makeTestDb(): PDO
 
     $db->exec("CREATE TABLE journal_posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    revision INTEGER NOT NULL DEFAULT 1,
     type TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'DRAFT',
     slug VARCHAR(220) NOT NULL UNIQUE,

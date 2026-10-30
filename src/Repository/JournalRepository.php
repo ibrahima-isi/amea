@@ -84,12 +84,13 @@ class JournalRepository
         return (int) $this->pdo->lastInsertId();
     }
 
-    public function update(int $id, array $values): bool
+    public function update(int $id, array $values, int $expectedRevision): bool
     {
         $values = array_intersect_key($values, array_flip(self::FIELDS));
         if (!$values) { return false; }
         $assignments = array_map(static fn(string $field): string => "$field = ?", array_keys($values));
-        $statement = $this->pdo->prepare('UPDATE journal_posts SET ' . implode(',', $assignments) . ' WHERE id = ?');
-        return $statement->execute([...array_values($values), $id]);
+        $statement = $this->pdo->prepare('UPDATE journal_posts SET ' . implode(',', $assignments) . ', revision = revision + 1 WHERE id = ? AND revision = ?');
+        $statement->execute([...array_values($values), $id, $expectedRevision]);
+        return $statement->rowCount() === 1;
     }
 }
