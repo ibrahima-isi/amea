@@ -74,6 +74,7 @@ fi
 python3 tests/apps/visual-refresh.py --tools
 python3 tests/apps/tools.py
 "${compose[@]}" exec -u www-data -T staff php < tests/apps/journal-fixture.php
+"${compose[@]}" exec -u www-data -T public php < tests/apps/journal-session-fixture.php
 python3 tests/apps/journal.py
 if [[ "${AMEA_SKIP_BROWSER:-0}" != "1" ]]; then
     node tests/apps/tools-browser.mjs "${AMEA_SCREENSHOT_DIR:-/private/tmp/amea-app-browser}"

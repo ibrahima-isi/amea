@@ -46,6 +46,15 @@ slug = public_url.split('slug=')[1]
 article = '/journal-article.php?slug=' + slug
 public_cover = '/journal-cover.php?slug=' + slug
 check(request('public', article)[0] == 404 and request('public', public_cover)[0] == 404, 'known draft inaccessible publicly')
+for session_id in ['syntheticexpiredjournal', 'syntheticoldjournalidentity']:
+    for route, expected in [('/journal.php', 200), (article, 404), (public_cover, 404)]:
+        status, headers, response = request('public', route, cookie='AMEA_PUBLIC=' + session_id)
+        check(status == expected and 'Location' not in headers and 'Set-Cookie' not in headers
+              and b'never-show-session-marker' not in response,
+              'anonymous journal ignores old public session: ' + session_id + ' ' + route)
+        if route == public_cover:
+            check('no-store' in headers.get('Cache-Control', '') and headers.get('X-Content-Type-Options') == 'nosniff',
+                  'draft cover privacy headers survive old public session')
 status, _, preview = admin.go('/journal-preview.php?id=' + id)
 check(status == 200 and b'Synthetic draft' in preview and b'&lt;script&gt;' in preview and b'<script>alert(1)</script>' not in preview, 'draft preview escapes text')
 status, headers, cover = admin.go('/journal-preview-cover.php?id=' + id)
@@ -78,6 +87,10 @@ status, headers, public_body = request('public', article, cookie=admin.cookie)
 check(status == 200 and b'&lt;script&gt;' in public_body and b'<script>alert(1)</script>' not in public_body, 'published article escaped')
 status, headers, public_image = request('public', public_cover)
 check(status == 200 and hashlib.sha256(public_image).digest() == hashlib.sha256(image).digest() and 'no-store' in headers.get('Cache-Control', '') and headers.get('X-Content-Type-Options') == 'nosniff', 'published cover matches private image')
+for route in [article, public_cover]:
+    status, headers, _ = request('public', route, cookie='AMEA_PUBLIC=syntheticexpiredjournal')
+    check(status == 200 and 'Location' not in headers and 'Set-Cookie' not in headers,
+          'published journal remains accessible with expired public session ' + route)
 revision = re.search(rb'name="revision" value="(\d+)"',admin.go(path)[2]).group(1).decode()
 check(admin.go('/edit-journal.php', {'csrf_token':token,'id':id,'revision':revision,'_action':'withdraw'})[0] == 302, 'withdrawal succeeds')
 check(request('public', article)[0] == 404 and request('public', public_cover)[0] == 404, 'withdrawn article and cover inaccessible')

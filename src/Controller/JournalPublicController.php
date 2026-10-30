@@ -11,7 +11,8 @@ final class JournalPublicController extends BaseController
 
     public function __construct()
     {
-        parent::__construct();
+        // Public reading does not consume or create an authentication/member session.
+        parent::__construct(false);
         $this->posts = new JournalRepository(Container::db());
     }
 
