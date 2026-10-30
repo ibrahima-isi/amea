@@ -66,5 +66,4 @@ To roll back, set `MAIL_ASYNC=0` or unset it. Existing queued messages remain in
 - **Daily cap reached**: the log prints `Daily limit reached`. The counter file is
   `storage/mail-queue/.sent-YYYYMMDD`; it resets naturally at midnight (new date).
   If you upgrade the Brevo plan, raise `MAIL_DAILY_LIMIT` accordingly.
-- **Nothing sends after `MAIL_ASYNC=1`**: the cron isn't firing. Re-check step 3/4
-  (wrong PHP path is the usual cause).
+- **Nothing sends after `MAIL_ASYNC=1`**: check the selected jobs profile, worker schedule and logs as described in [worker deployment](#worker-deployment-and-rollback) and the [rollout guide](operations/public-staff-rollout.md).
