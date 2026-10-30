@@ -23,6 +23,8 @@ def multipart(fields, image, mime='image/jpeg'):
     data = b''.join(f'--{boundary}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode() for k,v in fields.items())
     data += f'--{boundary}\r\nContent-Disposition: form-data; name="cover"; filename="cover.jpg"\r\nContent-Type: {mime}\r\n\r\n'.encode() + image + b'\r\n'
     return data + f'--{boundary}--\r\n'.encode(), 'multipart/form-data; boundary=' + boundary
+now = datetime.now(timezone.utc)
+future_day = (now + timedelta(days=7)).strftime('%Y-%m-%d')
 admin, denied, reader = (Client(n) for n in ['journal-admin', 'journal-denied', 'journal-reader'])
 paths = ['/manage-journal.php', '/edit-journal.php', '/journal-preview.php?id=1', '/journal-preview-cover.php?id=1']
 for path in paths:
@@ -32,7 +34,7 @@ for path in paths:
     check(denied.go(path)[0] == 302 and reader.go(path)[0] == 302, 'permission and role denied ' + path)
 token = admin.csrf('/edit-journal.php')
 check(admin.go('/edit-journal.php', {'csrf_token':'invalid','_action':'save','type':'REPORT','title':'CSRF'})[0] == 403, 'CSRF blocks write')
-fields = {'csrf_token':token, '_action':'save', 'type':'ACTIVITY', 'title':'Synthetic draft', 'summary':'Résumé', 'body':'Texte <script>alert(1)</script>', 'cover_alt':'Image', 'location':'Dakar', 'activity_start_date':'2026-11-01', 'activity_end_date':'2026-11-01', 'activity_start_time':'10:00', 'activity_end_time':'12:00'}
+fields = {'csrf_token':token, '_action':'save', 'type':'ACTIVITY', 'title':'Synthetic draft', 'summary':'Résumé', 'body':'Texte <script>alert(1)</script>', 'cover_alt':'Image', 'location':'Dakar', 'activity_start_date':future_day, 'activity_end_date':future_day, 'activity_start_time':'10:00', 'activity_end_time':'12:00'}
 image = pathlib.Path('assets/img/presidents.jpg').read_bytes()
 data, content = multipart(fields, image)
 status, headers, _ = admin.go('/edit-journal.php', data, content)
@@ -73,7 +75,7 @@ for key in ['activity_start_date', 'activity_end_date', 'activity_start_time', '
     if match is None or match.group(1) != b'': failures.append('cleared ' + key)
 if re.search(rb'name="remove_cover"[^>]*checked', body) is None: failures.append('cover removal selection')
 check(not failures, 'preserve submitted fields: ' + ', '.join(failures))
-fields.update({'activity_start_date':'2026-11-01','title':'Updated draft'})
+fields.update({'activity_start_date':future_day,'title':'Updated draft'})
 check(admin.go('/edit-journal.php', fields)[0] == 302, 'updated draft saves')
 check(admin.go('/edit-journal.php', fields)[0] == 409, 'stale revision rejected')
 revision = re.search(rb'name="revision" value="(\d+)"',admin.go(path)[2]).group(1).decode()
@@ -94,18 +96,33 @@ for route in [article, public_cover]:
 revision = re.search(rb'name="revision" value="(\d+)"',admin.go(path)[2]).group(1).decode()
 check(admin.go('/edit-journal.php', {'csrf_token':token,'id':id,'revision':revision,'_action':'withdraw'})[0] == 302, 'withdrawal succeeds')
 check(request('public', article)[0] == 404 and request('public', public_cover)[0] == 404, 'withdrawn article and cover inaccessible')
+first_date = re.search(rb'<time[^>]*datetime="([^"]+)"', public_body)
+check(first_date is not None, 'article exposes first publication date')
+revision = re.search(rb'name="revision" value="(\d+)"', admin.go(path)[2]).group(1).decode()
+fields['revision'] = revision
+check(admin.go('/edit-journal.php', fields)[0] == 302, 'republish succeeds')
+republished = request('public', article)[2]
+check(first_date.group(1) == re.search(rb'<time[^>]*datetime="([^"]+)"', republished).group(1), 'republish retains URL and first publication date')
+for route in ['/journal.php?view=upcoming', article, '/']:
+    body = request('public', route)[2]
+    check(public_cover.encode().lstrip(b'/') in body and b'Activit' in body and b'<time' in body and b'AEESGS' in body, 'date type and cover metadata on ' + route)
+
 for endpoint in ['/journal.php', '/journal-article.php?slug=x', '/journal-cover.php?slug=x']:
     for method in ['GET', 'POST']:
         check(request('staff', endpoint, method=method)[0] == 404, 'staff rejects public route ' + method + ' ' + endpoint)
 for invalid in ['slug[]=x', 'slug=../x', 'slug=unknown', 'slug=']:
     for endpoint in ['/journal-article.php?', '/journal-cover.php?']:
-        check(request('public', endpoint + invalid)[0] == 404, 'invalid slug rejected ' + invalid)
-now = datetime.now(timezone.utc)
+        status, headers, _ = request('public', endpoint + invalid)
+        check(status == 404 and 'Location' not in headers, 'invalid slug rejected ' + invalid)
+        if 'cover' in endpoint:
+            check('no-store' in headers.get('Cache-Control', '') and headers.get('X-Content-Type-Options') == 'nosniff', 'invalid cover privacy headers')
 def publish_synthetic(title, kind, day=None):
     data = {'csrf_token': token, '_action': 'publish', 'type': kind, 'title': title, 'summary': 'Résumé public', 'body': 'Texte public'}
     if day:
         data.update({'location': 'Dakar', 'activity_start_date': day, 'activity_end_date': day})
-    check(admin.go('/edit-journal.php', data)[0] == 302, 'publish ' + title)
+    status, headers, _ = admin.go('/edit-journal.php', data)
+    check(status == 302, 'publish ' + title)
+    return headers['Location']
 for title, kind, day in [('Future event', 'ACTIVITY', (now + timedelta(days=7)).strftime('%Y-%m-%d')), ('Past event', 'ACTIVITY', (now - timedelta(days=7)).strftime('%Y-%m-%d')), ('Report item', 'REPORT', None), ('Announcement item', 'ANNOUNCEMENT', None)]:
     publish_synthetic(title, kind, day)
 for view, present, absent in [('upcoming', b'Future event', b'Past event'), ('archives', b'Past event', b'Future event'), ('reports', b'Report item', b'Announcement item'), ('announcements', b'Announcement item', b'Report item')]:
@@ -115,3 +132,27 @@ status, _, home = request('public', '/')
 check(status == 200 and home.count(b'journal-article.php?slug=') == 3, 'homepage shows three recent publications')
 check(request('public', '/journal.php?view=archives&page=1')[0] == 200, 'archive pagination route available')
 print('Journal HTTP checks complete')
+
+# More than one page in a single filtered view; titles identify exact membership.
+for number in range(14):
+    publish_synthetic('Archive pagination %02d' % number, 'ACTIVITY', (now - timedelta(days=14 + number)).strftime('%Y-%m-%d'))
+def archive_titles(page):
+    status, _, body = request('public', '/journal.php?view=archives&page=' + str(page))
+    check(status == 200, 'archive page renders ' + str(page))
+    return re.findall(rb'>(Archive pagination \d+|Past event)</a>', body), body
+first, first_body = archive_titles(1)
+second, second_body = archive_titles(2)
+check(len(first) == 12 and len(second) == 3 and not set(first) & set(second), 'archive pages have exact disjoint subsets')
+check(first == [b'Past event'] + [('Archive pagination %02d' % n).encode() for n in range(11)] and second == [b'Archive pagination 11', b'Archive pagination 12', b'Archive pagination 13'], 'archives order by event end and keep ACTIVITY type')
+check(b'view=archives&amp;page=2' in first_body and b'view=archives&amp;page=1' in second_body, 'pagination preserves archive view')
+check(archive_titles(1)[0] == first, 'archive first page remains stable')
+publish_synthetic('Activity happening today', 'ACTIVITY', now.strftime('%Y-%m-%d'))
+current = request('public', '/journal.php?view=upcoming')[2]
+check(b'Activity happening today' in current and b'En cours' in current, 'in-progress activity labelled in upcoming')
+date_labels = b''.join(re.findall(rb'<p class="journal-dates">(.*?)</p>', current, re.S))
+check(b'00:00' not in date_labels and b'23:59' not in date_labels, 'date-only activities omit artificial times')
+for route in ['/', '/journal.php', '/journal.php?view=archives&page=2', article]:
+    for cookie in [None, admin.cookie, denied.cookie, reader.cookie]:
+        status, headers, body = request('public', route, cookie=cookie)
+        check(status == 200 and 'Location' not in headers and not any(marker in body for marker in [b'staff.amea.test', b'login.php', b'edit-journal.php', b'journal-preview.php', b'journal-admin', b'never-show-session-marker']), 'public reads never bridge staff ' + route)
+print('Expanded journal HTTP checks complete')

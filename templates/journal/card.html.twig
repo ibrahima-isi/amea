@@ -1,0 +1,6 @@
+<article class="journal-card">
+    {% if post.cover_path %}<img class="journal-card-cover" src="journal-cover.php?slug={{ post.slug|url_encode }}" alt="{{ post.cover_alt }}" loading="lazy">{% endif %}
+    {% include 'journal/metadata.html.twig' with {'post': post, 'now': now|default(null)} only %}
+    <h2><a href="journal-article.php?slug={{ post.slug|url_encode }}">{{ post.title }}</a></h2>
+    <p>{{ post.summary }}</p>
+</article>

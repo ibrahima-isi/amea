@@ -9,3 +9,16 @@
 .journal-grid article { padding: 1.5rem; border: 1px solid currentColor; border-radius: 1rem; }
 .journal-article { max-width: 48rem; margin-block: 2rem; }
 .journal-article img { display: block; border-radius: 1rem; margin-block: 2rem; }
+
+/* Shared public cards keep the association's warm surface in both themes. */
+.journal-card {
+    background: var(--public-surface, var(--bs-body-bg, #fffaf2));
+    color: var(--public-ink, var(--bs-body-color, #302b25));
+    overflow: hidden;
+}
+.journal-meta, .journal-dates { font-size: .9rem; line-height: 1.6; }
+.journal-meta { font-weight: 600; }
+.journal-card-cover { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: .6rem; margin-bottom: 1rem; }
+.journal-card h2 { font-size: 1.4rem; line-height: 1.3; }
+.journal-card a { color: inherit; text-underline-offset: .2em; }
+[data-bs-theme="dark"] .journal-card { background: var(--bs-tertiary-bg, #262b30); color: var(--bs-body-color, #ece8df); }

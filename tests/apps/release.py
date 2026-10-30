@@ -58,6 +58,17 @@ def observe():
     assert status == 200
     return dict(member=member, private=hashlib.sha256(private).hexdigest(), public=hashlib.sha256(public).hexdigest())
 
+def observe_journal():
+    status, _, listing = http.request('public', '/journal.php?view=upcoming')
+    assert status == 200 and b'Updated draft' in listing and b'Activity happening today' in listing
+    slug = re.search(rb'journal-article.php\?slug=([^"<>]+)"[^>]*>Updated draft</a>', listing).group(1).decode()
+    status, _, article = http.request('public', '/journal-article.php?slug=' + slug)
+    assert status == 200 and b'Updated draft' in article
+    status, headers, image = http.request('public', '/journal-cover.php?slug=' + slug)
+    assert status == 200 and headers.get('Content-Type') == 'image/jpeg'
+    return dict(slug=slug, article=hashlib.sha256(article).hexdigest(), image=hashlib.sha256(image).hexdigest())
+
+
 def verify(expected, label):
     assert observe() == expected, label
     http.check(True, label)
@@ -77,6 +88,11 @@ with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
     forward = directory / 'forward.json'
     forward.write_text(json.dumps({'services': {s: {'image': image} for s, image in images.items()}}))
     expected = observe()
+    journal = observe_journal()
+    for _ in range(2):
+        command(project, 'exec', '-T', 'public', 'php', 'migrations/07_create_association_journal.php')
+        assert observe_journal() == journal
+    http.check(True, 'migration07 reruns preserve published journal and controlled cover bytes over HTTPS')
     command(project, 'exec', '-u', 'www-data', '-T', 'public', 'php', '-r', "file_put_contents('storage/release-marker.txt','Synthetic storage continuity');")
     storage = storage_hash(project)
     for service in ['public', 'staff', 'mysql']:
@@ -89,6 +105,7 @@ with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
             else: raise RuntimeError('Replaced MySQL did not become ready')
         wait_ready(source_ports)
         verify(expected, service + ' container replacement preserves shared member and private/public file bytes')
+        assert observe_journal() == journal
         assert storage_hash(project) == storage
     http.check(True, 'storage volume persists through all container replacements')
     # A real retained pre-08 public image has different compatibility behavior.
@@ -117,6 +134,8 @@ with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
     status, headers, _ = http.request('public','/login.php')
     http.check(status == 404 and 'Location' not in headers, 'forward deployment preserves public isolation from staff')
     verify(expected, 'forward deployment preserves candidate database and files')
+    assert observe_journal() == journal
+    http.check(True, 'forward after legacy rollback restores published journal and cover bytes')
     sql, files = directory/'database.sql', directory/'files.tar'
     with sql.open('wb') as output:
         command(project,'exec','-T','mysql','mysqldump','--single-transaction','--no-tablespaces','-uamea','-psynthetic-only','amea_rehearsal',stdout=output)
@@ -136,6 +155,8 @@ with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
             command(restore_project,'exec','-T','public','tar','-C','/opt/amea','-xf','-',env=restore_env,override=forward,stdin=source)
         wait_ready((18448,19448))
         verify(expected, 'separate fresh SQL/files restore reproduces member and authorized private/public bytes over HTTPS')
+        assert observe_journal() == journal
+        http.check(True, 'fresh SQL/files restore preserves published journal and controlled cover bytes')
         assert storage_hash(restore_project,restore_env) == storage
         http.check(True, 'separate restored storage marker matches backup')
         http.check(http.request('public','/uploads/students/member-review.pdf')[0] in [403,404], 'restoration does not expose private uploaded documents')
