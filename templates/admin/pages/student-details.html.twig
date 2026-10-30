@@ -8,7 +8,7 @@
     <h1>Détails du membre</h1>
     <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
       <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
-      <li class="breadcrumb-item"><a href="students.php">Étudiants</a></li>
+      <li class="breadcrumb-item"><a href="students.php">Adhérents</a></li>
       <li class="breadcrumb-item active" aria-current="page">{{ student.firstName }} {{ student.lastName }}</li>
     </ol></nav>
   </div>
@@ -41,7 +41,7 @@
 {% elseif student.status in ['GRADUATE','DIPLOME','Diplômé'] %}{% set statusBadge = 'success' %}
 {% endif %}
 
-<div class="row">
+<div class="row dossier-member">
   {# ── LEFT COLUMN ─────────────────────────────────────────────────────── #}
   <div class="col-lg-4 mb-4">
 
@@ -254,6 +254,11 @@
         <div class="mb-4">
           <strong class="d-block text-muted small mb-2"><i class="fas fa-id-card me-1"></i>Pièce d'identité / Photo</strong>
           {% if hasIdentity %}
+            {% if identityIsPdf %}
+              <iframe title="Pièce d’identité de {{ student.firstName }} {{ student.lastName }}" class="dossier-pdf mb-3" src="download.php?id={{ student.id }}&type=identite&inline=1"></iframe>
+            {% else %}
+              <img class="kyc-doc-preview mb-3" src="download.php?id={{ student.id }}&type=identite&inline=1" alt="Pièce d’identité de {{ student.firstName }} {{ student.lastName }}">
+            {% endif %}
             <div class="d-flex flex-wrap gap-2">
               <a href="download.php?id={{ student.id }}&type=identite" class="btn btn-sm btn-info">
                 <i class="fas fa-download me-1"></i>Télécharger
@@ -324,7 +329,7 @@
         {% if identityIsImage %}
           <img src="download.php?id={{ student.id }}&type=identite&inline=1" class="img-fluid" alt="Pièce d'identité">
         {% else %}
-          <iframe src="download.php?id={{ student.id }}&type=identite&inline=1" width="100%" height="100%" style="border:none;min-height:80vh;"></iframe>
+          <iframe title="Document de l’adhérent" src="download.php?id={{ student.id }}&type=identite&inline=1" width="100%" height="100%" style="border:none;min-height:80vh;"></iframe>
         {% endif %}
       </div>
     </div>
@@ -342,7 +347,7 @@
       </div>
       <div class="modal-body text-center p-0">
         {% if cvIsPdf %}
-          <iframe src="download.php?id={{ student.id }}&type=cv&inline=1" width="100%" height="100%" style="border:none;"></iframe>
+          <iframe title="Document de l’adhérent" src="download.php?id={{ student.id }}&type=cv&inline=1" width="100%" height="100%" style="border:none;"></iframe>
         {% else %}
           <img src="download.php?id={{ student.id }}&type=cv&inline=1" class="img-fluid" style="max-height:100%;max-width:100%;" alt="CV">
         {% endif %}

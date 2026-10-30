@@ -15,7 +15,6 @@ services:
       APP_ENV: production
       APP_URL: ${PUBLIC_APP_URL:?set public origin}
       PUBLIC_APP_URL: ${PUBLIC_APP_URL:?set public origin}
-      STAFF_APP_URL: ${STAFF_APP_URL:?set staff origin}
       MAIL_USER: ${MAIL_USER:?set Brevo SMTP user}
       MAIL_PASS: ${MAIL_PASS:?set Brevo SMTP password}
       MAIL_ASYNC: '1'
@@ -38,6 +37,7 @@ services:
     environment:
       <<: *shared_environment
       APP_URL: ${STAFF_APP_URL:?set staff origin}
+      STAFF_APP_URL: ${STAFF_APP_URL:?set staff origin}
     volumes:
       - uploads:/opt/amea/uploads
       - storage:/opt/amea/storage

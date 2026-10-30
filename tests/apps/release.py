@@ -114,7 +114,8 @@ with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
     verify(expected, 'real prior image rollback preserves candidate database and file bytes')
     command(project, 'up', '-d', '--no-deps', '--no-build', '--force-recreate', 'public', override=forward)
     wait_ready(source_ports)
-    http.check(http.request('public','/login.php')[0] == 302, 'forward deployment restores configured staff redirect')
+    status, headers, _ = http.request('public','/login.php')
+    http.check(status == 404 and 'Location' not in headers, 'forward deployment preserves public isolation from staff')
     verify(expected, 'forward deployment preserves candidate database and files')
     sql, files = directory/'database.sql', directory/'files.tar'
     with sql.open('wb') as output:

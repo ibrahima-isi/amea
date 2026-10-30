@@ -39,6 +39,45 @@ class StudentRepositoryTest extends TestCase
         ], $overrides);
     }
 
+    public function testReviewQueueFiltersOrdersAndLimitsActiveDossiers(): void
+    {
+        $ids = [];
+        foreach (['UNDER_REVIEW', 'UNDER_REVIEW', 'UNDER_REVIEW', 'NEEDS_CLARIFICATION', 'APPROVED', 'REJECTED', 'PENDING_CONFIRMATION', 'UNDER_REVIEW'] as $index => $status) {
+            $ids[] = $this->repo->save($this->makeStudent([
+                'phone' => '7711100' . sprintf('%02d', $index),
+                'email' => "queue{$index}@test.sn",
+                'kyc_status' => $status,
+            ]));
+        }
+        $dates = ['2026-01-03', '2026-01-01', '2026-01-01'];
+        foreach ($ids as $index => $id) {
+            $this->db->prepare('UPDATE students SET registration_date = ? WHERE id = ?')
+                ->execute([$dates[$index] ?? '2025-01-01', $id]);
+        }
+        $this->repo->delete($ids[7]);
+        $queue = $this->repo->findReviewQueue();
+        $this->assertContainsOnlyInstancesOf(Student::class, $queue);
+        $this->assertSame([$ids[1], $ids[2], $ids[0]], array_map(fn(Student $student) => $student->getId(), $queue));
+        $this->assertSame([$ids[1], $ids[2]], array_map(fn(Student $student) => $student->getId(), $this->repo->findReviewQueue(2)));
+        $this->assertSame(3, $this->repo->countAll(['kyc_status' => 'UNDER_REVIEW']));
+        $this->assertSame(1, $this->repo->countAll(['kyc_status' => 'NEEDS_CLARIFICATION']));
+    }
+
+    public function testReviewQueueClampsLimit(): void
+    {
+        for ($index = 0; $index < 52; $index++) {
+            $this->repo->save($this->makeStudent([
+                'phone' => '772' . sprintf('%06d', $index),
+                'email' => "limit{$index}@test.sn",
+                'kyc_status' => 'UNDER_REVIEW',
+            ]));
+        }
+        $this->assertCount(1, $this->repo->findReviewQueue(0));
+        $this->assertCount(1, $this->repo->findReviewQueue(-5));
+        $this->assertCount(6, $this->repo->findReviewQueue());
+        $this->assertCount(50, $this->repo->findReviewQueue(999));
+    }
+
     public function testSaveAndFindById(): void
     {
         $id = $this->repo->save($this->makeStudent());

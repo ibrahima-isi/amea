@@ -18,23 +18,24 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     {% block stylesheets %}{% endblock %}
+    <link rel="stylesheet" href="{{ asset('assets/css/admin.css') }}">
 </head>
-<body>
+<body class="admin-app">
     {% if flash %}
         <script id="flash-data" type="application/json">{{ flash|json_encode|raw }}</script>
     {% endif %}
 
     <div class="d-flex" id="wrapper">
-        <div id="sidebar-overlay"></div>
+        <button id="sidebar-overlay" type="button" tabindex="-1" aria-label="Fermer le menu" hidden></button>
         {% include 'partials/sidebar.html.twig' %}
         <div id="page-content-wrapper">
-            {% include 'partials/header.html.twig' %}
+            {% include 'partials/staff-header.html.twig' %}
 
             <main class="container-fluid p-4">
                 {% block body %}{% endblock %}
             </main>
 
-            {% include 'partials/footer.html.twig' %}
+            <footer class="staff-footer">AEESGS · Espace administration</footer>
         </div>
     </div>
 
@@ -43,6 +44,7 @@
     <script src="{{ asset('assets/js/app-alerts.js') }}"></script>
     <script src="{{ asset('assets/js/app.js') }}"></script>
 
+    <script src="{{ asset('assets/js/admin-shell.js') }}" defer></script>
     {% block javascripts %}{% endblock %}
 </body>
 </html>

@@ -1,5 +1,27 @@
 # UI modernization and application separation — Completion tracker
 
+## Approved visual refresh — local implementation (2026-10-28)
+
+The complete design and implementation were approved interactively, including all existing back-office modules, the warm public palette, light/dark/mobile support and temporarily shared member data/files. No project-directory or database separation was performed.
+
+- Signed implementation commits: `5e37e4f` (admin shell/auth), `6a40e7e` (French navigation/contrast), `235d45f` (server-backed review queue and adjacent private document previews), `d0dd15a` (warm public/member pages), `4ab4f3b` (preserved staff-to-public registration journey), `241e784` (integrated HTTP qualification). Every signature verified.
+- Per-task source reviews found three initial navigation/contrast issues, corrected and re-reviewed; subsequent dossier/public/HTTP reviews found no actionable findings. The whole-branch review found one P2 in the standalone export preview, fixed in signed commit `aeebdb4` and re-reviewed PASS; see the [review](.scratch/ui-visual-refresh/evidence/reviews/final-review.md) and [fix verification](.scratch/ui-visual-refresh/evidence/reviews/final-rereview.md).
+- Final synthetic rehearsal: **410 PASS assertions plus one jobs proof**, exit 0, including empty/populated queues, ordinary-user dossier confidentiality, existing module access, actual image rollback/forward, SQL/files restoration and cleanup. Four PHP suites pass **47/186/78/24**, PHPUnit **143 tests / 250 assertions** (10 existing deprecations), historical HTTP **35+28**. See [qualification](docs/testing/visual-refresh.md).
+- Demonstration stack rebuilt with new interfaces and existing data/files: public `https://localhost:18443/`, staff `https://localhost:19443/login.php`. **26 HTTPS smoke checks pass**; [served CSS/JS proof](docs/testing/evidence/2026-10-28-refresh-served.json) matches local hashes for five assets and the final authorized PDF export/session workflow.
+- Browser QA remains unavailable: the user confirmed enabling it, but supported tool discovery still returns `Local browser use is disabled in Work settings`. No screenshots or actual responsive/theme/keyboard/PDF rendering evidence claimed. Any PR remains draft pending this qualification; no auto-merge or production deployment follows from these local results.
+
+Current execution details: [refresh completion](.scratch/ui-visual-refresh/completion.md). Original checkout untouched. Temporary runtime files, environment, caches and vendor dependencies are excluded from commits.
+
+## New requirement — independent public entry (2026-10-28)
+
+The user explicitly superseded ticket08's public-to-staff link/redirect compatibility. Public staff URLs must return local 404 responses, with no staff Location header or recovery link. Public navigation no longer offers staff sign-in or a session-dependent dashboard link. Authentication, permissions, private-file controls and validated internal staff login returns remain intact.
+
+Implemented in isolated worktree `/private/tmp/amea-local-20261027`, with the original checkout unchanged. Removed the public bridge from the container entry point, obsolete staff-login Twig global and legacy URL builder. Public Compose configuration no longer receives STAFF_APP_URL; staff retains its own origin for password recovery. Tests now assert denial instead of legacy redirects and cover public navigation pages.
+
+Local evidence: **357 rehearsal PASS lines** (HTTP/schema/operational checks including independent starts, cache isolation, replacement, rollback/forward and restoration), PHPUnit **141 tests / 241 assertions** (10 existing deprecations), standalone suites **47/186/78/24**, historical HTTP suites **35+28**. Browser scripts were updated and syntax-checked; real browser QA was unavailable because local browser use is disabled in Work settings. Logs are under `local-runtime/separation-*.log` in that worktree.
+
+The demonstration stack was rebuilt with these changes without replacing its database or volumes. See [ADR](docs/adr/0001-independent-public-and-staff-entry.md) and [design progress](.scratch/ui-visual-refresh/completion.md). No commit, PR, remote CI, merge or production deployment is claimed. Physical subprojects are deferred; on 2026-10-28 the user explicitly confirmed keeping the member database and files shared temporarily. The root PHP server is the historical combined application; the verified separated HTTP boundary is the public/staff Docker targets. A [complete visual refresh design](docs/superpowers/specs/2026-10-28-public-backoffice-visual-refresh-design.md) is proposed for final approval; it is not visual implementation evidence.
+
 ## Authoritative scope
 
 Design: [UI and app separation](docs/superpowers/specs/2026-10-23-ui-and-app-separation-design.md).

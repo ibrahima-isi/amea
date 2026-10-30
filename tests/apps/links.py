@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compatibility and route isolation at the actual HTTPS application boundary."""
+"""Independent application routes and internal staff login returns over HTTPS."""
 from routes import request, check, STAFF_PORT
 import re
 class Client:
@@ -23,15 +23,15 @@ for cookie_id in ['syntheticexpiredstafflink', 'syntheticrevokedstafflink']:
     destination = headers.get('Location', '')
     waiting.go('/' + destination.lstrip('/'))
     check(waiting.login()[1].get('Location') == '/students.php?page=2', cookie_id + ' preserves bookmarked destination through fresh login')
-# Unknown bookmark tracking parameters do not discard the actual member ID.
+# Old bookmarks must not reveal or reach the staff application through public.
 status, headers, _ = request('public', '/student-details.php?id=42&utm_source=archive')
-check(status == 302 and headers.get('Location') == 'https://staff.amea.test:' + str(STAFF_PORT) + '/student-details.php?id=42', 'legacy bookmark keeps vetted id while discarding tracking keys')
+check(status == 404 and 'Location' not in headers, 'public rejects old staff bookmarks locally')
 # A real old-host form submission cannot repeat a staff action.
 status, _, listing = client.go('/students.php?search=Legacy')
 member = re.search(rb'student-details.php\?id=(\d+)', listing).group(1).decode()
 csrf = re.search(rb'name="csrf_token"\s+value="([^"]+)"', listing).group(1).decode()
 status, headers, body = request('public', '/students.php', {'id': member, 'csrf_token': csrf, 'action': 'delete', 'private_marker': 'never-reflect-this'}, client.cookie)
-check(status == 409 and 'Location' not in headers and b'never-reflect-this' not in body, 'stale staff POST is not replayed, redirected or reflected')
+check(status == 404 and 'Location' not in headers and b'never-reflect-this' not in body and b'href=' not in body, 'stale staff POST is not replayed, redirected, reflected or linked to staff')
 check(b'Legacy' in client.go('/students.php?search=Legacy')[2], 'stale POST leaves member record unchanged through staff HTTP')
 # Return destinations are exact local GET routes, not external or encoded aliases.
 from urllib.parse import quote
@@ -46,9 +46,10 @@ check(c.go('/login.php')[1].get('Location') == 'dashboard.php', 'login consumes 
 # Explicit staff/member surface and auxiliary endpoints; no accidental fallback.
 staff_get = ['/login.php', '/logout.php', '/forgot-password.php', '/reset-password.php', '/dashboard.php', '/students.php', '/student-details.php', '/edit-student.php', '/kyc-list.php', '/kyc-detail.php', '/trash.php', '/download.php', '/manage-slider.php', '/communications.php', '/communications-count.php', '/export.php', '/export-preview.php', '/settings.php', '/users.php', '/add-user.php', '/edit-user.php', '/profile.php', '/upgrade-levels.php']
 for path in staff_get:
-    status, headers, _ = request('public', path)
-    check(status == 302 and headers.get('Location') == 'https://staff.amea.test:' + str(STAFF_PORT) + path, 'legacy staff GET maps exact route ' + path)
-    check(request('public', path, {'csrf_token': 'old', 'password': 'never-forward'})[0] == 409, 'legacy staff POST recovery ' + path)
+    status, headers, body = request('public', path)
+    check(status == 404 and 'Location' not in headers and b'href=' not in body, 'public rejects staff GET without a bridge ' + path)
+    status, headers, body = request('public', path, {'csrf_token': 'old', 'password': 'never-forward'})
+    check(status == 404 and 'Location' not in headers and b'href=' not in body, 'public rejects staff POST without a bridge ' + path)
     check(request('staff', path)[0] in ([200] if path in ['/login.php', '/forgot-password.php'] else [302]), 'staff route keeps authentication behavior ' + path)
 for path, expected in [('/', 200), ('/index.php', 200), ('/register.php', 200), ('/registration-details.php', 302), ('/registration-preview.php?type=identite', 404), ('/kyc-correction.php?token=invalid', 302), ('/legal-notice.php', 200), ('/accept-cgu.php?token=invalid', 200)]:
     check(request('public', path)[0] == expected, 'public member URL compatible ' + path)
@@ -59,13 +60,15 @@ for app in ['public', 'staff']:
         check(request(app, path)[0] in [400, 403, 404], app + ' rejects direct/encoded private or unknown path ' + path)
     for path, method in [('/confirm-upgrade.php', 'GET'), ('/login.php', 'HEAD'), ('/login.php', 'OPTIONS'), ('/students.php', 'DELETE'), ('/registration-preview.php', 'POST')]:
         response = request(app, path, method=method)
-        expected = 404 if app == 'staff' and path.startswith('/registration-') else 405
+        wrong_app = (app == 'staff' and path.startswith('/registration-')) or (app == 'public' and not path.startswith('/registration-'))
+        expected = 404 if wrong_app else 405
         check(response[0] == expected, app + ' rejects unsupported ' + method + ' ' + path)
 status, headers, _ = request('public', '/reset-password.php?token=' + 'a' * 64)
-check(headers.get('Location') == 'https://staff.amea.test:' + str(STAFF_PORT) + '/reset-password.php?token=' + 'a'*64, 'old recovery token URL preserves token on staff host')
-check(request('staff', '/reset-password.php?token=' + 'a'*64)[0] == 200, 'redirected recovery token remains usable')
+check(status == 404 and 'Location' not in headers, 'public does not forward staff recovery tokens')
+check(request('staff', '/reset-password.php?token=' + 'a'*64)[0] == 200, 'staff recovery token remains usable directly on staff')
 _, _, staff_login = request('staff', '/login.php')
 public_origin = 'https://public.amea.test:' + str(__import__('routes').PUBLIC_PORT)
 check(('href="' + public_origin + '/register.php"').encode() in staff_login, 'staff navigation registration points to public application')
-_, _, public_home = request('public', '/')
-check(('href="https://staff.amea.test:' + str(STAFF_PORT) + '/login.php"').encode() in public_home, 'public navigation sign-in points to staff application')
+for path in ['/', '/register.php', '/legal-notice.php', '/accept-cgu.php?token=invalid']:
+    _, _, body = request('public', path)
+    check(b'staff.amea.test' not in body and not re.search(rb'(?:href|action)=[\"\'][^\"\']*(?:login|dashboard)\.php', body), 'public page has no staff navigation ' + path)
