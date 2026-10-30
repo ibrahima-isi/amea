@@ -23,7 +23,9 @@ Réalisation : worktree géré dédié `/Users/ibrahimadiallo/.codex/worktrees/a
 
 | Ticket | Exécution | Preuves |
 |---|---|---|
-| [01](issues/01-editorial-core.md) | Prêt à démarrer | Base PHPUnit143/250 verte,10dépréciations existantes |
+| [01](issues/01-editorial-core.md) | Moteur implémenté/testé ; revue indépendante en attente | Rouge6tests/5erreurs classe manquante ; vert11tests/47assertions ; suite154tests/297assertions,10dépréciations existantes |
 | [02](issues/02-private-management.md) | Attend01 | — |
 | [03](issues/03-public-reading.md) | Attend02 | — |
 | [04](issues/04-integrated-qualification.md) | Attend03 | Migration/QA/CI/fusion distinctes |
+
+L’agent de réalisation a atteint sa limite d’usage ; le parent a terminé le moteur strictement défini et préservé le travail. La revue indépendante reste à faire avant02. Aucun écran réel du journal ni endpoint d’image n’est encore implémenté ; aucune migration MySQL/démo/production exécutée. HTTP18444 affiche la maquette ; HTTP18443 répond400 car il s’agit du portHTTPS. La configuration de sécurité reste inchangée.
