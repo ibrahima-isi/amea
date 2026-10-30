@@ -6,7 +6,7 @@ Status: ready-for-agent
 
 Keep a lean, maintained repository without changing application behavior. Audit the whole repository; remove only files whose purpose is obsolete or whose lack of consumers is supported by evidence. Keep historical material in Git rather than moving it to an archive directory.
 
-The user selected one reviewable PR into `dev`, removal of the bundled UI skill in favor of the existing personal installation, and removal of retired cPanel support. Starting point: `origin/dev` at `23b5c556221c432084288c85988718e5e1f245ef`, after merged PR #17. Worktree: `/private/tmp/amea-repository-cleanup-20261030`.
+The user selected one reviewable PR into `dev`, removal of the bundled UI skill in favor of the existing personal installation, and removal of retired cPanel support. Approved starting point: `origin/dev` at `23b5c556221c432084288c85988718e5e1f245ef`, after merged PR #17. Before publication PR #18 merged; the cleanup was rebased onto `87d6a19e6c8d8268ffc67e23b3e4ce96c8bc91ac`, preserving its journal additions and the original deletion manifest. Worktree: `/private/tmp/amea-repository-cleanup-20261030`.
 
 ## Approaches
 

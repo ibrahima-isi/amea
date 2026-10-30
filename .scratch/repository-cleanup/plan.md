@@ -38,6 +38,8 @@
 - [x] Run `AMEA_REHEARSAL_PROJECT=amea-ui-test-cleanup-20261030 AMEA_PUBLIC_PORT=28443 AMEA_STAFF_PORT=29443 AMEA_SCREENSHOT_DIR=/private/tmp/amea-cleanup-browser bash tests/apps/run.sh`. First confirm these ports and restore ports 18448/19448 are free. Never touch existing projects; the harness cleans only its fresh owned source/restore projects. Use sandbox escalation for network/Docker/loopback permissions if needed.
 - [x] Self-review scope, evidence, and diff; write a detailed implementer report with results and limitations. Commit using `git commit -S` and verify the signature; stop immediately on failure. Do not push or open the PR: the controller handles final review and authorized PR delivery after task review.
 
+The cleanup was rebased onto merged journal base `87d6a19` before publication; preserve journal files and revalidate the combined tree. Previous reviews cover the earlier base; review the rebased result separately.
+
 ## Controller delivery
 
 Review Task 1 for spec compliance and quality, then commission broad branch review. Resolve findings, verify preservation snapshot `/private/tmp/amea-cleanup-preservation.json`, sign any evidence-only changes, and push `chore/repository-cleanup` to open one PR into `dev`. Report latest-head CI for user review. Keep the worktree until an actual later merge; do not push remote `main`.

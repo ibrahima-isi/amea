@@ -7,3 +7,5 @@ On 2026-10-30, PHPUnit passed 143 tests / 250 assertions with the same 10 baseli
 Independent task and broad branch reviews found no blockers; a minor stale queue troubleshooting reference was corrected. PR and current-head remote CI remain pending. No production deployment, DNS or real SMTP qualification is claimed.
 
 The merged [association journal tracker](.scratch/association-journal/completion.md) retains its own milestones and evidence.
+
+After PR #18 merged, the cleanup was rebased onto `87d6a19`; the earlier reviews apply to the prior base, and independent review of the combined tree is pending. On the rebased tree PHPUnit passed 159 tests / 310 assertions (the same 10 deprecations); standalone suites passed 48/186/78/24, HTTP 35/28, and browser runs 79/89 combined checks. The synthetic journal-inclusive Docker rehearsal passed 557 PASS lines, including jobs, rollback and restore, and cleaned its owned resources. It emitted the existing synthetic MySQL CLI password warning. PHP syntax, tracked Markdown links, deletion manifest equality and whitespace checks passed. Remote PR and latest-head CI remain pending.
