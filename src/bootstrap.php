@@ -25,6 +25,10 @@ $router->add('GET', '/login.php', 'AuthController@login');
 $router->add('POST', '/login.php', 'AuthController@login');
 $router->add('GET', '/logout.php', 'AuthController@logout');
 
+$router->add('GET', '/journal.php', 'JournalPublicController@index');
+$router->add('GET', '/journal-article.php', 'JournalPublicController@show');
+$router->add('GET', '/journal-cover.php', 'JournalPublicController@cover');
+
 // KYC Registration Workflow
 $router->add('GET', '/register.php', 'RegistrationController@showForm');
 $router->add('POST', '/register.php', 'RegistrationController@register');

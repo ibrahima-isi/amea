@@ -1,0 +1,4 @@
+{% extends 'layouts/public.html.twig' %}
+{% block title %}{{ post.title }} — Journal AEESGS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('assets/css/journal.css') }}">{% endblock %}
+{% block body %}<div class="public-container journal-public"><a href="journal.php">← Retour au journal</a><p>AEESGS</p>{% include 'journal/article.html.twig' %}</div>{% endblock %}

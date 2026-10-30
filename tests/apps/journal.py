@@ -2,6 +2,7 @@
 """Real HTTP checks against the disposable split applications and synthetic users."""
 from routes import request, check
 import re, pathlib, hashlib
+from datetime import datetime, timedelta, timezone
 class Client:
     def __init__(self, name):
         self.cookie = None
@@ -40,6 +41,11 @@ id = re.search(r'id=(\d+)', headers['Location']).group(1)
 path = '/edit-journal.php?id=' + id
 status, _, body = admin.go(path)
 revision = re.search(rb'name="revision" value="(\d+)"', body).group(1).decode()
+public_url = re.search(rb'href="([^"]*journal-article.php\?slug=[^"]+)"', body).group(1).decode()
+slug = public_url.split('slug=')[1]
+article = '/journal-article.php?slug=' + slug
+public_cover = '/journal-cover.php?slug=' + slug
+check(request('public', article)[0] == 404 and request('public', public_cover)[0] == 404, 'known draft inaccessible publicly')
 status, _, preview = admin.go('/journal-preview.php?id=' + id)
 check(status == 200 and b'Synthetic draft' in preview and b'&lt;script&gt;' in preview and b'<script>alert(1)</script>' not in preview, 'draft preview escapes text')
 status, headers, cover = admin.go('/journal-preview-cover.php?id=' + id)
@@ -68,6 +74,31 @@ for payload, name in [(b'not an image', 'spoof'), (b'x' * (5 * 1024 * 1024 + 1),
     check(admin.go('/edit-journal.php', data, content)[0] == 422, name + ' image rejected')
 fields['_action'] = 'publish'
 check(admin.go('/edit-journal.php', fields)[0] == 302, 'publication succeeds')
+status, headers, public_body = request('public', article, cookie=admin.cookie)
+check(status == 200 and b'&lt;script&gt;' in public_body and b'<script>alert(1)</script>' not in public_body, 'published article escaped')
+status, headers, public_image = request('public', public_cover)
+check(status == 200 and hashlib.sha256(public_image).digest() == hashlib.sha256(image).digest() and 'no-store' in headers.get('Cache-Control', '') and headers.get('X-Content-Type-Options') == 'nosniff', 'published cover matches private image')
 revision = re.search(rb'name="revision" value="(\d+)"',admin.go(path)[2]).group(1).decode()
 check(admin.go('/edit-journal.php', {'csrf_token':token,'id':id,'revision':revision,'_action':'withdraw'})[0] == 302, 'withdrawal succeeds')
+check(request('public', article)[0] == 404 and request('public', public_cover)[0] == 404, 'withdrawn article and cover inaccessible')
+for endpoint in ['/journal.php', '/journal-article.php?slug=x', '/journal-cover.php?slug=x']:
+    for method in ['GET', 'POST']:
+        check(request('staff', endpoint, method=method)[0] == 404, 'staff rejects public route ' + method + ' ' + endpoint)
+for invalid in ['slug[]=x', 'slug=../x', 'slug=unknown', 'slug=']:
+    for endpoint in ['/journal-article.php?', '/journal-cover.php?']:
+        check(request('public', endpoint + invalid)[0] == 404, 'invalid slug rejected ' + invalid)
+now = datetime.now(timezone.utc)
+def publish_synthetic(title, kind, day=None):
+    data = {'csrf_token': token, '_action': 'publish', 'type': kind, 'title': title, 'summary': 'Résumé public', 'body': 'Texte public'}
+    if day:
+        data.update({'location': 'Dakar', 'activity_start_date': day, 'activity_end_date': day})
+    check(admin.go('/edit-journal.php', data)[0] == 302, 'publish ' + title)
+for title, kind, day in [('Future event', 'ACTIVITY', (now + timedelta(days=7)).strftime('%Y-%m-%d')), ('Past event', 'ACTIVITY', (now - timedelta(days=7)).strftime('%Y-%m-%d')), ('Report item', 'REPORT', None), ('Announcement item', 'ANNOUNCEMENT', None)]:
+    publish_synthetic(title, kind, day)
+for view, present, absent in [('upcoming', b'Future event', b'Past event'), ('archives', b'Past event', b'Future event'), ('reports', b'Report item', b'Announcement item'), ('announcements', b'Announcement item', b'Report item')]:
+    status, _, content = request('public', '/journal.php?view=' + view)
+    check(status == 200 and present in content and absent not in content, view + ' filter')
+status, _, home = request('public', '/')
+check(status == 200 and home.count(b'journal-article.php?slug=') == 3, 'homepage shows three recent publications')
+check(request('public', '/journal.php?view=archives&page=1')[0] == 200, 'archive pagination route available')
 print('Journal HTTP checks complete')

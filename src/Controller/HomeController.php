@@ -21,6 +21,7 @@ class HomeController extends BaseController
 
         $this->render('home/index.html.twig', [
             'slider_images' => $slider_images,
+            'journal_posts' => (new \Amea\Repository\JournalRepository(Container::db()))->findRecentPublished(3),
             'index_active' => true,
         ]);
     }

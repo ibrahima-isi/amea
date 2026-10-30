@@ -3,6 +3,7 @@
 {% block stylesheets %}<link rel="stylesheet" href="{{ asset('assets/css/journal.css') }}">{% endblock %}
 {% block body %}
 <div class="journal"><h1>{{ post.id|default(null) ? 'Modifier la publication' : 'Nouvelle publication' }}</h1><a href="manage-journal.php">Retour au journal</a>
+{% if post.slug|default(null) %}<p>Adresse publique : <a href="{{ public_home_url }}journal-article.php?slug={{ post.slug|url_encode }}">{{ public_home_url }}journal-article.php?slug={{ post.slug|url_encode }}</a>{% if post.status != 'PUBLISHED' %} — indisponible tant que la publication n’est pas publiée{% endif %}</p>{% endif %}
 {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
 <form method="post" enctype="multipart/form-data" class="mt-3"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="id" value="{{ post.id|default('') }}">{% if post.id|default(null) %}<input type="hidden" name="revision" value="{{ post.revision }}">{% endif %}
 <label class="form-label" for="type">Type</label><select class="form-select mb-3" id="type" name="type" required>{% for value,label in {'ACTIVITY':'Activité','REPORT':'Compte rendu','ANNOUNCEMENT':'Annonce'} %}<option value="{{ value }}" {{ post.type|default('ACTIVITY') == value ? 'selected' }}>{{ label }}</option>{% endfor %}</select>
