@@ -101,6 +101,7 @@ final class JournalAdminController extends BaseController
             foreach (['type','title','summary','body','cover_alt','location','activity_start_date','activity_start_time','activity_end_date','activity_end_time'] as $key) {
                 if (is_string($_POST[$key] ?? null)) { $values[$key] = $_POST[$key]; }
             }
+            $values['remove_cover'] = is_string($_POST['remove_cover'] ?? null) && $_POST['remove_cover'] === '1' ? '1' : '';
             $this->editor($values, $e->getMessage());
         } catch (\Throwable $e) {
             error_log('Journal save failed: ' . $e);

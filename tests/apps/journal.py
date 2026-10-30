@@ -31,7 +31,7 @@ for path in paths:
     check(denied.go(path)[0] == 302 and reader.go(path)[0] == 302, 'permission and role denied ' + path)
 token = admin.csrf('/edit-journal.php')
 check(admin.go('/edit-journal.php', {'csrf_token':'invalid','_action':'save','type':'REPORT','title':'CSRF'})[0] == 403, 'CSRF blocks write')
-fields = {'csrf_token':token, '_action':'save', 'type':'ACTIVITY', 'title':'Synthetic draft', 'summary':'Résumé', 'body':'Texte <script>alert(1)</script>', 'cover_alt':'Image', 'location':'Dakar', 'activity_start_date':'2026-11-01', 'activity_end_date':'2026-11-01'}
+fields = {'csrf_token':token, '_action':'save', 'type':'ACTIVITY', 'title':'Synthetic draft', 'summary':'Résumé', 'body':'Texte <script>alert(1)</script>', 'cover_alt':'Image', 'location':'Dakar', 'activity_start_date':'2026-11-01', 'activity_end_date':'2026-11-01', 'activity_start_time':'10:00', 'activity_end_time':'12:00'}
 image = pathlib.Path('assets/img/presidents.jpg').read_bytes()
 data, content = multipart(fields, image)
 status, headers, _ = admin.go('/edit-journal.php', data, content)
@@ -48,6 +48,16 @@ check(request('public', '/journal-preview-cover.php?id=' + id)[0] == 404, 'draft
 fields.update({'id':id, 'revision':revision, 'activity_start_date':'2026-02-30', 'title':'Preserved invalid draft'})
 status, _, body = admin.go('/edit-journal.php', fields)
 check(status == 422 and b'Preserved invalid draft' in body, 'invalid date rejected with values preserved')
+# A failed form submission must retain explicit cleared dates/hours and cover removal.
+cleared = dict(fields, title='', activity_start_date='', activity_end_date='', activity_start_time='', activity_end_time='', remove_cover='1')
+status, _, body = admin.go('/edit-journal.php', cleared)
+check(status == 422, 'invalid submission with cleared fields rejected')
+failures = []
+for key in ['activity_start_date', 'activity_end_date', 'activity_start_time', 'activity_end_time']:
+    match = re.search(rb'name="' + key.encode() + rb'" value="([^"]*)"', body)
+    if match is None or match.group(1) != b'': failures.append('cleared ' + key)
+if re.search(rb'name="remove_cover"[^>]*checked', body) is None: failures.append('cover removal selection')
+check(not failures, 'preserve submitted fields: ' + ', '.join(failures))
 fields.update({'activity_start_date':'2026-11-01','title':'Updated draft'})
 check(admin.go('/edit-journal.php', fields)[0] == 302, 'updated draft saves')
 check(admin.go('/edit-journal.php', fields)[0] == 409, 'stale revision rejected')
