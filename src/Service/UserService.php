@@ -6,7 +6,7 @@ use Amea\Repository\UserRepository;
 class UserService
 {
     public const MODULES = [
-        'students', 'export', 'users', 'slider',
+        'students', 'export', 'users', 'slider', 'journal',
         'upgrade', 'documents', 'communications', 'settings',
     ];
 

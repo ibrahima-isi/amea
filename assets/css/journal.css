@@ -1,0 +1,3 @@
+.journal { max-width: 72rem; margin-inline: auto; }
+.journal-article img { max-width: 100%; height: auto; }
+.journal-article { overflow-wrap: anywhere; }

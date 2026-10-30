@@ -48,6 +48,7 @@ abstract class BaseController
             'export' => $authenticated && \hasPermission('export'),
             'kyc' => $admin,
             'users' => $admin && \hasPermission('users'),
+            'journal' => $admin && \hasPermission('journal'),
             'slider' => $admin && \hasPermission('slider'),
             'upgrade' => $admin && \hasPermission('upgrade'),
             'communications' => $admin && \hasPermission('communications'),

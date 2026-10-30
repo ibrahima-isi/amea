@@ -79,6 +79,12 @@ $router->add('POST', '/settings.php', 'SettingsController@update');
 $router->add('GET',  '/manage-slider.php', 'SliderController@index');
 $router->add('POST', '/manage-slider.php', 'SliderController@handlePost');
 
+$router->add('GET', '/manage-journal.php', 'JournalAdminController@index');
+$router->add('GET', '/edit-journal.php', 'JournalAdminController@edit');
+$router->add('POST', '/edit-journal.php', 'JournalAdminController@save');
+$router->add('GET', '/journal-preview.php', 'JournalAdminController@preview');
+$router->add('GET', '/journal-preview-cover.php', 'JournalAdminController@cover');
+
 // Upgrade levels
 $router->add('GET',  '/upgrade-levels.php',  'UpgradeController@index');
 $router->add('POST', '/confirm-upgrade.php', 'UpgradeController@confirm');
