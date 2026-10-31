@@ -37,13 +37,15 @@ try {
     const screenshot=async name=>{const {data}=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await writeFile(path.join(out,name),Buffer.from(data,'base64'));};
     const correction='/kyc-correction.php?token='+'a'.repeat(64);
     const consent='/accept-cgu.php?token='+'a'.repeat(64);
+    await navigate(correction);
     for(const [width,mobile] of [[1440,false],[390,true],[320,true]]) {
         await cdp('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile});
         for(const theme of ['light','dark']) {
             await cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:theme},{name:'prefers-reduced-motion',value:'reduce'}]});
+            await evaluate(`localStorage.setItem('theme', '${theme}')`);
             for(const [name,route] of [['correction',correction],['consent',consent],['legal','/legal-notice.php']]) {
                 await navigate(route);
-                await check(`document.documentElement.dataset.bsTheme === '${theme}'`,`${name} ${width} follows ${theme} theme`);
+                await check(`document.documentElement.dataset.bsTheme === '${theme}'`,`${name} ${width} retains explicit ${theme} preference`);
                 await check('document.documentElement.scrollWidth <= innerWidth',`${name} ${width} ${theme} no horizontal overflow`);
                 await check("document.querySelectorAll('main').length === 1 && document.querySelectorAll('h1').length === 1",`${name} landmark and heading hierarchy`);
                 if(width!==320) await screenshot(`${name}-${mobile?'mobile':'desktop'}-${theme}.png`);
