@@ -172,3 +172,47 @@ Total source findings: **Standards 0 / Spec 0**. Final-head PR CI and actual tic
 Final-head CI is recorded in the [PR checks](https://github.com/ibrahima-isi/amea/pull/26/checks). Publication does not claim an actual ticket-04 merge or production release. The current task worktree/branch remains available for review until safely merged.
 
 After the actual PR #24/#25 merges and signed local-main integration recorded above, cleanup verified that the complete task-02/task-03 feature trees exactly match preserved merge revisions `7e5c398`/`7f4063b`, both ancestors of fetched remote `dev`. Their clean task-owned worktrees (`/private/tmp/amea-theme-20261031`, `/private/tmp/amea-internals-20261031`) and local feature branches were then removed. Their remote feature branches were already absent. The temporary local-main integration worktree was also removed; local `main` remains at signed `dd520c4`. The original checkout and all unrelated worktrees/branches remain unchanged.
+
+
+## Ticket 05 — English planning and delivery records
+
+The user explicitly authorized ticket 05 on 31 October 2026. It has no blockers. Worktree `/private/tmp/amea-records-20261031`, branch `docs/english-planning-delivery`, starts from fetched `dev` revision `4d021fc3f04783de8b0ff2c6ee2a629f3a58bece`, which includes actually merged ticket 04 (PR #26). Ticket 06 is not authorized by this request.
+
+### Inventory checkpoint — in progress
+
+The tracked planning/delivery corpus includes feature specs/designs/tickets/completion/review/research under `.scratch/`, dated `docs/superpowers/` plans/designs and root `completion.md`. Thirteen Markdown records contain remaining French engineering narrative, concentrated in the journal design/delivery history, deployment consolidation design/completion, association-site research and root cleanup closeout. Already-English records, generated observation output and exact French labels remain distinct. Parent specification, maintained ticket-04 guides, canonical instructions and runtime sources stay unchanged.
+
+Translation will preserve each record in place, with its original dates, references, status/checklist state, approvals, partial observations and deferred work. Journal browser QA remains explicitly user-deferred and incomplete. Source/contract/reference checks and independent review are pending; no completion claim is made at this checkpoint.
+
+
+### Ticket 05 — translation checkpoint
+
+Translated the thirteen identified historical records in place: journal builder review, scope/specification, four tickets and completion history; deployment-consolidation design/completion; dated association-site research; the complete journal design; and the French root closeout section. All original numerical evidence tokens, Markdown link targets, checklist states and technical inline references are retained. Historical pending/draft/unchecked statements remain historical rather than being silently updated to today's delivery state. The original user deferral quotation is preserved with an English gloss; real French UI labels remain literal. The parent specification and already-English records are unchanged.
+
+Reference/anchor validation and independent review are next. This translation does not execute the old plans, rerun journal browser QA or qualify production.
+
+
+### Ticket 05 — validation and review
+
+The [classified inventory](evidence/ticket-05/coverage.md) accounts for **44 baseline records: 13 translated, 29 byte-identical, 2 active execution trackers**. Exact historical numbers, inline technical references, link targets, checkbox/triage states, user approvals, interruptions and qualification limits are preserved. The initial **239 provenance/reference checks** passed before the final coverage links were added; the final audit passes **245 checks**, including all new evidence links and unchanged English/root/runtime scope checks. Three pinned Git sources exist in local immutable history. French remains only in attributed human quotation, actual UI/contract literals, proper names and unchanged observation artifacts. The parent specification/design, maintained guides, canonical instructions and runtime sources are unchanged.
+
+Local validation on signed source **`74ea429`** passed: PHPUnit **171 tests / 338 assertions**, with the same 10 existing metadata deprecations; standalone suites **48/186/78/26**; theme-script **5/5**; isolated HTTP **35 + 28 + 12**; PHP syntax and migration-access assertions. `AMEA_PUBLIC_PORT=58443 AMEA_STAFF_PORT=59443 AMEA_SKIP_BROWSER=1 bash tests/apps/run.sh` passed with **535 PASS observations**. Task-owned project `amea-ui-test-23866-81010` and its volumes were removed normally. Signed `09e4d81` changes only translated prose spacing/readability and rechecks provenance; no runtime code changes justify another full runtime run. Local logs are `/private/tmp/amea-records-*.log`. No separate typechecker is configured; no new behavior or test seam required a TDD test.
+
+Independent source review of `git diff 4d021fc...74ea429`:
+
+**Standards:** 0 documented violations / 0 material judgment-call smells. English narrative, literal exceptions, evidence placement and historical record roles follow the canonical instructions.
+
+**Spec:** 0 actionable findings. Bilingual review confirms the complete translation set, dates/counts/attribution/approval/interruptions, unchanged historical pending milestones and incomplete journal browser QA. No scope creep or omitted French engineering narrative found. Reviewers did not rerun runtime tests. Final evidence/readability review remains separate from these initial source results.
+
+Total initial source findings: **Standards 0 / Spec 0**. PR publication, final-head CI and actual merge remain separate milestones. No production, data migration, browser QA execution, real SMTP or history rewrite is performed; ticket 06 remains unstarted.
+
+### Ticket 04 — completed integration housekeeping
+
+Actually merged PR #26 (`4d021fc`) was integrated into local `main` from a temporary isolated worktree by verified signed merge `7d75d4f279f36c09e21dff6a7879915cecaf7677`. Remote `main` was not pushed. The complete ticket-04 feature tree was verified equal to its preserved merge revision before removing `/private/tmp/amea-docs-20261031` and local branch `docs/english-contributor-operations`. Its remote branch was already absent; the temporary integration worktree was also removed. The original checkout and unrelated worktrees/branches remain untouched.
+
+
+### Ticket 05 — publication and final review
+
+[PR #27](https://github.com/ibrahima-isi/amea/pull/27) targets `dev` from `docs/english-planning-delivery`. Final independent review through `6291642` reports **Standards 0 / Spec 0**: readable English, classified coverage, preserved provenance and historical states, no remaining source/evidence inconsistency. Reviewers performed no runtime reruns.
+
+Final-head CI is available in the [PR checks](https://github.com/ibrahima-isi/amea/pull/27/checks). Earlier successful checks do not qualify later evidence commits. Publication does not claim actual ticket-05 merge, production release or completion of ticket 06. Keep this task's clean worktree/branch for review until its work is safely merged; unrelated work remains untouched.

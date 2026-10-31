@@ -1,23 +1,23 @@
-# Journal de l’amicale — cadrage en cours
+# Association journal — scope in progress
 
-## Choix confirmés le 29 octobre 2026
+## Choices confirmed on 29 October 2026
 
-L’utilisateur confirme par réponse interactive une rubrique publique unique avec trois types de publications : activités à venir, comptes rendus des activités passées et annonces.
+The user confirmed through interactive input a single public section with three publication types: upcoming activities, reports on past activities and announcements.
 
-La rédaction et la publication se font uniquement depuis le back-office indépendant. Le public n’offre ni lien de connexion, ni bouton d’administration, ni redirection vers la gestion. La séparation d’accès définie dans [l’ADR 0001](../../docs/adr/0001-independent-public-and-staff-entry.md) s’applique au journal.
+Writing and publication take place only in the independent staff application. The public website provides no login link, administration button or redirect to management. The access separation defined in [ADR 0001](../../docs/adr/0001-independent-public-and-staff-entry.md) applies to the journal.
 
-Le design actuel du site est validé ; le journal doit s’y intégrer. La [recherche de sites associatifs](../ui-visual-refresh/journal-research-2026-10-29.md) sert de référence, sans imposer leur CMS ou leur organisation interne.
+The current website design is approved; the journal must fit into it. The [association-site research](../ui-visual-refresh/journal-research-2026-10-29.md) provides references without imposing their CMS or internal organization.
 
-## Choix de fonctionnement confirmés
+## Confirmed behavior choices
 
-Le 29 octobre, l’utilisateur confirme les deux recommandations : administrateurs autorisés, brouillon puis publication directe ; retrait automatique des activités terminées des « À venir », en conservant leur page dans les archives. Le compte rendu est rédigé séparément.
+On 29 October, the user confirmed both recommendations: authorized administrators, draft followed by direct publication; automatic removal of ended activities from “À venir”, retaining their pages in the archives. Activity reports are written separately.
 
-Le [cadrage complet proposé](../../docs/superpowers/specs/2026-10-29-association-journal-design.md) précise les écrans et les règles nécessaires à une première version. Les détails nouveaux y sont distingués comme propositions, avant validation finale.
+The [proposed complete design](../../docs/superpowers/specs/2026-10-29-association-journal-design.md) details the screens and rules needed for a first version. New details are identified there as proposals before final approval.
 
-## État
+## State
 
-Une maquette exploratoire publique est préparée le 29 octobre et disponible localement sur `http://localhost:18444/journal.html`. Elle conserve la palette validée, présente les trois types et permet de filtrer puis d'ouvrir une publication. Les contenus/dates sont fictifs et explicitement indiqués comme tels. Aucun accès Administration/Connexion n'est présent. Aucune gestion réelle, authentification, écriture ou publication n'est ajoutée.
+An exploratory public mockup was prepared on 29 October and is available locally at `http://localhost:18444/journal.html`. It retains the approved palette, presents the three types and supports filtering and opening a publication. Content/dates are fictional and explicitly identified as such. No Administration/Connexion entry is present. No actual management, authentication, writing or publication functionality is added.
 
-Les boutons Accueil/Inscription expliquent leur future destination publique dans cette maquette ; ils ne remplacent pas les parcours existants. Le circuit éditorial et l’archivage ont depuis été confirmés par réponse interactive explicite, sans assimiler le message « continue » précédent à ces réponses.
+The Accueil/Inscription buttons explain their future public destinations in this mockup; they do not replace existing journeys. The editorial workflow and archiving have since been confirmed through explicit interactive input, without treating the earlier “continue” message as those answers.
 
-Le cadrage complet a été validé le30octobre et sa réalisation autorisée. Routes, données, gestion et lecture réelles sont implémentées dans le worktree dédié ; [preuves et limites](completion.md). Aucun ajout à la PR17 ni déploiement de production. La démonstration synthétique locale a reçu la migration additive après contrôle explicite de son identité, sans réinitialisation ni contenu fictif.
+The complete design was approved on 30 October and implementation authorized. Actual routes, data, management and reading are implemented in the dedicated worktree; [evidence and limits](completion.md). No addition to PR17 or production deployment. The local synthetic demo received the additive migration after an explicit identity check, without a reset or fictional content.

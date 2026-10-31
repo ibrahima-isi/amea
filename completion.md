@@ -1,12 +1,12 @@
 # Repository cleanup
 
-## État de clôture — 31 octobre 2026
+## Closeout state — 31 October 2026
 
-Le nettoyage et le journal sont livrés dans `dev` : PR #17, #18, #19 et [#20](https://github.com/ibrahima-isi/amea/pull/20) fusionnées. La CI finale de #20 est verte sur le commit signé `09a414c` ([trois jobs](https://github.com/ibrahima-isi/amea/actions/runs/41162939038)) ; la [CI de `dev`](https://github.com/ibrahima-isi/amea/actions/runs/41163154556) est verte sur `3033d4b`. L’intégration locale `0343f9d` est signée, sans push vers `main` distant.
+Cleanup and the journal are delivered to `dev`: PR #17, #18, #19 and [#20](https://github.com/ibrahima-isi/amea/pull/20) merged. Final CI for #20 is green on signed commit `09a414c` ([three jobs](https://github.com/ibrahima-isi/amea/actions/runs/41162939038)); [`dev` CI](https://github.com/ibrahima-isi/amea/actions/runs/41163154556) is green on `3033d4b`. Local integration `0343f9d` is signed, with no push to remote `main`.
 
-Le 31 octobre, l’utilisateur reporte explicitement la QA navigateur et la reprendra lui-même plus tard. Elle reste **non validée**, sans nouvelle tentative automatisée demandée. Les contrôles restants et la procédure figurent dans le [suivi du journal](.scratch/association-journal/completion.md) et la [fiche de reprise navigateur](.scratch/association-journal/browser-qa.md). La fixture jetable de cette tentative est arrêtée ; la démonstration conservée est intacte. Aucune production, modification DNS ou livraison SMTP réelle effectuée. Le triage des tests orphelins reste hors périmètre.
+On 31 October, the user explicitly deferred browser QA and will resume it later. It remains **unvalidated**, with no new automated attempt requested. Remaining checks/procedure are in [journal tracking](.scratch/association-journal/completion.md) and the [browser resumption record](.scratch/association-journal/browser-qa.md). This attempt's disposable fixture is stopped; the retained demo is intact. No production, DNS change or real SMTP delivery performed. Orphan-test triage remains out of scope.
 
-Les sections suivantes conservent l’historique daté ; leurs mentions de PR en attente ou en brouillon sont dépassées par cet état de clôture.
+The following sections retain dated history; their mentions of pending/draft PRs are superseded by this closeout state.
 
 The approved [spec](.scratch/repository-cleanup/spec.md) and [ticket 01](.scratch/repository-cleanup/issues/01-remove-obsolete-artifacts.md) are implemented and published in [PR #19](https://github.com/ibrahima-isi/amea/pull/19), targeting `dev`. The unresolved [orphan-test triage](.scratch/chores/triage-orphan-tests/spec.md) remains open.
 
