@@ -10,7 +10,7 @@ Status: complete scope approved through interactive input on 30 October 2026; im
 - No public → administration link, button, login control or redirect, even when an administrator visits the public website.
 - Existing design approved: warm public palette and matte midnight-blue administration. Projects/database are not physically separated in this stage; the temporary sharing agreement remains applicable.
 
-References: [interview](../../../.scratch/association-journal/design.md), [site research](../../../.scratch/ui-visual-refresh/journal-research-2026-10-29.md), [access boundary](../../adr/0001-independent-public-and-staff-entry.md). The public mockup is exploratory; its content/dates are fictional.
+References: [interview](https://github.com/ibrahima-isi/amea/blob/fdafa3b81a5e26c9fc6948bec228205679368ee3/.scratch/association-journal/design.md), [site research](https://github.com/ibrahima-isi/amea/blob/fdafa3b81a5e26c9fc6948bec228205679368ee3/.scratch/ui-visual-refresh/journal-research-2026-10-29.md), [access boundary](../../adr/0001-independent-public-and-staff-entry.md). The public mockup is exploratory; its content/dates are fictional.
 
 ## Proposed first version
 
@@ -67,4 +67,4 @@ Event registration, ticketing/payment, comments, public contributor accounts, ne
 
 ## Next step
 
-The builder reviewed the scope without an important missing question, then the user approved it completely on 30 October 2026 and authorized implementation, including the simple editor, single cover, homepage integration and date details. [Plan](../plans/2026-10-30-association-journal.md), [local tracking](../../../.scratch/association-journal/completion.md). Implementation is now verified on the server and in the local demo; browser/CI/merge milestones remain distinct.
+The builder reviewed the scope without an important missing question, then the user approved it completely on 30 October 2026 and authorized implementation, including the simple editor, single cover, homepage integration and date details. [Plan](../plans/2026-10-30-association-journal.md), [local tracking](https://github.com/ibrahima-isi/amea/blob/fdafa3b81a5e26c9fc6948bec228205679368ee3/.scratch/association-journal/completion.md). Implementation is now verified on the server and in the local demo; browser/CI/merge milestones remain distinct.
