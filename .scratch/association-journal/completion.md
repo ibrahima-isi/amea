@@ -1,5 +1,13 @@
 # Journal de l’amicale — suivi
 
+## État actuel vérifié — 31 octobre 2026
+
+PR #17 et PR #18 sont fusionnées dans `dev` (respectivement `23b5c55` et `87d6a19`). Les deux workflows de la tête finale signée `69a3773` de PR #18 sont verts : [CI](https://github.com/ibrahima-isi/amea/actions/runs/41141597654), [migrations](https://github.com/ibrahima-isi/amea/actions/runs/41141597645). Le nettoyage PR #19 est ensuite fusionné en `4aab39f`, avec sa propre CI verte. Les mentions de PR ouvertes dans les sections historiques ci-dessous décrivent leur date de rédaction.
+
+La reprise traite uniquement la QA navigateur restante, dans le nouveau worktree `/private/tmp/amea-journal-browser-20261031`, branche `test/journal-browser-qa`, base `4aab39f`. Une fixture jetable réelle est ajoutée et vérifiée côté HTTP ; une vue publique sombre/grand écran est réellement observée. La suite des interactions reste bloquée par l’accès/rendu du navigateur pris en charge : [preuve précise, limites et reprise](browser-qa.md). Aucun succès mobile, clavier ou éditorial au navigateur n’est revendiqué. La clôture navigateur reste ouverte ; aucune production modifiée.
+
+## Historique de réalisation
+
 - [x] Retrouver le besoin antérieur, explicitement différé dans la première livraison.
 - [x] Examiner des sites associatifs et enregistrer les sources/limites.
 - [x] Confirmer une rubrique publique et les trois types de contenus par réponse interactive.
