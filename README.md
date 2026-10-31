@@ -31,7 +31,7 @@ Plateforme web de gestion des membres de l'**Amicale des Élèves, Étudiants et
 | Base de données | MySQL 8.0 (charset utf8mb4) |
 | Frontend | Bootstrap 5, JavaScript vanilla, Tagify, **Dark Mode** |
 | Email | PHPMailer 6.x via Brevo SMTP |
-| Templating | Système maison (`strtr()`) & Twig |
+| Templating | Twig |
 | Dépendances | Composer (`phpmailer/phpmailer`, `twig/twig`) |
 | Serveur | Apache/LiteSpeed avec `.htaccess` |
 
@@ -58,7 +58,7 @@ cd amea
 composer install
 
 # 3. Créer le fichier d'environnement
-cp .env.example .env
+touch .env # aucun fichier .env.example n’est fourni
 # Éditer .env avec les identifiants locaux (voir section ci-dessous)
 
 # 4. Créer la base de données et charger le schéma
@@ -119,7 +119,7 @@ amea/
 ├── composer.json
 │
 ├── src/                        # Coeur applicatif (OOP, PSR-4)
-│   ├── Core/                   # Moteur de template, Router, Session
+│   ├── Core/                   # Vue Twig, Router, Session
 │   ├── Controller/             # Contrôleurs (Auth, Registration, KYC)
 │   ├── Model/                  # Entités (User, Student)
 │   ├── Repository/             # Accès aux données
@@ -134,21 +134,12 @@ amea/
 │   ├── email-service.php       # sendMail() + renderEmailTemplate() via Brevo SMTP
 │   └── document-reconcile.php  # Helpers de réconciliation des chemins de fichiers
 │
-├── includes/
-│   └── sidebar.php             # Sidebar admin (navigation)
-│
 ├── migrations/                 # Scripts de migration (CLI uniquement)
 │
-├── templates/
-│   ├── index.html              # Accueil public
-│   ├── login.html
-│   ├── register.html
-│   ├── partials/               # header.html, footer.html (public)
-│   ├── admin/
-│   │   ├── layout.html         # Wrapper de page admin
-│   │   ├── partials/           # topbar.html, footer.html (admin)
-│   │   └── pages/              # Un fichier HTML par page admin
-│   └── emails/                 # Gabarits d'emails HTML
+├── templates/                  # Vues Twig et modèles HTML d'email
+│   ├── layouts/                # Gabarits public et administration
+│   ├── admin/pages/            # Vues d'administration
+│   └── emails/                 # Modèles d'emails
 │
 ├── assets/
 │   ├── css/                    # Bootstrap + CSS personnalisés
@@ -216,13 +207,10 @@ amea/
 
 Les migrations sont des scripts PHP CLI idempotents dans `migrations/`. Ils ajoutent des colonnes, modifient les contraintes ou créent des tables sans recréer le schéma existant.
 
-À exécuter dans le répertoire `public_html/` de production en cas de mise à jour du schéma :
+Exécuter manuellement, dans l'ordre numérique et sur la base explicitement choisie :
 
 ```bash
-cd /home/aeessqgf/public_html
-php -d display_errors=1 migrations/00_init_schema.php
-php -d display_errors=1 migrations/01_migration_add_settings_table.php
-# etc.
+php migrations/00_init_schema.php
 ```
 
 ---
@@ -291,19 +279,13 @@ Les formulaires d'inscription (`register.php`) et d'édition admin (`edit-studen
 
 ## Tests
 
-Tests unitaires/intégration CLI dans `tests/` :
-
-```bash
-# Lancer tous les tests OOP
-php tests/test_oop_unit.php
-php tests/test_oop_integration.php
-```
+Les commandes et limites figurent dans [le guide de tests](docs/testing/README.md).
 
 ---
 
 ## Déploiement (production)
 
-Le projet utilise un pipeline **CI/CD via GitHub Actions** (`.github/workflows/deploy.yml`) pour se déployer automatiquement sur un hébergement mutualisé.
+GitHub Actions exécute les vérifications sans déploiement. Les images Docker et la configuration Dokploy sont documentées dans [le guide de déploiement](docs/operations/public-staff-rollout.md). Cette configuration ne prouve pas une mise en production ; les jobs et SMTP exigent une autorisation explicite.
 
 ---
 

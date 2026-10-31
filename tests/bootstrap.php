@@ -89,5 +89,29 @@ function makeTestDb(): PDO
     $db->exec("INSERT INTO users (id, username, email, last_name, first_name, password, role, is_active)
                VALUES (1, '_superadmin', 'sa@test.internal', 'SA', 'Test', 'x', 'admin', 1)");
 
+    $db->exec("CREATE TABLE journal_posts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    revision INTEGER NOT NULL DEFAULT 1,
+    type TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'DRAFT',
+    slug VARCHAR(220) NOT NULL UNIQUE,
+    title VARCHAR(180) NOT NULL,
+    summary VARCHAR(320) NOT NULL DEFAULT '',
+    body MEDIUMTEXT NOT NULL,
+    cover_path VARCHAR(255) NULL,
+    cover_mime VARCHAR(100) NULL,
+    cover_alt VARCHAR(500) NOT NULL DEFAULT '',
+    activity_start_at DATETIME NULL,
+    activity_end_at DATETIME NULL,
+    activity_start_time_set BOOLEAN NOT NULL DEFAULT 0,
+    activity_end_time_set BOOLEAN NOT NULL DEFAULT 0,
+    location VARCHAR(255) NULL,
+    published_at DATETIME NULL,
+    created_by INT NOT NULL,
+    updated_by INT NOT NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL
+    ); CREATE INDEX journal_publication ON journal_posts(status,published_at,id); CREATE INDEX journal_activity ON journal_posts(status,type,activity_end_at);");
+
     return $db;
 }

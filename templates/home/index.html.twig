@@ -1,13 +1,15 @@
 {% extends 'layouts/public.html.twig' %}
 {% block title %}AEESGS — Guinéens au Sénégal{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('assets/css/journal.css') }}">{% endblock %}
 {% block body %}
 <section class="community-hero public-container">
     <div class="hero-intro">
-        <p class="community-location"><span class="guinea-colors" aria-hidden="true"><i></i><i></i><i></i></span> Guinée &amp; Sénégal</p>
-        <h1>Élèves, étudiants,<br>stagiaires.<br>Une communauté.</h1>
-        <p class="hero-lead">Recensement des élèves, étudiants et stagiaires guinéens au Sénégal</p>
+        <p class="community-location"><span class="guinea-colors" aria-hidden="true"><i></i><i></i><i></i></span> Guinéens au Sénégal</p>
+        <h1>Loin de chez soi.<br>Jamais seuls.</h1>
+        <p class="hero-lead">Des rencontres, des repères et de l’entraide pour les élèves, étudiants et stagiaires guinéens au Sénégal.</p>
         <p>Cette plateforme permet aux élèves, étudiants et stagiaires guinéens résidant au Sénégal de s'enregistrer afin de faciliter la communication, l'entraide et la coordination des activités communautaires.</p>
-        <a href="register.php" class="public-button">S’enregistrer maintenant <span aria-hidden="true">↗</span></a>
+        <a href="register.php" class="public-button">S’enregistrer <span aria-hidden="true">↗</span></a>
+        <small class="hero-note">Enregistrez-vous auprès de l’AEESGS.</small>
     </div>
     <div class="community-gallery" role="region" aria-roledescription="carrousel" aria-label="La vie de notre communauté" data-community-carousel>
         {% for image in slider_images %}
@@ -41,5 +43,6 @@
     </div>
     <a href="register.php" class="public-button">S’enregistrer maintenant <span aria-hidden="true">↗</span></a>
 </section>
+{% if journal_posts %}<section class="public-container journal-home"><h2>Le journal de l’AEESGS</h2><div class="journal-grid">{% for post in journal_posts %}{% include 'journal/card.html.twig' with {'post': post} only %}{% endfor %}</div><a href="journal.php">Voir tout le journal →</a></section>{% endif %}
 {% endblock %}
 {% block javascripts %}<script src="{{ asset('assets/js/community-carousel.js') }}" defer></script>{% endblock %}

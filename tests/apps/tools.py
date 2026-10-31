@@ -23,7 +23,8 @@ restricted=Client('toolsrestricted')
 user=Client('toolsuser')
 paths=['/manage-slider.php','/communications.php','/communications-count.php','/export.php','/export-preview.php','/settings.php','/users.php','/add-user.php','/edit-user.php?id=999999','/upgrade-levels.php']
 for path in paths:
-    check(request('public',path)[0]==302 and request('public',path)[1].get('Location','').startswith('https://staff.amea.test:'),'public redirects staff tool without executing '+path)
+    status, headers, _ = request('public',path)
+    check(status == 404 and 'Location' not in headers, 'public rejects staff tool without a redirect '+path)
     check(request('staff',path)[0]==302,'anonymous denied '+path)
     check(restricted.go(path)[0]==302,'restricted admin denied '+path)
     check(user.go(path)[0]==302,'ordinary user denied '+path)

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="{{ asset('assets/js/theme.js') }}"></script>
+<title>{% block title %}Administration — AEESGS{% endblock %}</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="{{ asset('assets/css/admin.css') }}" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head><body class="staff-auth">
+{% if flash %}<script id="flash-data" type="application/json">{{ flash|json_encode|raw }}</script>{% endif %}
+<aside class="staff-auth-brand">{% if public_logo_available %}<img src="{{ asset('assets/img/logo.png') }}" alt="AEESGS" width="80" height="80">{% endif %}<h1>AEESGS</h1><p>Association des élèves, étudiants et stagiaires guinéens au Sénégal</p><span>Espace administration</span></aside>
+<main class="staff-auth-main"><div class="staff-auth-controls"><a href="{{ public_home_url }}">Accueil AEESGS</a><button type="button" class="btn btn-outline-secondary theme-switcher"><span class="theme-label">Mode sombre</span></button></div>{% block body %}{% endblock %}</main>
+<script src="{{ asset('assets/js/app-alerts.js') }}"></script>
+</body></html>

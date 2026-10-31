@@ -11,3 +11,8 @@ data.sql
 init-admin.php
 uploads/
 /storage/
+
+__pycache__/
+*.py[cod]
+.phpunit.result.cache
+docs/testing/screenshots/
