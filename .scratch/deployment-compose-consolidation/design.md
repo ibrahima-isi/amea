@@ -1,22 +1,22 @@
-# Consolidation de la configuration Docker Compose de déploiement
+# Consolidate the deployment Docker Compose configuration
 
-## Cadrage confirmé — 31 octobre 2026
+## Confirmed scope — 31 October 2026
 
-Les quatre choix ci-dessous et le cadrage global sont confirmés par réponses interactives le 31 octobre 2026. L’utilisateur a autorisé leur application dans le dépôt et l’ouverture d’une PR vers `dev`. L’exécution est suivie dans [completion.md](completion.md).
+The four choices below and the overall scope were confirmed through interactive input on 31 October 2026. The user authorized their application in the repository and opening a PR into `dev`. Execution is tracked in [completion.md](completion.md).
 
-1. **Un fichier canonique :** `compose.dokploy.yml` décrit la pile public/back-office. Supprimer `compose.apps.dokploy.yml` et mettre à jour ses références ; Git conserve l’ancienne configuration.
-2. **Propriété des données conservée :** garder le service `db` avec MariaDB 10.11, les clés de volumes `amea_db`, `amea_uploads`, `amea_storage`, `amea_logs`, ainsi que le réseau de données Compose existant. Remplacer le service applicatif unique par `public` et `staff`. Ne pas externaliser la base ni renommer ses volumes dans cette consolidation.
-3. **Comportement mail conservé :** `MAIL_ASYNC=0` par défaut. Le service `jobs` reste derrière un profil optionnel, désactivé par défaut ; son activation et la désignation d’un seul ordonnanceur seront une opération distincte.
-4. **Construction depuis le dépôt :** Dokploy construit les cibles `public`, `staff` et, si demandé ultérieurement, `jobs` de `docker/Dockerfile.apps`. Les trois variables `AMEA_*_IMAGE` ne deviennent pas des prérequis de déploiement.
+1. **One canonical file:** `compose.dokploy.yml` describes the public/staff stack. Remove `compose.apps.dokploy.yml` and update its references; Git retains the previous configuration.
+2. **Data ownership preserved:** retain the `db` service with MariaDB 10.11, volume keys `amea_db`, `amea_uploads`, `amea_storage`, `amea_logs`, and the existing Compose data network. Replace the single application service with `public` and `staff`. Do not externalize the database or rename its volumes during this consolidation.
+3. **Mail behavior preserved:** `MAIL_ASYNC=0` by default. The `jobs` service remains behind an optional profile, disabled by default; enabling it and designating a single scheduler will be a separate operation.
+4. **Build from the repository:** Dokploy builds the `public`, `staff` and, if requested later, `jobs` targets from `docker/Dockerfile.apps`. The three `AMEA_*_IMAGE` variables do not become deployment prerequisites.
 
-## Invariants de la séparation
+## Separation invariants
 
-Préserver les origines publiques et staff distinctes, les routes autorisées par application, les cookies et volumes de session séparés, ainsi que le cache Twig en tmpfs propre à chaque conteneur. Les volumes de données existants sont montés aux chemins attendus par les nouvelles images sous `/opt/amea`. Le back-office et le public partagent provisoirement les données et fichiers conformément à [l’ADR 0001](../../docs/adr/0001-independent-public-and-staff-entry.md).
+Preserve distinct public/staff origins, each application's allowed routes, separate cookies/session volumes and each container's own tmpfs Twig cache. Existing data volumes mount at the paths expected by the new images under `/opt/amea`. Staff and public temporarily share data and files in accordance with [ADR 0001](../../docs/adr/0001-independent-public-and-staff-entry.md).
 
-## Périmètre approuvé
+## Approved scope
 
-Modifier `compose.dokploy.yml` et le guide `docs/operations/public-staff-rollout.md`, supprimer `compose.apps.dokploy.yml`, puis réparer les références maintenues concernées. Conserver les configurations locales et de tests, dont `tests/apps/compose.yaml` : elles ont un rôle distinct du déploiement. Le Dockerfile monolithique racine reste hors de cette consolidation.
+Modify `compose.dokploy.yml` and the `docs/operations/public-staff-rollout.md` guide, remove `compose.apps.dokploy.yml`, then repair affected maintained references. Keep local/test configurations, including `tests/apps/compose.yaml`: their role is distinct from deployment. The root monolithic Dockerfile remains outside this consolidation.
 
-Valider la résolution Compose avec des valeurs synthétiques, y compris le profil `jobs`, les cibles de build, les noms/chemins de volumes et l’isolation des sessions. Vérifier les références et les contrôles existants utiles au périmètre, puis suivre les commits signés et la PR vers `dev` du dépôt.
+Validate Compose resolution with synthetic values, including the `jobs` profile, build targets, volume names/paths and session isolation. Check references and existing checks relevant to the scope, then follow the repository's signed-commit and PR workflow into `dev`.
 
-Aucun lancement/reconfiguration de production, migration de données, modification de DNS, envoi réel d’e-mail ou changement du propriétaire d’une ressource en fonctionnement n’est inclus. Avant un déploiement futur, l’inventaire du projet Dokploy et des volumes réels reste nécessaire : la conservation des clés dans le dépôt ne prouve pas l’identité des ressources en production.
+No production start/reconfiguration, data migration, DNS change, real email delivery or change of ownership for a running resource is included. Before a future deployment, the actual Dokploy project/volume inventory remains necessary: retaining keys in the repository does not prove production resource identities.

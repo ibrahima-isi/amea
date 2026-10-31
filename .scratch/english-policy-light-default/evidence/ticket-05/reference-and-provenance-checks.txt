@@ -1,0 +1,239 @@
+PASS unchanged numeric evidence: .scratch/association-journal/builder-check.md
+PASS unchanged technical inline references: .scratch/association-journal/builder-check.md
+PASS unchanged link targets: .scratch/association-journal/builder-check.md
+PASS unchanged checklist/triage state: .scratch/association-journal/builder-check.md
+PASS unchanged numeric evidence: .scratch/association-journal/completion.md
+PASS unchanged technical inline references: .scratch/association-journal/completion.md
+PASS unchanged link targets: .scratch/association-journal/completion.md
+PASS unchanged checklist/triage state: .scratch/association-journal/completion.md
+PASS unchanged numeric evidence: .scratch/association-journal/design.md
+PASS unchanged technical inline references: .scratch/association-journal/design.md
+PASS unchanged link targets: .scratch/association-journal/design.md
+PASS unchanged checklist/triage state: .scratch/association-journal/design.md
+PASS unchanged numeric evidence: .scratch/association-journal/issues/01-editorial-core.md
+PASS unchanged technical inline references: .scratch/association-journal/issues/01-editorial-core.md
+PASS unchanged link targets: .scratch/association-journal/issues/01-editorial-core.md
+PASS unchanged checklist/triage state: .scratch/association-journal/issues/01-editorial-core.md
+PASS unchanged numeric evidence: .scratch/association-journal/issues/02-private-management.md
+PASS unchanged technical inline references: .scratch/association-journal/issues/02-private-management.md
+PASS unchanged link targets: .scratch/association-journal/issues/02-private-management.md
+PASS unchanged checklist/triage state: .scratch/association-journal/issues/02-private-management.md
+PASS unchanged numeric evidence: .scratch/association-journal/issues/03-public-reading.md
+PASS unchanged technical inline references: .scratch/association-journal/issues/03-public-reading.md
+PASS unchanged link targets: .scratch/association-journal/issues/03-public-reading.md
+PASS unchanged checklist/triage state: .scratch/association-journal/issues/03-public-reading.md
+PASS unchanged numeric evidence: .scratch/association-journal/issues/04-integrated-qualification.md
+PASS unchanged technical inline references: .scratch/association-journal/issues/04-integrated-qualification.md
+PASS unchanged link targets: .scratch/association-journal/issues/04-integrated-qualification.md
+PASS unchanged checklist/triage state: .scratch/association-journal/issues/04-integrated-qualification.md
+PASS unchanged numeric evidence: .scratch/association-journal/spec.md
+PASS unchanged technical inline references: .scratch/association-journal/spec.md
+PASS unchanged link targets: .scratch/association-journal/spec.md
+PASS unchanged checklist/triage state: .scratch/association-journal/spec.md
+PASS unchanged numeric evidence: .scratch/deployment-compose-consolidation/completion.md
+PASS unchanged technical inline references: .scratch/deployment-compose-consolidation/completion.md
+PASS unchanged link targets: .scratch/deployment-compose-consolidation/completion.md
+PASS unchanged checklist/triage state: .scratch/deployment-compose-consolidation/completion.md
+PASS unchanged numeric evidence: .scratch/deployment-compose-consolidation/design.md
+PASS unchanged technical inline references: .scratch/deployment-compose-consolidation/design.md
+PASS unchanged link targets: .scratch/deployment-compose-consolidation/design.md
+PASS unchanged checklist/triage state: .scratch/deployment-compose-consolidation/design.md
+PASS unchanged numeric evidence: .scratch/ui-visual-refresh/journal-research-2026-10-29.md
+PASS unchanged technical inline references: .scratch/ui-visual-refresh/journal-research-2026-10-29.md
+PASS unchanged link targets: .scratch/ui-visual-refresh/journal-research-2026-10-29.md
+PASS unchanged checklist/triage state: .scratch/ui-visual-refresh/journal-research-2026-10-29.md
+PASS unchanged numeric evidence: completion.md
+PASS unchanged technical inline references: completion.md
+PASS unchanged link targets: completion.md
+PASS unchanged checklist/triage state: completion.md
+PASS unchanged numeric evidence: docs/superpowers/specs/2026-10-29-association-journal-design.md
+PASS unchanged technical inline references: docs/superpowers/specs/2026-10-29-association-journal-design.md
+PASS unchanged link targets: docs/superpowers/specs/2026-10-29-association-journal-design.md
+PASS unchanged checklist/triage state: docs/superpowers/specs/2026-10-29-association-journal-design.md
+PASS tracked local link/reference: .scratch/association-journal/browser-qa.md -> issues/04-integrated-qualification.md
+PASS tracked local link/reference: .scratch/association-journal/browser-qa.md -> ../../docs/superpowers/plans/2026-10-30-association-journal.md
+PASS tracked local link/reference: .scratch/association-journal/browser-qa.md -> restore-ci.md
+PASS tracked local link/reference: .scratch/association-journal/builder-check.md -> ../../docs/superpowers/specs/2026-10-29-association-journal-design.md
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> restore-ci.md
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> browser-qa.md
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> builder-check.md
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> design.md
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> spec.md
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> ../../docs/superpowers/plans/2026-10-30-association-journal.md
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> ../../docs/testing/evidence/2026-10-29/journal-public-maquette.jpg
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> issues/01-editorial-core.md
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> issues/02-private-management.md
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> issues/03-public-reading.md
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> issues/04-integrated-qualification.md
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> browser-qa.md
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> evidence/reviews/final-review.md
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> evidence/reviews/final-rereview.md
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> ../../docs/testing/evidence/2026-10-30/journal-demo-migration.json
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> ../../docs/testing/evidence/2026-10-30/journal-served.json
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> ../../docs/testing/evidence/2026-10-30/journal-resumption.json
+PASS tracked local link/reference: .scratch/association-journal/completion.md -> ../../docs/testing/evidence/2026-10-30/journal-dev-merge.json
+PASS tracked local link/reference: .scratch/association-journal/design.md -> ../../docs/adr/0001-independent-public-and-staff-entry.md
+PASS tracked local link/reference: .scratch/association-journal/design.md -> ../ui-visual-refresh/journal-research-2026-10-29.md
+PASS tracked local link/reference: .scratch/association-journal/design.md -> ../../docs/superpowers/specs/2026-10-29-association-journal-design.md
+PASS tracked local link/reference: .scratch/association-journal/design.md -> completion.md
+PASS tracked local link/reference: .scratch/association-journal/issues/01-editorial-core.md -> ../spec.md
+PASS tracked local link/reference: .scratch/association-journal/issues/01-editorial-core.md -> ../../../docs/superpowers/plans/2026-10-30-association-journal.md
+PASS tracked local link/reference: .scratch/association-journal/issues/02-private-management.md -> ../spec.md
+PASS tracked local link/reference: .scratch/association-journal/issues/02-private-management.md -> ../../../docs/superpowers/plans/2026-10-30-association-journal.md
+PASS tracked local link/reference: .scratch/association-journal/issues/03-public-reading.md -> ../spec.md
+PASS tracked local link/reference: .scratch/association-journal/issues/03-public-reading.md -> ../../../docs/superpowers/plans/2026-10-30-association-journal.md
+PASS tracked local link/reference: .scratch/association-journal/issues/04-integrated-qualification.md -> ../spec.md
+PASS tracked local link/reference: .scratch/association-journal/issues/04-integrated-qualification.md -> ../../../docs/superpowers/plans/2026-10-30-association-journal.md
+PASS tracked local link/reference: .scratch/association-journal/issues/04-integrated-qualification.md -> ../browser-qa.md
+PASS tracked local link/reference: .scratch/association-journal/issues/04-integrated-qualification.md -> ../completion.md
+PASS tracked local link/reference: .scratch/association-journal/restore-ci.md -> issues/04-integrated-qualification.md
+PASS tracked local link/reference: .scratch/association-journal/spec.md -> ../../docs/superpowers/specs/2026-10-29-association-journal-design.md
+PASS tracked local link/reference: .scratch/association-journal/spec.md -> ../../docs/superpowers/plans/2026-10-30-association-journal.md
+PASS tracked local link/reference: .scratch/association-journal/spec.md -> completion.md
+PASS tracked local link/reference: .scratch/deployment-compose-consolidation/completion.md -> design.md
+PASS tracked local link/reference: .scratch/deployment-compose-consolidation/design.md -> completion.md
+PASS tracked local link/reference: .scratch/deployment-compose-consolidation/design.md -> ../../docs/adr/0001-independent-public-and-staff-entry.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/completion.md -> evidence/ticket-01-rule-coverage.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/completion.md -> evidence/ticket-01-review.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/completion.md -> evidence/ticket-02/README.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/completion.md -> evidence/ticket-03/inventory.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/completion.md -> evidence/ticket-03/statistics-red.txt
+PASS tracked local link/reference: .scratch/english-policy-light-default/completion.md -> evidence/ticket-03/staged-http-output.txt
+PASS tracked local link/reference: .scratch/english-policy-light-default/completion.md -> evidence/ticket-03/compatibility-audit.txt
+PASS tracked local link/reference: .scratch/english-policy-light-default/completion.md -> evidence/ticket-03/email-equivalence.txt
+PASS tracked local link/reference: .scratch/english-policy-light-default/completion.md -> evidence/ticket-04/coverage.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/completion.md -> evidence/ticket-04/link-and-contract-checks.txt
+PASS tracked local link/reference: .scratch/english-policy-light-default/design.md -> spec.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-02/README.md -> browser-output.txt
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-02/README.md -> authentication-dark.png
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-02/README.md -> authentication-light.png
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-02/README.md -> member-dark.png
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-02/README.md -> member-light.png
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-02/README.md -> no-javascript-light.png
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-02/README.md -> preview-dark.png
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-02/README.md -> preview-light.png
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-02/README.md -> public-dark.png
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-02/README.md -> public-light.png
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-02/README.md -> registration-dark.png
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-02/README.md -> registration-light.png
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-02/README.md -> staff-dark.png
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-02/README.md -> staff-light.png
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-03/inventory.md -> compatibility-audit.txt
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-03/inventory.md -> ../../completion.md#ticket-03--english-internals-with-compatible-member-workflows
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-04/coverage.md -> link-and-contract-checks.txt
+PASS tracked local link/reference: .scratch/english-policy-light-default/evidence/ticket-04/coverage.md -> ../../completion.md#ticket-04--english-contributor-and-operations-documentation
+PASS tracked local link/reference: .scratch/english-policy-light-default/issues/01-canonical-agent-instructions.md -> ../spec.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/issues/01-canonical-agent-instructions.md -> ../completion.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/issues/02-light-default-with-persistent-user-preference.md -> ../spec.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/issues/02-light-default-with-persistent-user-preference.md -> ../completion.md#ticket-02--light-default-with-persistent-user-preference
+PASS tracked local link/reference: .scratch/english-policy-light-default/issues/03-english-internals-with-compatible-member-workflows.md -> ../spec.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/issues/03-english-internals-with-compatible-member-workflows.md -> ../completion.md#ticket-03--english-internals-with-compatible-member-workflows
+PASS tracked local link/reference: .scratch/english-policy-light-default/issues/04-english-contributor-and-operations-documentation.md -> ../spec.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/issues/04-english-contributor-and-operations-documentation.md -> ../completion.md#ticket-04--english-contributor-and-operations-documentation
+PASS tracked local link/reference: .scratch/english-policy-light-default/issues/05-english-planning-and-delivery-records.md -> ../spec.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/issues/06-whole-spec-verification-and-handoff.md -> ../spec.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/spec.md -> design.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/ticket-breakdown.md -> spec.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/ticket-breakdown.md -> design.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/ticket-breakdown.md -> issues/01-canonical-agent-instructions.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/ticket-breakdown.md -> issues/02-light-default-with-persistent-user-preference.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/ticket-breakdown.md -> issues/03-english-internals-with-compatible-member-workflows.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/ticket-breakdown.md -> issues/04-english-contributor-and-operations-documentation.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/ticket-breakdown.md -> issues/05-english-planning-and-delivery-records.md
+PASS tracked local link/reference: .scratch/english-policy-light-default/ticket-breakdown.md -> issues/06-whole-spec-verification-and-handoff.md
+PASS tracked local link/reference: .scratch/repository-cleanup/issues/01-remove-obsolete-artifacts.md -> ../spec.md
+PASS tracked local link/reference: .scratch/repository-cleanup/issues/01-remove-obsolete-artifacts.md -> ../plan.md
+PASS tracked local link/reference: .scratch/repository-cleanup/issues/01-remove-obsolete-artifacts.md -> ../review.md
+PASS tracked local link/reference: .scratch/repository-cleanup/plan.md -> spec.md
+PASS tracked local link/reference: .scratch/repository-cleanup/plan.md -> review.md
+PASS tracked local link/reference: .scratch/ui-visual-refresh/journal-research-2026-10-29.md -> ../../docker/apps/routes.php#L4
+PASS tracked local link/reference: .scratch/ui-visual-refresh/journal-research-2026-10-29.md -> ../../src/bootstrap.php#L22
+PASS tracked local link/reference: .scratch/ui-visual-refresh/journal-research-2026-10-29.md -> ../../schema.sql#L92
+PASS tracked local link/reference: .scratch/ui-visual-refresh/journal-research-2026-10-29.md -> ../../docs/adr/0001-independent-public-and-staff-entry.md#L3
+PASS tracked local link/reference: .scratch/ui-visual-refresh/journal-research-2026-10-29.md -> ../association-journal/design.md
+PASS tracked local link/reference: README.md -> #technology-stack
+PASS tracked local link/reference: README.md -> #prerequisites
+PASS tracked local link/reference: README.md -> #local-installation
+PASS tracked local link/reference: README.md -> #environment-variables
+PASS tracked local link/reference: README.md -> #project-structure
+PASS tracked local link/reference: README.md -> #database
+PASS tracked local link/reference: README.md -> #authentication--sessions
+PASS tracked local link/reference: README.md -> #public-pages-and-anonymous-entry-points
+PASS tracked local link/reference: README.md -> #administration-pages
+PASS tracked local link/reference: README.md -> docs/email-queue.md
+PASS tracked local link/reference: README.md -> #feature-details
+PASS tracked local link/reference: README.md -> #tests
+PASS tracked local link/reference: README.md -> #deployment-production
+PASS tracked local link/reference: README.md -> #security
+PASS tracked local link/reference: README.md -> docs/adr/0001-independent-public-and-staff-entry.md
+PASS tracked local link/reference: README.md -> docs/operations/public-staff-rollout.md
+PASS tracked local link/reference: README.md -> docs/testing/README.md
+PASS tracked local link/reference: README.md -> docs/operations/public-staff-rollout.md
+PASS tracked local link/reference: completion.md -> .scratch/association-journal/completion.md
+PASS tracked local link/reference: completion.md -> .scratch/association-journal/browser-qa.md
+PASS tracked local link/reference: completion.md -> .scratch/repository-cleanup/spec.md
+PASS tracked local link/reference: completion.md -> .scratch/repository-cleanup/issues/01-remove-obsolete-artifacts.md
+PASS tracked local link/reference: completion.md -> .scratch/chores/triage-orphan-tests/spec.md
+PASS tracked local link/reference: completion.md -> .scratch/association-journal/completion.md
+PASS tracked local link/reference: completion.md -> .scratch/repository-cleanup/review.md
+PASS tracked local link/reference: completion.md -> .scratch/association-journal/browser-qa.md
+PASS tracked local link/reference: completion.md -> .scratch/association-journal/restore-ci.md
+PASS tracked local link/reference: docs/email-queue.md -> operations/public-staff-rollout.md
+PASS tracked local link/reference: docs/email-queue.md -> #worker-deployment-and-rollback
+PASS tracked local link/reference: docs/email-queue.md -> operations/public-staff-rollout.md
+PASS tracked local link/reference: docs/operations/public-staff-rollout.md -> ../testing/README.md
+PASS tracked local link/reference: docs/operations/public-staff-rollout.md -> ../adr/0001-independent-public-and-staff-entry.md
+PASS tracked local link/reference: docs/superpowers/specs/2026-10-29-association-journal-design.md -> ../../../.scratch/association-journal/design.md
+PASS tracked local link/reference: docs/superpowers/specs/2026-10-29-association-journal-design.md -> ../../../.scratch/ui-visual-refresh/journal-research-2026-10-29.md
+PASS tracked local link/reference: docs/superpowers/specs/2026-10-29-association-journal-design.md -> ../../adr/0001-independent-public-and-staff-entry.md
+PASS tracked local link/reference: docs/superpowers/specs/2026-10-29-association-journal-design.md -> ../plans/2026-10-30-association-journal.md
+PASS tracked local link/reference: docs/superpowers/specs/2026-10-29-association-journal-design.md -> ../../../.scratch/association-journal/completion.md
+PASS tracked local link/reference: docs/testing/README.md -> ../../tests/http/README.md
+PASS tracked local link/reference: docs/testing/README.md -> ../operations/public-staff-rollout.md
+PASS immutable historical Git source exists: e08f8cb26d96658e237395608b495ef61d11b21e:docs/agents/issue-tracker.md
+PASS immutable historical Git source exists: 23b5c556221c432084288c85988718e5e1f245ef:docs/superpowers/specs/2026-10-23-ui-and-app-separation-design.md
+PASS immutable historical Git source exists: 23b5c556221c432084288c85988718e5e1f245ef:.scratch/ui-and-app-separation/spec.md
+PASS byte-identical already-English/observation record: .scratch/association-journal/browser-qa.md
+PASS byte-identical already-English/observation record: .scratch/association-journal/evidence/reviews/final-rereview.md
+PASS byte-identical already-English/observation record: .scratch/association-journal/evidence/reviews/final-review.md
+PASS byte-identical already-English/observation record: .scratch/association-journal/restore-ci.md
+PASS byte-identical already-English/observation record: .scratch/chores/triage-orphan-tests/spec.md
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/design.md
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/evidence/ticket-01-review.md
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/evidence/ticket-01-rule-coverage.md
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/evidence/ticket-02/README.md
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/evidence/ticket-02/browser-output.txt
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/evidence/ticket-03/compatibility-audit.txt
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/evidence/ticket-03/email-equivalence.txt
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/evidence/ticket-03/inventory.md
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/evidence/ticket-03/staged-http-output.txt
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/evidence/ticket-03/statistics-red.txt
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/evidence/ticket-04/coverage.md
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/evidence/ticket-04/link-and-contract-checks.txt
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/issues/01-canonical-agent-instructions.md
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/issues/02-light-default-with-persistent-user-preference.md
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/issues/03-english-internals-with-compatible-member-workflows.md
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/issues/04-english-contributor-and-operations-documentation.md
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/issues/05-english-planning-and-delivery-records.md
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/issues/06-whole-spec-verification-and-handoff.md
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/spec.md
+PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/ticket-breakdown.md
+PASS byte-identical already-English/observation record: .scratch/repository-cleanup/issues/01-remove-obsolete-artifacts.md
+PASS byte-identical already-English/observation record: .scratch/repository-cleanup/plan.md
+PASS byte-identical already-English/observation record: .scratch/repository-cleanup/review.md
+PASS byte-identical already-English/observation record: .scratch/repository-cleanup/spec.md
+PASS byte-identical already-English/observation record: docs/superpowers/plans/2026-10-30-association-journal.md
+PASS unchanged protected/maintained source: .scratch/english-policy-light-default/spec.md
+PASS unchanged protected/maintained source: .scratch/english-policy-light-default/design.md
+PASS unchanged protected/maintained source: AGENTS.md
+PASS unchanged protected/maintained source: CLAUDE.md
+PASS unchanged protected/maintained source: GEMINI.md
+PASS unchanged protected/maintained source: GLOSSARY.md
+PASS unchanged protected/maintained source: README.md
+PASS unchanged protected/maintained source: docs/adr/0001-independent-public-and-staff-entry.md
+PASS unchanged protected/maintained source: docs/email-queue.md
+PASS unchanged protected/maintained source: docs/operations/public-staff-rollout.md
+PASS unchanged protected/maintained source: docs/testing/README.md
+PASS unchanged protected/maintained source: docs/testing/association-journal.md
+PASS unchanged protected/maintained source: tests/http/README.md
+PASS complete journal browser-QA record remains byte-identical and incomplete

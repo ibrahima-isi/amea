@@ -1,15 +1,15 @@
-# 02 — Gestion privée et couvertures
+# 02 — Private management and covers
 
 **Status:** ready-for-agent
 **Blocked by:** 01
 
-[Spec](../spec.md), tâche2 du [plan](../../../docs/superpowers/plans/2026-10-30-association-journal.md).
+[Spec](../spec.md), task2 of the [plan](../../../docs/superpowers/plans/2026-10-30-association-journal.md).
 
-- [ ] Administrateurs + permission journal, navigation et formulaires contrôlés.
-- [ ] Brouillon, prévisualisation, publication, retrait avec CSRF et validation.
-- [ ] Couvertures strictes JPEG/PNG/WebP, privées avant publication ; aucun fichier adhérent servi.
-- [ ] Scénarios HTTP synthétiques, signatures et revue.
+- [ ] Administrators plus journal permission, controlled navigation and forms.
+- [ ] Draft, preview, publication and withdrawal with CSRF and validation.
+- [ ] Strict JPEG/PNG/WebP covers, private before publication; no member files served.
+- [ ] Synthetic HTTP scenarios, signatures and review.
 
 ## Comments
 
-Aucune attribution automatique de nouveaux droits à tous les comptes existants.
+No automatic grant of new permissions to every existing account.

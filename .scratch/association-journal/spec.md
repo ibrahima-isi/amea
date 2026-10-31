@@ -1,9 +1,9 @@
-# Journal de l’amicale
+# Association journal
 
 **Status:** ready-for-agent
 
-Description complète approuvée et réalisation autorisée par réponse interactive le 30 octobre 2026 : [conception](../../docs/superpowers/specs/2026-10-29-association-journal-design.md). [Plan de réalisation](../../docs/superpowers/plans/2026-10-30-association-journal.md), [preuves et exécution](completion.md).
+Complete description approved and implementation authorized through interactive input on 30 October 2026: [design](../../docs/superpowers/specs/2026-10-29-association-journal-design.md). [Implementation plan](../../docs/superpowers/plans/2026-10-30-association-journal.md), [evidence and execution](completion.md).
 
-Trois types, publication privée par administrateurs autorisés, brouillon/publication/retrait, archives temporelles et couvertures privées avant publication. Aucun contrôle ou lien public vers la gestion. Pas de WordPress ni migration de production.
+Three types, private publication by authorized administrators, draft/publication/withdrawal, date-based archives and covers kept private before publication. No public control or link to management. No WordPress or production migration.
 
-Base de réalisation : code revu de PR #17, encore draft/non fusionnée. Cette dépendance de fusion est distincte des dépendances locales numérotées ; ne pas déclarer dev livré ni fusionner le journal avant résolution de son préalable.
+Implementation base: reviewed code from PR #17, still draft/unmerged. This merge dependency is distinct from the numbered local dependencies; do not claim delivery to dev or merge the journal before its prerequisite is resolved.

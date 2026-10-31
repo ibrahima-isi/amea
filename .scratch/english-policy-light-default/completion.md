@@ -172,3 +172,21 @@ Total source findings: **Standards 0 / Spec 0**. Final-head PR CI and actual tic
 Final-head CI is recorded in the [PR checks](https://github.com/ibrahima-isi/amea/pull/26/checks). Publication does not claim an actual ticket-04 merge or production release. The current task worktree/branch remains available for review until safely merged.
 
 After the actual PR #24/#25 merges and signed local-main integration recorded above, cleanup verified that the complete task-02/task-03 feature trees exactly match preserved merge revisions `7e5c398`/`7f4063b`, both ancestors of fetched remote `dev`. Their clean task-owned worktrees (`/private/tmp/amea-theme-20261031`, `/private/tmp/amea-internals-20261031`) and local feature branches were then removed. Their remote feature branches were already absent. The temporary local-main integration worktree was also removed; local `main` remains at signed `dd520c4`. The original checkout and all unrelated worktrees/branches remain unchanged.
+
+
+## Ticket 05 — English planning and delivery records
+
+The user explicitly authorized ticket 05 on 31 October 2026. It has no blockers. Worktree `/private/tmp/amea-records-20261031`, branch `docs/english-planning-delivery`, starts from fetched `dev` revision `4d021fc3f04783de8b0ff2c6ee2a629f3a58bece`, which includes actually merged ticket 04 (PR #26). Ticket 06 is not authorized by this request.
+
+### Inventory checkpoint — in progress
+
+The tracked planning/delivery corpus includes feature specs/designs/tickets/completion/review/research under `.scratch/`, dated `docs/superpowers/` plans/designs and root `completion.md`. Thirteen Markdown records contain remaining French engineering narrative, concentrated in the journal design/delivery history, deployment consolidation design/completion, association-site research and root cleanup closeout. Already-English records, generated observation output and exact French labels remain distinct. Parent specification, maintained ticket-04 guides, canonical instructions and runtime sources stay unchanged.
+
+Translation will preserve each record in place, with its original dates, references, status/checklist state, approvals, partial observations and deferred work. Journal browser QA remains explicitly user-deferred and incomplete. Source/contract/reference checks and independent review are pending; no completion claim is made at this checkpoint.
+
+
+### Ticket 05 — translation checkpoint
+
+Translated the thirteen identified historical records in place: journal builder review, scope/specification, four tickets and completion history; deployment-consolidation design/completion; dated association-site research; the complete journal design; and the French root closeout section. All original numerical evidence tokens, Markdown link targets, checklist states and technical inline references are retained. Historical pending/draft/unchecked statements remain historical rather than being silently updated to today's delivery state. The original user deferral quotation is preserved with an English gloss; real French UI labels remain literal. The parent specification and already-English records are unchanged.
+
+Reference/anchor validation and independent review are next. This translation does not execute the old plans, rerun journal browser QA or qualify production.
