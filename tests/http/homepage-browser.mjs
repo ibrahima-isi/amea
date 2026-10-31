@@ -35,7 +35,7 @@ try {
     await cdp('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
     await cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'light'},{name:'prefers-reduced-motion',value:'no-preference'}]});
     await navigate();
-    await check("document.documentElement.dataset.bsTheme === 'light'",'light theme follows device');
+    await check("document.documentElement.dataset.bsTheme === 'light'",'first visit defaults to light');
     await check("(() => {const logo=document.querySelector('.public-brand img');return !!logo&&logo.complete&&logo.naturalWidth===960&&logo.naturalHeight===677;})()",'official logo decodes at its original dimensions');
     await check("[...document.querySelectorAll('.public-brand img, .community-empty img')].every(img=>{const r=img.getBoundingClientRect();return Math.abs(r.width/r.height-960/677)<.01&&getComputedStyle(img).borderRadius==='0px';})",'official logo keeps its full uncropped aspect ratio');
     if (state !== 'multiple') {
@@ -75,7 +75,7 @@ try {
     await evaluate('localStorage.removeItem("theme")');
     await cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'dark'},{name:'prefers-reduced-motion',value:'reduce'}]});
     await navigate();
-    await check("document.documentElement.dataset.bsTheme === 'dark'",'dark theme follows device without saved override');
+    await check("document.documentElement.dataset.bsTheme === 'light'",'unsaved visit stays light with dark device preference');
     await check("document.querySelector('[data-carousel-pause]').getAttribute('aria-pressed') === 'true'",'reduced motion starts paused');
     await wait(6800);
     await check("document.querySelector('[data-carousel-count]').textContent === '1 / 2'",'reduced motion prevents automatic rotation');
