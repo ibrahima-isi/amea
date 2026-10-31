@@ -21,7 +21,7 @@
 
 ## Task 1: Remove obsolete artifacts and repair their maintained consumers
 
-**Files:** Delete the exact categories and paths in the approved specification. Modify `README.md`, `AGENTS.md`, `docs/agents/issue-tracker.md`, `docs/email-queue.md`, `.gitignore`, `.github/workflows/ci.yml`, and `completion.md`. Create `docs/testing/README.md` and this task's numbered tracker record.
+**Files:** Delete the exact categories and paths in the approved specification. Modify `README.md`, `AGENTS.md`, the [historical tracker guide](https://github.com/ibrahima-isi/amea/blob/e08f8cb26d96658e237395608b495ef61d11b21e/docs/agents/issue-tracker.md), `docs/email-queue.md`, `.gitignore`, `.github/workflows/ci.yml`, and `completion.md`. Create `docs/testing/README.md` and this task's numbered tracker record. This completed plan retains its original file scope; current agent rules now live in the canonical `AGENTS.md`.
 
 **Interfaces:** Consume the existing application/test entry points unchanged. Produce maintained documentation, one CI workflow, and the exact deletion manifest for review. Existing required check contexts are `test` and `php-tests` (repository ruleset `8898075`); both must remain emitted.
 
