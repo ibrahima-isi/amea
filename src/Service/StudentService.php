@@ -44,10 +44,10 @@ class StudentService
         ];
 
         // 1. Logic for 'Autre' fields (French UI convention)
-        $finalLieu = $input['residence'] === 'Autre' ? $input['other_residence'] : $input['residence'];
-        $finalEtab = $input['institution'] === 'Autre' ? $input['other_institution'] : $input['institution'];
-        $finalDom  = $input['study_field'] === 'Autre' ? $input['other_study_field'] : $input['study_field'];
-        $finalNiv  = $input['study_level'] === 'Autre' ? $input['other_study_level'] : $input['study_level'];
+        $finalResidence = $input['residence'] === 'Autre' ? $input['other_residence'] : $input['residence'];
+        $finalInstitution = $input['institution'] === 'Autre' ? $input['other_institution'] : $input['institution'];
+        $finalStudyField  = $input['study_field'] === 'Autre' ? $input['other_study_field'] : $input['study_field'];
+        $finalStudyLevel  = $input['study_level'] === 'Autre' ? $input['other_study_level'] : $input['study_level'];
 
         // 2. Required fields
         $required = [
@@ -92,8 +92,8 @@ class StudentService
             $decoded = json_decode($input['nationalities'], true);
             if (is_array($decoded)) {
                 $names = array_map(fn($item) => $item['value'], $decoded);
-                $paysRows = $this->studentRepo->getPaysByName($names);
-                foreach ($paysRows as $row) {
+                $countryRows = $this->studentRepo->getCountriesByName($names);
+                foreach ($countryRows as $row) {
                     $validNats[] = $row['name_fr'];
                     $validIds[]  = $row['id'];
                 }
@@ -101,11 +101,11 @@ class StudentService
         }
         $validNats = array_values(array_unique($validNats));
         
-        // Always Guinée
-        $guinee = $this->studentRepo->getGuineeCountry();
-        if ($guinee && !in_array($guinee['name_fr'], $validNats, true)) {
-             array_unshift($validNats, $guinee['name_fr']);
-             array_unshift($validIds, $guinee['id']);
+        // Always include the Guinea nationality
+        $guinea = $this->studentRepo->getGuineaCountry();
+        if ($guinea && !in_array($guinea['name_fr'], $validNats, true)) {
+             array_unshift($validNats, $guinea['name_fr']);
+             array_unshift($validIds, $guinea['id']);
         }
         if (empty($validNats)) $errors['nationalities'] = 'Nationality is required.';
         if (count($validNats) > 5) $errors['nationalities'] = 'Maximum 5 nationalities allowed.';
@@ -141,11 +141,11 @@ class StudentService
                 'first_name' => $input['first_name'],
                 'gender' => $input['gender'],
                 'birth_date' => $input['birth_date'] ?: null,
-                'residence' => $finalLieu ?: null,
-                'institution' => $finalEtab ?: null,
+                'residence' => $finalResidence ?: null,
+                'institution' => $finalInstitution ?: null,
                 'status' => $input['status'] ?: null,
-                'study_field' => $finalDom ?: null,
-                'study_level' => $finalNiv ?: null,
+                'study_field' => $finalStudyField ?: null,
+                'study_level' => $finalStudyLevel ?: null,
                 'phone' => $input['phone'],
                 'email' => $input['email'],
                 'arrival_year' => $input['arrival_year'] ? (int)$input['arrival_year'] : null,

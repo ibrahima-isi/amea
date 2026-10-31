@@ -51,8 +51,8 @@ class ExportController extends BaseController
     public function index(): void
     {
         $this->render('admin/pages/export.html.twig', [
-            'institutions' => $this->studentRepo->getDistinctEtablissements(),
-            'study_levels' => $this->studentRepo->getDistinctNiveaux(),
+            'institutions' => $this->studentRepo->getDistinctInstitutions(),
+            'study_levels' => $this->studentRepo->getDistinctStudyLevels(),
             'fields'       => self::ALLOWED_FIELDS,
         ]);
     }

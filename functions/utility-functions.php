@@ -31,11 +31,11 @@ function generateRandomString(int $length = 10): string
     return $s;
 }
 
-function calculateAge(string $dateNaissance): int
+function calculateAge(string $birthDate): int
 {
-    if (empty($dateNaissance)) return 0;
+    if (empty($birthDate)) return 0;
     try {
-        return (int)(new DateTime($dateNaissance))->diff(new DateTime())->y;
+        return (int)(new DateTime($birthDate))->diff(new DateTime())->y;
     } catch (Exception) {
         return 0;
     }
