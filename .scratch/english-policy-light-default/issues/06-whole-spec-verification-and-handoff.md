@@ -8,16 +8,16 @@
 
 Specification: [English technical content, canonical agent instructions, and a light default theme](../spec.md).
 
-- [ ] Verify tickets 01 through 05 are complete in the feature's execution record and their delivered results are present in the selected integration revision before starting this final gate. Triage readiness alone is not completion evidence.
-- [ ] Audit the full current first-party technical corpus and source together: documentation, comments and internal identifiers use English; legitimate French UI, email, contract/data and proper-name exceptions are classified. Do not use a simple accent/word scan as the sole completeness proof.
-- [ ] Verify the single canonical instruction source accounts for retained durable rules, both delegation pointers are exact, removed-guide consumers are repaired, and translated links/headings work across the integrated corpus.
-- [ ] Verify first visits on both system themes fall back to light, saved valid preferences remain authoritative, manual switching/persistence work, and invalid/unavailable storage is handled through the approved observable theme boundaries.
-- [ ] Record real isolated browser evidence across the supported public/staff/authentication/member/preview surfaces and distinguish injected storage failures from ordinary rendering. Preserve keyboard and no-JavaScript light fallback behavior.
-- [ ] Verify existing registration staging, French values, secure links, form/JSON/session contracts, authorization, CSRF, private documents and applicable correction/consent/reset behavior remain compatible after the integrated internal-name changes.
-- [ ] Complete the approved regression/CI command set for the final integrated source, reusing meaningful ticket evidence where unchanged and rerunning checks when integration changes or unresolved concerns require them. Keep local results, browser observations and CI evidence distinct.
+- [x] Verify tickets 01 through 05 are complete in the feature's execution record and their delivered results are present in the selected integration revision before starting this final gate. Triage readiness alone is not completion evidence.
+- [x] Audit the full current first-party technical corpus and source together: documentation, comments and internal identifiers use English; legitimate French UI, email, contract/data and proper-name exceptions are classified. Do not use a simple accent/word scan as the sole completeness proof.
+- [x] Verify the single canonical instruction source accounts for retained durable rules, both delegation pointers are exact, removed-guide consumers are repaired, and translated links/headings work across the integrated corpus.
+- [x] Verify first visits on both system themes fall back to light, saved valid preferences remain authoritative, manual switching/persistence work, and invalid/unavailable storage is handled through the approved observable theme boundaries.
+- [x] Record real isolated browser evidence across the supported public/staff/authentication/member/preview surfaces and distinguish injected storage failures from ordinary rendering. Preserve keyboard and no-JavaScript light fallback behavior.
+- [x] Verify existing registration staging, French values, secure links, form/JSON/session contracts, authorization, CSRF, private documents and applicable correction/consent/reset behavior remain compatible after the integrated internal-name changes.
+- [x] Complete the approved regression/CI command set for the final integrated source, reusing meaningful ticket evidence where unchanged and rerunning checks when integration changes or unresolved concerns require them. Keep local results, browser observations and CI evidence distinct.
 - [ ] Obtain independent Standards and Spec reviews against the approved specification and full implementation baseline, resolve actionable findings, and verify required CI checks on the exact final signed PR head before reporting readiness.
 - [ ] Keep all created commit messages and PR text in English and every created commit cryptographically signed. Deliver through the protected development-branch workflow; record actual merge separately from readiness and condition local integration/owned cleanup on a real remote merge.
-- [ ] Produce one coherent feature completion handoff with revisions, executed checks, evidence, legitimate exceptions and material limits. Preserve the user-deferred journal browser QA as deferred rather than closing it with theme checks.
+- [x] Produce one coherent feature completion handoff with revisions, executed checks, evidence, legitimate exceptions and material limits. Preserve the user-deferred journal browser QA as deferred rather than closing it with theme checks.
 
 ## Boundaries
 
@@ -26,3 +26,5 @@ No production deployment, DNS/SMTP action, schema/data migration, published-hist
 ## Comments
 
 2026-10-31: The user approved publication of this six-ticket breakdown. This final ticket is blocked by all five independently verifiable deliveries, and none is marked complete by ticket publication.
+
+2026-10-31: The user explicitly authorized ticket-06 implementation. All five blockers are delivered; the combined local gate and full implementation reviews are complete. See [completion](../completion.md#ticket-06--whole-spec-verification-and-handoff) for exact revisions, evidence and the separate final-head CI/merge milestones. Readiness is reported only after the latest signed PR head passes its required checks.

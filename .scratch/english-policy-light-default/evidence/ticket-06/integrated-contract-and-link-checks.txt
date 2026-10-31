@@ -1,0 +1,405 @@
+PASS all 361 integrated-source files classified by owning role
+PASS executed signed integration tree equals delivered remote dev
+PASS exact unchanged canonical pointer CLAUDE.md
+PASS exact unchanged canonical pointer GEMINI.md
+PASS one canonical repository instruction file
+PASS removed redundant guide stays removed docs/agents/domain.md
+PASS removed redundant guide stays removed docs/agents/issue-tracker.md
+PASS removed redundant guide stays removed docs/agents/triage-labels.md
+PASS retained canonical rule destination Canonical Instructions and Language
+PASS retained canonical rule destination Project Structure & Module Organization
+PASS retained canonical rule destination Build, Test, and Development Commands
+PASS retained canonical rule destination Coding Style & Naming Conventions
+PASS retained canonical rule destination Theme Requirement
+PASS retained canonical rule destination Testing Guidelines
+PASS retained canonical rule destination Commit & Pull Request Guidelines
+PASS retained canonical rule destination Security & Collaboration
+PASS retained canonical rule destination Database Changes
+PASS retained canonical rule destination Local Issue Tracker
+PASS retained canonical rule destination Triage Roles
+PASS retained canonical rule destination Wayfinding Lifecycle
+PASS retained canonical rule destination Domain Documents
+PASS exact retained triage role needs-triage
+PASS exact retained triage role needs-info
+PASS exact retained triage role ready-for-agent
+PASS exact retained triage role ready-for-human
+PASS exact retained triage role wontfix
+PASS all workflows remain in the single required CI file
+PASS immutable schema/legal/data/dependency/security source schema.sql
+PASS immutable schema/legal/data/dependency/security source templates/legal-notice.html.twig
+PASS immutable schema/legal/data/dependency/security source assets/json/countries.json
+PASS immutable schema/legal/data/dependency/security source assets/js/tagify.min.js
+PASS immutable schema/legal/data/dependency/security source assets/css/tagify.css
+PASS immutable schema/legal/data/dependency/security source composer.json
+PASS immutable schema/legal/data/dependency/security source composer.lock
+PASS immutable schema/legal/data/dependency/security source config/database.php
+PASS immutable schema/legal/data/dependency/security source config/session.php
+PASS immutable schema/legal/data/dependency/security source src/Core/Session.php
+PASS immutable schema/legal/data/dependency/security source migrations/00_init_schema.php
+PASS immutable schema/legal/data/dependency/security source migrations/01_migration_add_settings_table.php
+PASS immutable schema/legal/data/dependency/security source migrations/02_migration_add_user_session_version.php
+PASS immutable schema/legal/data/dependency/security source migrations/03_migration_fix_role_enum.php
+PASS immutable schema/legal/data/dependency/security source migrations/04_migration_add_kyc_workflow.php
+PASS immutable schema/legal/data/dependency/security source migrations/05_migration_add_soft_delete.php
+PASS immutable schema/legal/data/dependency/security source migrations/06_expand_member_enum_compatibility.php
+PASS immutable schema/legal/data/dependency/security source migrations/07_create_association_journal.php
+PASS approved planning source unchanged .scratch/english-policy-light-default/spec.md
+PASS approved planning source unchanged .scratch/english-policy-light-default/design.md
+PASS user-deferred journal browser record remains byte-identical
+PASS effective directives/schema unchanged after comment translation .htaccess
+PASS effective directives/schema unchanged after comment translation uploads/.htaccess
+PASS effective directives/schema unchanged after comment translation database/init.sql
+PASS request/file/session key compatibility 404-handler.php
+PASS request/file/session key compatibility accept-cgu.php
+PASS request/file/session key compatibility add-user.php
+PASS request/file/session key compatibility communications-count.php
+PASS request/file/session key compatibility communications.php
+PASS request/file/session key compatibility config/database.php
+PASS request/file/session key compatibility config/session.php
+PASS request/file/session key compatibility confirm-upgrade.php
+PASS request/file/session key compatibility dashboard.php
+PASS request/file/session key compatibility docker/apps/index.php
+PASS request/file/session key compatibility docker/apps/routes.php
+PASS request/file/session key compatibility download.php
+PASS request/file/session key compatibility edit-student.php
+PASS request/file/session key compatibility edit-user.php
+PASS request/file/session key compatibility export-preview.php
+PASS request/file/session key compatibility export.php
+PASS request/file/session key compatibility forgot-password.php
+PASS request/file/session key compatibility functions/document-reconcile.php
+PASS request/file/session key compatibility functions/email-service.php
+PASS request/file/session key compatibility functions/utility-functions.php
+PASS request/file/session key compatibility index.php
+PASS request/file/session key compatibility kyc-correction.php
+PASS request/file/session key compatibility kyc-detail.php
+PASS request/file/session key compatibility kyc-list.php
+PASS request/file/session key compatibility legal-notice.php
+PASS request/file/session key compatibility login.php
+PASS request/file/session key compatibility logout.php
+PASS request/file/session key compatibility manage-slider.php
+PASS request/file/session key compatibility migrations/00_init_schema.php
+PASS request/file/session key compatibility migrations/01_migration_add_settings_table.php
+PASS request/file/session key compatibility migrations/02_migration_add_user_session_version.php
+PASS request/file/session key compatibility migrations/03_migration_fix_role_enum.php
+PASS request/file/session key compatibility migrations/04_migration_add_kyc_workflow.php
+PASS request/file/session key compatibility migrations/05_migration_add_soft_delete.php
+PASS request/file/session key compatibility migrations/06_expand_member_enum_compatibility.php
+PASS request/file/session key compatibility migrations/07_create_association_journal.php
+PASS request/file/session key compatibility profile.php
+PASS request/file/session key compatibility register.php
+PASS request/file/session key compatibility registration-details.php
+PASS request/file/session key compatibility registration-preview.php
+PASS request/file/session key compatibility reset-password.php
+PASS request/file/session key compatibility scripts/process-mail-queue.php
+PASS request/file/session key compatibility scripts/purge-pending-uploads.php
+PASS request/file/session key compatibility scripts/purge-trashed-students.php
+PASS request/file/session key compatibility scripts/run-shared-jobs.php
+PASS request/file/session key compatibility settings.php
+PASS request/file/session key compatibility src/Config/Database.php
+PASS request/file/session key compatibility src/Controller/AcceptTermsController.php
+PASS request/file/session key compatibility src/Controller/AuthController.php
+PASS request/file/session key compatibility src/Controller/BaseController.php
+PASS request/file/session key compatibility src/Controller/CommunicationController.php
+PASS request/file/session key compatibility src/Controller/CorrectionController.php
+PASS request/file/session key compatibility src/Controller/DashboardController.php
+PASS request/file/session key compatibility src/Controller/DownloadController.php
+PASS request/file/session key compatibility src/Controller/ExportController.php
+PASS request/file/session key compatibility src/Controller/HomeController.php
+PASS request/file/session key compatibility src/Controller/JournalAdminController.php
+PASS request/file/session key compatibility src/Controller/JournalPublicController.php
+PASS request/file/session key compatibility src/Controller/KYCController.php
+PASS request/file/session key compatibility src/Controller/LegalController.php
+PASS request/file/session key compatibility src/Controller/PasswordResetController.php
+PASS request/file/session key compatibility src/Controller/ProfileController.php
+PASS request/file/session key compatibility src/Controller/RegistrationController.php
+PASS request/file/session key compatibility src/Controller/SettingsController.php
+PASS request/file/session key compatibility src/Controller/SliderController.php
+PASS request/file/session key compatibility src/Controller/StudentController.php
+PASS request/file/session key compatibility src/Controller/TrashController.php
+PASS request/file/session key compatibility src/Controller/UpgradeController.php
+PASS request/file/session key compatibility src/Controller/UserController.php
+PASS request/file/session key compatibility src/Core/Container.php
+PASS request/file/session key compatibility src/Core/CsrfGuard.php
+PASS request/file/session key compatibility src/Core/FileUploader.php
+PASS request/file/session key compatibility src/Core/Flash.php
+PASS request/file/session key compatibility src/Core/Router.php
+PASS request/file/session key compatibility src/Core/Session.php
+PASS request/file/session key compatibility src/Core/StaffNavigation.php
+PASS request/file/session key compatibility src/Core/View.php
+PASS request/file/session key compatibility src/Model/Setting.php
+PASS request/file/session key compatibility src/Model/Student.php
+PASS request/file/session key compatibility src/Model/User.php
+PASS request/file/session key compatibility src/Repository/JournalRepository.php
+PASS request/file/session key compatibility src/Repository/SettingRepository.php
+PASS request/file/session key compatibility src/Repository/SliderRepository.php
+PASS request/file/session key compatibility src/Repository/StudentRepository.php
+PASS request/file/session key compatibility src/Repository/UserRepository.php
+PASS request/file/session key compatibility src/Service/AuthService.php
+PASS request/file/session key compatibility src/Service/DocumentReconcileService.php
+PASS request/file/session key compatibility src/Service/EmailService.php
+PASS request/file/session key compatibility src/Service/ExportService.php
+PASS request/file/session key compatibility src/Service/JournalConflictException.php
+PASS request/file/session key compatibility src/Service/JournalMediaService.php
+PASS request/file/session key compatibility src/Service/JournalService.php
+PASS request/file/session key compatibility src/Service/PasswordResetService.php
+PASS request/file/session key compatibility src/Service/StudentService.php
+PASS request/file/session key compatibility src/Service/UserService.php
+PASS request/file/session key compatibility src/bootstrap.php
+PASS request/file/session key compatibility student-details.php
+PASS request/file/session key compatibility students.php
+PASS request/file/session key compatibility trash.php
+PASS request/file/session key compatibility upgrade-levels.php
+PASS request/file/session key compatibility users.php
+PASS all HTTP route methods and URL paths preserved
+PASS no executable caller depends on removed internal isDiplome
+PASS no executable caller depends on removed internal getDistinctEtablissements
+PASS no executable caller depends on removed internal getDistinctDomaines
+PASS no executable caller depends on removed internal getDistinctNiveaux
+PASS no executable caller depends on removed internal getTopEtablissements
+PASS no executable caller depends on removed internal ensureEtablissementExists
+PASS no executable caller depends on removed internal ensureDomaineExists
+PASS no executable caller depends on removed internal ensureNiveauExists
+PASS no executable caller depends on removed internal savePersonnePays
+PASS no executable caller depends on removed internal getPaysByName
+PASS no executable caller depends on removed internal getGuineeCountry
+PASS no executable caller depends on removed internal AcceptCguController
+PASS static French template copy preserved templates/.htaccess
+PASS static French template copy preserved templates/accept-cgu.html.twig
+PASS static French template copy preserved templates/admin/pages/add-user.html.twig
+PASS static French template copy preserved templates/admin/pages/communications.html.twig
+PASS static French template copy preserved templates/admin/pages/dashboard.html.twig
+PASS static French template copy preserved templates/admin/pages/edit-student.html.twig
+PASS static French template copy preserved templates/admin/pages/edit-user.html.twig
+PASS static French template copy preserved templates/admin/pages/export.html.twig
+PASS static French template copy preserved templates/admin/pages/journal-edit.html.twig
+PASS static French template copy preserved templates/admin/pages/journal-list.html.twig
+PASS static French template copy preserved templates/admin/pages/journal-preview.html.twig
+PASS static French template copy preserved templates/admin/pages/kyc-detail.html.twig
+PASS static French template copy preserved templates/admin/pages/kyc-list.html.twig
+PASS static French template copy preserved templates/admin/pages/manage-slider.html.twig
+PASS static French template copy preserved templates/admin/pages/profile.html.twig
+PASS static French template copy preserved templates/admin/pages/settings.html.twig
+PASS static French template copy preserved templates/admin/pages/student-details.html.twig
+PASS static French template copy preserved templates/admin/pages/students.html.twig
+PASS static French template copy preserved templates/admin/pages/trash.html.twig
+PASS static French template copy preserved templates/admin/pages/upgrade-levels.html.twig
+PASS static French template copy preserved templates/admin/pages/users.html.twig
+PASS static French template copy preserved templates/auth/login.html.twig
+PASS static French template copy preserved templates/emails/admin-update-notification.html
+PASS static French template copy preserved templates/emails/bulk-communication.html
+PASS static French template copy preserved templates/emails/cgu-reminder.html
+PASS static French template copy preserved templates/emails/grade-upgrade-email.html
+PASS static French template copy preserved templates/emails/new-registration-admin.html
+PASS static French template copy preserved templates/emails/password-reset-email.html
+PASS static French template copy preserved templates/emails/password-updated-confirmation.html
+PASS static French template copy preserved templates/emails/registration-approved.html
+PASS static French template copy preserved templates/emails/registration-clarification.html
+PASS static French template copy preserved templates/emails/registration-confirmation.html
+PASS static French template copy preserved templates/emails/registration-finalized.html
+PASS static French template copy preserved templates/emails/registration-received.html
+PASS static French template copy preserved templates/emails/registration-rejected.html
+PASS static French template copy preserved templates/export-preview.html.twig
+PASS static French template copy preserved templates/forgot-password.html.twig
+PASS static French template copy preserved templates/home/index.html.twig
+PASS static French template copy preserved templates/journal/article.html.twig
+PASS static French template copy preserved templates/journal/card.html.twig
+PASS static French template copy preserved templates/journal/index.html.twig
+PASS static French template copy preserved templates/journal/metadata.html.twig
+PASS static French template copy preserved templates/journal/show.html.twig
+PASS static French template copy preserved templates/layouts/admin.html.twig
+PASS static French template copy preserved templates/layouts/base.html.twig
+PASS static French template copy preserved templates/layouts/public-forms.html.twig
+PASS static French template copy preserved templates/layouts/public.html.twig
+PASS static French template copy preserved templates/layouts/staff-auth.html.twig
+PASS static French template copy preserved templates/legal-notice.html.twig
+PASS static French template copy preserved templates/partials/footer.html.twig
+PASS static French template copy preserved templates/partials/header.html.twig
+PASS static French template copy preserved templates/partials/sidebar.html.twig
+PASS static French template copy preserved templates/partials/staff-header.html.twig
+PASS static French template copy preserved templates/register.html.twig
+PASS static French template copy preserved templates/registration-details.html.twig
+PASS static French template copy preserved templates/reset-password.html.twig
+PASS local Markdown destination .scratch/association-journal/browser-qa.md -> issues/04-integrated-qualification.md
+PASS local Markdown destination .scratch/association-journal/browser-qa.md -> ../../docs/superpowers/plans/2026-10-30-association-journal.md
+PASS local Markdown destination .scratch/association-journal/browser-qa.md -> restore-ci.md
+PASS local Markdown destination .scratch/association-journal/builder-check.md -> ../../docs/superpowers/specs/2026-10-29-association-journal-design.md
+PASS local Markdown destination .scratch/association-journal/completion.md -> restore-ci.md
+PASS local Markdown destination .scratch/association-journal/completion.md -> browser-qa.md
+PASS local Markdown destination .scratch/association-journal/completion.md -> builder-check.md
+PASS local Markdown destination .scratch/association-journal/completion.md -> design.md
+PASS local Markdown destination .scratch/association-journal/completion.md -> spec.md
+PASS local Markdown destination .scratch/association-journal/completion.md -> ../../docs/superpowers/plans/2026-10-30-association-journal.md
+PASS local Markdown destination .scratch/association-journal/completion.md -> ../../docs/testing/evidence/2026-10-29/journal-public-maquette.jpg
+PASS local Markdown destination .scratch/association-journal/completion.md -> issues/01-editorial-core.md
+PASS local Markdown destination .scratch/association-journal/completion.md -> issues/02-private-management.md
+PASS local Markdown destination .scratch/association-journal/completion.md -> issues/03-public-reading.md
+PASS local Markdown destination .scratch/association-journal/completion.md -> issues/04-integrated-qualification.md
+PASS local Markdown destination .scratch/association-journal/completion.md -> browser-qa.md
+PASS local Markdown destination .scratch/association-journal/completion.md -> evidence/reviews/final-review.md
+PASS local Markdown destination .scratch/association-journal/completion.md -> evidence/reviews/final-rereview.md
+PASS local Markdown destination .scratch/association-journal/completion.md -> ../../docs/testing/evidence/2026-10-30/journal-demo-migration.json
+PASS local Markdown destination .scratch/association-journal/completion.md -> ../../docs/testing/evidence/2026-10-30/journal-served.json
+PASS local Markdown destination .scratch/association-journal/completion.md -> ../../docs/testing/evidence/2026-10-30/journal-resumption.json
+PASS local Markdown destination .scratch/association-journal/completion.md -> ../../docs/testing/evidence/2026-10-30/journal-dev-merge.json
+PASS local Markdown destination .scratch/association-journal/design.md -> ../../docs/adr/0001-independent-public-and-staff-entry.md
+PASS local Markdown destination .scratch/association-journal/design.md -> ../ui-visual-refresh/journal-research-2026-10-29.md
+PASS local Markdown destination .scratch/association-journal/design.md -> ../../docs/superpowers/specs/2026-10-29-association-journal-design.md
+PASS local Markdown destination .scratch/association-journal/design.md -> completion.md
+PASS local Markdown destination .scratch/association-journal/issues/01-editorial-core.md -> ../spec.md
+PASS local Markdown destination .scratch/association-journal/issues/01-editorial-core.md -> ../../../docs/superpowers/plans/2026-10-30-association-journal.md
+PASS local Markdown destination .scratch/association-journal/issues/02-private-management.md -> ../spec.md
+PASS local Markdown destination .scratch/association-journal/issues/02-private-management.md -> ../../../docs/superpowers/plans/2026-10-30-association-journal.md
+PASS local Markdown destination .scratch/association-journal/issues/03-public-reading.md -> ../spec.md
+PASS local Markdown destination .scratch/association-journal/issues/03-public-reading.md -> ../../../docs/superpowers/plans/2026-10-30-association-journal.md
+PASS local Markdown destination .scratch/association-journal/issues/04-integrated-qualification.md -> ../spec.md
+PASS local Markdown destination .scratch/association-journal/issues/04-integrated-qualification.md -> ../../../docs/superpowers/plans/2026-10-30-association-journal.md
+PASS local Markdown destination .scratch/association-journal/issues/04-integrated-qualification.md -> ../browser-qa.md
+PASS local Markdown destination .scratch/association-journal/issues/04-integrated-qualification.md -> ../completion.md
+PASS local Markdown destination .scratch/association-journal/restore-ci.md -> issues/04-integrated-qualification.md
+PASS local Markdown destination .scratch/association-journal/spec.md -> ../../docs/superpowers/specs/2026-10-29-association-journal-design.md
+PASS local Markdown destination .scratch/association-journal/spec.md -> ../../docs/superpowers/plans/2026-10-30-association-journal.md
+PASS local Markdown destination .scratch/association-journal/spec.md -> completion.md
+PASS local Markdown destination .scratch/deployment-compose-consolidation/completion.md -> design.md
+PASS local Markdown destination .scratch/deployment-compose-consolidation/design.md -> completion.md
+PASS local Markdown destination .scratch/deployment-compose-consolidation/design.md -> ../../docs/adr/0001-independent-public-and-staff-entry.md
+PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-06/handoff.md
+PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-01-rule-coverage.md
+PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-01-review.md
+PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-02/README.md
+PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-03/inventory.md
+PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-03/statistics-red.txt
+PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-03/staged-http-output.txt
+PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-03/compatibility-audit.txt
+PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-03/email-equivalence.txt
+PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-04/coverage.md
+PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-04/link-and-contract-checks.txt
+PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-05/coverage.md
+PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-06/blocker-deliveries.json
+PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-06/integrated-corpus-manifest.json
+PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-06/execution-summary.json
+PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-06/integrated-browser-output.txt
+PASS local Markdown destination .scratch/english-policy-light-default/design.md -> spec.md
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-02/README.md -> browser-output.txt
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-02/README.md -> authentication-dark.png
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-02/README.md -> authentication-light.png
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-02/README.md -> member-dark.png
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-02/README.md -> member-light.png
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-02/README.md -> no-javascript-light.png
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-02/README.md -> preview-dark.png
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-02/README.md -> preview-light.png
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-02/README.md -> public-dark.png
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-02/README.md -> public-light.png
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-02/README.md -> registration-dark.png
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-02/README.md -> registration-light.png
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-02/README.md -> staff-dark.png
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-02/README.md -> staff-light.png
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-03/inventory.md -> compatibility-audit.txt
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-03/inventory.md -> ../../completion.md#ticket-03--english-internals-with-compatible-member-workflows
+PASS translated heading fragment .scratch/english-policy-light-default/evidence/ticket-03/inventory.md -> ../../completion.md#ticket-03--english-internals-with-compatible-member-workflows
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-04/coverage.md -> link-and-contract-checks.txt
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-04/coverage.md -> ../../completion.md#ticket-04--english-contributor-and-operations-documentation
+PASS translated heading fragment .scratch/english-policy-light-default/evidence/ticket-04/coverage.md -> ../../completion.md#ticket-04--english-contributor-and-operations-documentation
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-05/coverage.md -> reference-and-provenance-checks.txt
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-05/coverage.md -> ../../completion.md#ticket-05--english-planning-and-delivery-records
+PASS translated heading fragment .scratch/english-policy-light-default/evidence/ticket-05/coverage.md -> ../../completion.md#ticket-05--english-planning-and-delivery-records
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-06/handoff.md -> blocker-deliveries.json
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-06/handoff.md -> integrated-corpus-manifest.json
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-06/handoff.md -> integrated-contract-and-link-checks.txt
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-06/handoff.md -> integrated-browser-output.txt
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-06/handoff.md -> execution-summary.json
+PASS local Markdown destination .scratch/english-policy-light-default/issues/01-canonical-agent-instructions.md -> ../spec.md
+PASS local Markdown destination .scratch/english-policy-light-default/issues/01-canonical-agent-instructions.md -> ../completion.md
+PASS local Markdown destination .scratch/english-policy-light-default/issues/02-light-default-with-persistent-user-preference.md -> ../spec.md
+PASS local Markdown destination .scratch/english-policy-light-default/issues/02-light-default-with-persistent-user-preference.md -> ../completion.md#ticket-02--light-default-with-persistent-user-preference
+PASS translated heading fragment .scratch/english-policy-light-default/issues/02-light-default-with-persistent-user-preference.md -> ../completion.md#ticket-02--light-default-with-persistent-user-preference
+PASS local Markdown destination .scratch/english-policy-light-default/issues/03-english-internals-with-compatible-member-workflows.md -> ../spec.md
+PASS local Markdown destination .scratch/english-policy-light-default/issues/03-english-internals-with-compatible-member-workflows.md -> ../completion.md#ticket-03--english-internals-with-compatible-member-workflows
+PASS translated heading fragment .scratch/english-policy-light-default/issues/03-english-internals-with-compatible-member-workflows.md -> ../completion.md#ticket-03--english-internals-with-compatible-member-workflows
+PASS local Markdown destination .scratch/english-policy-light-default/issues/04-english-contributor-and-operations-documentation.md -> ../spec.md
+PASS local Markdown destination .scratch/english-policy-light-default/issues/04-english-contributor-and-operations-documentation.md -> ../completion.md#ticket-04--english-contributor-and-operations-documentation
+PASS translated heading fragment .scratch/english-policy-light-default/issues/04-english-contributor-and-operations-documentation.md -> ../completion.md#ticket-04--english-contributor-and-operations-documentation
+PASS local Markdown destination .scratch/english-policy-light-default/issues/05-english-planning-and-delivery-records.md -> ../spec.md
+PASS local Markdown destination .scratch/english-policy-light-default/issues/05-english-planning-and-delivery-records.md -> ../completion.md#ticket-05--english-planning-and-delivery-records
+PASS translated heading fragment .scratch/english-policy-light-default/issues/05-english-planning-and-delivery-records.md -> ../completion.md#ticket-05--english-planning-and-delivery-records
+PASS local Markdown destination .scratch/english-policy-light-default/issues/06-whole-spec-verification-and-handoff.md -> ../spec.md
+PASS local Markdown destination .scratch/english-policy-light-default/issues/06-whole-spec-verification-and-handoff.md -> ../completion.md#ticket-06--whole-spec-verification-and-handoff
+PASS translated heading fragment .scratch/english-policy-light-default/issues/06-whole-spec-verification-and-handoff.md -> ../completion.md#ticket-06--whole-spec-verification-and-handoff
+PASS local Markdown destination .scratch/english-policy-light-default/spec.md -> design.md
+PASS local Markdown destination .scratch/english-policy-light-default/ticket-breakdown.md -> spec.md
+PASS local Markdown destination .scratch/english-policy-light-default/ticket-breakdown.md -> design.md
+PASS local Markdown destination .scratch/english-policy-light-default/ticket-breakdown.md -> issues/01-canonical-agent-instructions.md
+PASS local Markdown destination .scratch/english-policy-light-default/ticket-breakdown.md -> issues/02-light-default-with-persistent-user-preference.md
+PASS local Markdown destination .scratch/english-policy-light-default/ticket-breakdown.md -> issues/03-english-internals-with-compatible-member-workflows.md
+PASS local Markdown destination .scratch/english-policy-light-default/ticket-breakdown.md -> issues/04-english-contributor-and-operations-documentation.md
+PASS local Markdown destination .scratch/english-policy-light-default/ticket-breakdown.md -> issues/05-english-planning-and-delivery-records.md
+PASS local Markdown destination .scratch/english-policy-light-default/ticket-breakdown.md -> issues/06-whole-spec-verification-and-handoff.md
+PASS local Markdown destination .scratch/repository-cleanup/issues/01-remove-obsolete-artifacts.md -> ../spec.md
+PASS local Markdown destination .scratch/repository-cleanup/issues/01-remove-obsolete-artifacts.md -> ../plan.md
+PASS local Markdown destination .scratch/repository-cleanup/issues/01-remove-obsolete-artifacts.md -> ../review.md
+PASS local Markdown destination .scratch/repository-cleanup/plan.md -> spec.md
+PASS local Markdown destination .scratch/repository-cleanup/plan.md -> review.md
+PASS immutable historical source e08f8cb26d96658e237395608b495ef61d11b21e:docs/agents/issue-tracker.md
+PASS local Markdown destination .scratch/ui-visual-refresh/journal-research-2026-10-29.md -> ../../docker/apps/routes.php#L4
+PASS historical source line .scratch/ui-visual-refresh/journal-research-2026-10-29.md -> ../../docker/apps/routes.php#L4
+PASS local Markdown destination .scratch/ui-visual-refresh/journal-research-2026-10-29.md -> ../../src/bootstrap.php#L22
+PASS historical source line .scratch/ui-visual-refresh/journal-research-2026-10-29.md -> ../../src/bootstrap.php#L22
+PASS local Markdown destination .scratch/ui-visual-refresh/journal-research-2026-10-29.md -> ../../schema.sql#L92
+PASS historical source line .scratch/ui-visual-refresh/journal-research-2026-10-29.md -> ../../schema.sql#L92
+PASS local Markdown destination .scratch/ui-visual-refresh/journal-research-2026-10-29.md -> ../../docs/adr/0001-independent-public-and-staff-entry.md#L3
+PASS historical source line .scratch/ui-visual-refresh/journal-research-2026-10-29.md -> ../../docs/adr/0001-independent-public-and-staff-entry.md#L3
+PASS local Markdown destination .scratch/ui-visual-refresh/journal-research-2026-10-29.md -> ../association-journal/design.md
+PASS immutable historical source 23b5c556221c432084288c85988718e5e1f245ef:docs/superpowers/specs/2026-10-23-ui-and-app-separation-design.md
+PASS immutable historical source 23b5c556221c432084288c85988718e5e1f245ef:.scratch/ui-and-app-separation/spec.md
+PASS local Markdown destination README.md -> #technology-stack
+PASS translated heading fragment README.md -> #technology-stack
+PASS local Markdown destination README.md -> #prerequisites
+PASS translated heading fragment README.md -> #prerequisites
+PASS local Markdown destination README.md -> #local-installation
+PASS translated heading fragment README.md -> #local-installation
+PASS local Markdown destination README.md -> #environment-variables
+PASS translated heading fragment README.md -> #environment-variables
+PASS local Markdown destination README.md -> #project-structure
+PASS translated heading fragment README.md -> #project-structure
+PASS local Markdown destination README.md -> #database
+PASS translated heading fragment README.md -> #database
+PASS local Markdown destination README.md -> #authentication--sessions
+PASS translated heading fragment README.md -> #authentication--sessions
+PASS local Markdown destination README.md -> #public-pages-and-anonymous-entry-points
+PASS translated heading fragment README.md -> #public-pages-and-anonymous-entry-points
+PASS local Markdown destination README.md -> #administration-pages
+PASS translated heading fragment README.md -> #administration-pages
+PASS local Markdown destination README.md -> docs/email-queue.md
+PASS local Markdown destination README.md -> #feature-details
+PASS translated heading fragment README.md -> #feature-details
+PASS local Markdown destination README.md -> #tests
+PASS translated heading fragment README.md -> #tests
+PASS local Markdown destination README.md -> #deployment-production
+PASS translated heading fragment README.md -> #deployment-production
+PASS local Markdown destination README.md -> #security
+PASS translated heading fragment README.md -> #security
+PASS local Markdown destination README.md -> docs/adr/0001-independent-public-and-staff-entry.md
+PASS local Markdown destination README.md -> docs/operations/public-staff-rollout.md
+PASS local Markdown destination README.md -> docs/testing/README.md
+PASS local Markdown destination README.md -> docs/operations/public-staff-rollout.md
+PASS local Markdown destination completion.md -> .scratch/association-journal/completion.md
+PASS local Markdown destination completion.md -> .scratch/association-journal/browser-qa.md
+PASS local Markdown destination completion.md -> .scratch/repository-cleanup/spec.md
+PASS local Markdown destination completion.md -> .scratch/repository-cleanup/issues/01-remove-obsolete-artifacts.md
+PASS local Markdown destination completion.md -> .scratch/chores/triage-orphan-tests/spec.md
+PASS local Markdown destination completion.md -> .scratch/association-journal/completion.md
+PASS local Markdown destination completion.md -> .scratch/repository-cleanup/review.md
+PASS local Markdown destination completion.md -> .scratch/association-journal/browser-qa.md
+PASS local Markdown destination completion.md -> .scratch/association-journal/restore-ci.md
+PASS local Markdown destination docs/email-queue.md -> operations/public-staff-rollout.md
+PASS local Markdown destination docs/email-queue.md -> #worker-deployment-and-rollback
+PASS translated heading fragment docs/email-queue.md -> #worker-deployment-and-rollback
+PASS local Markdown destination docs/email-queue.md -> operations/public-staff-rollout.md
+PASS local Markdown destination docs/operations/public-staff-rollout.md -> ../testing/README.md
+PASS local Markdown destination docs/operations/public-staff-rollout.md -> ../adr/0001-independent-public-and-staff-entry.md
+PASS local Markdown destination docs/superpowers/specs/2026-10-29-association-journal-design.md -> ../../../.scratch/association-journal/design.md
+PASS local Markdown destination docs/superpowers/specs/2026-10-29-association-journal-design.md -> ../../../.scratch/ui-visual-refresh/journal-research-2026-10-29.md
+PASS local Markdown destination docs/superpowers/specs/2026-10-29-association-journal-design.md -> ../../adr/0001-independent-public-and-staff-entry.md
+PASS local Markdown destination docs/superpowers/specs/2026-10-29-association-journal-design.md -> ../plans/2026-10-30-association-journal.md
+PASS local Markdown destination docs/superpowers/specs/2026-10-29-association-journal-design.md -> ../../../.scratch/association-journal/completion.md
+PASS local Markdown destination docs/testing/README.md -> ../../tests/http/README.md
+PASS local Markdown destination docs/testing/README.md -> ../operations/public-staff-rollout.md

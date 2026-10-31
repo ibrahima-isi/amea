@@ -1,0 +1,292 @@
+PASS browser: nationalities enhancement initializes
+PASS browser: single accessible main landmark
+PASS browser: registration desktop has no overflow
+PASS browser: registration mobile has no overflow
+PASS browser: registration320px has no overflow
+PASS browser: keyboard expands optional section
+PASS browser: section keyboard focus is visible
+PASS browser: browser submits registration to review
+PASS browser: PDF identity preview is a usable protected document link
+PASS browser: review has no overflow
+PASS browser: review320px has no overflow
+PASS browser: confirmation gives member success feedback
+PASS browser: first visit defaults to light
+PASS browser: official logo decodes at its original dimensions
+PASS browser: official logo keeps its full uncropped aspect ratio
+PASS browser: single state has no rotation controls
+PASS browser: single state has no overflow
+PASS browser: single state renders usable content
+PASS browser: first visit defaults to light
+PASS browser: official logo decodes at its original dimensions
+PASS browser: official logo keeps its full uncropped aspect ratio
+PASS browser: backend uploaded photos render
+PASS browser: desktop has no horizontal overflow
+PASS browser: autoplay advances photo
+PASS browser: pause stops autoplay
+PASS browser: manual next wraps while paused
+PASS browser: manual previous wraps
+PASS browser: theme switch selects dark
+PASS browser: mobile has no horizontal overflow
+PASS browser: 320px homepage has no horizontal overflow
+PASS browser: 320px paused carousel controls remain fully inside gallery
+PASS browser: unsaved visit stays light with dark device preference
+PASS browser: reduced motion starts paused
+PASS browser: reduced motion prevents automatic rotation
+PASS browser: keyboard skip link has visible focus
+PASS browser: skip link reaches main content
+PASS browser: keyboard reaches carousel with visible focus
+PASS browser: keyboard activates next photo during reduced motion
+Browser screenshots: /private/tmp/amea-final-20261031/docs/testing/screenshots
+PASS browser: first visit defaults to light
+PASS browser: official logo decodes at its original dimensions
+PASS browser: official logo keeps its full uncropped aspect ratio
+PASS browser: empty state has no rotation controls
+PASS browser: empty state has no overflow
+PASS browser: empty state renders usable content
+PASS: homepage shows association identity and useful empty carousel state
+PASS: registration uses accessible shared public shell
+PASS: /register.php renders
+PASS: /register.php exposes CSRF form
+PASS: registration rejects invalid CSRF
+PASS: validation retains and escapes valid input alongside errors
+PASS: nationalities enhancement receives real countries JSON
+PASS: registration rejects invalid upload MIME
+PASS: upload rejection retains member fields
+PASS: valid registration reaches review
+PASS: member previews own staged document
+PASS: another session cannot preview staged document
+PASS: review uses same public shell
+PASS: review rejects invalid CSRF before confirmation
+PASS: /registration-details.php renders
+PASS: /registration-details.php exposes CSRF form
+PASS: confirmation completes registration
+PASS: confirmation returns success message on homepage
+PASS: anonymous download requires staff login
+PASS: /login.php renders
+PASS: /login.php exposes CSRF form
+PASS: staff can sign in
+PASS: staff editing retains aligned member field identities
+PASS: authorized staff downloads persisted document
+PASS: /manage-slider.php renders
+PASS: /manage-slider.php exposes CSRF form
+PASS: staff photo and escaped caption appear publicly; single photo has no rotation controls
+PASS: /manage-slider.php renders
+PASS: /manage-slider.php exposes CSRF form
+PASS: multiple staff photos expose accessible carousel controls
+PASS: /manage-slider.php renders
+PASS: /manage-slider.php exposes CSRF form
+PASS: /manage-slider.php renders
+PASS: /manage-slider.php exposes CSRF form
+PASS: staff removal restores useful public empty state
+PASS browser: correction 1440 retains explicit light preference
+PASS browser: correction 1440 light no horizontal overflow
+PASS browser: correction landmark and heading hierarchy
+PASS browser: consent 1440 retains explicit light preference
+PASS browser: consent 1440 light no horizontal overflow
+PASS browser: consent landmark and heading hierarchy
+PASS browser: legal 1440 retains explicit light preference
+PASS browser: legal 1440 light no horizontal overflow
+PASS browser: legal landmark and heading hierarchy
+PASS browser: correction 1440 retains explicit dark preference
+PASS browser: correction 1440 dark no horizontal overflow
+PASS browser: correction landmark and heading hierarchy
+PASS browser: consent 1440 retains explicit dark preference
+PASS browser: consent 1440 dark no horizontal overflow
+PASS browser: consent landmark and heading hierarchy
+PASS browser: legal 1440 retains explicit dark preference
+PASS browser: legal 1440 dark no horizontal overflow
+PASS browser: legal landmark and heading hierarchy
+PASS browser: correction 390 retains explicit light preference
+PASS browser: correction 390 light no horizontal overflow
+PASS browser: correction landmark and heading hierarchy
+PASS browser: consent 390 retains explicit light preference
+PASS browser: consent 390 light no horizontal overflow
+PASS browser: consent landmark and heading hierarchy
+PASS browser: legal 390 retains explicit light preference
+PASS browser: legal 390 light no horizontal overflow
+PASS browser: legal landmark and heading hierarchy
+PASS browser: correction 390 retains explicit dark preference
+PASS browser: correction 390 dark no horizontal overflow
+PASS browser: correction landmark and heading hierarchy
+PASS browser: consent 390 retains explicit dark preference
+PASS browser: consent 390 dark no horizontal overflow
+PASS browser: consent landmark and heading hierarchy
+PASS browser: legal 390 retains explicit dark preference
+PASS browser: legal 390 dark no horizontal overflow
+PASS browser: legal landmark and heading hierarchy
+PASS browser: correction 320 retains explicit light preference
+PASS browser: correction 320 light no horizontal overflow
+PASS browser: correction landmark and heading hierarchy
+PASS browser: consent 320 retains explicit light preference
+PASS browser: consent 320 light no horizontal overflow
+PASS browser: consent landmark and heading hierarchy
+PASS browser: legal 320 retains explicit light preference
+PASS browser: legal 320 light no horizontal overflow
+PASS browser: legal landmark and heading hierarchy
+PASS browser: correction 320 retains explicit dark preference
+PASS browser: correction 320 dark no horizontal overflow
+PASS browser: correction landmark and heading hierarchy
+PASS browser: consent 320 retains explicit dark preference
+PASS browser: consent 320 dark no horizontal overflow
+PASS browser: consent landmark and heading hierarchy
+PASS browser: legal 320 retains explicit dark preference
+PASS browser: legal 320 dark no horizontal overflow
+PASS browser: legal landmark and heading hierarchy
+PASS browser: correction missing required phone exposes native validation
+PASS browser: correction field accepts keyboard focus
+PASS browser: consent keyboard skip link visible
+PASS browser: consent skip link reaches main
+PASS browser: consent action reachable with visible keyboard focus
+PASS browser: keyboard submits consent confirmation
+PASS browser: invalid consent has safe public state
+Browser screenshots: /private/tmp/amea-final-20261031/docs/testing/screenshots
+PASS: correction preserves existing token and escapes review notes
+PASS: /kyc-correction.php?token=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa renders
+PASS: /kyc-correction.php?token=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa exposes CSRF form
+PASS: correction rejects invalid CSRF without consuming token
+PASS: correction validation retains entered data and exposes field errors
+PASS: invalid, revoked, deleted or ineligible correction fails safely: 
+PASS: invalid, revoked, deleted or ineligible correction fails safely: z
+PASS: invalid, revoked, deleted or ineligible correction fails safely: b
+PASS: invalid, revoked, deleted or ineligible correction fails safely: c
+PASS: invalid, revoked, deleted or ineligible correction fails safely: d
+PASS: invalid consent reveals no member data: 
+PASS: invalid consent reveals no member data: z
+PASS: invalid consent reveals no member data: c
+PASS: invalid consent reveals no member data: d
+PASS: consent pending state escapes member name
+PASS: /accept-cgu.php?token=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa renders
+PASS: /accept-cgu.php?token=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa exposes CSRF form
+PASS: consent refuses invalid CSRF
+PASS: consent refusal offers deletion and reconsideration
+PASS: deletion notification succeeds with suppressed test transport
+PASS: consent acceptance is saved
+PASS: accepted member sees consent update state
+PASS: token possession does not authorize private downloads
+PASS: /kyc-correction.php?token=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa renders
+PASS: /kyc-correction.php?token=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa exposes CSRF form
+PASS: valid correction resubmits record for review
+PASS: resubmitted token cannot reopen correction
+PASS: legal content uses public navigation
+PASS: previous staged session retains its protected preview
+PASS: foreign session cannot preview the previous staged document
+PASS: /registration-details.php renders
+PASS: /registration-details.php exposes CSRF form
+PASS: previous staged data renders unchanged French member values
+PASS: previous staged session still requires valid CSRF
+PASS: previous staged session confirms without a session migration
+PASS: /login.php renders
+PASS: /login.php exposes CSRF form
+PASS: confirmed member and shared lookup options render through staff editing
+PASS: authorized staff downloads the finalized previous staged document
+PASS: confirmation consumes the previous staged session
+PASS browser: fresh light system theme and French action
+RENDER fresh light system {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: fresh dark system theme and French action
+RENDER fresh dark system {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: invalid saved "" theme and French action
+RENDER invalid saved "" {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: invalid saved "invalid" theme and French action
+RENDER invalid saved "invalid" {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: invalid saved "system" theme and French action
+RENDER invalid saved "system" {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: invalid saved "Dark" theme and French action
+RENDER invalid saved "Dark" {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: invalid saved " dark " theme and French action
+RENDER invalid saved " dark " {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: SIMULATION missing system API theme and French action
+RENDER SIMULATION missing system API {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: SIMULATION missing system API keyboard switch theme and French action
+RENDER SIMULATION missing system API keyboard switch {"body":"rgb(33, 30, 28)","text":"rgb(255, 244, 231)","scheme":"dark"}
+PASS browser: SIMULATION missing system API reverse switch theme and French action
+RENDER SIMULATION missing system API reverse switch {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: SIMULATION storage read failure theme and French action
+RENDER SIMULATION storage read failure {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: SIMULATION storage read failure keyboard switch theme and French action
+RENDER SIMULATION storage read failure keyboard switch {"body":"rgb(33, 30, 28)","text":"rgb(255, 244, 231)","scheme":"dark"}
+PASS browser: SIMULATION storage read failure reverse switch theme and French action
+RENDER SIMULATION storage read failure reverse switch {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: SIMULATION storage getter failure theme and French action
+RENDER SIMULATION storage getter failure {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: SIMULATION storage getter failure keyboard switch theme and French action
+RENDER SIMULATION storage getter failure keyboard switch {"body":"rgb(33, 30, 28)","text":"rgb(255, 244, 231)","scheme":"dark"}
+PASS browser: SIMULATION storage getter failure reverse switch theme and French action
+RENDER SIMULATION storage getter failure reverse switch {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: SIMULATION storage write failure theme and French action
+RENDER SIMULATION storage write failure {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: SIMULATION storage write failure keyboard switch theme and French action
+RENDER SIMULATION storage write failure keyboard switch {"body":"rgb(33, 30, 28)","text":"rgb(255, 244, 231)","scheme":"dark"}
+PASS browser: SIMULATION storage write failure reverse switch theme and French action
+RENDER SIMULATION storage write failure reverse switch {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: authentication unsaved dark system theme and French action
+RENDER authentication unsaved dark system {"body":"rgb(243, 245, 248)","text":"rgb(41, 52, 71)","scheme":"normal"}
+PASS browser: authentication saved light theme and French action
+RENDER authentication saved light {"body":"rgb(243, 245, 248)","text":"rgb(41, 52, 71)","scheme":"normal"}
+PASS browser: authentication reload light theme and French action
+RENDER authentication reload light {"body":"rgb(243, 245, 248)","text":"rgb(41, 52, 71)","scheme":"normal"}
+PASS browser: authentication saved dark theme and French action
+RENDER authentication saved dark {"body":"rgb(21, 27, 36)","text":"rgb(229, 234, 242)","scheme":"dark"}
+PASS browser: authentication reload dark theme and French action
+RENDER authentication reload dark {"body":"rgb(21, 27, 36)","text":"rgb(229, 234, 242)","scheme":"dark"}
+PASS browser: synthetic staff login succeeds
+PASS browser: public unsaved dark system theme and French action
+RENDER public unsaved dark system {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: public saved light theme and French action
+RENDER public saved light {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: public reload light theme and French action
+RENDER public reload light {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: public saved dark theme and French action
+RENDER public saved dark {"body":"rgb(33, 30, 28)","text":"rgb(255, 244, 231)","scheme":"dark"}
+PASS browser: public reload dark theme and French action
+RENDER public reload dark {"body":"rgb(33, 30, 28)","text":"rgb(255, 244, 231)","scheme":"dark"}
+PASS browser: registration unsaved dark system theme and French action
+RENDER registration unsaved dark system {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: registration saved light theme and French action
+RENDER registration saved light {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: registration reload light theme and French action
+RENDER registration reload light {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: registration saved dark theme and French action
+RENDER registration saved dark {"body":"rgb(33, 30, 28)","text":"rgb(255, 244, 231)","scheme":"dark"}
+PASS browser: registration reload dark theme and French action
+RENDER registration reload dark {"body":"rgb(33, 30, 28)","text":"rgb(255, 244, 231)","scheme":"dark"}
+PASS browser: staff unsaved dark system theme and French action
+RENDER staff unsaved dark system {"body":"rgb(243, 245, 248)","text":"rgb(41, 52, 71)","scheme":"normal"}
+PASS browser: staff saved light theme and French action
+RENDER staff saved light {"body":"rgb(243, 245, 248)","text":"rgb(41, 52, 71)","scheme":"normal"}
+PASS browser: staff reload light theme and French action
+RENDER staff reload light {"body":"rgb(243, 245, 248)","text":"rgb(41, 52, 71)","scheme":"normal"}
+PASS browser: staff saved dark theme and French action
+RENDER staff saved dark {"body":"rgb(21, 27, 36)","text":"rgb(229, 234, 242)","scheme":"dark"}
+PASS browser: staff reload dark theme and French action
+RENDER staff reload dark {"body":"rgb(21, 27, 36)","text":"rgb(229, 234, 242)","scheme":"dark"}
+PASS browser: member unsaved dark system theme and French action
+RENDER member unsaved dark system {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: member saved light theme and French action
+RENDER member saved light {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: member reload light theme and French action
+RENDER member reload light {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: member saved dark theme and French action
+RENDER member saved dark {"body":"rgb(33, 30, 28)","text":"rgb(255, 244, 231)","scheme":"dark"}
+PASS browser: member reload dark theme and French action
+RENDER member reload dark {"body":"rgb(33, 30, 28)","text":"rgb(255, 244, 231)","scheme":"dark"}
+PASS browser: authorized one-use export preview
+PASS browser: preview light theme and French action
+RENDER preview light {"body":"rgb(243, 245, 248)","text":"rgb(41, 52, 71)","scheme":"normal"}
+PASS browser: authorized one-use export preview
+PASS browser: preview dark theme and French action
+RENDER preview dark {"body":"rgb(21, 27, 36)","text":"rgb(229, 234, 242)","scheme":"dark"}
+PASS browser: theme button reached by Tab with visible focus
+PASS browser: keyboard Enter theme and French action
+RENDER keyboard Enter {"body":"rgb(33, 30, 28)","text":"rgb(255, 244, 231)","scheme":"dark"}
+PASS browser: explicit keyboard selection survives navigation theme and French action
+RENDER explicit keyboard selection survives navigation {"body":"rgb(33, 30, 28)","text":"rgb(255, 244, 231)","scheme":"dark"}
+PASS browser: explicit keyboard selection survives reload theme and French action
+RENDER explicit keyboard selection survives reload {"body":"rgb(33, 30, 28)","text":"rgb(255, 244, 231)","scheme":"dark"}
+PASS browser: keyboard Space theme and French action
+RENDER keyboard Space {"body":"rgb(255, 250, 243)","text":"rgb(48, 44, 42)","scheme":"light"}
+PASS browser: independent origin theme and French action
+RENDER independent origin {"body":"rgb(243, 245, 248)","text":"rgb(41, 52, 71)","scheme":"normal"}
+PASS browser: preferences remain origin-scoped
+PASS browser: no-JavaScript fallback has no applied script theme
+PASS browser: no-JavaScript renders the existing light background
+Browser screenshots: /private/tmp/amea-final-20261031/docs/testing/screenshots/theme

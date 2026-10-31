@@ -1,5 +1,22 @@
 # English technical content and light default — completion
 
+## Current integrated handoff — 31 October 2026
+
+This section is the current feature handoff; the dated checkpoints below retain their original historical state. All prerequisite deliveries are actually merged into `dev`, with three successful checks on each final PR head:
+
+| Ticket | Delivered result | Merge revision |
+| --- | --- | --- |
+| 01 — canonical instructions | PR #23 merged | `b139f57` |
+| 02 — light default/preferences | PR #24 merged | `7e5c398` |
+| 03 — English internals | PR #25 merged | `7f4063b` |
+| 04 — maintained English guides | PR #26 merged | `4d021fc` |
+| 05 — English planning/delivery records | PR #27 merged | `2e77340` |
+| 06 — combined verification | Local gate and whole-feature reviews complete; final verification PR/CI are recorded below | Executed signed source `8d51c92` |
+
+The [complete handoff](evidence/ticket-06/handoff.md) maps all approved stories to evidence, records the 361-file classified corpus, exact canonical pointers, preserved compatibility and real integrated Chrome captures. Confirmation runs have durable exit 0: **171 PHPUnit tests / 338 assertions**, standalone **48/186/78/26**, theme-script **5/5**, **238 combined HTTP/browser observations** and **535 synthetic MySQL rehearsal PASS observations**. Standards and Spec independently reviewed the full `e08f8cb...8d51c92` implementation: **0 / 0 actionable findings**. Exact-final-head CI is a separate required readiness gate, and actual ticket-06 merge remains separate from readiness.
+
+French UI/email wording and contract/data literals remain preserved. Journal browser QA remains **user-deferred and incomplete**. No production, real SMTP, DNS, schema/data migration or external-memory action is included. Local-main synchronization for the newly merged ticket 05 is retained as a handoff limit: the primary checkout now has `main` checked out, so this task leaves it untouched and retains the task-05 worktree/branch rather than changing that checkout.
+
 ## Authorized scope
 
 On 31 October 2026 the user invoked `implement` for **ticket 01: Canonical agent instructions** only. At that checkpoint, tickets 02–06 remained unstarted. The approved specification and ticket breakdown are unchanged; their readiness does not authorize execution beyond the selected ticket.
@@ -216,3 +233,42 @@ Actually merged PR #26 (`4d021fc`) was integrated into local `main` from a tempo
 [PR #27](https://github.com/ibrahima-isi/amea/pull/27) targets `dev` from `docs/english-planning-delivery`. Final independent review through `6291642` reports **Standards 0 / Spec 0**: readable English, classified coverage, preserved provenance and historical states, no remaining source/evidence inconsistency. Reviewers performed no runtime reruns.
 
 Final-head CI is available in the [PR checks](https://github.com/ibrahima-isi/amea/pull/27/checks). Earlier successful checks do not qualify later evidence commits. Publication does not claim actual ticket-05 merge, production release or completion of ticket 06. Keep this task's clean worktree/branch for review until its work is safely merged; unrelated work remains untouched.
+
+
+## Ticket 06 — whole-spec verification and handoff
+
+The user explicitly authorized ticket 06 on 31 October 2026. Before verification, all five prerequisite implementations and their execution/review/CI evidence were checked. PR #27 was initially open, then actually merged during setup as `2e773401eeb77d78462ccf17b14cb427fadc6c6d`; thus every blocker is delivered in fetched remote `dev`. Worktree `/private/tmp/amea-final-20261031`, branch `test/english-policy-final-verification`, integrates that delivery in verified signed merge `8d51c92e99fb81758be6f594d1d46019d4dbf8c7`. Its tree is identical to remote `dev` `2e77340` before verification evidence is added.
+
+### Final-gate starting checkpoint
+
+The full implementation comparison is pinned at pre-implementation `e08f8cb26d96658e237395608b495ef61d11b21e` through integrated source `8d51c92`. This includes the approved planning artifacts and tickets 01–05; the historical published commits themselves are not rewritten. Full-corpus/source, canonical-rule/pointer/link, compatibility, real theme-browser and regression checks will qualify that integrated source. Reuse unchanged ticket evidence only where its source identity and stated limits remain applicable. Final independent Standards/Spec review and exact-final-head CI remain pending.
+
+No production, DNS/SMTP, schema/data migration, external memory change or journal browser acceptance is authorized by this gate. Existing journal QA stays user-deferred and incomplete.
+
+
+### Ticket 06 — integrated verification results
+
+Executed signed source **`8d51c92`** is tree-identical to delivered `dev` **`2e77340`**. [Blocker metadata](evidence/ticket-06/blocker-deliveries.json) independently confirms merged PRs #23–#27 and each exact final-head CI result. [The source-role/hash manifest](evidence/ticket-06/integrated-corpus-manifest.json) classifies all **361** tracked source files. The integrated audit verifies canonical rule destinations/pointers, removed guides and valid historical consumers, all unchanged HTTP route methods/paths, each production entry point's request/file/session key multiset, removed executable names, static French template content, immutable schema/migration/legal/data/dependency/session source and current links/headings. Final check count is recorded in the audit output after evidence links are added. It combines tokenized source review, earlier complete inventories and full independent bilingual review; marker scans are not the sole completeness proof.
+
+The [execution summary](evidence/ticket-06/execution-summary.json) and [actual integrated browser output](evidence/ticket-06/integrated-browser-output.txt) record explicit exit **0** for regression, browser/HTTP and synthetic application-rehearsal groups. Initial complete logs survived a tool-host pause, but their session handles expired; confirmation runs persisted exit files so these final results do not rely on an unknown process exit. Normal approval review briefly failed due to a usage limit; the same approval path later succeeded, with no bypass.
+
+Results: PHPUnit **171 / 338**, the same **10 existing metadata deprecations**; standalone **48/186/78/26**; theme-script **5/5**; baseline/registration HTTP+Chrome **79**, token HTTP+Chrome **89**, pre-refactor staged-session HTTP **12**, actual theme Chrome **58** (**238 combined**). The complete synthetic public/staff MySQL rehearsal passed **535** observations with browser flags disabled and removed project `amea-ui-test-15579-23244` and its owned volumes normally. PHP syntax and migration-access assertions pass. No independent typechecker is configured. No production source/test behavior was added for this final gate, so no artificial TDD test was introduced.
+
+Thirteen integrated theme screenshots and computed-color observations cover public, registration, authentication, staff member editing, tokenized correction, authorized one-use export preview and no-JavaScript light rendering. Capture hashes and simulation/fixture limits are explicit. Both system themes, valid saved choices, invalid values, simulated read/getter/write failures and missing system API, keyboard/focus, persistence/reload/navigation and separate-origin preferences pass. Public light/dark, staff dark and preview light captures were visually inspected. The loopback SQLite dashboard query remains outside browser qualification; real MySQL dashboard HTTP is verified separately. Nothing here closes the deferred journal browser acceptance.
+
+### Ticket 06 — full implementation review
+
+Pinned comparison: `git diff e08f8cb26d96658e237395608b495ef61d11b21e...8d51c92e99fb81758be6f594d1d46019d4dbf8c7`. This reviews the complete implementation, not only final-gate evidence.
+
+**Standards:** 0 documented violations / 0 material baseline-smell findings. Canonical retained-rule mapping, English technical content, complete internal consumers, literal exceptions, preserved histories and observable regression boundaries conform. All range commits contain cryptographic signatures; local SSH-created commits verify successfully. GitHub PGP merge signatures may lack local verification keys, which is not an unsigned commit.
+
+**Spec:** 0 actionable findings. The full source matches the approved English/canonical/compatibility/theme/historical-truth requirements. No scope creep, missing caller or unclassified French engineering narrative was found. Reviewers performed read-only source review and did not rerun tests. Final evidence review and exact-final-head PR CI remain separate milestones.
+
+Final source review totals: **Standards 0 / Spec 0**. Final verification readiness must be checked on the latest signed PR head; actual merge and local integration/owned cleanup remain conditional on a real remote merge. Primary-checkout `main` is preserved; no remote-main push or unrelated cleanup is performed.
+
+
+### Ticket 06 — evidence review corrections
+
+Final evidence review found two tracking-only inconsistencies: the compound final-head CI/protected-delivery acceptance boxes were checked before those gates, and the executed-source manifest used the edited ticket-06 bytes for one entry while declaring revision `8d51c92`. Both are corrected before publication: the two external-gate boxes remain unchecked, and every one of the 361 manifest hashes now comes directly from the declared committed source. The other 360 hashes and all 13 screenshot hashes were already correct. The full implementation review remains Standards 0 / Spec 0; evidence re-review is recorded separately.
+
+The first final-evidence commit attempt created no commit: the configured 1Password helper returned `failed to fill whole buffer`. Signing settings and keys remain unchanged; no unsigned fallback is used. The concrete corrected evidence remains staged while the signing-helper issue is resolved.
