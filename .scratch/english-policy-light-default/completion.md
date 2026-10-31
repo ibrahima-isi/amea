@@ -68,3 +68,8 @@ Pinned comparison: `git diff b139f57...b82a550`; commits `9627d54` and `b82a550`
 **Spec:** Zero findings through `b82a550`. The synthetic permission supports the required preview checks; no missing requirement, scope creep or incorrect implementation found.
 
 Total: **Standards 0 / Spec 0**. Local validation/review are complete. Remote final-head CI, actual merge and release remain separate delivery milestones. No production deployment, DNS, real SMTP, migration or unrelated cleanup is included. Deferred journal browser QA remains deferred.
+
+
+### Ticket 02 — PR publication
+
+[PR #24](https://github.com/ibrahima-isi/amea/pull/24) targets `dev` from the signed `fix/light-default-theme` branch. Final-head CI is reported by the [PR checks](https://github.com/ibrahima-isi/amea/pull/24/checks); an earlier green run does not qualify a later evidence commit. PR publication does not claim actual merge, production deployment or local-main integration. The task worktree/branch is retained for review until its work is safely merged; unrelated branches/worktrees remain untouched.
