@@ -17,3 +17,19 @@ Registration browser checks (ticket03): `AMEA_REGISTRATION_BROWSER=1 python3 tes
 prefix required by PHP fixture/router guards, copies no `.env`, forwards only the
 sanitized process environment, uses independent cookie jars and always stops the
 loopback PHP process before deleting the temporary application/session files.
+
+Journal manual browser fixture (ticket04): run `python3 tests/http/journal-browser.py`
+and keep the process alive during native browser interaction. It prints JSON with
+the ephemeral URL, synthetic staff accounts/password, and the existing repository
+JPEG path for the cover file picker. The journal starts empty; the runner verifies
+the public empty state and homepage omission before any optional seed. Add `--seed`
+for published future, ended and ongoing activities, a report and an announcement;
+add `--archive-count 12` for a second archive page. All seeded publications use the
+real authorized staff HTTP forms and CSRF; the five examples upload the repository
+JPEG as their cover through the real media handler. The CLI fixture inserts only
+synthetic accounts into the disposable SQLite database. Manual draft/cover creation,
+preview, publication, edit, withdrawal and republication remain browser actions.
+Stop the runner with Ctrl+C or SIGTERM: the shared context stops its owned PHP
+server and removes the temporary database, uploads and sessions. This fixture is
+single-origin loopback HTTP, using the existing test session router; it does not
+qualify split-host routing, TLS, Secure cookies, MySQL or production behavior.
