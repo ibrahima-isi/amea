@@ -143,6 +143,9 @@ with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
         command(project,'exec','-T','public','tar','-C','/opt/amea','--exclude=storage/cache','-cf','-','uploads','storage',stdout=output)
     assert sql.stat().st_size and files.stat().st_size
     try:
+        # Let one app populate the fresh shared volumes before sibling creation.
+        # Concurrent image copy-up can race on storage/mail-queue in Docker.
+        command(restore_project,'create','--no-build','public',env=restore_env,override=forward)
         command(restore_project,'up','-d','--no-build',env=restore_env,override=forward)
         for _ in range(120):
             check = subprocess.run(['docker','compose','-p',restore_project,'-f',str(compose_file),'-f',str(forward),'exec','-T','mysql','mysql','--protocol=TCP','-h','127.0.0.1','-uamea','-psynthetic-only','amea_rehearsal','-e','SELECT 1'],env=restore_env,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
