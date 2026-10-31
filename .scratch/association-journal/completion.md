@@ -6,6 +6,8 @@ PR #17 et PR #18 sont fusionnées dans `dev` (respectivement `23b5c55` et `87d6a
 
 La reprise traite uniquement la QA navigateur restante, dans le nouveau worktree `/private/tmp/amea-journal-browser-20261031`, branche `test/journal-browser-qa`, base `4aab39f`. Une fixture jetable réelle est ajoutée et vérifiée côté HTTP ; une vue publique sombre/grand écran est réellement observée. La suite des interactions reste bloquée par l’accès/rendu du navigateur pris en charge : [preuve précise, limites et reprise](browser-qa.md). Aucun succès mobile, clavier ou éditorial au navigateur n’est revendiqué. La clôture navigateur reste ouverte ; aucune production modifiée.
 
+Le support et ses preuves sont publiés dans la [PR #20 brouillon](https://github.com/ibrahima-isi/amea/pull/20). Deux revues indépendantes de `4aab39f...81472d2` donnent Standards 0 / Spec 0 constat. La [CI de la tête courante](https://github.com/ibrahima-isi/amea/pull/20/checks) et la QA navigateur restent des étapes distinctes ; conserver le brouillon tant que cette dernière est incomplète.
+
 ## Historique de réalisation
 
 - [x] Retrouver le besoin antérieur, explicitement différé dans la première livraison.

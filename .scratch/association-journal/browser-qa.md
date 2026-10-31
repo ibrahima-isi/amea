@@ -33,3 +33,9 @@ The browser-provider inventory returned `Browsers: Error: The browser access hos
 User input to restore browser access is pending. Still unverified: rendered light theme, small viewport/overflow, keyboard/focus, list pagination and each filter in the browser, detail paragraphs/cover, and browser creation/upload/private preview/publication/edit/withdrawal/republication. No certificate warning was bypassed, and no external browser-control script was substituted.
 
 The fixture intentionally uses single-origin loopback HTTP, SQLite and the existing test-session router. It does not qualify split-host isolation, TLS/Secure cookies, MySQL, production or real email. Prior HTTPS/MySQL evidence remains separate. Keep the follow-up PR draft while browser acceptance remains incomplete.
+
+## Independent review and follow-up delivery
+
+Two fresh-context reviewers independently examined `4aab39f...81472d2` read-only. **Standards:** zero documented violations or material smell findings. **Spec:** zero findings; fixture-only scope, real HTTP/CSRF seeding and explicit browser limits match approved task 4. Neither reviewer executed the browser checks. No fix wave is required.
+
+The signed follow-up is published in [draft PR #20](https://github.com/ibrahima-isi/amea/pull/20), targeting `dev`. Its [current-head CI checks](https://github.com/ibrahima-isi/amea/pull/20/checks) qualify server/test support separately from the browser gap. Do not mark it ready or merge it solely because CI succeeds.
