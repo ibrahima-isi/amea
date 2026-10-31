@@ -64,7 +64,7 @@ All **44** tracked first-party planning/delivery/observation records are classif
 
 ## Verification boundaries
 
-The **247-check** [reference/provenance audit](reference-and-provenance-checks.txt) checks the translated records' numerical evidence, inline technical-reference multisets, complete link-target multisets and unchanged historical checklist/status sequences. All tracked local Markdown links/fragments, valid line references and pinned Git sources are checked. Translated headings have no remaining stale incoming fragment. No historical immutable target is rewritten to present-day guidance.
+The **245-check** [reference/provenance audit](reference-and-provenance-checks.txt) checks the translated records' numerical evidence, inline technical-reference multisets, complete link-target multisets and unchanged historical checklist/status sequences. All tracked local Markdown links/fragments, valid line references and pinned Git sources are checked. Translated headings have no remaining stale incoming fragment. No historical immutable target is rewritten to present-day guidance.
 
 The parent English-policy specification/design, canonical instruction files and all maintained ticket-04 guides remain byte-identical. Runtime/application/schema/migration/configuration/workflow/dependency sources are outside the diff. English records and generated observation output are retained rather than translated again. The complete `browser-qa.md` record remains byte-identical and explicitly incomplete. Language-marker scans were discovery aids; classified inventory, provenance checks and independent bilingual review establish coverage.
 
