@@ -8,6 +8,8 @@ La reprise traite uniquement la QA navigateur restante, dans le nouveau worktree
 
 Le support et ses preuves sont publiés dans la [PR #20 brouillon](https://github.com/ibrahima-isi/amea/pull/20). Deux revues indépendantes de `4aab39f...81472d2` donnent Standards 0 / Spec 0 constat. La [CI de la tête courante](https://github.com/ibrahima-isi/amea/pull/20/checks) et la QA navigateur restent des étapes distinctes ; conserver le brouillon tant que cette dernière est incomplète.
 
+Validation locale de la reprise : PHP 159 tests / 310 assertions, scripts 48/186/78/24, HTTP 35 + 28 PASS (10 dépréciations PHPUnit préexistantes). L’échec Docker de `f8a4ad2` a été reproduit puis corrigé par précréation de `public` sur le volume neuf : rouge au 7e essai, puis 100/100 verts ; [preuve et limite de répétition complète](restore-ci.md). La restauration complète doit être confirmée par la CI de la tête finale. Le nouvel essai navigateur a fourni une capture réelle de connexion claire/grand écran, sans permettre de terminer le parcours éditorial.
+
 ## Historique de réalisation
 
 - [x] Retrouver le besoin antérieur, explicitement différé dans la première livraison.

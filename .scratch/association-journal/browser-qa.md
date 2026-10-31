@@ -26,6 +26,8 @@ Using supported native CUA control, a dedicated Brave tab opened the real fixtur
 
 The rendered screenshot is present in the session's CUA tool output. Its attempted file capture timed out, leaving no portable PNG artifact; do not substitute the previous mockup or the later blank captures.
 
+On retry, Brave rendered the synthetic staff login in light desktop layout; its actual capture was saved to `/private/tmp/amea-journal-qa-20261031/staff-login-light-desktop.png`. The earlier fixture had expired, so a fresh disposable instance was started. After navigation to its live URL, page content again disappeared from native accessibility; Chrome also refused an action because its user-visible state had changed. This adds a login rendering observation only, and does not close journal editorial or mobile acceptance.
+
 ## Current blocker and remaining checks
 
 The browser-provider inventory returned `Browsers: Error: The browser access host is unavailable`. Native Chrome initially exposed accessibility but then returned app-state-change errors and repeated 30-second timeouts with kernel resets. Native Brave provided the rendered view above, then lost page accessibility/paint after navigation. Re-querying state, raising the window, reloading and leaving full screen did not restore a usable rendered page. The same reports URL independently returned HTTP 200, 3,174 bytes in 0.005 seconds; this is not evidence of a product rendering defect or a passing browser check.
@@ -39,3 +41,5 @@ The fixture intentionally uses single-origin loopback HTTP, SQLite and the exist
 Two fresh-context reviewers independently examined `4aab39f...81472d2` read-only. **Standards:** zero documented violations or material smell findings. **Spec:** zero findings; fixture-only scope, real HTTP/CSRF seeding and explicit browser limits match approved task 4. Neither reviewer executed the browser checks. No fix wave is required.
 
 The signed follow-up is published in [draft PR #20](https://github.com/ibrahima-isi/amea/pull/20), targeting `dev`. Its [current-head CI checks](https://github.com/ibrahima-isi/amea/pull/20/checks) qualify server/test support separately from the browser gap. Do not mark it ready or merge it solely because CI succeeds.
+
+Fresh local validation passed on this support: PHPUnit 159 tests / 310 assertions, scripts 48/186/78/24 and HTTP journeys 35 + 28. PHP 8.5.12 reported the same 10 pre-existing PHPUnit doc-comment metadata deprecations. The HTTP commands required normal loopback permission; their initial sandbox refusals were not application failures. A subsequent CI rehearsal failure led to a separately [reproduced and corrected fresh-volume initialization race](restore-ci.md). Check the latest head for its complete remote result.
