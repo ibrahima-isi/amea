@@ -8,6 +8,9 @@ on:
   push:
     branches:
       - dev
+      - main
+      - infra/dokploy-migration
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -57,3 +60,23 @@ jobs:
         run: |
           python3 tests/http/baseline.py
           python3 tests/http/tokens.py
+
+  php-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup PHP
+        uses: shivammathur/setup-php@8358ee0e2e8afe63c2fb8253d1d52085811ab1e5 # v2
+        with:
+          php-version: '8.4'
+          coverage: none
+      - name: Validate PHP syntax
+        run: |
+          find src -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          php -l registration-preview.php
+      - name: Verify migration access rules
+        run: |
+          grep -Fq 'Require all denied' docker/apache-security.conf
+          grep -Fq 'X-Forwarded-Proto' .htaccess
+          grep -Fq "RegistrationController@preview" src/bootstrap.php
+          grep -Fq 'requireAdmin()' src/Controller/DownloadController.php
