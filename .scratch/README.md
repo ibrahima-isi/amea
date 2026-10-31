@@ -23,6 +23,6 @@ Completed records are removed from the active tree, following the earlier reposi
 
 ## Tracker maintenance evidence
 
-Cleanup scope: **73 completed record/evidence files removed**, three active/context files retained, and this index added. Every removed byte is preserved at the revision above; application, tests, deployment, schema and canonical instruction sources are unchanged. The primary checkout and unrelated worktrees remain untouched. Only links in surviving documentation are repaired; historical inline path mentions remain dated provenance, not current navigation.
+Cleanup scope: **73 completed record/evidence files removed**, three active/context files retained, and this index added. [Maintenance execution evidence](tracker-cleanup/completion.md) is retained separately from the two open backlog items. Every removed byte is preserved at the revision above; application, tests, deployment, schema and canonical instruction sources are unchanged. The primary checkout and unrelated worktrees remain untouched. Only links in surviving documentation are repaired; historical inline path mentions remain dated provenance, not current navigation.
 
 Static link/scope/provenance checks and the existing regression command set are recorded in the cleanup PR. Repository cleanup does not certify the two remaining items, production or journal browser acceptance.
