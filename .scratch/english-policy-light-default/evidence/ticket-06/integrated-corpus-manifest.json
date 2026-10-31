@@ -1,0 +1,1811 @@
+{
+  "source_revision": "8d51c92e99fb81758be6f594d1d46019d4dbf8c7",
+  "baseline": "e08f8cb26d96658e237395608b495ef61d11b21e",
+  "files": [
+    {
+      "path": ".dockerignore",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "ad424e671ed98399c6b2e43aba560b3802dd4fa7064251327dd1a5a71827e167"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "667b2eb70ab2954d2c2117593efe9fd92b4a573aa232f31d0d5eaad023e24655"
+    },
+    {
+      "path": ".gitignore",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "d482ffdf2227b6a2e5d8d928969f1d7028fd860883b85345ab1cb29169702c5a"
+    },
+    {
+      "path": ".htaccess",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "a914b94ddf0f1fcf363f687e5152d329e782808ebd54aaafc7d4ae6471a42b51"
+    },
+    {
+      "path": ".scratch/association-journal/browser-qa.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "97e17e51a486341655d21d06c5d346a9b5a25ab084318f0684a077df2c4fd991"
+    },
+    {
+      "path": ".scratch/association-journal/builder-check.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "93783f79eb2a72ef01c381b63f0118d7b4bbbe5f1bf0be55a82f747e98938329"
+    },
+    {
+      "path": ".scratch/association-journal/completion.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "4e4649ac832cadc7cb12dbc0146a9a8eb9b83cfff92432f27e91da0ffce9c68a"
+    },
+    {
+      "path": ".scratch/association-journal/design.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "98097ff6a260063ab38ead8ad0de61eeb82036540f21232005236ca9ae4833b1"
+    },
+    {
+      "path": ".scratch/association-journal/evidence/reviews/final-rereview.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "ae7a1a6f20546ab1c9d02b1a1c8c5bb86696e5afeb149d386acabd1eeb075c7d"
+    },
+    {
+      "path": ".scratch/association-journal/evidence/reviews/final-review.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "e90fd2ebeac4e144419e3f8888b5382b68d2bfddf0eed1bc0d397febd4be9a2c"
+    },
+    {
+      "path": ".scratch/association-journal/issues/01-editorial-core.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "df393ca541bace8c0d501a8b665d0e8af542b4890486a2082c51e0ae386075bb"
+    },
+    {
+      "path": ".scratch/association-journal/issues/02-private-management.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "6e92343b18bb2a6d3180c8224fb5222459aec36894d2f9aba9ece748831b2d37"
+    },
+    {
+      "path": ".scratch/association-journal/issues/03-public-reading.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "3c3417673c709245a2b8bf388b5406437363522c7e4f5fd165b8fbbcddf03677"
+    },
+    {
+      "path": ".scratch/association-journal/issues/04-integrated-qualification.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "c17faeba3102f932773a766a5329057a2d653e367d1f4ef37072e69ee81e2afe"
+    },
+    {
+      "path": ".scratch/association-journal/restore-ci.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "d03d571e7ce8235cb978d00e9551d0675bb9d9e8682fc30be4fd06d9710f1b33"
+    },
+    {
+      "path": ".scratch/association-journal/spec.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "5a3aeb6d2f789060f0c920c57bb9f07c7e832afad3f9709113deacf3e93e8bd6"
+    },
+    {
+      "path": ".scratch/chores/triage-orphan-tests/spec.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "dbf6659e9a21454235c2b3217444fd8715e2ac6a39401fcab4b982e5ae725744"
+    },
+    {
+      "path": ".scratch/deployment-compose-consolidation/completion.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "2a136a71c28009ecb98f2ff3bf361dfbd993d620f77408bef0c214f22a429344"
+    },
+    {
+      "path": ".scratch/deployment-compose-consolidation/design.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "3e1bd60b6bfd847625e7f5c97809a9acce37518bd04479f353eba1c499206ea6"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/completion.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "6170569cfee295c72dda4ffc90a46ec0e5693dbac2a851114fc947d9e0399610"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/design.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "bb2094c4521ffa38913e9b1d50e6d3134f4b6f37831d3b3d505c891ef451ba2b"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-01-review.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "e3dd26d5378f8d3373bc7f979b00e17d4373df7489d161b7785e071fd8fd5533"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-01-rule-coverage.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "bd399e9dd9141a3a1e676bb6db61d3e30c010b58ef7a99688a0ea0bf815cced7"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-02/README.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "38dd4966635088f89493798f54fbdd8f6f38cdbf9e92d54d0bdc68590cd82ab8"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-02/authentication-dark.png",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "3d13fbc31fff98898580626775627cd4c58d2355b4755997364f203c0bf940ee"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-02/authentication-light.png",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "834ec57e876daf59ef47ad5c8728fe56b8c36e5b94e3af1e7311d5fa325dc53a"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-02/browser-output.txt",
+      "classification": "Literal generated/test observation evidence; preserve bytes/provenance",
+      "sha256": "d110f4b6b4278e907c4e9ede5ab7f6926a701a22728c2f0e07652e428bbc1100"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-02/member-dark.png",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "e4d66886b58c93620b2617a281bd65e2f2484c4c0cb663db780c03c462b036ee"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-02/member-light.png",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "918d2b0bf5a0dc564dae3381b577587b4667d1f4861987c1f804041930716a61"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-02/no-javascript-light.png",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "c970055dec18a63b8fe1873d8e4c4f241769009e45b88178a18b8a3d53f98ada"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-02/preview-dark.png",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "c4e9645b78d8136a3c0c136e7d5726dac5dd8a57ccc3095a74061f9dcaa0cdd6"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-02/preview-light.png",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "00923d54634f5c17dac8df6b2141a3ae4e6131844fd7673c5d4bf510b16ded86"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-02/public-dark.png",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "8ca72d7741c842a258d7311df17d9e3a2fac1a67058a699066944177ef400de6"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-02/public-light.png",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "7fd5b20beb1149dc5b254bbab6ba71f7612e6ddd75d87646f841677364bfb509"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-02/registration-dark.png",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "13f65806585d196f0c8cf5ada552719013ab1b179e204fb37650e05f94a16727"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-02/registration-light.png",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "6946fa9b33dc5db4652b99513806bbd04204e75922c2249b54e768bd9e07010a"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-02/staff-dark.png",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "04063d322657f593f871f03fa27b8e516c854e0932c6ddc6213d830b2f655cb0"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-02/staff-light.png",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "2e1dc923d58b20f9e11a5210f45f23768567de0443ca13369b30a251f70c2de3"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-03/compatibility-audit.txt",
+      "classification": "Literal generated/test observation evidence; preserve bytes/provenance",
+      "sha256": "8aee9bfc3c59feeba5eb27b670f5e0fb66fa56bdf2fed6344e23f9ce62bb0f4b"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-03/email-equivalence.txt",
+      "classification": "Literal generated/test observation evidence; preserve bytes/provenance",
+      "sha256": "8d424cf7a9fa32104853200a665d1fe2b5679917ca69b59e5cf164023da73149"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-03/inventory.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "4640e0882b0875ee3874591f853fac82737bab174f202c0eefc9f04fa66ce36b"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-03/staged-http-output.txt",
+      "classification": "Literal generated/test observation evidence; preserve bytes/provenance",
+      "sha256": "a98aac553d7d0f068764a78e132037f1c600bf258840f0d3871fba24575ff6b3"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-03/statistics-red.txt",
+      "classification": "Literal generated/test observation evidence; preserve bytes/provenance",
+      "sha256": "27c30a110df681e03e1d35af8c86e0880463b9ecdf77aa4ff94cc2dc0dfa064a"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-04/coverage.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "9779f49de85130463862e4b827f60cf520825865cdedac4241dbadc0b53de0d6"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-04/link-and-contract-checks.txt",
+      "classification": "Literal generated/test observation evidence; preserve bytes/provenance",
+      "sha256": "e6c886ae4ce0c3aebcb087139dd4b3aa162557d4294f79880a3c06b19f3b45c4"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-05/coverage.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "6e06c0eb3fc3daf930a78a2201513e3fe5b11e6ef48eddca70bdaed880b8cf13"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/evidence/ticket-05/reference-and-provenance-checks.txt",
+      "classification": "Literal generated/test observation evidence; preserve bytes/provenance",
+      "sha256": "24d46d5380142e420cade3258d17238437a3add7637f437e4cacbf64c42b28e6"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/issues/01-canonical-agent-instructions.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "7da3840d10d96a1d220316ff77114b7e9b3a6d7b372590915d668109876b74f3"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/issues/02-light-default-with-persistent-user-preference.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "effe17fd7ebbc27cc761ffe67763d1296be62b62be48b04d5dfdba756e40c686"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/issues/03-english-internals-with-compatible-member-workflows.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "bc41cbe446122497cbc2fb7a2b59b9fdac72eab59f6dfae2481105cc782d812f"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/issues/04-english-contributor-and-operations-documentation.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "3d039fa36a465f344047a8e15b979b4c8970530574d0189d29962c4d8b1a6f5e"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/issues/05-english-planning-and-delivery-records.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "398022dbcea0175dfa628fb7aab59e53157b4ff91fa90d2ddfa32862ab9019f3"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/issues/06-whole-spec-verification-and-handoff.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "04857f6d9ee3c2fdea7d0c905302f5af9774cc7513cd5152f918b0e1e338a2fd"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/spec.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "0423f297d46e8599927ddcf2fdf792d9337fbf7d8b96f0fc21fada295dfc35a7"
+    },
+    {
+      "path": ".scratch/english-policy-light-default/ticket-breakdown.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "c0ecc054f1ef445927feb92ac99156d8b8a0d2c14f8e06cd2040b99d47ec17a3"
+    },
+    {
+      "path": ".scratch/repository-cleanup/issues/01-remove-obsolete-artifacts.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "b200be93bba5573c3632d9ae00785c1eadf701f13ea11119172b5051633fa18d"
+    },
+    {
+      "path": ".scratch/repository-cleanup/plan.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "a79be036c4bbfd39fc0c13c68785ad1269f599b34063747f566c3af3c9a80d94"
+    },
+    {
+      "path": ".scratch/repository-cleanup/review.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "da4c161d81f1008e840494c529eea306a5f73b2946b6e6fe963aeb9be8f85020"
+    },
+    {
+      "path": ".scratch/repository-cleanup/spec.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "b2d0319b70afa66ce2c1c003ea10bc65bf7c82b81602bdd432de63e29d96cb1f"
+    },
+    {
+      "path": ".scratch/ui-visual-refresh/journal-research-2026-10-29.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "047efbae2a6d9c9217838cdeed50fd7f8e9b720fdc68936992c9d56e98b9b155"
+    },
+    {
+      "path": "404-handler.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "f0fd9c17a868f1d86eba94059197e7dd22c823755f93985905a16ad2f7eb5b8d"
+    },
+    {
+      "path": "AGENTS.md",
+      "classification": "Single durable instruction source; English prose and quoted French contracts",
+      "sha256": "e331ba5c7046e1fc6759718b301cc3dc7627605a2c219df35f620130c1b30583"
+    },
+    {
+      "path": "CLAUDE.md",
+      "classification": "Exact canonical pointer",
+      "sha256": "a4350ad59b5abeea1ce3d10859a5fb0d705e50ef9423cce7e20b325abff2e9d0"
+    },
+    {
+      "path": "Dockerfile",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "aea69bc1d85e47938b78e99f9f7eab9a1b9489129e1d9fc0af6d6d8b5f146295"
+    },
+    {
+      "path": "GEMINI.md",
+      "classification": "Exact canonical pointer",
+      "sha256": "a4350ad59b5abeea1ce3d10859a5fb0d705e50ef9423cce7e20b325abff2e9d0"
+    },
+    {
+      "path": "GLOSSARY.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "27f90b77842151d0515cc2842a7fdaee4034c5e9e3ab99d5af2f2cac61ea4ab3"
+    },
+    {
+      "path": "README.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "1a9bf3f8e6737f0f14fcf3d11306c7157170530d8d42096a5089b119aaaa50ae"
+    },
+    {
+      "path": "Senegal-texte-de-loi-2008.pdf",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "d7ff1e5a89b67b8e454039cb324a8748347cd0fab86cbd56ff7a0cb8a996c528"
+    },
+    {
+      "path": "accept-cgu.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "add-user.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "assets/css/admin.css",
+      "classification": "First-party style identifiers/comments; established English dossier terminology",
+      "sha256": "9ccd0d967f38a01334d9c603b60ebc684278c436340245a10ac62b84d036b6ea"
+    },
+    {
+      "path": "assets/css/app.css",
+      "classification": "First-party style identifiers/comments; established English dossier terminology",
+      "sha256": "e129db374f9d792dacbccbe116ea13f9dc6fc74922a9b9129bfe3202a039e3eb"
+    },
+    {
+      "path": "assets/css/dashboard.css",
+      "classification": "First-party style identifiers/comments; established English dossier terminology",
+      "sha256": "b0b11767b51b97ffe7c62c35a56853ecc1acf5d729eea5da1287bcbd6bb0a788"
+    },
+    {
+      "path": "assets/css/export-preview.css",
+      "classification": "First-party style identifiers/comments; established English dossier terminology",
+      "sha256": "d40025bf787d0e4e7b57cb6122127e295f2635171555d9ecae792697f991ac94"
+    },
+    {
+      "path": "assets/css/journal.css",
+      "classification": "First-party style identifiers/comments; established English dossier terminology",
+      "sha256": "1626867686429770327946cfa347028617fd4381d20c2baaf8d03cb6d63abb4f"
+    },
+    {
+      "path": "assets/css/public-consent.css",
+      "classification": "First-party style identifiers/comments; established English dossier terminology",
+      "sha256": "9c2d1e1828218896dce705386fc734e3b53a8a8ae45c29ac8c169bce359e0f28"
+    },
+    {
+      "path": "assets/css/public-forms.css",
+      "classification": "First-party style identifiers/comments; established English dossier terminology",
+      "sha256": "c71c952f8951a511b7960cdaeb8945af8647f33b8e0d410f00512d1a7c02e3e0"
+    },
+    {
+      "path": "assets/css/public.css",
+      "classification": "First-party style identifiers/comments; established English dossier terminology",
+      "sha256": "aabf77884e822568954bc5913e381b72a2b6318008ca46e827bca5fdbfb87791"
+    },
+    {
+      "path": "assets/css/style.css",
+      "classification": "First-party style identifiers/comments; established English dossier terminology",
+      "sha256": "cc641b5537facf821b751c2a9df9836196988909d58a0b68a6d803b47fe02bf0"
+    },
+    {
+      "path": "assets/css/tagify.css",
+      "classification": "Third-party source; preserve content/licensing",
+      "sha256": "b8c912d7404d58b0e06d4795f4a454a6f6c9d18cc9718640472a972988eeb074"
+    },
+    {
+      "path": "assets/img/WhatsApp Image 2025-04-28 at 22.07.41_c84e18a5.jpg",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "77a26ddea516d9317331a21f756b9de962a984773e6a4f266dbccabfdfa7de3f"
+    },
+    {
+      "path": "assets/img/WhatsApp Image 2025-05-18 at 10.13.22_67eee142.jpg",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "d262e3bb8a17297c03a2166e38728c9bb18fe5bde8749fef10f8979c6a0ee4c4"
+    },
+    {
+      "path": "assets/img/WhatsApp Image 2025-06-07 at 20.27.41_34080c51.jpg",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "b05d98b469e8da461c49981396de707f0797b94ac17b9284da4175d73a38c49a"
+    },
+    {
+      "path": "assets/img/WhatsApp Image 2025-06-15 at 22.51.43_19cf0284.jpg",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "70cb29b07b75ea69bab9e9f9333e1dad23e36e11e4087c048b0097806db93964"
+    },
+    {
+      "path": "assets/img/WhatsApp Image 2025-06-15 at 22.51.43_1ae6c235.jpg",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "f7ebd435ef1d37ffe5a6d75580e674d12089a6bc57d6e237e8d28a75938b9e0a"
+    },
+    {
+      "path": "assets/img/WhatsApp Image 2025-06-21 at 15.21.01_d7611f3b.jpg",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "897ea2341bc57e767eb8ec2cc0b52526cd866f20eadf16fb80941a6fe42d1449"
+    },
+    {
+      "path": "assets/img/WhatsApp Image 2025-06-21 at 15.21.52_431fdb6a.jpg",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "ea8389fc825fd07394c2770d80435c7da0f57616cada834efd9721fd98b1b502"
+    },
+    {
+      "path": "assets/img/WhatsApp Image 2025-06-21 at 15.21.53_5de32230.jpg",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "0ed82f564f05ac24b7d90fc42c0ac82761bc24757ab1624062d91765fed92725"
+    },
+    {
+      "path": "assets/img/WhatsApp Image 2025-06-22 at 10.19.00_36b33f51.jpg",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "af561076daf502cf81522ff529d955830784304c13c0ad98abd673ab0bcb7d5a"
+    },
+    {
+      "path": "assets/img/WhatsApp Image 2025-07-29 at 17.13.32_545ded6b.jpg",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "f5fe51410897fbc9557297d7b6f30165381baf548dc5efa82871f252c2e8c955"
+    },
+    {
+      "path": "assets/img/logo.png",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "7411e10e3ec99af4cd2a9d739b30921e85287dc7651e2a09a1001fb06f0e7d75"
+    },
+    {
+      "path": "assets/img/placeholder.png",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "89f02dfd2fead521585999249e4a6b8ece15bc522f0c0ce474e1864c44929c43"
+    },
+    {
+      "path": "assets/img/president-hecm.jpg",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "73f459f74e1e2b58b244e372c3d3d7a40b6d6124472394e8e5b4eca45be2f679"
+    },
+    {
+      "path": "assets/img/presidents.jpg",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "76adc1053733288ad01e0b2b7a90e6f7ebb49201682b0534c53d0d9b00358221"
+    },
+    {
+      "path": "assets/js/admin-shell.js",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "f931b4f3c0756db015132706aad5beb778c25b75ba863890815266b9e26e2a00"
+    },
+    {
+      "path": "assets/js/app-alerts.js",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "c23702baf752ee7acbcb31f0c57758f50f4ce79cbdd563df106b07d52b92a70e"
+    },
+    {
+      "path": "assets/js/app.js",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "79f18a7fca1621685797906c82058367e33b05fe408abc6b28e081ba374b0168"
+    },
+    {
+      "path": "assets/js/community-carousel.js",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "95c94bc3aea30f985a04bba33b7e04990054f0c64bbf41891ec4c77fb6aa67f1"
+    },
+    {
+      "path": "assets/js/edit-student.js",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "952c506d9eb07b38499fc2ef8a98073cf69a2ce44988bcb9a18a77b0298cc94b"
+    },
+    {
+      "path": "assets/js/main.js",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "7f3edae67ab22df334be1b7dcee28e7ae254792ec439b2e4426279cfa53925c6"
+    },
+    {
+      "path": "assets/js/register.js",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "e9836011f5472fcb2c9ffdf559ef75f329f2ef9ee9996e800228424586c405a7"
+    },
+    {
+      "path": "assets/js/tagify.min.js",
+      "classification": "Third-party source; preserve content/licensing",
+      "sha256": "afd7b50f89395355f09948fadab98e60836efe16c2b445b5e8566da8f3adda06"
+    },
+    {
+      "path": "assets/js/theme.js",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "08174a9e050e59b963bbee30680752067510de3e5322d576a5c3bbc28365663d"
+    },
+    {
+      "path": "assets/json/countries.json",
+      "classification": "Country reference labels; preserve French data",
+      "sha256": "a896554c9128a78d23fd589403f682619b2c41e35ff084e6f2fac6bd8e3291bf"
+    },
+    {
+      "path": "communications-count.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "communications.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "completion.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "1d4d2a9344e2393e125e167322e7fed507290a7b906be7d62a1e6435243f8bc7"
+    },
+    {
+      "path": "compose.dokploy.yml",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "240e5d99a80fd7082876caac9fd3646070fe40c46feb0388fb0c0497c4ca9c00"
+    },
+    {
+      "path": "compose.yml",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "9f26b265b4e2d3e6fea9ae4be2c4acc4cc80b45bfe6b943ea50c7194c7d05871"
+    },
+    {
+      "path": "composer.json",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "949cc62b5719c7f7e4b4a96a34f1b50931b3670670e242c6b0468e42108a1848"
+    },
+    {
+      "path": "composer.lock",
+      "classification": "Dependency lock/generated metadata; unchanged",
+      "sha256": "f4112d4512851a46c02ab70144eb87edfa3d328213007b8c3f922c636eebe60a"
+    },
+    {
+      "path": "config/database.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "b155794816749e76512b0b246a7eba0b36798b345f15cf69e2c6a00e7891b927"
+    },
+    {
+      "path": "config/session.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "f3347604ce99370422c56ee56f8363457d109d8e2fae0543d79789cdae704a52"
+    },
+    {
+      "path": "confirm-upgrade.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "dashboard.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "database/init.sql",
+      "classification": "Schema/reference data; English technical comments, French business data unchanged",
+      "sha256": "5fd87569eeedd8e34f3911c986e600bcc3db694c3a57c176f07e90f64c1a488e"
+    },
+    {
+      "path": "docker/Dockerfile.apps",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "b41e3eeb7fdf1e6bbfe470e1e76d97a1cec9c318fe7a6662709bb343f4a71177"
+    },
+    {
+      "path": "docker/apache-security.conf",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "710c57107ea7db99ae8298803fa8ae235b73cc78be66279639c16c837df1856c"
+    },
+    {
+      "path": "docker/apps/apache.conf",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "561349bf7f22a5a7466330d265a72bea5ed6a9cfd2de252dbb5360c6c18c095e"
+    },
+    {
+      "path": "docker/apps/index.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "b7daaeffad2849596901e7f1aee02339504a3de8c0dad030dc967702e9d8b4df"
+    },
+    {
+      "path": "docker/apps/jobs.sh",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "98aecd5fa8234bb72646f1eb6282a049ce7e33ac29e7ec6de2fbc88cabf314fa"
+    },
+    {
+      "path": "docker/apps/routes.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "f389945aaa5377ab4aca735b3cfa3174f425779f72955508ce473011aeabd7de"
+    },
+    {
+      "path": "docs/adr/0001-independent-public-and-staff-entry.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "c2636473255a92b851522ea052d93a0a8b55f439384123c3805c5420a9aeb5bd"
+    },
+    {
+      "path": "docs/email-queue.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "b5b5f6fa3186d8c47a30fcae8718a19444b8de2f9995ed19d1862acf6bbf846f"
+    },
+    {
+      "path": "docs/operations/public-staff-rollout.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "7227826ba3a62878d8ac8a21837ae91f90cc217e55ebff2c71f7128e9200cd01"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-30-association-journal.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "95be1d4e1fc08aabaa0ee79b2dfbd56b07a258fcbe640a1af27a5b51ffd728d7"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-10-29-association-journal-design.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "017f7a952ecd7e1666f7b2b24ab7e074457a63aa60b7908119cd28bdbf603a95"
+    },
+    {
+      "path": "docs/testing/README.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "df6c01dff1bf819fd155dd7d6d96e1384a07cd062b7ba2f8105988333535ce77"
+    },
+    {
+      "path": "docs/testing/association-journal.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "4c6037549da6bee6e949a9d5b1e8bf6e0c6cff716595ec842624255e9eabacbe"
+    },
+    {
+      "path": "docs/testing/evidence/2026-10-29/journal-public-maquette.jpg",
+      "classification": "Media/legal/reference/browser artifact; no language conversion",
+      "sha256": "8c43c772b33cfee8d13fdad7961ca4dbd4278c281b406828a873fa6983da15a6"
+    },
+    {
+      "path": "docs/testing/evidence/2026-10-30/journal-demo-migration.json",
+      "classification": "Literal generated/test observation evidence; preserve bytes/provenance",
+      "sha256": "0a231ea34c1aef3f0a40d3323923bd7084af5a19fab10c9643950914c0c30838"
+    },
+    {
+      "path": "docs/testing/evidence/2026-10-30/journal-dev-merge.json",
+      "classification": "Literal generated/test observation evidence; preserve bytes/provenance",
+      "sha256": "2fc04cb75ddf2da078a11f06ca39e704a05c77becae761a82682d2eb45f249c1"
+    },
+    {
+      "path": "docs/testing/evidence/2026-10-30/journal-resumption.json",
+      "classification": "Literal generated/test observation evidence; preserve bytes/provenance",
+      "sha256": "3f1c974704d88f27054d7eb95ce7b099fba820146a86f7e3c5a0368e1d999b1b"
+    },
+    {
+      "path": "docs/testing/evidence/2026-10-30/journal-served.json",
+      "classification": "Literal generated/test observation evidence; preserve bytes/provenance",
+      "sha256": "5c1a356f1bec4657adae4d8682181821f0b900714b5e4f52b735d7ba6c54fcb8"
+    },
+    {
+      "path": "download.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "edit-student.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "edit-user.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "export-preview.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "export.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "forgot-password.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "functions/document-reconcile.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "4f877af7c4248208767c686af619940da3cd16e0b6a52b7f5e6edd2239c2e9dd"
+    },
+    {
+      "path": "functions/email-service.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "771397615a0fe1cd785bb29404b2cd3f528286deee905f2a9df5ef44507e2601"
+    },
+    {
+      "path": "functions/utility-functions.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "2a65f9dd3a670863c782dea63b3369cb568e638d7b4bca9b778641992025148d"
+    },
+    {
+      "path": "index.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "2d7ce93b87f218c20da860333fb0e75b57eb9d27ccbb1e44c569f0989664dc1c"
+    },
+    {
+      "path": "kyc-correction.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "f1a197c7cc19a791fbcd9f680b7ccafaad0d1070d1f17f80b873ad55ca6a7125"
+    },
+    {
+      "path": "kyc-detail.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "e43c79cacb442e86095eba5f748f7ec3ddc7a5c4044fcf5bdacbcc4b17546c30"
+    },
+    {
+      "path": "kyc-list.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "c0723b51d7cdc02d94ba8afe68c480763336581d677a4d6bfcb888ca12f98708"
+    },
+    {
+      "path": "legal-notice.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "login.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "7ed85da81c00f566529e05ecf466542328a2861e4f773e3148849b14e1b73a48"
+    },
+    {
+      "path": "logout.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "7a0809177c42a6e3a76ca06e9a9605690d0ffd9bdd79806d0b6a89a41eb99c59"
+    },
+    {
+      "path": "logs/.htaccess",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "8a140e242a320239d8217be279f4ee83a7157f45c3b9df5f121e868997af81ef"
+    },
+    {
+      "path": "manage-slider.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "migrations/00_init_schema.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "894b569fcce078c09fec6ee82f662f509771106a1e143b48e7df684b5bc7e79c"
+    },
+    {
+      "path": "migrations/01_migration_add_settings_table.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "5e3e573c2c7fdecb1f594258a4950116050e9c8abfbbac620f427047a4f0e725"
+    },
+    {
+      "path": "migrations/02_migration_add_user_session_version.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "73df3cedd7d9b8819b68c6cfee177af315d1c0955eeef0744e54f596bd6ade88"
+    },
+    {
+      "path": "migrations/03_migration_fix_role_enum.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "cbefd8973f2eac4f0bd8ce83dc92fc5ad77d9a68babf1ec24be2fced74c9086c"
+    },
+    {
+      "path": "migrations/04_migration_add_kyc_workflow.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "4dbae3007f5115d26d97fbec8fe95d5688522ac8eb1c4f148d20933133f78ca6"
+    },
+    {
+      "path": "migrations/05_migration_add_soft_delete.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "282d8fa699084b73d7ee1ce7c029a3dfa8f02797f2fb8ce6b75b3f998830d8e2"
+    },
+    {
+      "path": "migrations/06_expand_member_enum_compatibility.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "6a896fdbd37c6315912283ca1213611d4b9d86cbfa2ec54bb59c682ba69dddf0"
+    },
+    {
+      "path": "migrations/07_create_association_journal.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "e823793ef48e41a8012bb2dfa4536e4a84a7a5a9b628dfc3a56bd5cb0036789c"
+    },
+    {
+      "path": "phpunit.xml",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "47a1cf37deb06c1abb753847518bffcef846bafb8d109912b05e3daba86d6dbb"
+    },
+    {
+      "path": "profile.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "register.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "186a07df46580d5234c90fe55f32c7059a8204554a54f32bc2357568b1dcd1e9"
+    },
+    {
+      "path": "registration-details.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "0daf3bc31e79f1d385868d4868fd268b810e7c08e74f2edd0f419c63bf4b0ecb"
+    },
+    {
+      "path": "registration-preview.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "reset-password.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "schema.sql",
+      "classification": "Schema/reference data; English technical comments, French business data unchanged",
+      "sha256": "6b90bcf1c63c4751f64d8458624348b8aa2f8fd29723a099305563185bbead0d"
+    },
+    {
+      "path": "scripts/process-mail-queue.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "5f4a44da8d28946f9f2010f6faa2030e4afb5876965ce59e5af4446890897826"
+    },
+    {
+      "path": "scripts/purge-pending-uploads.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "be89c8eed044639c86b1d473aff06ae7ce5bfafcae7cc13bd1e94ef4c0d1627e"
+    },
+    {
+      "path": "scripts/purge-trashed-students.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "073f36e7a9c5bdb67fd04d18c1a789fcb662afa98632cdef4ca192b63ff6aeae"
+    },
+    {
+      "path": "scripts/run-shared-jobs.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "795da04192750bff2dfcd187af255ee41683fba837cafe0c331e152cc02772d8"
+    },
+    {
+      "path": "settings.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "src/Config/Database.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "7e33762dff4af2d834caab9f5ce84e2b6f673e138489e6b907966118b7ca3780"
+    },
+    {
+      "path": "src/Controller/AcceptTermsController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "b9862718ef287023804d8591a0bc24a91204c2f15722cc8180fa609b2e7440bc"
+    },
+    {
+      "path": "src/Controller/AuthController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "ae842c521f09271c40ef937db9e26e3cb4297f15ab131ad5282e042f93eecf2f"
+    },
+    {
+      "path": "src/Controller/BaseController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "d665bdb2aef149e466ee36cde562d40878aeab8132934b414db80396a8244136"
+    },
+    {
+      "path": "src/Controller/CommunicationController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "c57ac93d6454ed9baa6599e76b29395b75cf5b731aee4c3de8fe9a448a9aef06"
+    },
+    {
+      "path": "src/Controller/CorrectionController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "2ce2bf789dbd73f1d00d9df93a7f965b834725379ff8241a3bce68a2d355ec6d"
+    },
+    {
+      "path": "src/Controller/DashboardController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "d04c2cf636632176a10b48797c3ea2e800691614ad3371ddd4721cd4f86a06a6"
+    },
+    {
+      "path": "src/Controller/DownloadController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "d352ebaf5a99989339a5920e9c58815daeb6afe8a6a3cc491286cc8909726c86"
+    },
+    {
+      "path": "src/Controller/ExportController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "b7d25664fb2361618e2d765995666978f158d83400b3f0a9a7ce00c71a460739"
+    },
+    {
+      "path": "src/Controller/HomeController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "e9d0ec0adfea8d379317ce0980190c7f3d833dd69835f159e753122819ce8076"
+    },
+    {
+      "path": "src/Controller/JournalAdminController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "ed5438fd6b8d65a4083ea71ce890640a617625870dda2b2f8ed77f16366a2c63"
+    },
+    {
+      "path": "src/Controller/JournalPublicController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "56f340777f147bf645e68bfed9a636fdd997a1015959a1a6bca436b533679402"
+    },
+    {
+      "path": "src/Controller/KYCController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "692adc41c4488b1a019e40d48527f3159c1fafc4f7ebeb862372ec970e2f9b65"
+    },
+    {
+      "path": "src/Controller/LegalController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "ace8ee4edaf9294aa47677650a70b869e130578a5cd65aa837eb4062775cabcd"
+    },
+    {
+      "path": "src/Controller/PasswordResetController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "8381d08d4f09335b1d34741fbb3497fa95f338e38804d25ba358e06119be444e"
+    },
+    {
+      "path": "src/Controller/ProfileController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "09857dcb887fedfba1dd1b14a82972a26ff3d22293b27fb45f9e9c215d52216d"
+    },
+    {
+      "path": "src/Controller/RegistrationController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "15ac0737144f0e05a059311cc390b069d6b8cd85640f640028826ab6a3e505f6"
+    },
+    {
+      "path": "src/Controller/SettingsController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "798503d8e610557d7bc22867714debd530a21be9202308d33386cff27a15145b"
+    },
+    {
+      "path": "src/Controller/SliderController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "dae1777d1951d29a868ee9bbe08cf54496895c0364dd0a1d41c7d2e1fbd41737"
+    },
+    {
+      "path": "src/Controller/StudentController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "277ed8262cf076a775f21883d25bc8948aad313f7ffafbfc25c608265030e577"
+    },
+    {
+      "path": "src/Controller/TrashController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "376114cb34cfb4d203c27d2082b2c95299c2fe278c8681bae7ae4409aac54b1b"
+    },
+    {
+      "path": "src/Controller/UpgradeController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "230bd90ca0a1c32981deca97dd0e98d42b247f2bb2c4854c7743277653cc0063"
+    },
+    {
+      "path": "src/Controller/UserController.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "8481a85696ca71e40cdc1b66f38b4088afc6b94acb5c0e3744a86368162b9ae1"
+    },
+    {
+      "path": "src/Core/Container.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "08e356ea35f7696af79cf1fdf7b565e2aa3743067474b44bcb8b258ebc96908e"
+    },
+    {
+      "path": "src/Core/CsrfGuard.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "ccad0ce5387d70f5828eea3c14886070f81ea8517b0ea2e8032b0d604842df31"
+    },
+    {
+      "path": "src/Core/FileUploader.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "41720029c1f6bac29499dfc88ce3b637f6c100f74f695ce151ef59782e60c55d"
+    },
+    {
+      "path": "src/Core/Flash.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "da8bb218ee9a736380b2880f5768062793db881a67277598e3a06688efb39666"
+    },
+    {
+      "path": "src/Core/Router.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "4d0614fdf567e0e8f66ad18d3769ce86dbed8dc0965852c0b71973ac0f764f43"
+    },
+    {
+      "path": "src/Core/Session.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "274710b06de46032de68424fab82b3284fb8d8e15a14f2973540bf3a74647f22"
+    },
+    {
+      "path": "src/Core/StaffNavigation.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "4e40d3db161045456c6cd21514b80144c35ac2f7b3dd53e03235f7233a1c76ed"
+    },
+    {
+      "path": "src/Core/View.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "7fe86b314cc3249b1483ae0dd56d9afcc8c8fda29a0d686b0067182610ffaba3"
+    },
+    {
+      "path": "src/Model/Setting.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "4722f3c32ee143dc72c3128091c6a76a36411cfa3df3f43a9af491c89596da99"
+    },
+    {
+      "path": "src/Model/Student.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "4123313c1aa3cd90f34d5042203c206fe4bf4bb5ad92024f053b3a361ac4921f"
+    },
+    {
+      "path": "src/Model/User.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "f9ab475381f7b125713c82adbaab95e480d0bea5442b306bfcd4f15e92621e37"
+    },
+    {
+      "path": "src/Repository/JournalRepository.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "bcded352c33ebe3d32f8a9c0179dabbb51a5c008566961447ad26268e2175eae"
+    },
+    {
+      "path": "src/Repository/SettingRepository.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "fd039ee358591e39275cc47123d6e176b35b090f4f85859f61d01f435c91c837"
+    },
+    {
+      "path": "src/Repository/SliderRepository.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "b9c83cbba056423fe7c0fda9e4d7ec8cf4eeb197d4a1aa1ee66ebadb3bbfcf60"
+    },
+    {
+      "path": "src/Repository/StudentRepository.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "c82980d6c06df3d7e57e56b0022ea2f5abcc4df6e3f4ad2a4e63914ea76ecd62"
+    },
+    {
+      "path": "src/Repository/UserRepository.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "983b2c5ddd28a303761ec62c185794d0e897ab125f98da91a3bb0cbaa4906926"
+    },
+    {
+      "path": "src/Service/AuthService.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "acb983386818c1381e84aa03b76e06dfff3c4d2bbe503409625f2ad53f9dedeb"
+    },
+    {
+      "path": "src/Service/DocumentReconcileService.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "d83e00bbd2933eaa8f035b2cf5e9ddea586793d01af0574d20fb650089fbdd63"
+    },
+    {
+      "path": "src/Service/EmailService.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "03ad17b2570974ee8088813b3adb73c87d6bf2d766e74619b2bc4304f6394eb7"
+    },
+    {
+      "path": "src/Service/ExportService.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3a096485b1c707b6191690f01f3f5d8e096ad20b586679b102572a7aade117e6"
+    },
+    {
+      "path": "src/Service/JournalConflictException.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "93b91c29d36a7233f92990ac52fedcfefda865946060f8770f73178c5d5f3af2"
+    },
+    {
+      "path": "src/Service/JournalMediaService.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "fcf46b5cfa3d5a4d9a20e8e5c5dd92fa82737c8a60d38926fcd478080d2fc8a3"
+    },
+    {
+      "path": "src/Service/JournalService.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "9572af42acae1ab2a95e0fa15cb2a1a0cd7d33a08c6a7cd520512e0f1333ebea"
+    },
+    {
+      "path": "src/Service/PasswordResetService.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "33e04d17ecaa01d021c24a887e66f9d36e0ac4292e4dab9981c6fef17374a488"
+    },
+    {
+      "path": "src/Service/StudentService.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "d1f9923d8c0b366632a5b8b36b0446db8612e706357903c265f75038f919ba9e"
+    },
+    {
+      "path": "src/Service/UserService.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "856a6a3b577e75fd96cd4ae18156944c2dd6e730ceaf88ec5443bf51ead4d248"
+    },
+    {
+      "path": "src/bootstrap.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "f58edded274148ec4ccc4d6991bf738c2b6082d948fdca9355eab9fb09e3283d"
+    },
+    {
+      "path": "student-details.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "students.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "templates/.htaccess",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "8a140e242a320239d8217be279f4ee83a7157f45c3b9df5f121e868997af81ef"
+    },
+    {
+      "path": "templates/accept-cgu.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "34747b98dbeca52abbbb614f441c9133d714aabedeaf26ce6685c2d86eb58773"
+    },
+    {
+      "path": "templates/admin/pages/add-user.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "9744413990570fa9d3982d0e63da11563528e6ca147fc4225c5921bc46c8a2e8"
+    },
+    {
+      "path": "templates/admin/pages/communications.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "36fe52035ba3433525ce40ba569f983e3af0a3cbe8937ad4d39683093877ef8d"
+    },
+    {
+      "path": "templates/admin/pages/dashboard.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "29c9b3d27a79a961896ec65fa3c36f9c28aafe0acd3c022944aed701766afd7b"
+    },
+    {
+      "path": "templates/admin/pages/edit-student.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "218a37f77a4688c89370ea8af09d156c45a41e6de591a528da8ce75218eb15b3"
+    },
+    {
+      "path": "templates/admin/pages/edit-user.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "1f012e7cc24cacc9bc8ce720e32fd4bad4d48ee222c44667af6098b4db3cecdf"
+    },
+    {
+      "path": "templates/admin/pages/export.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "52e53bbe9e7332d88d57723e6734d1832aed210dc365734af457f5861822b2da"
+    },
+    {
+      "path": "templates/admin/pages/journal-edit.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "afd26994818b031a73ea0ed5db5f8466d90b2a964db159d94747167f88d6a20d"
+    },
+    {
+      "path": "templates/admin/pages/journal-list.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "ccbbcb5921557e56a029ca3e580451fabc36eb075e56a9223612f8146b49ad1d"
+    },
+    {
+      "path": "templates/admin/pages/journal-preview.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "d8870a28397bb34b0d69247c54714c9c817180ffd712553230ac4ce7866744f2"
+    },
+    {
+      "path": "templates/admin/pages/kyc-detail.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "2cc4c8fff0f0dc5a4d6fbf011db52e19c9a492c86cf4786b834234be33924fca"
+    },
+    {
+      "path": "templates/admin/pages/kyc-list.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "4b317d30a00e35363957dda39715ad3965bcda94bfafe4ec743f4e5e38ef0a37"
+    },
+    {
+      "path": "templates/admin/pages/manage-slider.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "d2484ec44b9f7df45f55965ea02c44b4ae2e99abaa634d45e3a8b254712463ee"
+    },
+    {
+      "path": "templates/admin/pages/profile.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "71c3afa13ec5b270a422d467607fdd3cc0e77770576e334a8202f8f87243f51d"
+    },
+    {
+      "path": "templates/admin/pages/settings.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "f8f942db8c1cdb45a25c92007013bb75873beedc619c84adbbec96324f90287b"
+    },
+    {
+      "path": "templates/admin/pages/student-details.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "3f3530d2197eec515f98d6f10bbb5e19f9da4b41eb0880dffa6ec235ae35d970"
+    },
+    {
+      "path": "templates/admin/pages/students.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "223938bb5ea44157c4fcbebb5d5bbf127a8b1290b9d4392db8a14c0254eefcbe"
+    },
+    {
+      "path": "templates/admin/pages/trash.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "7cc065088b0b1ad7b49a68dd108b1ca7585ee138aea477366e6db2495f9dd118"
+    },
+    {
+      "path": "templates/admin/pages/upgrade-levels.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "989b24a8092b6b9bb373e989ce873f110f5d7662e6d00f83081177170cd2f430"
+    },
+    {
+      "path": "templates/admin/pages/users.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "11b9bab6e82f20f2eb3b90d9688c02c0bbe43f6668442993fb2ece3699db6742"
+    },
+    {
+      "path": "templates/auth/login.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "24ff786e78e84eddc74948d1f9a9873bf170e11c09406b1e2a05af26a2946215"
+    },
+    {
+      "path": "templates/emails/admin-update-notification.html",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "502f7897a73796075b383a19a00a92466075b0b8fc1aa5a802dba83a91d36722"
+    },
+    {
+      "path": "templates/emails/bulk-communication.html",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "586a48f044ed0cc0cf3e02aac1f6559b957dd2d0996f028eb37254220e0a9a6e"
+    },
+    {
+      "path": "templates/emails/cgu-reminder.html",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "a0e6c194b1de9c3093bb4ae8193707ad176e0ba75f7e91cf5c2acd8d3cbc8699"
+    },
+    {
+      "path": "templates/emails/grade-upgrade-email.html",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "d3880c65322bfbf63149fc78b471169bd8cc8dc09c9c603bb0af8c5dcdb0fa80"
+    },
+    {
+      "path": "templates/emails/new-registration-admin.html",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "807631209e2875605da440baf9d7c26c92a273cf61fe16b3231a9d3ca3d0d06f"
+    },
+    {
+      "path": "templates/emails/password-reset-email.html",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "7da0388b0a69e60b813b5105dcde9b89f7607b78ccd7746cd11ff3f3fbf1f498"
+    },
+    {
+      "path": "templates/emails/password-updated-confirmation.html",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "45176f657878f4e3f4f6b8619049a5272c40c4f65f2df61651623664963e4c17"
+    },
+    {
+      "path": "templates/emails/registration-approved.html",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "daa3eb60632e74cdc6550df857c8e95649b6124a69ed36cfaaea1ed3b5a48a67"
+    },
+    {
+      "path": "templates/emails/registration-clarification.html",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "c7e3b495ed77a0bfec962cb205e26ab922bcb4ab6324451348758131ccb50639"
+    },
+    {
+      "path": "templates/emails/registration-confirmation.html",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "3dc5638cce4a7ec4a3f4dc2688a1e11ca54e7311a4812ebea6f5bf6c2736d96e"
+    },
+    {
+      "path": "templates/emails/registration-finalized.html",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "4194495c469800a34220c31e950cf6927cfd8dcdb065ac8620cbabed31004416"
+    },
+    {
+      "path": "templates/emails/registration-received.html",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "f3b7974c75207594bbfe962547e984330a42c364fc863595129761db9aa179f5"
+    },
+    {
+      "path": "templates/emails/registration-rejected.html",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "0d5ee1cc6ef6405a6faf10d9f7fedc41818adfc4c81f9ee2d1e390f2539b2919"
+    },
+    {
+      "path": "templates/export-preview.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "80039cc8535bf81550b829892e8138dd04e6bea3609671a9907c3d761030c46d"
+    },
+    {
+      "path": "templates/forgot-password.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "bb351d93a830bd99eaeee86d95baee910249106d8d2258d9a8bdac6a82b14b6a"
+    },
+    {
+      "path": "templates/home/index.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "33a61ebfdca146b2aa378f37d7806c2e076139428d7f6c128bd94af59c0ae3c0"
+    },
+    {
+      "path": "templates/journal/article.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "0f2bffb83232606030708d30e9f9737290b9ac71d4fa71c6beae9399261a9d9a"
+    },
+    {
+      "path": "templates/journal/card.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "67e7473cb677fdcfedbfe074d971d76f5b15ed5b20162c8626f7cd93adcc8094"
+    },
+    {
+      "path": "templates/journal/index.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "79af87e773dd09bb01f8e25b1f42a2ae6c7ed64381d94e6e8a82d44e4e4abf2b"
+    },
+    {
+      "path": "templates/journal/metadata.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "9348cb738a86c765d2239d064b273c6a4d22b67144a62abcc6942f3a9feb0f1c"
+    },
+    {
+      "path": "templates/journal/show.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "ec0f33fb6c4fca3eb6c372ad2b98b00657b99b5f6f9678d0f94223fe967d68a8"
+    },
+    {
+      "path": "templates/layouts/admin.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "9808ba1a2071677d1fb7c0fdc722c5b3405fcb62aae5a7ca0485f002e1f6cf73"
+    },
+    {
+      "path": "templates/layouts/base.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "d76590ebea9d159a0a60c6e6e5701633d5ec09e48452751ce250362af20f5367"
+    },
+    {
+      "path": "templates/layouts/public-forms.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "9335a4b5419589303d5ab1c210755a3e0d83e592331bad13f6cae9df4c10ddd7"
+    },
+    {
+      "path": "templates/layouts/public.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "5db3ed3f020950b85feaa4de16f8ef6401f9d9dc3b1273d9a0d5b6c5e0debae4"
+    },
+    {
+      "path": "templates/layouts/staff-auth.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "c037bd493307a565d21cdb7198e530077309aa1c59cde4edeadf4a7ffffac602"
+    },
+    {
+      "path": "templates/legal-notice.html.twig",
+      "classification": "French legal/UI source; preserve content",
+      "sha256": "6c22806c58a5b070609bd7fb9fb18cc95dac28a48200cc8775d7b17ec70eb4ae"
+    },
+    {
+      "path": "templates/partials/footer.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "b52c43d9e68442e805f8bd78d3820cb11b1f5c420256f2bc35d66ef8ecba2ced"
+    },
+    {
+      "path": "templates/partials/header.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "eed0b6d30430ac36c8762e6b7a0441ed9275bd4b206454d1317b42baeea0dc38"
+    },
+    {
+      "path": "templates/partials/sidebar.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "c856bd2c233008958afb2c449174f5c53334bcbebc535f5fa362ee53376fd4c0"
+    },
+    {
+      "path": "templates/partials/staff-header.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "897d2d25fd390fd735a5e1c9fb43180ab8a7f41b7c4d94ba8e5c2a8e88c42c1b"
+    },
+    {
+      "path": "templates/register.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "9ed6a94097df96a41a2bbbbf1672405df8d63c735e276f8f09b494c8b1f1b9bb"
+    },
+    {
+      "path": "templates/registration-details.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "bbd71938412e22afb30ee85d2662c859cab72f6989a1320a6897567dc7e4b9e4"
+    },
+    {
+      "path": "templates/reset-password.html.twig",
+      "classification": "French UI/email content; English internal expressions/comments",
+      "sha256": "c12b8568116b409e2f638a23ee54819e67b426d2cb1e92dfbec19ac92787347a"
+    },
+    {
+      "path": "tests/Integration/.gitkeep",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/Integration/Controller/CommunicationControllerTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fa9538caeaa82722f07cb7efe36d085c4d4748c1fbc325f41d842c1ced3dcb6"
+    },
+    {
+      "path": "tests/Integration/Controller/DashboardControllerTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "24049c4f52f97253c41ad6a83ea3b000dfcd46bcf09cb15589061b5986a98820"
+    },
+    {
+      "path": "tests/Integration/Controller/DownloadControllerTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "59b40c5e194a0301b6a01c973deff4199b657770327043d61dc1f9a44d496ae8"
+    },
+    {
+      "path": "tests/Integration/Controller/ExportControllerTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "093f6f46943d3135a46cdf35bc4757f7104fde87111276ea09bbfc65c6a700ba"
+    },
+    {
+      "path": "tests/Integration/Controller/PasswordResetControllerTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "a1b0c8166c7a847ea5c39ef42b54ce2288d5f56d47a7d33a2cd7832ae9971cf8"
+    },
+    {
+      "path": "tests/Integration/Controller/SettingsControllerTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "ac0528f2a1c7fc20e81555d35be09230b9c6f106c8c66decd3d22bf7b29b9396"
+    },
+    {
+      "path": "tests/Integration/Controller/SliderControllerTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "e735f924297caa9e8376ef1d7da032bc7400369fdb7b89c3e6662840c6277694"
+    },
+    {
+      "path": "tests/Integration/Controller/StudentControllerTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "64bd56441bac92ade569bad33f50267e290bbee6ae1bbb1673c343157451176b"
+    },
+    {
+      "path": "tests/Integration/Controller/UserControllerTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "cde4a26c885980bbdde187e927e5965f8541844ac9697435a2d862fc3886f191"
+    },
+    {
+      "path": "tests/Integration/Repository/JournalRepositoryTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "a19046eee449aadf53d6328f30fc8e55b186aa3c2727ac267de036040888baa1"
+    },
+    {
+      "path": "tests/Integration/Repository/StudentRepositoryTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "31cf287efed53640afe4b6c4bae85fc8939355bf24cf7bdd1b33c6d39e689a19"
+    },
+    {
+      "path": "tests/Integration/Repository/UserRepositoryTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "c7be9eee2ebaf3643ffd663367921c585dad2c2ecf943d647022817aa43360fb"
+    },
+    {
+      "path": "tests/Integration/Service/AuthServiceTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "507262dc11a22fc10f5781e1e5ebf3574619e1dd7ad259a66456c809f87607b2"
+    },
+    {
+      "path": "tests/Integration/Service/JournalMediaServiceTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "315cdb139c2149c61eea03c961188d81b41cfdfa787305f5cec4d80233b4896b"
+    },
+    {
+      "path": "tests/Integration/Service/JournalServiceTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "6c82a7fdd5d9c1ee5854442744c3dd0c9ab5f41143c3b8639639beedc65238ee"
+    },
+    {
+      "path": "tests/Integration/View/EmailTemplatesTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "e2412e1788feb551ba019eed237593d124729e42e84c05706c7b989de7884db7"
+    },
+    {
+      "path": "tests/Unit/.gitkeep",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/Unit/Core/CsrfGuardTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "9d559cb33afa69ca606a1ccb899e73ada3cf02ad542f125b43bf2655c514a922"
+    },
+    {
+      "path": "tests/Unit/Core/FlashTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "86156c20ab2c7b9493a07400893a57e454c9e15d727d207ee969d11b298dcc2b"
+    },
+    {
+      "path": "tests/Unit/Core/SessionTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "9dca72fdd4bab3d3043d556e9f71c32cf92c513ec7462bd3e3de4376fa8d599b"
+    },
+    {
+      "path": "tests/Unit/Model/StudentTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "08fbe880575bb103584f6fd008eb9968901a320b1268de744c53945d769a510e"
+    },
+    {
+      "path": "tests/Unit/Model/UserTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "b52c53a721a8b02af6ee4f9ec31a9366c53eac83032c3c213fbf0cb3a8be4392"
+    },
+    {
+      "path": "tests/Unit/Service/EmailDeliveryTest.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "83ac5f3ade2891387340bb022f64e50103518a1c87f523b893b95e15eca30812"
+    },
+    {
+      "path": "tests/apps/Caddyfile",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "c87f2d0b14789521f53803b1fd7b9751f2a03572a0dfcbe8649a2be28c8dbd27"
+    },
+    {
+      "path": "tests/apps/browser.mjs",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "e279bc61b9e7d2fac4ff67a9bb9c62d683425cde254704f62a12cf95be3a4654"
+    },
+    {
+      "path": "tests/apps/cache.py",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "ab2bdf0a8477b662e45035686116c1a47d20bd6b21ed8c37b9a35d07a893fa52"
+    },
+    {
+      "path": "tests/apps/compose.yaml",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "c21942895012c9f6650c0ae3101c311bf9a8cf89cf2ef58300f012b57b043751"
+    },
+    {
+      "path": "tests/apps/fixture.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "119f080c52b5b83092c907cd957a27b0c5bf86167e3bf3b2a3e238572d6c6222"
+    },
+    {
+      "path": "tests/apps/jobs.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "f49e0bb0363ccb1d4cb1855488d2d0ee8917c537e9f801f3ab6db1c02f148921"
+    },
+    {
+      "path": "tests/apps/journal-fixture.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "2c288494a294eb1948f2804dd324e8ee831b1f39738344afa1ab3e38f3f0d284"
+    },
+    {
+      "path": "tests/apps/journal-session-fixture.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "27ee70b4448d74d6f1442f634e41ebde826263e09e08f8e2f566f338de6701ab"
+    },
+    {
+      "path": "tests/apps/journal.py",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "2d378456803693ce616d67871e5acaa8aeb343c95bcb51925ab876ee9ca6b8bc"
+    },
+    {
+      "path": "tests/apps/journeys.py",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "18f30eee0697a4b6d811b5478e51e384bf91923ab45f57973df5788993b38322"
+    },
+    {
+      "path": "tests/apps/links.py",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "af286ce49a6054a703c103873806ae6f5e18b5f684bcb28b20d3f1af5e0e40c6"
+    },
+    {
+      "path": "tests/apps/member-fixture.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "b4fbe464411ff522816bc4517d95bc6d8c21e6dba9ba671076950a3910be2b0f"
+    },
+    {
+      "path": "tests/apps/members.py",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "7919685481679b70d67398dd55733222514aa58d193a9f252eea96a57b87f541"
+    },
+    {
+      "path": "tests/apps/migration-proof.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "c4327618f293a3f7cfa89ee904e3af8fa032873e6172351fe7c508f170223dcd"
+    },
+    {
+      "path": "tests/apps/registration.py",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "2b1eb07698c6c28e58e9f2ef1ed61ba8cb0e2190c22337383f49bae045111362"
+    },
+    {
+      "path": "tests/apps/release.py",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "278526ce88f23ceb6285814e21a757d18b5874bc5e63e1a191803ee7035c28fe"
+    },
+    {
+      "path": "tests/apps/routes.py",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "1dc55b4a6230dbd7cbc68e01876554e087953f59f6c4593f351d13180a6d7dcd"
+    },
+    {
+      "path": "tests/apps/run.sh",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "edf31a81ffd989151b1c841fd9b63ee00c1fc89d1d056ca67bda17ea1abd4126"
+    },
+    {
+      "path": "tests/apps/tools-browser.mjs",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "82499f6331bc9a449c4d3ce5d8e0e778e0e647ffc3b97e806860c560b2ebc94a"
+    },
+    {
+      "path": "tests/apps/tools-fixture.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "cfeed2ecc0d8bf89f42f243ccedebc76061698006839a57cb7ef229159555ed8"
+    },
+    {
+      "path": "tests/apps/tools-run.sh",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "0278c416cc5f30d5f9ab88f17d60274ae3a4d08a2a8e22115db46d2023419e58"
+    },
+    {
+      "path": "tests/apps/tools.py",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "c90e3ae35af9f3e47cd74edc6a74ddb78fea31c64bb2981683adcfbf78461073"
+    },
+    {
+      "path": "tests/apps/visual-refresh.py",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "d484dce15c55e3b7b237c92a4b5a1489060de2e9b1e6843c4bbeab8c1de61710"
+    },
+    {
+      "path": "tests/bootstrap.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "7571ae82e69a04c5e23b895634397a6578b65609f82ddd0454d0c6b23d9fa7e5"
+    },
+    {
+      "path": "tests/http/README.md",
+      "classification": "English technical documentation; classified French labels/history literals",
+      "sha256": "dd5d694da2c8e531a9ddfecba48177792ac57c0f5a5319ef6ea4e4087c23f222"
+    },
+    {
+      "path": "tests/http/SqliteFixture.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "fcd567be629488edb2d86a34d23699bda025633de1753c3b3d1d3d65fb85c2fe"
+    },
+    {
+      "path": "tests/http/baseline.py",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "57fc4a81e9c9f964be84e2e350914cee2485b638296802e2ee196f063c66ddaf"
+    },
+    {
+      "path": "tests/http/fixture.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "555be480945c2612cb0edaa3d25236448d8134de4418bf3ca1e11d39891b9a46"
+    },
+    {
+      "path": "tests/http/harness.py",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "4e253e2dde6a0546d7596c5b894d539f4b99cd6a89c2275ad965950644a1ea29"
+    },
+    {
+      "path": "tests/http/homepage-browser.mjs",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "0fb18c1069373dc1ccd8a53d8ab93db6b0617c7a172f9a20ddaa12d1de6de727"
+    },
+    {
+      "path": "tests/http/internals.py",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "a29c129a122615eafcd96af4ef8c7aaac5923915678b988a2757e48fed771236"
+    },
+    {
+      "path": "tests/http/journal-browser.py",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "4aaa3b86f08cdce2c82af39652e1460cea261942b587d4d94ced34724510afcc"
+    },
+    {
+      "path": "tests/http/journal-fixture.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "f220b86490dc79a72c1c4e7d156d91186de7ff31429ee4fceb0d0e11c8a87bbb"
+    },
+    {
+      "path": "tests/http/registration-browser.mjs",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "a5ec5f0d02a224f6c3424e0623e1724891e33030c8625cef2bd98389ec766575"
+    },
+    {
+      "path": "tests/http/router.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "dc23bbc8947000904be192f3dc329545c883e42695080e471e642b34ebe5f971"
+    },
+    {
+      "path": "tests/http/staged-compatibility-fixture.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "15a7e6a715d805b6b34dfcb96e2eebe0ee95ae12062a26b58ca803213c1b09fa"
+    },
+    {
+      "path": "tests/http/theme-browser.mjs",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "f5d95dba2983c978c10ac66f6b8e538d28299cb31a8aa28eb173c8396acc108d"
+    },
+    {
+      "path": "tests/http/theme-fixture.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "0977a1265ee695732737f46aa3e060f3207be231c0129a0d23af88899ff8ad76"
+    },
+    {
+      "path": "tests/http/theme.py",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "fa9a3a0d1db44a4ca719884fe8b95c1a8ed340a9e9509d986b51a91bbbc8f43e"
+    },
+    {
+      "path": "tests/http/token-fixture.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "8ae50de9829beffd16dba24b1ca2de28e4e711163f08ecf7aafcab444cf3939a"
+    },
+    {
+      "path": "tests/http/tokens-browser.mjs",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "66b74f08dc3bc340ae1be88ea6d4cfbab7466de7a6b453a37fc48795a5bcae5b"
+    },
+    {
+      "path": "tests/http/tokens.py",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "3c7dc9062d1358bacef339e1d69a8b72ac1c20a4b5e1d6a1f457e30bc42d3545"
+    },
+    {
+      "path": "tests/js/theme.test.mjs",
+      "classification": "English frontend/test identifiers/comments; French UI/fixture literals preserved",
+      "sha256": "714903889585bdc569c31c6e576eb359c28164dd78ba24e98bd050fe16f972aa"
+    },
+    {
+      "path": "tests/test_document_reconcile.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "f48cd146201dfbc53ce95a850fe2a3528c078f1508d73fe65f8190e1e47a4900"
+    },
+    {
+      "path": "tests/test_filter_option_nulls.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "eb948b2fee523f93827ca9a283e0b8c5a1ed1e394ce75068e992ea44f49b564b"
+    },
+    {
+      "path": "tests/test_js_string_literal.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "d0c0d65ef0d0fa75cdf44404667d560bea685557d2e1e046d15fd7e591c602cd"
+    },
+    {
+      "path": "tests/test_kyc_schema.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "d2ff5d9724afe5825594e0c803f06403208cafd03562eaa6cf884c0a2edfc748"
+    },
+    {
+      "path": "tests/test_oop_integration.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "2484605b2709e9e87e60e4a6596ec9d0d8eef2e3a8986b08ebef52ece746863b"
+    },
+    {
+      "path": "tests/test_oop_unit.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "d3e93428edf125268b0026fabf5f088f89b050830d809ecee2af53c5a8317c66"
+    },
+    {
+      "path": "tests/test_password_reset_security.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "f1f62eac912a3ffe6583fed0c269654262c92b97dc41c7e855bbc5c291b763f3"
+    },
+    {
+      "path": "tests/test_permissions_integration.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fd8c974af0018ce1e19a7644cde7da043302629423c8660fb95ee4276c79313"
+    },
+    {
+      "path": "tests/test_permissions_unit.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "968c42c32a52b77c1ba64ec1e9a0015e6ffa952411223615a6a24cefd79b7f46"
+    },
+    {
+      "path": "tests/test_students_search_placeholders.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "7b44b8fff7073e16e8f1ef4b9612d9d7575031c93fc43783d63ce340c71542f8"
+    },
+    {
+      "path": "trash.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "upgrade-levels.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    },
+    {
+      "path": "uploads/.htaccess",
+      "classification": "English configuration/build/test source; exact paths/contracts preserved",
+      "sha256": "0a7ec59f0209e14ed0c00e6bf6dbaa32587318435efe847caa7e127cd06b7d58"
+    },
+    {
+      "path": "users.php",
+      "classification": "English PHP identifiers/comments; French UI/contract/data literals preserved",
+      "sha256": "3fc32c7681523662e70565bc68814cc4e42a0da2e09015f156d56bfaec34c70f"
+    }
+  ]
+}
