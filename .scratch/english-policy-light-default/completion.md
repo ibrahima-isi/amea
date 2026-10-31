@@ -73,3 +73,21 @@ Total: **Standards 0 / Spec 0**. Local validation/review are complete. Remote fi
 ### Ticket 02 — PR publication
 
 [PR #24](https://github.com/ibrahima-isi/amea/pull/24) targets `dev` from the signed `fix/light-default-theme` branch. Final-head CI is reported by the [PR checks](https://github.com/ibrahima-isi/amea/pull/24/checks); an earlier green run does not qualify a later evidence commit. PR publication does not claim actual merge, production deployment or local-main integration. The task worktree/branch is retained for review until its work is safely merged; unrelated branches/worktrees remain untouched.
+
+
+## Ticket 04 — English contributor and operations documentation
+
+The user explicitly authorized ticket 04 on 31 October 2026 while ticket 03 awaited CI, and requested completion updates during execution. Worktree `/private/tmp/amea-docs-20261031`, branch `docs/english-contributor-operations`, starts from fetched `dev` revision `7e5c398fa0d7870c454e25a65287fcb7b1a0dbfd`, which includes merged ticket 02 (PR #24). Ticket 03 remains independently published in PR #25; ticket 04 has no blockers and does not import its application changes. Tickets 05/06 are not authorized by this request.
+
+### Inventory checkpoint — in progress
+
+Maintained corpus: root README/glossary; the existing independent-entry ADR; `docs/email-queue.md`; `docs/operations/public-staff-rollout.md`; `docs/testing/README.md`; `docs/testing/association-journal.md`; and `tests/http/README.md`. French technical narrative remains in README, the journal glossary entries, the ADR and the maintained journal qualification guide. The other four guides are already English and will be retained unless translated anchors require a precise link repair. Dated root/feature completion, `.scratch/` plans/specs/reviews and `docs/superpowers/` history belong to ticket 05 and are excluded. The canonical instruction files belong to ticket 01 and remain untouched.
+
+Translation will preserve French product labels as explicit glossary aliases, published decisions, exact commands/environment contracts, deployment/rollback prerequisites and testing limits. No application, theme or deployment behavior is changed. Validation/review/CI are pending; this checkpoint is not a completion claim.
+
+
+### Ticket 04 — translation checkpoint
+
+Translated README onboarding/reference prose and inline technical examples, the six French journal glossary entries (keeping exact French labels as aliases), ADR 0001 and the maintained journal qualification guide. The ADR retains the 28 October decision, local public 404/no staff bridge, shared database/files/business code, deferred physical split and preserved public correction/staff recovery paths. Journal validation limits remain explicit. The README's email navigation now points to the existing email runbook instead of the pre-existing missing section; translated headings have matching anchors. A short clarification distinguishes anonymous local entry points from the already-decided public/staff deployment boundary. These are documentation presentation/link repairs, not new deployment decisions.
+
+The four already-English maintained guides remain byte-identical. The README command changes are English placeholder examples (`repository-url`, `REPLACE_WITH_HASH`, `YourPassword`, SMTP example values) and comment translations; SQL/paths/keys/actual origins and sample human name `Système` are preserved. Compatibility/link checks and independent review are next; runtime behavior is unchanged.

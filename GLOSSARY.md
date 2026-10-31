@@ -20,20 +20,26 @@ The association’s visitor-facing space for introduction, community photography
 The staff-facing space for managing member records, reviewing documents, communicating, and maintaining association content.
 _Also called_: Back-office
 
-**Journal de l’amicale**:
-Espace public d’information de l’AEESGS réunissant les activités à venir, les comptes rendus d’activités passées et les annonces de l’association.
+**Association journal**:
+The AEESGS public information space covering upcoming activities, reports on past activities, and association announcements.
+_French interface label_: Journal de l’amicale
 
-**Activité à venir**:
-Activité de l’association annoncée avant son déroulement pour informer la communauté.
+**Upcoming activity**:
+An association activity announced before it takes place to inform the community.
+_French interface label_: Activité à venir
 
-**Compte rendu d’activité**:
-Publication racontant une activité qui a déjà eu lieu.
+**Activity report**:
+A publication describing an activity that has already taken place.
+_French interface label_: Compte rendu d’activité
 
-**Annonce**:
-Information officielle que l’association souhaite porter à la connaissance de sa communauté.
+**Announcement**:
+Official information the association wants to share with its community.
+_French interface label_: Annonce
 
-**Brouillon du journal**:
-Publication préparée pour le journal de l’amicale qui n’est pas accessible au public.
+**Journal draft**:
+A publication prepared for the association journal that is not publicly accessible.
+_French interface label_: Brouillon du journal
 
-**Activité archivée**:
-Activité terminée dont la page reste consultable dans le journal, sans apparaître parmi les activités à venir. Son archivage ne constitue pas un compte rendu.
+**Archived activity**:
+An ended activity whose page remains available in the journal without appearing among upcoming activities. Archiving does not turn it into an activity report.
+_French interface label_: Activité archivée
