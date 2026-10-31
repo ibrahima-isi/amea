@@ -50,9 +50,9 @@ class RegistrationController extends BaseController
         $this->render('register.html.twig', [
             'formData' => $formData,
             'errors'   => $errors,
-            'schools'  => $this->studentRepo->getDistinctEtablissements(),
-            'domaines' => $this->studentRepo->getDistinctDomaines(),
-            'niveaux'  => $this->studentRepo->getDistinctNiveaux(),
+            'schools'  => $this->studentRepo->getDistinctInstitutions(),
+            'study_fields' => $this->studentRepo->getDistinctStudyFields(),
+            'study_levels'  => $this->studentRepo->getDistinctStudyLevels(),
             'locations' => $this->studentRepo->getLocations(),
             'register_active' => true,
         ]);
@@ -210,11 +210,11 @@ class RegistrationController extends BaseController
         $id = $this->studentRepo->save($dbData);
         $this->studentRepo->update($id, ['is_locked' => 1, 'kyc_updated_at' => date('Y-m-d H:i:s')]);
 
-        if (!empty($dbData['institution'])) $this->studentRepo->ensureEtablissementExists($dbData['institution']);
-        if (!empty($dbData['study_field'])) $this->studentRepo->ensureDomaineExists($dbData['study_field']);
-        if (!empty($dbData['study_level']))  $this->studentRepo->ensureNiveauExists($dbData['study_level']);
+        if (!empty($dbData['institution'])) $this->studentRepo->ensureInstitutionExists($dbData['institution']);
+        if (!empty($dbData['study_field'])) $this->studentRepo->ensureStudyFieldExists($dbData['study_field']);
+        if (!empty($dbData['study_level']))  $this->studentRepo->ensureStudyLevelExists($dbData['study_level']);
         if (!empty($pending['valid_pays_ids'])) {
-            $this->studentRepo->savePersonnePays($id, $pending['valid_pays_ids']);
+            $this->studentRepo->saveStudentCountries($id, $pending['valid_pays_ids']);
         }
 
         $student = $this->studentRepo->findById($id);

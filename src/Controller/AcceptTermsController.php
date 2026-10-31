@@ -7,7 +7,7 @@ use Amea\Repository\SettingRepository;
 use Amea\Repository\StudentRepository;
 use Amea\Service\EmailService;
 
-class AcceptCguController extends BaseController
+class AcceptTermsController extends BaseController
 {
     private StudentRepository $studentRepo;
     private SettingRepository $settingRepo;

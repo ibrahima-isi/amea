@@ -35,7 +35,7 @@ class CommunicationController extends BaseController
     public function index(): void
     {
         $this->render('admin/pages/communications.html.twig', [
-            'institutions' => $this->studentRepo->getDistinctEtablissements(),
+            'institutions' => $this->studentRepo->getDistinctInstitutions(),
             'stats' => $this->getStats(),
         ]);
     }
