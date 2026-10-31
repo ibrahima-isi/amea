@@ -1,0 +1,11 @@
+{% extends 'layouts/admin.html.twig' %}
+{% block title %}Journal — AEESGS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('assets/css/journal.css') }}">{% endblock %}
+{% block body %}
+{% set typeLabels = {'ACTIVITY':'Activité','REPORT':'Compte rendu','ANNOUNCEMENT':'Annonce'} %}
+{% set statusLabels = {'DRAFT':'Brouillon','PUBLISHED':'Publié'} %}
+<div class="journal"><div class="d-flex justify-content-between mb-4"><h1>Journal</h1><a class="btn btn-primary" href="edit-journal.php">Nouvelle publication</a></div>
+<form method="get" class="d-flex flex-wrap gap-2 mb-3"><label>Type <select name="type" class="form-select"><option value="">Tous</option>{% for value,label in typeLabels %}<option value="{{ value }}" {{ filters.type|default('') == value ? 'selected' }}>{{ label }}</option>{% endfor %}</select></label><label>Statut <select name="status" class="form-select"><option value="">Tous</option>{% for value,label in statusLabels %}<option value="{{ value }}" {{ filters.status|default('') == value ? 'selected' }}>{{ label }}</option>{% endfor %}</select></label><button class="btn btn-outline-primary">Filtrer</button></form>
+<div class="table-responsive"><table class="table"><thead><tr><th>Titre</th><th>Type</th><th>Statut</th><th>Actions</th></tr></thead><tbody>{% for post in result.items %}<tr><td>{{ post.title }}</td><td>{{ typeLabels[post.type]|default('Type inconnu') }}</td><td>{{ statusLabels[post.status]|default('Statut inconnu') }}</td><td><a href="edit-journal.php?id={{ post.id }}">Modifier</a> · <a href="journal-preview.php?id={{ post.id }}">Aperçu</a></td></tr>{% else %}<tr><td colspan="4">Aucune publication.</td></tr>{% endfor %}</tbody></table></div>
+{% if page > 1 %}<a href="?{{ filters|merge({'page':page - 1})|url_encode }}">Précédent</a>{% endif %} {% if page * 20 < result.total %}<a href="?{{ filters|merge({'page':page + 1})|url_encode }}">Suivant</a>{% endif %}</div>
+{% endblock %}

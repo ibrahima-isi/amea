@@ -172,13 +172,13 @@ $s = Student::fromRow($sRow);
 expect('getId() returns 7',                        $s->getId() === 7);
 expect('getFullName() = "Ibrahima Diallo"',        $s->getFullName() === 'Ibrahima Diallo');
 expect('getNationalities() decoded',                $s->getNationalities() === ['Sénégalaise']);
-expect('isDiplome() false for En cours',           !$s->isDiplome());
+expect('isGraduate() false for a regular status',           !$s->isGraduate());
 expect('isLocked() false',                         !$s->isLocked());
 expect('hasConsentPrivacy() true',                 $s->hasConsentPrivacy());
 expect('getIdentityDocument() correct',               $s->getIdentityDocument() === 'uploads/students/photo.jpg');
 
-$diplome = Student::fromRow(array_merge($sRow, ['status' => 'Diplômé(e)']));
-expect('isDiplome() true for Diplômé(e)',          $diplome->isDiplome());
+$graduate = Student::fromRow(array_merge($sRow, ['status' => 'Diplômé(e)']));
+expect('isGraduate() true for Diplômé(e)',          $graduate->isGraduate());
 
 $noNat = Student::fromRow(array_merge($sRow, ['nationalities' => null]));
 expect('getNationalities() returns [] for null',    $noNat->getNationalities() === []);
@@ -376,7 +376,7 @@ expect('delete() removes student',                 $stuRepo->findById($sid2) ===
 // getStats — SQLite SUM with = comparisons returns string integers
 $stats = $stuRepo->getStats();
 expect('getStats() returns total >= 1',            (int)$stats['total'] >= 1);
-expect('getStats() diplomes count correct',        (int)$stats['diplomes'] === 1); // only sid1 after update
+expect('getStats() graduates count correct',        (int)$stats['graduates'] === 1); // only sid1 after update
 
 // ─── 6. Repository\SettingRepository ─────────────────────────────────────────
 echo "\nRepository\\SettingRepository\n";

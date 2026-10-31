@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-30",
+  "source_commit": "7dc5faa356f94c2fa2e5ca89e41bb1f49c25ebf2",
+  "status": "PASS",
+  "count": 21,
+  "checks": [
+    "GET all: anonymous empty 200 without private link/cookie/redirect",
+    "GET upcoming: anonymous empty 200 without private link/cookie/redirect",
+    "GET reports: anonymous empty 200 without private link/cookie/redirect",
+    "GET announcements: anonymous empty 200 without private link/cookie/redirect",
+    "GET archives: anonymous empty 200 without private link/cookie/redirect",
+    "GET /manage-journal.php: 404 without redirect",
+    "POST /manage-journal.php: 404 without redirect",
+    "GET /edit-journal.php: 404 without redirect",
+    "POST /edit-journal.php: 404 without redirect",
+    "GET /journal-preview.php: 404 without redirect",
+    "POST /journal-preview.php: 404 without redirect",
+    "GET /journal-preview-cover.php: 404 without redirect",
+    "POST /journal-preview-cover.php: 404 without redirect",
+    "GET /login.php: 404 without redirect",
+    "POST /login.php: 404 without redirect",
+    "GET /journal-article.php?slug=missing: anonymous 404",
+    "GET /journal-cover.php?slug=missing: anonymous 404",
+    "POST /journal.php: rejected 404",
+    "served asset bytes match worktree assets/css/public.css",
+    "served asset bytes match worktree assets/css/journal.css",
+    "served asset bytes match worktree assets/js/theme.js"
+  ],
+  "scope": "Public loopback HTTP checks only; no TLS/private/browser QA; no test data inserted",
+  "browser_qa": "Blocked: supported IAB unavailable, inventory contains no browsers; no other browser or certificate bypass attempted",
+  "remote_verified": {
+    "pr17": "OPEN, DRAFT, unmerged; head 4b16e1644bcf34c28db0d3922fd7687ddf9a0a8d; base dev",
+    "journal_prs": 0,
+    "journal_remote_branches": 0,
+    "dev": "01e6a3b4f02417190b10182934f67c004eeddf19",
+    "main": "137c8515bb61b7e5ade8d2b74b5f2554fc84f1fa"
+  }
+}

@@ -8,8 +8,8 @@
 .public-form-page .form-control,.public-form-page .form-select { background-color:var(--public-surface); color:var(--public-text); border-color:var(--public-line); min-height:44px; }
 .public-form-page .form-label { font-weight:600; }
 .public-form-page .btn { min-height:44px; padding:.65rem 1rem; white-space:normal; }
-.public-form-page .btn-primary,.public-form-page .btn-success { background:var(--public-green); color:var(--public-on-green); border-color:var(--public-green); }
-.public-form-page a:not(.btn) { color:var(--public-green); }
+.public-form-page .btn-primary,.public-form-page .btn-success { background:var(--public-primary); color:var(--public-on-primary); border-color:var(--public-primary); }
+.public-form-page a:not(.btn) { color:var(--public-primary); }
 .public-form-page .btn { text-decoration:none; }
 .public-form-page :focus-visible { outline:3px solid var(--public-focus); outline-offset:3px; }
 .public-form-page .registration-section-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; width:100%; padding:1rem 0; margin:1.5rem 0 1rem; background:none; border:0; border-bottom:2px solid var(--public-line); color:var(--public-text); text-align:left; }
@@ -21,12 +21,38 @@
 .public-form-page .detail-row { display:flex; gap:1rem; flex-wrap:wrap; border-bottom:1px solid var(--public-line); padding:.8rem 0; overflow-wrap:anywhere; }
 .public-form-page .detail-label { flex:1 1 10rem; color:var(--public-muted); font-weight:600; }
 .public-form-page .detail-value { flex:1 1 12rem; min-width:0; }
-.public-form-page .section-title { color:var(--public-green); margin:1.7rem 0 .6rem; }
+.public-form-page .section-title { color:var(--public-primary); margin:1.7rem 0 .6rem; }
 .public-form-page .tagify { --tags-border-color:var(--public-line); --tags-focus-border-color:var(--public-focus); --tag-bg:var(--public-soft); --tag-text-color:var(--public-text); width:100%; color:var(--public-text); }
 @media(max-width:575.98px) { .public-form-page .card-header,.public-form-page .card-body { padding:1.25rem; } .public-form-page .registration-section-heading { gap:.5rem; } .public-form-page .registration-toggle-label { display:none; } .public-form-page .card-footer>* { width:100%; } .public-form-page .card-footer button { width:100%; } }
 @media(prefers-reduced-motion:reduce) { .public-form-page .registration-section-panel { transition:none; } }
 .public-form-page a.btn-secondary,.public-form-page a.btn-warning,.public-form-page a.btn-info { color:var(--bs-btn-color); }
 .public-form-page .tagify { --readonly-striped:0; --input-color:var(--public-text); background:var(--public-surface); }
-.public-form-page .text-danger { color:var(--public-red)!important; }
+.public-form-page .text-danger { color:var(--public-error)!important; }
 .public-form-page .btn-outline-secondary { color:var(--public-muted); border-color:var(--public-muted); }
-.public-form-page .text-primary { color:var(--public-green)!important; }
+.public-form-page .text-primary { color:var(--public-primary)!important; }
+
+/* Bootstrap utilities and controls inherit the public identity in every member journey. */
+.public-form-page { --bs-primary-rgb:168,52,52; --bs-link-color:var(--public-primary); --bs-link-hover-color:var(--public-primary-hover); --bs-emphasis-color:var(--public-text); }
+.public-form-page .card-footer { background:var(--public-soft); border-color:var(--public-line); }
+.public-form-page .btn-primary,.public-form-page .btn-success { --bs-btn-hover-bg:var(--public-primary-hover); --bs-btn-hover-color:var(--public-on-primary); --bs-btn-active-bg:var(--public-primary-hover); }
+.public-form-page .btn-primary:hover,.public-form-page .btn-success:hover,.public-form-page .btn-primary:active,.public-form-page .btn-success:active { background:var(--public-primary-hover); border-color:var(--public-primary-hover); color:var(--public-on-primary); }
+.public-form-page .form-control:focus,.public-form-page .form-select:focus { background:var(--public-surface); color:var(--public-text); border-color:var(--public-focus); box-shadow:0 0 0 .2rem color-mix(in srgb,var(--public-focus) 20%,transparent); }
+.public-form-page .form-control::placeholder { color:var(--public-muted); opacity:1; }
+.public-form-page .form-check-input { border-color:var(--public-muted); background-color:var(--public-surface); }
+.public-form-page .form-check-input:checked { background-color:var(--public-primary); border-color:var(--public-primary); }
+.public-form-page .invalid-feedback { color:var(--public-error); }
+.public-form-page .is-invalid { border-color:var(--public-error); }
+.public-form-page .bg-light { background:var(--public-soft)!important; }
+.public-form-page .text-dark { color:var(--public-text)!important; }
+.public-form-page .alert { overflow-wrap:anywhere; }
+.public-form-page .alert-danger { color:var(--public-error); background:var(--public-surface); border-color:var(--public-error); }
+.public-form-page .alert-info,.public-form-page .alert-warning { color:var(--public-text); background:var(--public-soft); border-color:var(--public-line); }
+.public-form-page .btn-outline-primary { --bs-btn-color:var(--public-primary); --bs-btn-border-color:var(--public-primary); --bs-btn-hover-bg:var(--public-primary); --bs-btn-hover-border-color:var(--public-primary); --bs-btn-hover-color:var(--public-on-primary); }
+.public-form-page .bg-body-secondary { background:var(--public-soft)!important; }
+.public-form-page .text-secondary { color:var(--public-muted)!important; }
+.public-form-page .modal-content { background:var(--public-surface); color:var(--public-text); border-color:var(--public-line); }
+.public-form-page .btn-secondary { --bs-btn-bg:#70635b; --bs-btn-border-color:#70635b; --bs-btn-hover-bg:#594e47; --bs-btn-hover-border-color:#594e47; }
+.public-form-page .btn-info,.public-form-page .btn-warning { --bs-btn-bg:var(--public-soft); --bs-btn-color:var(--public-text); --bs-btn-border-color:var(--public-line); --bs-btn-hover-bg:var(--public-line); --bs-btn-hover-border-color:var(--public-muted); --bs-btn-hover-color:var(--public-text); }
+.public-form-page .btn-outline-success { --bs-btn-color:var(--public-primary); --bs-btn-border-color:var(--public-primary); --bs-btn-hover-bg:var(--public-primary); --bs-btn-hover-color:var(--public-on-primary); --bs-btn-hover-border-color:var(--public-primary); }
+[data-bs-theme="dark"] .public-form-page .form-check-input:checked { background-color:#a83434; border-color:var(--public-primary); }
+[data-bs-theme="dark"] .public-form-page .btn-close { filter:invert(1); }

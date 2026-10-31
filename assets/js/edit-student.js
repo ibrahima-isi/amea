@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   let tagify; // Variable to store Tagify instance
 
-  // === Flatpickr Initialization for Date de naissance ===
+  // === Flatpickr initialization for the birth date ===
   const birthDateInput = document.getElementById("birth_date");
   if (birthDateInput && typeof flatpickr === "function") {
     flatpickr(birthDateInput, {
@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
           },
         });
 
-        // Prepopulate with Guinee (read-only) if not already present
+        // Prepopulate the read-only Guinea tag if it is not already present
         var existing =
           tagify.value &&
           tagify.value.map(function (t) {

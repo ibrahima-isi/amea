@@ -63,7 +63,7 @@ try {
     await check("!!document.querySelector('#registrationForm')", 'authenticated staff browser retains independent public journey');
     await check("!document.body?.innerText.includes('Tableau de bord')", 'staff state does not replace public registration');
     shot=await cdp('Page.captureScreenshot',{format:'png'});await writeFile(path.join(out,'public-registration-isolated.png'),Buffer.from(shot.data,'base64'));
-    // Actual browser login return and stale-form recovery, after the shared identity checks.
+    // Internal staff login returns remain; old public staff URLs fail locally.
     await cdp('Page.navigate',{url:staff+'/logout.php'});
     for(let i=0;i<100;i++){await wait(100);if(await evaluate("location.pathname === '/login.php' && !!document.querySelector('[name=username]')"))break;}
     await navigate(staff+'/login.php?return_to='+encodeURIComponent('/students.php?search=Legacy'));
@@ -73,10 +73,10 @@ try {
     shot=await cdp('Page.captureScreenshot',{format:'png'});await writeFile(path.join(out,'staff-login-return.png'),Buffer.from(shot.data,'base64'));
     await navigate(base+'/');
     await evaluate("(() => {const form=document.createElement('form');form.method='POST';form.action='/students.php';document.body.append(form);form.submit();})()");
-    for(let i=0;i<100;i++){await wait(100);if(await evaluate("document.body?.innerText.includes('Ce formulaire a changé')"))break;}
-    await check("document.body?.innerText.includes('Votre action n’a pas été exécutée')", 'browser stale form explains safe recovery');
-    await check("document.querySelector('a').href === " + JSON.stringify(staff+'/login.php'), 'browser recovery link uses configured staff origin');
-    shot=await cdp('Page.captureScreenshot',{format:'png'});await writeFile(path.join(out,'legacy-staff-recovery.png'),Buffer.from(shot.data,'base64'));
+    for(let i=0;i<100;i++){await wait(100);if(await evaluate("document.body?.innerText.includes('Page introuvable.')"))break;}
+    await check("location.origin === " + JSON.stringify(base) + " && document.body?.innerText.includes('Page introuvable.')", 'browser old staff submission stays on public and is rejected');
+    await check("!document.querySelector('a')", 'public rejection offers no staff recovery link');
+    shot=await cdp('Page.captureScreenshot',{format:'png'});await writeFile(path.join(out,'public-staff-route-denied.png'),Buffer.from(shot.data,'base64'));
 
 } finally {
     if (shutdown) await Promise.race([shutdown().catch(() => {}), new Promise(resolve => setTimeout(resolve, 1500))]);

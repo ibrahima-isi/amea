@@ -7,6 +7,18 @@ class StudentRepository
 {
     public function __construct(private \PDO $pdo) {}
 
+    /** Active dossiers awaiting staff review, oldest first. @return Student[] */
+    public function findReviewQueue(int $limit = 6): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT * FROM students WHERE deleted_at IS NULL AND kyc_status = ? ORDER BY registration_date ASC, id ASC LIMIT ?'
+        );
+        $stmt->bindValue(1, 'UNDER_REVIEW', \PDO::PARAM_STR);
+        $stmt->bindValue(2, max(1, min(50, $limit)), \PDO::PARAM_INT);
+        $stmt->execute();
+        return array_map(fn($row) => Student::fromRow($row), $stmt->fetchAll());
+    }
+
     public function findById(int $id): ?Student
     {
         $stmt = $this->pdo->prepare("SELECT * FROM students WHERE id = ? AND deleted_at IS NULL");
@@ -218,7 +230,7 @@ class StudentRepository
     }
 
     /** @return string[] */
-    public function getDistinctEtablissements(): array
+    public function getDistinctInstitutions(): array
     {
         return $this->pdo
             ->query("SELECT name FROM institutions ORDER BY name ASC")
@@ -226,7 +238,7 @@ class StudentRepository
     }
 
     /** @return string[] */
-    public function getDistinctDomaines(): array
+    public function getDistinctStudyFields(): array
     {
         return $this->pdo
             ->query("SELECT name FROM study_fields ORDER BY name ASC")
@@ -234,7 +246,7 @@ class StudentRepository
     }
 
     /** @return string[] */
-    public function getDistinctNiveaux(): array
+    public function getDistinctStudyLevels(): array
     {
         return $this->pdo
             ->query("SELECT name FROM study_levels ORDER BY name ASC")
@@ -246,22 +258,22 @@ class StudentRepository
         $row = $this->pdo->query(
             "SELECT
                 COUNT(*) AS total,
-                SUM(CASE WHEN gender = 'Masculin'    THEN 1 ELSE 0 END) AS hommes,
-                SUM(CASE WHEN gender = 'Féminin'     THEN 1 ELSE 0 END) AS femmes,
-                SUM(CASE WHEN status = 'ELEVE'       THEN 1 ELSE 0 END) AS eleves,
-                SUM(CASE WHEN status = 'ETUDIANT'    THEN 1 ELSE 0 END) AS etudiants,
-                SUM(CASE WHEN status = 'STAGIAIRE'   THEN 1 ELSE 0 END) AS stagiaires,
-                SUM(CASE WHEN status = 'Diplômé(e)'  THEN 1 ELSE 0 END) AS diplomes
+                SUM(CASE WHEN gender = 'Masculin'    THEN 1 ELSE 0 END) AS men,
+                SUM(CASE WHEN gender = 'Féminin'     THEN 1 ELSE 0 END) AS women,
+                SUM(CASE WHEN status = 'ELEVE'       THEN 1 ELSE 0 END) AS pupils,
+                SUM(CASE WHEN status = 'ETUDIANT'    THEN 1 ELSE 0 END) AS students,
+                SUM(CASE WHEN status = 'STAGIAIRE'   THEN 1 ELSE 0 END) AS interns,
+                SUM(CASE WHEN status = 'Diplômé(e)'  THEN 1 ELSE 0 END) AS graduates
              FROM students WHERE deleted_at IS NULL"
         )->fetch();
         return $row ?: [
             'total'      => 0,
-            'hommes'     => 0,
-            'femmes'     => 0,
-            'eleves'     => 0,
-            'etudiants'  => 0,
-            'stagiaires' => 0,
-            'diplomes'   => 0,
+            'men'        => 0,
+            'women'      => 0,
+            'pupils'     => 0,
+            'students'   => 0,
+            'interns'    => 0,
+            'graduates'  => 0,
         ];
     }
 
@@ -274,11 +286,11 @@ class StudentRepository
         return (int)$stmt->fetchColumn();
     }
 
-    /** @return array<array{nom: string, count: int}> */
-    public function getTopEtablissements(int $limit = 5): array
+    /** @return array<array{institution: string, count: int}> */
+    public function getTopInstitutions(int $limit = 5): array
     {
         $stmt = $this->pdo->prepare(
-            "SELECT institution AS nom, COUNT(*) AS count FROM students
+            "SELECT institution, COUNT(*) AS count FROM students
              WHERE deleted_at IS NULL
              GROUP BY institution ORDER BY count DESC LIMIT ?"
         );
@@ -310,42 +322,42 @@ class StudentRepository
         return (bool)$stmt->fetchColumn();
     }
 
-    public function ensureEtablissementExists(string $nom): void
+    public function ensureInstitutionExists(string $name): void
     {
         $stmt = $this->pdo->prepare("SELECT 1 FROM institutions WHERE name = ? LIMIT 1");
-        $stmt->execute([$nom]);
+        $stmt->execute([$name]);
         if (!$stmt->fetchColumn()) {
-            $this->pdo->prepare("INSERT INTO institutions (name) VALUES (?)")->execute([$nom]);
+            $this->pdo->prepare("INSERT INTO institutions (name) VALUES (?)")->execute([$name]);
         }
     }
 
-    public function ensureDomaineExists(string $nom): void
+    public function ensureStudyFieldExists(string $name): void
     {
         $stmt = $this->pdo->prepare("SELECT 1 FROM study_fields WHERE name = ? LIMIT 1");
-        $stmt->execute([$nom]);
+        $stmt->execute([$name]);
         if (!$stmt->fetchColumn()) {
-            $this->pdo->prepare("INSERT INTO study_fields (name) VALUES (?)")->execute([$nom]);
+            $this->pdo->prepare("INSERT INTO study_fields (name) VALUES (?)")->execute([$name]);
         }
     }
 
-    public function ensureNiveauExists(string $nom): void
+    public function ensureStudyLevelExists(string $name): void
     {
         $stmt = $this->pdo->prepare("SELECT 1 FROM study_levels WHERE name = ? LIMIT 1");
-        $stmt->execute([$nom]);
+        $stmt->execute([$name]);
         if (!$stmt->fetchColumn()) {
-            $this->pdo->prepare("INSERT INTO study_levels (name) VALUES (?)")->execute([$nom]);
+            $this->pdo->prepare("INSERT INTO study_levels (name) VALUES (?)")->execute([$name]);
         }
     }
 
-    public function savePersonnePays(int $personneId, array $paysIds): void
+    public function saveStudentCountries(int $studentId, array $countryIds): void
     {
         $stmt = $this->pdo->prepare("INSERT IGNORE INTO student_country (student_id, country_id) VALUES (?, ?)");
-        foreach ($paysIds as $pid) {
-            $stmt->execute([$personneId, $pid]);
+        foreach ($countryIds as $pid) {
+            $stmt->execute([$studentId, $pid]);
         }
     }
 
-    public function getPaysByName(array $names): array
+    public function getCountriesByName(array $names): array
     {
         if (empty($names)) return [];
         $placeholders = implode(',', array_fill(0, count($names), '?'));
@@ -354,12 +366,12 @@ class StudentRepository
         return $stmt->fetchAll();
     }
 
-    public function getGuineeCountry(): ?array
+    public function getGuineaCountry(): ?array
     {
-        $guineeNames = ['Guinée', 'Guinee', 'Guinea'];
-        $placeholders = implode(',', array_fill(0, count($guineeNames), '?'));
+        $guineaNames = ['Guinée', 'Guinee', 'Guinea'];
+        $placeholders = implode(',', array_fill(0, count($guineaNames), '?'));
         $stmt = $this->pdo->prepare("SELECT id, name_fr FROM countries WHERE name_fr IN ($placeholders) LIMIT 1");
-        $stmt->execute($guineeNames);
+        $stmt->execute($guineaNames);
         $res = $stmt->fetch();
         return $res ?: null;
     }

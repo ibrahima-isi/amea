@@ -25,6 +25,10 @@ $router->add('GET', '/login.php', 'AuthController@login');
 $router->add('POST', '/login.php', 'AuthController@login');
 $router->add('GET', '/logout.php', 'AuthController@logout');
 
+$router->add('GET', '/journal.php', 'JournalPublicController@index');
+$router->add('GET', '/journal-article.php', 'JournalPublicController@show');
+$router->add('GET', '/journal-cover.php', 'JournalPublicController@cover');
+
 // KYC Registration Workflow
 $router->add('GET', '/register.php', 'RegistrationController@showForm');
 $router->add('POST', '/register.php', 'RegistrationController@register');
@@ -79,6 +83,12 @@ $router->add('POST', '/settings.php', 'SettingsController@update');
 $router->add('GET',  '/manage-slider.php', 'SliderController@index');
 $router->add('POST', '/manage-slider.php', 'SliderController@handlePost');
 
+$router->add('GET', '/manage-journal.php', 'JournalAdminController@index');
+$router->add('GET', '/edit-journal.php', 'JournalAdminController@edit');
+$router->add('POST', '/edit-journal.php', 'JournalAdminController@save');
+$router->add('GET', '/journal-preview.php', 'JournalAdminController@preview');
+$router->add('GET', '/journal-preview-cover.php', 'JournalAdminController@cover');
+
 // Upgrade levels
 $router->add('GET',  '/upgrade-levels.php',  'UpgradeController@index');
 $router->add('POST', '/confirm-upgrade.php', 'UpgradeController@confirm');
@@ -97,7 +107,7 @@ $router->add('POST', '/reset-password.php',  'PasswordResetController@resetSubmi
 // Download, legal, CGU
 $router->add('GET',  '/download.php',     'DownloadController@serve');
 $router->add('GET',  '/legal-notice.php', 'LegalController@index');
-$router->add('GET',  '/accept-cgu.php',   'AcceptCguController@accept');
-$router->add('POST', '/accept-cgu.php',   'AcceptCguController@accept');
+$router->add('GET',  '/accept-cgu.php',   'AcceptTermsController@accept');
+$router->add('POST', '/accept-cgu.php',   'AcceptTermsController@accept');
 
 return $router;

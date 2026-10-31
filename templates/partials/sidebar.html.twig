@@ -1,75 +1,20 @@
-<div id="sidebar-wrapper">
-
-    <div class="sidebar-brand">
-        <i class="fas fa-graduation-cap"></i>
-        <span class="sidebar-brand-text">AEESGS Admin</span>
-    </div>
-
-    <nav class="sidebar-nav">
-        <div class="sidebar-section-label">Navigation</div>
-
-        <a href="dashboard.php" class="sidebar-link {% if app.request.attributes.get('_route') == 'dashboard' %}active{% endif %}">
-            <i class="fas fa-chart-line"></i>
-            <span>Tableau de bord</span>
-        </a>
-
-        <a href="students.php" class="sidebar-link {% if 'students.php' in app.request.server.get('PHP_SELF') or 'student-details.php' in app.request.server.get('PHP_SELF') or 'edit-student.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
-            <i class="fas fa-user-graduate"></i>
-            <span>Étudiants</span>
-        </a>
-
-        <a href="trash.php" class="sidebar-link {% if 'trash.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
-            <i class="fas fa-trash-can"></i>
-            <span>Corbeille</span>
-        </a>
-
-        <a href="export.php" class="sidebar-link {% if 'export.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
-            <i class="fas fa-file-export"></i>
-            <span>Export</span>
-        </a>
-
-        <div class="sidebar-section-label">Administration</div>
-
-        <a href="kyc-list.php" class="sidebar-link {% if 'kyc-list.php' in app.request.server.get('PHP_SELF') or 'kyc-detail.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
-            <i class="fas fa-user-check"></i>
-            <span>Validation KYC</span>
-        </a>
-
-        <a href="users.php" class="sidebar-link {% if 'users.php' in app.request.server.get('PHP_SELF') or 'add-user.php' in app.request.server.get('PHP_SELF') or 'edit-user.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
-            <i class="fas fa-users"></i>
-            <span>Utilisateurs</span>
-        </a>
-
-        <a href="manage-slider.php" class="sidebar-link {% if 'manage-slider.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
-            <i class="fas fa-images"></i>
-            <span>Carrousel</span>
-        </a>
-
-        <a href="upgrade-levels.php" class="sidebar-link {% if 'upgrade-levels.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
-            <i class="fas fa-arrow-up-right-dots"></i>
-            <span>Mise à niveau</span>
-        </a>
-
-        <a href="communications.php" class="sidebar-link {% if 'communications.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
-            <i class="fas fa-envelope-open-text"></i>
-            <span>Communications</span>
-        </a>
-
-        <a href="settings.php" class="sidebar-link {% if 'settings.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
-            <i class="fas fa-sliders-h"></i>
-            <span>Paramètres</span>
-        </a>
+<aside id="sidebar-wrapper" aria-label="Administration">
+    <a class="sidebar-brand" href="dashboard.php">{% if public_logo_available %}<img src="{{ asset('assets/img/logo.png') }}" alt="AEESGS" width="40" height="40">{% endif %}<span>AEESGS<small>Administration</small></span></a>
+    <nav class="sidebar-nav" aria-label="Navigation administrative">
+        {% if staff_navigation.dashboard %}<a href="dashboard.php" class="sidebar-link {% if staff_route in ['dashboard.php'] %}active{% endif %}" {% if staff_route in ['dashboard.php'] %}aria-current="page"{% endif %}><i class="fas fa-chart-line" aria-hidden="true"></i><span>Tableau de bord</span></a>{% endif %}
+        {% if staff_navigation.students or staff_navigation.trash or staff_navigation.export or staff_navigation.kyc or staff_navigation.upgrade %}<p class="sidebar-group-label">Adhérents et dossiers</p>{% endif %}
+        {% if staff_navigation.students %}<a href="students.php" class="sidebar-link {% if staff_route in ['students.php', 'student-details.php', 'edit-student.php'] %}active{% endif %}" {% if staff_route in ['students.php', 'student-details.php', 'edit-student.php'] %}aria-current="page"{% endif %}><i class="fas fa-user-graduate" aria-hidden="true"></i><span>Adhérents</span></a>{% endif %}
+        {% if staff_navigation.trash %}<a href="trash.php" class="sidebar-link {% if staff_route in ['trash.php'] %}active{% endif %}" {% if staff_route in ['trash.php'] %}aria-current="page"{% endif %}><i class="fas fa-trash-can" aria-hidden="true"></i><span>Corbeille</span></a>{% endif %}
+        {% if staff_navigation.export %}<a href="export.php" class="sidebar-link {% if staff_route in ['export.php'] %}active{% endif %}" {% if staff_route in ['export.php'] %}aria-current="page"{% endif %}><i class="fas fa-file-export" aria-hidden="true"></i><span>Export</span></a>{% endif %}
+        {% if staff_navigation.kyc %}<a href="kyc-list.php" class="sidebar-link {% if staff_route in ['kyc-list.php', 'kyc-detail.php'] %}active{% endif %}" {% if staff_route in ['kyc-list.php', 'kyc-detail.php'] %}aria-current="page"{% endif %}><i class="fas fa-user-check" aria-hidden="true"></i><span>Validation KYC</span></a>{% endif %}
+        {% if staff_navigation.upgrade %}<a href="upgrade-levels.php" class="sidebar-link {% if staff_route in ['upgrade-levels.php'] %}active{% endif %}" {% if staff_route in ['upgrade-levels.php'] %}aria-current="page"{% endif %}><i class="fas fa-arrow-up-right-dots" aria-hidden="true"></i><span>Mise à niveau</span></a>{% endif %}
+        {% if staff_navigation.slider or staff_navigation.communications or staff_navigation.journal %}<p class="sidebar-group-label">Vie de l’association</p>{% endif %}
+        {% if staff_navigation.journal %}<a href="manage-journal.php" class="sidebar-link {% if staff_route in ['manage-journal.php', 'edit-journal.php', 'journal-preview.php'] %}active{% endif %}"><i class="fas fa-newspaper" aria-hidden="true"></i><span>Journal</span></a>{% endif %}
+        {% if staff_navigation.slider %}<a href="manage-slider.php" class="sidebar-link {% if staff_route in ['manage-slider.php'] %}active{% endif %}" {% if staff_route in ['manage-slider.php'] %}aria-current="page"{% endif %}><i class="fas fa-images" aria-hidden="true"></i><span>Carrousel</span></a>{% endif %}
+        {% if staff_navigation.communications %}<a href="communications.php" class="sidebar-link {% if staff_route in ['communications.php'] %}active{% endif %}" {% if staff_route in ['communications.php'] %}aria-current="page"{% endif %}><i class="fas fa-envelope-open-text" aria-hidden="true"></i><span>Communications</span></a>{% endif %}
+        {% if staff_navigation.users or staff_navigation.settings %}<p class="sidebar-group-label">Gestion</p>{% endif %}
+        {% if staff_navigation.users %}<a href="users.php" class="sidebar-link {% if staff_route in ['users.php', 'add-user.php', 'edit-user.php'] %}active{% endif %}" {% if staff_route in ['users.php', 'add-user.php', 'edit-user.php'] %}aria-current="page"{% endif %}><i class="fas fa-users" aria-hidden="true"></i><span>Utilisateurs</span></a>{% endif %}
+        {% if staff_navigation.settings %}<a href="settings.php" class="sidebar-link {% if staff_route in ['settings.php'] %}active{% endif %}" {% if staff_route in ['settings.php'] %}aria-current="page"{% endif %}><i class="fas fa-sliders" aria-hidden="true"></i><span>Paramètres</span></a>{% endif %}
     </nav>
-
-    <div class="sidebar-footer">
-        <a href="profile.php" class="sidebar-link {% if 'profile.php' in app.request.server.get('PHP_SELF') %}active{% endif %}">
-            <i class="fas fa-user-circle"></i>
-            <span>{{ session.first_name|default('') }} {{ session.last_name|default('') }}</span>
-        </a>
-        <a href="logout.php" class="sidebar-link sidebar-link-logout">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Déconnexion</span>
-        </a>
-    </div>
-
-</div>
+    <div class="sidebar-footer"><a href="profile.php" class="sidebar-link"><i class="fas fa-user-circle" aria-hidden="true"></i>Mon profil</a></div>
+</aside>

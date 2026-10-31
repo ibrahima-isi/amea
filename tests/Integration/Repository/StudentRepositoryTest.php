@@ -39,6 +39,105 @@ class StudentRepositoryTest extends TestCase
         ], $overrides);
     }
 
+    public function testStatisticsRetainFrenchBusinessValuesAndExcludeTrashedMembers(): void
+    {
+        foreach (['ELEVE', 'ETUDIANT', 'STAGIAIRE', 'Diplômé(e)'] as $index => $status) {
+            $this->repo->save($this->makeStudent([
+                'status' => $status,
+                'gender' => $index % 2 === 0 ? 'Masculin' : 'Féminin',
+                'phone' => '77900000' . $index,
+                'email' => "stats{$index}@example.invalid",
+            ]));
+        }
+        $trashed = $this->repo->save($this->makeStudent([
+            'status' => 'ETUDIANT', 'phone' => '779000009', 'email' => 'trashed@example.invalid',
+        ]));
+        $this->repo->softDelete($trashed);
+
+        $stats = array_map('intval', $this->repo->getStats());
+        $this->assertSame([
+            'total' => 4, 'men' => 2, 'women' => 2, 'pupils' => 1,
+            'students' => 1, 'interns' => 1, 'graduates' => 1,
+        ], $stats);
+        $this->assertSame('Diplômé(e)', $this->repo->findAll(['status' => 'Diplômé(e)'])[0]->getStatus());
+    }
+
+    public function testSharedLookupEntriesRemainSortedAndReusable(): void
+    {
+        $this->db->exec('CREATE TABLE study_fields (id INTEGER PRIMARY KEY, name TEXT UNIQUE);
+            CREATE TABLE study_levels (id INTEGER PRIMARY KEY, name TEXT UNIQUE);
+            CREATE TABLE countries (id INTEGER PRIMARY KEY, name_fr TEXT)');
+        foreach (['Zoologie', 'Biologie', 'Biologie'] as $name) {
+            $this->repo->ensureInstitutionExists($name);
+            $this->repo->ensureStudyFieldExists($name);
+            $this->repo->ensureStudyLevelExists($name);
+        }
+        $this->assertSame(['Biologie', 'Zoologie'], $this->repo->getDistinctInstitutions());
+        $this->assertSame(['Biologie', 'Zoologie'], $this->repo->getDistinctStudyFields());
+        $this->assertSame(['Biologie', 'Zoologie'], $this->repo->getDistinctStudyLevels());
+        $this->db->exec("INSERT INTO countries VALUES (1, 'Guinée'), (2, 'Sénégal')");
+        $this->assertSame(['id' => 1, 'name_fr' => 'Guinée'], $this->repo->getGuineaCountry());
+        $this->assertSame([['id' => 2, 'name_fr' => 'Sénégal']], $this->repo->getCountriesByName(['Sénégal']));
+        $this->assertSame([], $this->repo->getCountriesByName([]));
+    }
+
+    public function testInstitutionReportKeepsNamesCountsAndActiveMemberBoundary(): void
+    {
+        foreach (['Université A', 'Université A', 'Université B'] as $index => $institution) {
+            $this->repo->save($this->makeStudent([
+                'institution' => $institution, 'phone' => '77800000' . $index,
+                'email' => "report{$index}@example.invalid",
+            ]));
+        }
+        $trashed = $this->repo->save($this->makeStudent([
+            'institution' => 'Université B', 'phone' => '778000009', 'email' => 'old@example.invalid',
+        ]));
+        $this->repo->softDelete($trashed);
+        $this->assertSame([
+            ['institution' => 'Université A', 'count' => 2],
+            ['institution' => 'Université B', 'count' => 1],
+        ], $this->repo->getTopInstitutions());
+    }
+
+    public function testReviewQueueFiltersOrdersAndLimitsActiveDossiers(): void
+    {
+        $ids = [];
+        foreach (['UNDER_REVIEW', 'UNDER_REVIEW', 'UNDER_REVIEW', 'NEEDS_CLARIFICATION', 'APPROVED', 'REJECTED', 'PENDING_CONFIRMATION', 'UNDER_REVIEW'] as $index => $status) {
+            $ids[] = $this->repo->save($this->makeStudent([
+                'phone' => '7711100' . sprintf('%02d', $index),
+                'email' => "queue{$index}@test.sn",
+                'kyc_status' => $status,
+            ]));
+        }
+        $dates = ['2026-01-03', '2026-01-01', '2026-01-01'];
+        foreach ($ids as $index => $id) {
+            $this->db->prepare('UPDATE students SET registration_date = ? WHERE id = ?')
+                ->execute([$dates[$index] ?? '2025-01-01', $id]);
+        }
+        $this->repo->delete($ids[7]);
+        $queue = $this->repo->findReviewQueue();
+        $this->assertContainsOnlyInstancesOf(Student::class, $queue);
+        $this->assertSame([$ids[1], $ids[2], $ids[0]], array_map(fn(Student $student) => $student->getId(), $queue));
+        $this->assertSame([$ids[1], $ids[2]], array_map(fn(Student $student) => $student->getId(), $this->repo->findReviewQueue(2)));
+        $this->assertSame(3, $this->repo->countAll(['kyc_status' => 'UNDER_REVIEW']));
+        $this->assertSame(1, $this->repo->countAll(['kyc_status' => 'NEEDS_CLARIFICATION']));
+    }
+
+    public function testReviewQueueClampsLimit(): void
+    {
+        for ($index = 0; $index < 52; $index++) {
+            $this->repo->save($this->makeStudent([
+                'phone' => '772' . sprintf('%06d', $index),
+                'email' => "limit{$index}@test.sn",
+                'kyc_status' => 'UNDER_REVIEW',
+            ]));
+        }
+        $this->assertCount(1, $this->repo->findReviewQueue(0));
+        $this->assertCount(1, $this->repo->findReviewQueue(-5));
+        $this->assertCount(6, $this->repo->findReviewQueue());
+        $this->assertCount(50, $this->repo->findReviewQueue(999));
+    }
+
     public function testSaveAndFindById(): void
     {
         $id = $this->repo->save($this->makeStudent());

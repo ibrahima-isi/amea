@@ -1,22 +1,22 @@
-# Désactiver le listing des dossiers
+# Disable directory listings
 Options -Indexes
 
-# Supprimer la signature serveur
+# Hide the server signature
 ServerSignature Off
 
-# Convertir les 403 et 404 en une réponse 404 générique (évite de confirmer l'existence des fichiers)
+# Return a generic 404 for both 403 and 404 responses to avoid confirming file existence
 ErrorDocument 403 /404-handler.php
 ErrorDocument 404 /404-handler.php
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Bloquer l'accès aux répertoires de versioning
+    # Block access to version-control directories
     RewriteRule ^\.git(/.*)?$  - [F,L]
     RewriteRule ^\.svn(/.*)?$  - [F,L]
     RewriteRule ^svn(/.*)?$    - [F,L]
 
-    # Bloquer les paths d'attaque courants → 404 direct avant tout redirect
+    # Return 404 for common attack paths before any redirect
     RewriteRule ^(admin|adm|administrator|wp-admin|wp-login\.php|phpmyadmin|pma|myadmin)(/.*)?$ /404-handler.php [L]
     RewriteRule ^(amanda|apache|bin|ftp|guest|http|log|shell|backup|cgi-bin|cgi|test|old|tmp|temp|web|www|cpanel|webmail|roundcube|plesk)(/.*)?$ /404-handler.php [L]
 
@@ -33,19 +33,19 @@ ErrorDocument 404 /404-handler.php
 
 </IfModule>
 
-# Bloquer l'accès direct aux fichiers sensibles
+# Block direct access to sensitive files
 <FilesMatch "(^\.env|^\.htaccess|^\.htpasswd|^\.hta|composer\.(json|lock))$">
     Order Deny,Allow
     Deny from all
 </FilesMatch>
 
-# Bloquer l'accès aux types de fichiers sensibles
+# Block access to sensitive file types
 <FilesMatch "\.(sql|yml|yaml|md)$">
     Order Deny,Allow
     Deny from all
 </FilesMatch>
 
-# Headers de sécurité
+# Security headers
 <IfModule mod_headers.c>
     Header unset Server
     Header unset X-Powered-By

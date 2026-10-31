@@ -1,4 +1,4 @@
-{% extends 'layouts/base.html.twig' %}
+{% extends 'layouts/staff-auth.html.twig' %}
 
 {% block title %}AEESGS - Administration{% endblock %}
 
@@ -41,6 +41,9 @@
                                 </div>
                             </form>
 
+                            <div class="text-center mt-4">
+                                <a href="{{ public_register_url }}" class="small text-decoration-none">S’enregistrer comme adhérent</a>
+                            </div>
                             <div class="text-center mt-4">
                                 <a href="{{ public_home_url }}" class="text-decoration-none">
                                     <i class="fas fa-arrow-left"></i> Retour à l'accueil

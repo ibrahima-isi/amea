@@ -168,10 +168,11 @@ expect('cached result matches first call (false)', $firstNo === false && $second
 echo "\nPERMISSION_MODULES constant\n";
 
 expect('constant is defined',                   defined('PERMISSION_MODULES'));
-expect('contains exactly 8 modules',            count(PERMISSION_MODULES) === 8);
+expect('contains exactly 9 modules',            count(PERMISSION_MODULES) === 9);
 expect('contains "students"',                   in_array('students',       PERMISSION_MODULES));
 expect('contains "export"',                     in_array('export',         PERMISSION_MODULES));
 expect('contains "users"',                      in_array('users',          PERMISSION_MODULES));
+expect('contains "journal"',                    in_array('journal',        PERMISSION_MODULES));
 expect('contains "slider"',                     in_array('slider',         PERMISSION_MODULES));
 expect('contains "upgrade"',                    in_array('upgrade',        PERMISSION_MODULES));
 expect('contains "documents"',                  in_array('documents',      PERMISSION_MODULES));

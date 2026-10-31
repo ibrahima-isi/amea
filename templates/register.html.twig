@@ -46,7 +46,7 @@
                     name="csrf_token"
                     value="{{ csrf_token }}"
                   />
-                  <!-- Informations personnelles -->
+                  <!-- Personal information -->
                   <h3 class="registration-section-heading">
                     <span class="registration-section-title">Informations personnelles</span>
                   </h3>
@@ -181,7 +181,7 @@
                     </div>
                   </div>
 
-                  <!-- Informations de contact et résidence -->
+                  <!-- Contact and residence information -->
                   <h3 class="mb-0">
                     <button
                       type="button"
@@ -244,7 +244,7 @@
                     </div>
                   </div>
 
-                  <!-- Informations académiques -->
+                  <!-- Academic information -->
                   <h3 class="mb-0">
                     <button
                       type="button"
@@ -281,7 +281,7 @@
                         <label for="study_field" class="form-label">Domaine d'études</label>
                         <select class="form-select {{ errors.study_field ? 'is-invalid' : '' }}" id="study_field" name="study_field">
                           <option value="">Sélectionnez votre domaine d'études</option>
-                          {% for d in domaines %}
+                          {% for d in study_fields %}
                             <option value="{{ d }}" {{ formData.study_field == d ? 'selected' : '' }}>{{ d }}</option>
                           {% endfor %}
                           <option value="Autre" {{ formData.study_field == 'Autre' ? 'selected' : '' }}>Autre</option>
@@ -296,7 +296,7 @@
                         <label for="study_level" class="form-label">Niveau d'études</label>
                         <select class="form-select {{ errors.study_level ? 'is-invalid' : '' }}" id="study_level" name="study_level">
                           <option value="">Sélectionnez votre niveau d'études</option>
-                          {% for n in niveaux %}
+                          {% for n in study_levels %}
                             <option value="{{ n }}" {{ formData.study_level == n ? 'selected' : '' }}>{{ n }}</option>
                           {% endfor %}
                           <option value="Autre" {{ formData.study_level == 'Autre' ? 'selected' : '' }}>Autre</option>
@@ -310,7 +310,7 @@
                     </div>
                   </div>
 
-                  <!-- Projets futurs -->
+                  <!-- Future plans -->
                   <h3 class="mb-0">
                     <button
                       type="button"
@@ -338,7 +338,7 @@
                       </div>
                   </div>
 
-                  <!-- Mentions légales et consentement -->
+                  <!-- Legal notice and consent -->
                   <h3 class="registration-section-heading">
                     <span class="registration-section-title">Mentions légales et consentement <span class="registration-section-badge {{ not is_correction ? 'text-danger' : '' }}">{{ is_correction ? '(optionnel)' : '(obligatoire)' }}</span></span>
                   </h3>
@@ -358,7 +358,7 @@
                     </div>
                   </div>
 
-                  <!-- Boutons de soumission -->
+                  <!-- Submission actions -->
                   <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                     <a href="/" class="btn btn-secondary"><i class="fas fa-times"></i> Annuler</a>
                     <button type="reset" class="btn btn-outline-secondary"><i class="fas fa-undo"></i> Réinitialiser</button>

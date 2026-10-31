@@ -11,13 +11,36 @@
   </div>
   <div class="d-flex gap-2 flex-wrap">
     {% if can_see_students %}
-      <a href="students.php" class="btn btn-outline-secondary btn-sm"><i class="fas fa-user-graduate me-1"></i> Étudiants</a>
+      <a href="students.php" class="btn btn-outline-secondary btn-sm"><i class="fas fa-user-graduate me-1"></i> Adhérents</a>
     {% endif %}
     {% if can_export %}
       <a href="export.php" class="btn btn-primary btn-sm"><i class="fas fa-file-export me-1"></i> Exporter</a>
     {% endif %}
   </div>
 </div>
+
+{% if can_review %}
+<section class="review-work mb-4" aria-labelledby="review-heading">
+  <div class="review-work-heading">
+    <div><h2 id="review-heading">Dossiers à traiter <span class="badge bg-primary">{{ review_count }}</span></h2>
+    <p class="text-muted mb-0">Les dossiers les plus anciens sont présentés en premier.</p></div>
+    <a href="kyc-list.php" class="btn btn-outline-primary">Tous les dossiers</a>
+  </div>
+  <div class="review-queue">
+    {% for student in review_queue %}
+    <article class="review-item">
+      <div><h3>{{ student.firstName }} {{ student.lastName }}</h3><span class="text-muted">{{ student.status }} · {{ student.registrationDate|date('d/m/Y H:i') }}</span></div>
+      <span class="badge bg-info">Sous révision</span>
+      <a href="kyc-detail.php?id={{ student.id }}" class="btn btn-primary btn-sm" aria-label="Examiner le dossier de {{ student.firstName }} {{ student.lastName }}">Examiner</a>
+    </article>
+    {% else %}
+    <p class="review-empty">Aucun dossier à examiner pour le moment. Les nouvelles demandes apparaîtront ici.</p>
+    {% endfor %}
+  </div>
+  <p class="review-waiting mb-0"><i class="fas fa-clock me-2" aria-hidden="true"></i>{{ clarification_count }} dossier(s) en attente de réponse de l’adhérent après demande de complément.</p>
+</section>
+{% endif %}
+<h2 class="h5 mb-3">Vue d’ensemble des adhérents</h2>
 
 <!-- Stat cards -->
 <div class="row g-3 mb-4">
@@ -54,9 +77,9 @@
         <i class="fas fa-venus-mars"></i>
       </div>
       <div class="stat-body">
-        <div class="stat-value">{{ stats.hommes }}&thinsp;/&thinsp;{{ stats.femmes }}</div>
+        <div class="stat-value">{{ stats.men }}&thinsp;/&thinsp;{{ stats.women }}</div>
         <div class="stat-label">Hommes / Femmes</div>
-        <div class="stat-sub"><i class="fas fa-mars fa-xs"></i> {{ stats.hommes }} &nbsp;<i class="fas fa-venus fa-xs"></i> {{ stats.femmes }}</div>
+        <div class="stat-sub"><i class="fas fa-mars fa-xs"></i> {{ stats.men }} &nbsp;<i class="fas fa-venus fa-xs"></i> {{ stats.women }}</div>
       </div>
     </a>
   </div>
@@ -67,9 +90,9 @@
         <i class="fas fa-layer-group"></i>
       </div>
       <div class="stat-body">
-        <div class="stat-value">{{ stats.etudiants }}</div>
+        <div class="stat-value">{{ stats.students }}</div>
         <div class="stat-label">Étudiants</div>
-        <div class="stat-sub">Él.&thinsp;{{ stats.eleves }} &middot; St.&thinsp;{{ stats.stagiaires }}</div>
+        <div class="stat-sub">Él.&thinsp;{{ stats.pupils }} &middot; St.&thinsp;{{ stats.interns }}</div>
       </div>
     </a>
   </div>
@@ -132,48 +155,50 @@
 <script>
   (function() {
     var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-    var brandGreen  = '#009460';
-    var brandDark   = '#1B4D3E';
-    var brandYellow = '#FCD116';
-    var brandRed    = '#CE1126';
+    var brandGreen  = '#526f9a';
+    var brandDark   = '#17263C';
+    var brandYellow = '#c5a04b';
+    var brandRed    = '#ad5960';
     var textColor   = isDark ? '#e9ecef' : '#1a1a1a';
     var gridColor   = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
     var borderColor = isDark ? '#1a1d20' : '#fff';
 
     Chart.defaults.color = textColor;
+    Chart.defaults.animation = false;
 
+    var charts = [];
     // Gender — donut
-    new Chart(document.getElementById('genderChart').getContext('2d'), {
+    charts.push(new Chart(document.getElementById('genderChart').getContext('2d'), {
       type: 'doughnut',
       data: {
         labels: ['Masculin', 'Féminin'],
         datasets: [{
-          data: [{{ stats.hommes }}, {{ stats.femmes }}],
+          data: [{{ stats.men }}, {{ stats.women }}],
           backgroundColor: [brandGreen, brandYellow],
           hoverBackgroundColor: [brandDark, '#b8940a'],
           borderWidth: 2, borderColor: borderColor
         }]
       },
       options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } } }
-    });
+    }));
 
     // Status — donut
-    new Chart(document.getElementById('statusChart').getContext('2d'), {
+    charts.push(new Chart(document.getElementById('statusChart').getContext('2d'), {
       type: 'doughnut',
       data: {
         labels: ['Étudiants', 'Élèves', 'Stagiaires'],
         datasets: [{
-          data: [{{ stats.etudiants }}, {{ stats.eleves }}, {{ stats.stagiaires }}],
+          data: [{{ stats.students }}, {{ stats.pupils }}, {{ stats.interns }}],
           backgroundColor: [brandGreen, brandYellow, brandRed],
           hoverBackgroundColor: [brandDark, '#b8940a', '#a00d1f'],
           borderWidth: 2, borderColor: borderColor
         }]
       },
       options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } } }
-    });
+    }));
 
     // Schools — bar
-    new Chart(document.getElementById('schoolChart').getContext('2d'), {
+    charts.push(new Chart(document.getElementById('schoolChart').getContext('2d'), {
       type: 'bar',
       data: {
         labels: [{{ school_labels|raw }}],
@@ -201,7 +226,22 @@
         },
         plugins: { legend: { display: false } }
       }
-    });
+    }));
+    new MutationObserver(function() {
+      var dark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+      var text = dark ? '#e9ecef' : '#293447';
+      Chart.defaults.color = text;
+      charts.forEach(function(chart) {
+        chart.options.plugins.legend.labels = { color: text };
+        chart.data.datasets.forEach(function(dataset) { dataset.borderColor = dark ? '#202b3b' : '#fff'; });
+        if (chart.options.scales.y) {
+          chart.options.scales.y.ticks.color = text;
+          chart.options.scales.x.ticks.color = text;
+          chart.options.scales.y.grid.color = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
+        }
+        chart.update('none');
+      });
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
   })();
 </script>
 {% endblock %}
