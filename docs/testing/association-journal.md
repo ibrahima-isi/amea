@@ -1,18 +1,18 @@
-# Qualification du journal associatif
+# Association journal qualification
 
-Les fixtures utilisent exclusivement des comptes et publications synthétiques dans un projet Docker jetable. Elles ne doivent jamais être exécutées sur une base réelle ou sur la démo conservée.
+Fixtures use only synthetic accounts and publications in a disposable Docker project. Never run them against a real database or the retained demo.
 
 ```sh
 AMEA_SKIP_BROWSER=1 AMEA_PUBLIC_PORT=18445 AMEA_STAFF_PORT=19445 \
 AMEA_REHEARSAL_PROJECT=amea-ui-test-journal-final-20261030 bash tests/apps/run.sh
 ```
 
-Choisir un nom de projet neuf à chaque répétition. Le lanceur refuse les conteneurs ou volumes préexistants et supprime uniquement ceux du projet choisi, y compris le projet de restauration associé. Les migrations et fixtures passent par les commandes existantes ; les assertions de contenu du journal passent par HTTPS et les formulaires staff avec CSRF et révision.
+Choose a fresh project name for each run. The runner rejects existing containers or volumes and removes only those belonging to the selected project, including its associated restore project. Migrations and fixtures use the existing commands; journal content assertions use HTTPS and staff forms with CSRF and revision checks.
 
-`tests/apps/journal.py` vérifie les permissions, les requêtes dans la mauvaise application (GET et POST), les brouillons, l’échappement, les images contrôlées et leurs en-têtes, les sessions publiques anciennes, les dates invalides, les conflits de révision et les images invalides. Publication, retrait et republication conservent l’URL et la première date publique. Les lectures publiques, y compris avec des cookies staff copiés, ne contiennent pas de passerelle vers le staff.
+`tests/apps/journal.py` checks permissions, wrong-application requests (GET and POST), drafts, escaping, controlled images and their headers, older public sessions, invalid dates, revision conflicts and invalid images. Publication, withdrawal and republication retain the URL and first public date. Public reads contain no bridge to staff, even with copied staff cookies.
 
-Les dates de parcours sont relatives à l’horloge UTC, qui partage le décalage de Dakar. De vraies activités futures, passées et en cours, annonces et comptes rendus alimentent les rubriques. Quinze activités archivées permettent de vérifier les deux pages, leur contenu exact, leur ordre, leur stabilité et la conservation du filtre. La page d’accueil est limitée à trois publications. Les cartes et l’article exposent type, signature AEESGS, première date et couverture lorsqu’elle existe ; les heures artificielles des dates sans heure restent absentes.
+Journey dates are relative to the UTC clock, which shares Dakar's offset. Actual future, past and ongoing activities, announcements and activity reports populate the sections. Fifteen archived activities exercise both pages, their exact content, ordering, stability and retained filter. The homepage is limited to three publications. Cards and the article expose the type, AEESGS signature, first date and cover when present; artificial times remain absent for dates without a specified time.
 
-`tests/apps/release.py` relance deux fois migration07 après publication, puis compare les observations publiques et les octets de la couverture. Il vérifie également les remplacements de conteneurs, le retour vers l’image historique puis le retour vers l’image courante, et une restauration SQL/fichiers dans un projet neuf. L’image historique n’implémente pas le journal : la preuve du journal se fait avant son remplacement et après retour à l’image courante, pas pendant ce rollback. La restauration compare article et couverture via HTTPS, sans lecture SQL des publications.
+`tests/apps/release.py` reruns migration07 twice after publication, then compares public observations and cover bytes. It also checks container replacements, rollback to the historical image and forward to the current image, and an SQL/files restore in a fresh project. The historical image does not implement the journal: journal evidence is collected before replacing it and after returning to the current image, not during that rollback. Restoration compares the article and cover through HTTPS without reading publication rows through SQL.
 
-Les suites PHP de `.github/workflows/ci.yml` et les parcours `tests/http/baseline.py` et `tests/http/tokens.py` complètent cette répétition. `AMEA_SKIP_BROWSER=1` exclut explicitement la validation navigateur : responsive, thèmes, clavier et rendu réel restent une qualification séparée. Les tests HTTP ne prouvent pas le comportement visuel d’un navigateur ni une livraison distante.
+The PHP suites in `.github/workflows/ci.yml` and the `tests/http/baseline.py` and `tests/http/tokens.py` journeys complement this rehearsal. `AMEA_SKIP_BROWSER=1` explicitly excludes browser validation: responsive layout, themes, keyboard interaction and actual rendering remain separate qualification work. HTTP tests do not prove visual browser behavior or remote delivery.
