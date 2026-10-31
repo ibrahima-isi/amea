@@ -146,3 +146,20 @@ The four already-English maintained guides remain byte-identical. The README com
 Ticket 03 reached **3/3 successful CI checks** on signed head `7f01e292e7e5e292059264d1ef68f391866b7a59` ([CI run](https://github.com/ibrahima-isi/amea/actions/runs/41227828737)) and actually merged through [PR #25](https://github.com/ibrahima-isi/amea/pull/25) on 31 October 2026 as remote `dev` revision `7f4063b94cb4f7bf23abc2dc96dd3094a1dc25a7`. The completed ticket-02/03 records are preserved in this branch before publishing ticket 04. Earlier ticket-04 checkpoints describe the state at their time.
 
 Local `main` incorporated those actually merged deliveries from an isolated integration worktree in verified signed merge `dd520c4c298699fa050293ed1c86bd6495c3ddac`; remote `main` was not pushed. Ticket 04 integrates the fetched remote `dev` with a signed merge; its translation diff remains confined to the four maintained documents plus feature evidence. The initial full regression run passed on translation source `6581838`; a final PHP/HTTP check will also qualify the combined source after integration. No journal browser acceptance or production action is claimed.
+
+
+### Ticket 04 — validation and review checkpoint
+
+The [classified coverage inventory](evidence/ticket-04/coverage.md) accounts for all eight maintained documents: **four translated / four already-English guides retained byte-for-byte**. The [59 link/anchor/example/alias/scope checks](evidence/ticket-04/link-and-contract-checks.txt) pass after integrating current `dev`. Incoming historical line references and all six French glossary labels remain valid. Canonical instructions, parent spec/design, historical ticket-05 corpus and every application/runtime file are unchanged by this ticket's diff.
+
+Local validation on signed translation checkpoint **`6581838`** passed: PHPUnit **159 tests / 310 assertions** (10 existing metadata deprecations), standalone suites **48/186/78/24**, theme-script **5/5**, isolated HTTP **35 + 28**, PHP syntax and migration-access assertions. `AMEA_PUBLIC_PORT=48443 AMEA_STAFF_PORT=49443 AMEA_SKIP_BROWSER=1 bash tests/apps/run.sh` passed with **535 PASS observations**; task-owned project `amea-ui-test-3771-71195` and its volumes were removed. No documented production/migration/SMTP command was run against an existing environment.
+
+After the user-delivered ticket 03 was incorporated, final combined-source validation at signed merge **`bd0cbbb`** passed: PHPUnit **171 tests / 338 assertions** (the same 10 metadata deprecations), standalone suites **48/186/78/26**, theme-script **5/5**, and isolated HTTP **35 + 28 + 12**. PHP syntax, access assertions and `git diff --check` pass. No separate typechecker is configured; no new behavior/test seam is introduced by a documentation-only translation, so no artificial red/green test was added. Full local logs use `/private/tmp/amea-docs-*.log` and `/private/tmp/amea-docs-merged-*.log`. Runtime checks demonstrate regression status, not production or browser acceptance.
+
+Independent source review of `git diff 7e5c398...6581838`:
+
+**Standards:** 0 actionable findings. English policy, French labels, domain/ADR decisions and feature-local evidence follow the canonical instructions; no applicable baseline code smells.
+
+**Spec:** 0 actionable findings. The maintained corpus is complete, commands/contracts/decisions/approval boundaries retain their meaning, and excluded history/runtime files remain outside scope. The later signed merge incorporates the already-reviewed ticket 03 without changing the translation; final evidence review is recorded separately below.
+
+Total source findings: **Standards 0 / Spec 0**. Final-head PR CI and actual ticket-04 merge are still separate pending milestones. Production and deferred journal browser QA remain untouched.
