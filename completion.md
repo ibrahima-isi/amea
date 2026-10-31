@@ -1,5 +1,13 @@
 # Repository cleanup
 
+## État de clôture — 31 octobre 2026
+
+Le nettoyage et le journal sont livrés dans `dev` : PR #17, #18, #19 et [#20](https://github.com/ibrahima-isi/amea/pull/20) fusionnées. La CI finale de #20 est verte sur le commit signé `09a414c` ([trois jobs](https://github.com/ibrahima-isi/amea/actions/runs/41162939038)) ; la [CI de `dev`](https://github.com/ibrahima-isi/amea/actions/runs/41163154556) est verte sur `3033d4b`. L’intégration locale `0343f9d` est signée, sans push vers `main` distant.
+
+Le 31 octobre, l’utilisateur reporte explicitement la QA navigateur et la reprendra lui-même plus tard. Elle reste **non validée**, sans nouvelle tentative automatisée demandée. Les contrôles restants et la procédure figurent dans le [suivi du journal](.scratch/association-journal/completion.md) et la [fiche de reprise navigateur](.scratch/association-journal/browser-qa.md). La fixture jetable de cette tentative est arrêtée ; la démonstration conservée est intacte. Aucune production, modification DNS ou livraison SMTP réelle effectuée. Le triage des tests orphelins reste hors périmètre.
+
+Les sections suivantes conservent l’historique daté ; leurs mentions de PR en attente ou en brouillon sont dépassées par cet état de clôture.
+
 The approved [spec](.scratch/repository-cleanup/spec.md) and [ticket 01](.scratch/repository-cleanup/issues/01-remove-obsolete-artifacts.md) are implemented and published in [PR #19](https://github.com/ibrahima-isi/amea/pull/19), targeting `dev`. The unresolved [orphan-test triage](.scratch/chores/triage-orphan-tests/spec.md) remains open.
 
 On 2026-10-30, PHPUnit passed 143 tests / 250 assertions with the same 10 baseline deprecations; the synthetic MySQL CLI emitted its pre-existing password-on-command-line warnings; the four standalone suites passed 47, 186, 78 and 24 checks. HTTP journeys passed 35 and 28 checks. Fresh-profile browser runs passed their combined 79 and 89 HTTP/browser checks. The disposable two-host Docker rehearsal passed with 433 PASS lines and cleaned its owned resources. PHP syntax, migration access assertions, workflow structure, links and diff whitespace were checked. Logs are local to the implementation environment.

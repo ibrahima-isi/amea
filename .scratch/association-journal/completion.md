@@ -2,13 +2,15 @@
 
 ## État actuel vérifié — 31 octobre 2026
 
-PR #17 et PR #18 sont fusionnées dans `dev` (respectivement `23b5c55` et `87d6a19`). Les deux workflows de la tête finale signée `69a3773` de PR #18 sont verts : [CI](https://github.com/ibrahima-isi/amea/actions/runs/41141597654), [migrations](https://github.com/ibrahima-isi/amea/actions/runs/41141597645). Le nettoyage PR #19 est ensuite fusionné en `4aab39f`, avec sa propre CI verte. Les mentions de PR ouvertes dans les sections historiques ci-dessous décrivent leur date de rédaction.
+**Implémentation et livraison dans `dev` terminées ; QA navigateur reportée à l’utilisateur.** Le 31 octobre, l’utilisateur indique « laisse tomber cela je le ferai après » et demande la mise à jour du suivi. Ce report ne constitue ni un succès de QA, ni une conformité complète au cadrage visuel.
 
-La reprise traite uniquement la QA navigateur restante, dans le nouveau worktree `/private/tmp/amea-journal-browser-20261031`, branche `test/journal-browser-qa`, base `4aab39f`. Une fixture jetable réelle est ajoutée et vérifiée côté HTTP ; une vue publique sombre/grand écran est réellement observée. La suite des interactions reste bloquée par l’accès/rendu du navigateur pris en charge : [preuve précise, limites et reprise](browser-qa.md). Aucun succès mobile, clavier ou éditorial au navigateur n’est revendiqué. La clôture navigateur reste ouverte ; aucune production modifiée.
+PR #17, #18, #19 et [#20](https://github.com/ibrahima-isi/amea/pull/20) sont fusionnées dans `dev` (`23b5c55`, `87d6a19`, `4aab39f`, `3033d4b`). La tête finale signée de #20, `09a414c9100e6ebebddddf65ae09ca6d88264f44`, a ses trois jobs verts : [CI 41162939038](https://github.com/ibrahima-isi/amea/actions/runs/41162939038). La [CI de `dev` 41163154556](https://github.com/ibrahima-isi/amea/actions/runs/41163154556) est également verte sur `3033d4b`. L’intégration locale signée est `0343f9d` ; aucun push vers `main` distant.
 
-Le support et ses preuves sont publiés dans la [PR #20 brouillon](https://github.com/ibrahima-isi/amea/pull/20). Deux revues indépendantes de `4aab39f...81472d2` donnent Standards 0 / Spec 0 constat. La [CI de la tête courante](https://github.com/ibrahima-isi/amea/pull/20/checks) et la QA navigateur restent des étapes distinctes ; conserver le brouillon tant que cette dernière est incomplète.
+Validation acquise : PHP 159 tests / 310 assertions, scripts 48/186/78/24, HTTP 35 + 28 PASS ; 10 dépréciations PHPUnit préexistantes. Le défaut d’initialisation du volume de restauration est reproduit au 7e essai puis corrigé, avec 100/100 essais ciblés verts et 535 lignes PASS dans la répétition CI finale, dont restauration SQL/fichiers et journal/couvertures. Deux revues indépendantes du support, puis deux du correctif : Standards 0 / Spec 0 à chaque fois. [Preuves de restauration](restore-ci.md).
 
-Validation locale de la reprise : PHP 159 tests / 310 assertions, scripts 48/186/78/24, HTTP 35 + 28 PASS (10 dépréciations PHPUnit préexistantes). L’échec Docker de `f8a4ad2` a été reproduit puis corrigé par précréation de `public` sur le volume neuf : rouge au 7e essai, puis 100/100 verts ; [preuve et limite de répétition complète](restore-ci.md). La restauration complète doit être confirmée par la CI de la tête finale. Le nouvel essai navigateur a fourni une capture réelle de connexion claire/grand écran, sans permettre de terminer le parcours éditorial.
+QA navigateur partielle uniquement : vue publique sombre/grand écran et connexion claire observées. Restent à faire par l’utilisateur : journal clair/sombre à 375 px et grand écran, clavier/focus, filtres/pagination et cycle rédaction/couverture/aperçu/publication/modification/retrait/republication. Le contrôle natif est activé mais ses frappes restent non vérifiables ; Playwright n’a pas été lancé. La fixture de la dernière tentative est arrêtée et ses données temporaires supprimées. [Procédure de reprise et limites](browser-qa.md).
+
+Les worktrees/branches de la livraison précédente ont été archivés et nettoyés ; les worktrees sans rapport et leurs fichiers de démonstration sont préservés. Aucune production, migration réelle supplémentaire, modification DNS ou livraison SMTP réelle.
 
 ## Historique de réalisation
 
@@ -26,7 +28,8 @@ Validation locale de la reprise : PHP 159 tests / 310 assertions, scripts 48/186
 - [x] Cadrage complet validé le 30 octobre 2026, réalisation explicitement autorisée.
 - [x] Plan et quatre tickets locaux établis avec dépendances01→02→03→04.
 - [x] Implémenter les parcours réels et qualifier PHP/HTTP/images/archives en environnement synthétique.
-- [ ] QA navigateur réelle et clôture de livraison distante : ouvertes, ne pas assimiler aux tests serveur.
+- [x] Clôture de livraison distante : PR #18 et #20 fusionnées, CI des têtes finales et de `dev` verte.
+- [ ] QA navigateur complète : reportée explicitement, reprise ultérieure par l’utilisateur.
 
 Contexte et décisions : [design.md](design.md), [spec](spec.md), [plan approuvé](../../docs/superpowers/plans/2026-10-30-association-journal.md). Le journal est implémenté dans son worktree dédié et publié dans la [PR #18](https://github.com/ibrahima-isi/amea/pull/18), ciblant `dev`. Les anciens fichiers de cadrage locaux du worktree de refonte sont préservés séparément.
 
@@ -39,7 +42,7 @@ Réalisation : worktree géré dédié `/Users/ibrahimadiallo/.codex/worktrees/a
 | [01](issues/01-editorial-core.md) | Implémenté/testé et relu | Commits signés1b8d3d7/ddbe909 ; CASconcurrent rouge→vert ; journal15/56, suite158/306 ; revuePASS ;10dépréciations existantes |
 | [02](issues/02-private-management.md) | Implémenté/testé et relu | Signatures47c2b7e/8f03831 ; PHP159/310,permissions48 ; deuxP2 de422 corrigés et relecturePASS ; HTTPsynthétique vert |
 | [03](issues/03-public-reading.md) | Implémenté/relu après correctif session | Signatures8132513/e7721a5 ;481PASS dernière répétition ; P2sessionexpired corrigé et revuePASS |
-| [04](issues/04-integrated-qualification.md) | PHP/HTTP/démo et revues validés ; PR #18 publiée, CI `bb2745e` verte ; navigateur/clôture ouverts | Signé e4dc34f/7dc5faa ;534PASS+preuvejobs,159tests/310assertions,33smokeservi ; revue globale P3 corrigé et relecturePASS |
+| [04](issues/04-integrated-qualification.md) | Livraison fusionnée et CI finale validée ; QA navigateur reportée à l’utilisateur | #20 : tête signée `09a414c`, CI 3/3 et `dev` verts ; 535 PASS de répétition ; PHP 159/310 ; revues Standards 0 / Spec 0 ; [reprise navigateur](browser-qa.md) |
 
 Le premier agent a atteint sa limite d'usage ; le parent a terminé le moteur et la revue indépendante a trouvé un P2 de concurrence, corrigé avec révision atomique. Les deux P2 de conservation du formulaire422 et le P2 de session anonyme ont ensuite été reproduits/corrigés/revus. La revue globale n'a trouvé qu'un P3 de libellés anglais dans la liste privée, corrigé en7dc5faa et relecturePASS. [Revue](evidence/reviews/final-review.md), [correctif vérifié](evidence/reviews/final-rereview.md).
 

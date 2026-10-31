@@ -1,5 +1,13 @@
 # Journal browser qualification — 2026-10-31
 
+## Current decision — user-owned deferral
+
+On 2026-10-31 the user explicitly deferred these checks and will perform them later. Browser QA remains **incomplete**, while implementation and server delivery are merged and CI-verified. No further automated browser attempt is requested. Native Computer Use activation subsequently succeeded, but keyboard/navigation effects remained unverifiable; Playwright was proposed and never launched. The last disposable runner was stopped normally and its temporary data removed.
+
+Remaining user checklist: public list/filter/pagination/article and cover; private draft creation/upload/preview/publication/edit/withdrawal/republication with stable URL/date; 375 px and desktop in both themes; keyboard/focus and mobile staff-menu behavior. Also verify the approved same-day event end-date prefill before saving: source inspection suggests only a server default after save, but this has **not** been reproduced in a browser and is not a confirmed defect.
+
+For resumption, create an isolated worktree from the selected revision, install locked dependencies, then run the command below. Use the **new JSON URL**; all ports from earlier attempts in this record have expired. No production, existing demo seeding or certificate bypass is included. Sections below retain historical observations and limits.
+
 ## Scope and revision
 
 Remaining work from [ticket 04](issues/04-integrated-qualification.md) and task 4 of the [approved plan](../../docs/superpowers/plans/2026-10-30-association-journal.md). Product revision is merged PR #19, `4aab39f`; signed test-support commit `8e67e8d` adds only the disposable fixture and its instructions. No product source, production configuration or retained demo data changes.
@@ -32,14 +40,14 @@ On retry, Brave rendered the synthetic staff login in light desktop layout; its 
 
 The browser-provider inventory returned `Browsers: Error: The browser access host is unavailable`. Native Chrome initially exposed accessibility but then returned app-state-change errors and repeated 30-second timeouts with kernel resets. Native Brave provided the rendered view above, then lost page accessibility/paint after navigation. Re-querying state, raising the window, reloading and leaving full screen did not restore a usable rendered page. The same reports URL independently returned HTTP 200, 3,174 bytes in 0.005 seconds; this is not evidence of a product rendering defect or a passing browser check.
 
-User input to restore browser access is pending. Still unverified: rendered light theme, small viewport/overflow, keyboard/focus, list pagination and each filter in the browser, detail paragraphs/cover, and browser creation/upload/private preview/publication/edit/withdrawal/republication. No certificate warning was bypassed, and no external browser-control script was substituted.
+The user has deferred the remaining checks rather than waiting for further tool repair. Still unverified: rendered journal light theme, small viewport/overflow, keyboard/focus, list pagination and each filter in the browser, detail paragraphs/cover, and browser creation/upload/private preview/publication/edit/withdrawal/republication. No certificate warning was bypassed, and no external browser-control script was substituted.
 
-The fixture intentionally uses single-origin loopback HTTP, SQLite and the existing test-session router. It does not qualify split-host isolation, TLS/Secure cookies, MySQL, production or real email. Prior HTTPS/MySQL evidence remains separate. Keep the follow-up PR draft while browser acceptance remains incomplete.
+The fixture intentionally uses single-origin loopback HTTP, SQLite and the existing test-session router. It does not qualify split-host isolation, TLS/Secure cookies, MySQL, production or real email. Prior HTTPS/MySQL evidence remains separate. The maintainer merged the follow-up despite the separate browser gap; that action does not validate these unobserved checks.
 
 ## Independent review and follow-up delivery
 
 Two fresh-context reviewers independently examined `4aab39f...81472d2` read-only. **Standards:** zero documented violations or material smell findings. **Spec:** zero findings; fixture-only scope, real HTTP/CSRF seeding and explicit browser limits match approved task 4. Neither reviewer executed the browser checks. No fix wave is required.
 
-The signed follow-up is published in [draft PR #20](https://github.com/ibrahima-isi/amea/pull/20), targeting `dev`. Its [current-head CI checks](https://github.com/ibrahima-isi/amea/pull/20/checks) qualify server/test support separately from the browser gap. Do not mark it ready or merge it solely because CI succeeds.
+The signed follow-up [PR #20](https://github.com/ibrahima-isi/amea/pull/20) was merged into `dev` as `3033d4b`. Its three jobs passed on signed head `09a414c` ([CI](https://github.com/ibrahima-isi/amea/actions/runs/41162939038)); [merged-dev CI](https://github.com/ibrahima-isi/amea/actions/runs/41163154556) also passed. This qualifies server/test support separately from the deferred browser gap.
 
 Fresh local validation passed on this support: PHPUnit 159 tests / 310 assertions, scripts 48/186/78/24 and HTTP journeys 35 + 28. PHP 8.5.12 reported the same 10 pre-existing PHPUnit doc-comment metadata deprecations. The HTTP commands required normal loopback permission; their initial sandbox refusals were not application failures. A subsequent CI rehearsal failure led to a separately [reproduced and corrected fresh-volume initialization race](restore-ci.md). Check the latest head for its complete remote result.
