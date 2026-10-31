@@ -163,3 +163,12 @@ Independent source review of `git diff 7e5c398...6581838`:
 **Spec:** 0 actionable findings. The maintained corpus is complete, commands/contracts/decisions/approval boundaries retain their meaning, and excluded history/runtime files remain outside scope. The later signed merge incorporates the already-reviewed ticket 03 without changing the translation; final evidence review is recorded separately below.
 
 Total source findings: **Standards 0 / Spec 0**. Final-head PR CI and actual ticket-04 merge are still separate pending milestones. Production and deferred journal browser QA remain untouched.
+
+
+### Ticket 04 — publication and final review
+
+[PR #26](https://github.com/ibrahima-isi/amea/pull/26) targets `dev` from `docs/english-contributor-operations`. Final independent review of `git diff 7f4063b...35a7413` reports **Standards 0 / Spec 0**: translation bytes are unchanged from the reviewed source, coverage is complete, progressive completion is accurate, and initial/final validation revisions and delivery limits remain distinct. Reviewers did not rerun runtime tests.
+
+Final-head CI is recorded in the [PR checks](https://github.com/ibrahima-isi/amea/pull/26/checks). Publication does not claim an actual ticket-04 merge or production release. The current task worktree/branch remains available for review until safely merged.
+
+After the actual PR #24/#25 merges and signed local-main integration recorded above, cleanup verified that the complete task-02/task-03 feature trees exactly match preserved merge revisions `7e5c398`/`7f4063b`, both ancestors of fetched remote `dev`. Their clean task-owned worktrees (`/private/tmp/amea-theme-20261031`, `/private/tmp/amea-internals-20261031`) and local feature branches were then removed. Their remote feature branches were already absent. The temporary local-main integration worktree was also removed; local `main` remains at signed `dd520c4`. The original checkout and all unrelated worktrees/branches remain unchanged.
