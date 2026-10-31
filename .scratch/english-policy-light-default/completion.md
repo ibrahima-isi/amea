@@ -121,3 +121,54 @@ No production deployment, live data, real SMTP, schema/data migration or unrelat
 ### Ticket 03 — integrate the merged theme ticket
 
 While ticket 03 awaited CI, PR #24 actually merged into remote `dev` on 31 October 2026 as `7e5c398fa0d7870c454e25a65287fcb7b1a0dbfd`. Its completion record conflicted with the independent ticket-03 append, so GitHub could not generate a CI merge revision. Integrate that fetched `dev` result with a signed merge, retaining both complete evidence sections and the combined single CI workflow. Earlier statements that ticket 02 was still open describe the initial inventory/publication checkpoints. No ticket-03 application logic is changed by this integration; the merged theme behavior and tests are the already-reviewed ticket-02 delivery. Final-head CI must run again after this merge.
+
+
+## Ticket 04 — English contributor and operations documentation
+
+The user explicitly authorized ticket 04 on 31 October 2026 while ticket 03 awaited CI, and requested completion updates during execution. Worktree `/private/tmp/amea-docs-20261031`, branch `docs/english-contributor-operations`, starts from fetched `dev` revision `7e5c398fa0d7870c454e25a65287fcb7b1a0dbfd`, which includes merged ticket 02 (PR #24). Ticket 03 remains independently published in PR #25; ticket 04 has no blockers and does not import its application changes. Tickets 05/06 are not authorized by this request.
+
+### Inventory checkpoint — in progress
+
+Maintained corpus: root README/glossary; the existing independent-entry ADR; `docs/email-queue.md`; `docs/operations/public-staff-rollout.md`; `docs/testing/README.md`; `docs/testing/association-journal.md`; and `tests/http/README.md`. French technical narrative remains in README, the journal glossary entries, the ADR and the maintained journal qualification guide. The other four guides are already English and will be retained unless translated anchors require a precise link repair. Dated root/feature completion, `.scratch/` plans/specs/reviews and `docs/superpowers/` history belong to ticket 05 and are excluded. The canonical instruction files belong to ticket 01 and remain untouched.
+
+Translation will preserve French product labels as explicit glossary aliases, published decisions, exact commands/environment contracts, deployment/rollback prerequisites and testing limits. No application, theme or deployment behavior is changed. Validation/review/CI are pending; this checkpoint is not a completion claim.
+
+
+### Ticket 04 — translation checkpoint
+
+Translated README onboarding/reference prose and inline technical examples, the six French journal glossary entries (keeping exact French labels as aliases), ADR 0001 and the maintained journal qualification guide. The ADR retains the 28 October decision, local public 404/no staff bridge, shared database/files/business code, deferred physical split and preserved public correction/staff recovery paths. Journal validation limits remain explicit. The README's email navigation now points to the existing email runbook instead of the pre-existing missing section; translated headings have matching anchors. A short clarification distinguishes anonymous local entry points from the already-decided public/staff deployment boundary. These are documentation presentation/link repairs, not new deployment decisions.
+
+The four already-English maintained guides remain byte-identical. The README command changes are English placeholder examples (`repository-url`, `REPLACE_WITH_HASH`, `YourPassword`, SMTP example values) and comment translations; SQL/paths/keys/actual origins and sample human name `Système` are preserved. Compatibility/link checks and independent review are next; runtime behavior is unchanged.
+
+
+### Ticket 04 — integration checkpoint
+
+Ticket 03 reached **3/3 successful CI checks** on signed head `7f01e292e7e5e292059264d1ef68f391866b7a59` ([CI run](https://github.com/ibrahima-isi/amea/actions/runs/41227828737)) and actually merged through [PR #25](https://github.com/ibrahima-isi/amea/pull/25) on 31 October 2026 as remote `dev` revision `7f4063b94cb4f7bf23abc2dc96dd3094a1dc25a7`. The completed ticket-02/03 records are preserved in this branch before publishing ticket 04. Earlier ticket-04 checkpoints describe the state at their time.
+
+Local `main` incorporated those actually merged deliveries from an isolated integration worktree in verified signed merge `dd520c4c298699fa050293ed1c86bd6495c3ddac`; remote `main` was not pushed. Ticket 04 integrates the fetched remote `dev` with a signed merge; its translation diff remains confined to the four maintained documents plus feature evidence. The initial full regression run passed on translation source `6581838`; a final PHP/HTTP check will also qualify the combined source after integration. No journal browser acceptance or production action is claimed.
+
+
+### Ticket 04 — validation and review checkpoint
+
+The [classified coverage inventory](evidence/ticket-04/coverage.md) accounts for all eight maintained documents: **four translated / four already-English guides retained byte-for-byte**. The [59 link/anchor/example/alias/scope checks](evidence/ticket-04/link-and-contract-checks.txt) pass after integrating current `dev`. Incoming historical line references and all six French glossary labels remain valid. Canonical instructions, parent spec/design, historical ticket-05 corpus and every application/runtime file are unchanged by this ticket's diff.
+
+Local validation on signed translation checkpoint **`6581838`** passed: PHPUnit **159 tests / 310 assertions** (10 existing metadata deprecations), standalone suites **48/186/78/24**, theme-script **5/5**, isolated HTTP **35 + 28**, PHP syntax and migration-access assertions. `AMEA_PUBLIC_PORT=48443 AMEA_STAFF_PORT=49443 AMEA_SKIP_BROWSER=1 bash tests/apps/run.sh` passed with **535 PASS observations**; task-owned project `amea-ui-test-3771-71195` and its volumes were removed. No documented production/migration/SMTP command was run against an existing environment.
+
+After the user-delivered ticket 03 was incorporated, final combined-source validation at signed merge **`bd0cbbb`** passed: PHPUnit **171 tests / 338 assertions** (the same 10 metadata deprecations), standalone suites **48/186/78/26**, theme-script **5/5**, and isolated HTTP **35 + 28 + 12**. PHP syntax, access assertions and `git diff --check` pass. No separate typechecker is configured; no new behavior/test seam is introduced by a documentation-only translation, so no artificial red/green test was added. Full local logs use `/private/tmp/amea-docs-*.log` and `/private/tmp/amea-docs-merged-*.log`. Runtime checks demonstrate regression status, not production or browser acceptance.
+
+Independent source review of `git diff 7e5c398...6581838`:
+
+**Standards:** 0 actionable findings. English policy, French labels, domain/ADR decisions and feature-local evidence follow the canonical instructions; no applicable baseline code smells.
+
+**Spec:** 0 actionable findings. The maintained corpus is complete, commands/contracts/decisions/approval boundaries retain their meaning, and excluded history/runtime files remain outside scope. The later signed merge incorporates the already-reviewed ticket 03 without changing the translation; final evidence review is recorded separately below.
+
+Total source findings: **Standards 0 / Spec 0**. Final-head PR CI and actual ticket-04 merge are still separate pending milestones. Production and deferred journal browser QA remain untouched.
+
+
+### Ticket 04 — publication and final review
+
+[PR #26](https://github.com/ibrahima-isi/amea/pull/26) targets `dev` from `docs/english-contributor-operations`. Final independent review of `git diff 7f4063b...35a7413` reports **Standards 0 / Spec 0**: translation bytes are unchanged from the reviewed source, coverage is complete, progressive completion is accurate, and initial/final validation revisions and delivery limits remain distinct. Reviewers did not rerun runtime tests.
+
+Final-head CI is recorded in the [PR checks](https://github.com/ibrahima-isi/amea/pull/26/checks). Publication does not claim an actual ticket-04 merge or production release. The current task worktree/branch remains available for review until safely merged.
+
+After the actual PR #24/#25 merges and signed local-main integration recorded above, cleanup verified that the complete task-02/task-03 feature trees exactly match preserved merge revisions `7e5c398`/`7f4063b`, both ancestors of fetched remote `dev`. Their clean task-owned worktrees (`/private/tmp/amea-theme-20261031`, `/private/tmp/amea-internals-20261031`) and local feature branches were then removed. Their remote feature branches were already absent. The temporary local-main integration worktree was also removed; local `main` remains at signed `dd520c4`. The original checkout and all unrelated worktrees/branches remain unchanged.
