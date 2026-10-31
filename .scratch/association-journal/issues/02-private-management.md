@@ -3,7 +3,7 @@
 **Status:** ready-for-agent
 **Blocked by:** 01
 
-[Spec](../spec.md), task2 of the [plan](../../../docs/superpowers/plans/2026-10-30-association-journal.md).
+[Spec](../spec.md), task 2 of the [plan](../../../docs/superpowers/plans/2026-10-30-association-journal.md).
 
 - [ ] Administrators plus journal permission, controlled navigation and forms.
 - [ ] Draft, preview, publication and withdrawal with CSRF and validation.

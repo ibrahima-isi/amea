@@ -16,7 +16,7 @@ References: [interview](../../../.scratch/association-journal/design.md), [site 
 
 ### Public reading
 
-Public navigation receives a Journal link. The journal presents published publications, their type, title, summary, date and cover image when present. A filter selects À venir, Comptes rendus or Annonces; ended activities have a separate Archives view without creating a fourth publication type. The list remains paginated and provides a useful empty state.
+Public navigation receives a Journal link. The journal presents published content, their type, title, summary, date and cover image when present. A filter selects À venir, Comptes rendus or Annonces; ended activities have a separate Archives view without creating a fourth publication type. The list remains paginated and provides a useful empty state.
 
 Each publication has a page with a stable URL. Publication/activity dates are distinct. The public signature is the association's; administrator account names are not exposed. Drafts, private previews and their images remain absent from public lists and inaccessible through guessed URLs.
 

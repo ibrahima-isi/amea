@@ -3,7 +3,7 @@
 **Status:** ready-for-human
 **Blocked by:** 03
 
-[Spec](../spec.md), task4 of the [plan](../../../docs/superpowers/plans/2026-10-30-association-journal.md).
+[Spec](../spec.md), task 4 of the [plan](../../../docs/superpowers/plans/2026-10-30-association-journal.md).
 
 - [x] PHP/HTTP, actual synthetic MySQL, repeated migration, images and permissions; existing scenarios preserved.
 - [x] Demo updated after a targeted manual migration without resetting its data.

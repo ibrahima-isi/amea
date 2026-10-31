@@ -214,7 +214,6 @@ PASS byte-identical already-English/observation record: .scratch/english-policy-
 PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/issues/02-light-default-with-persistent-user-preference.md
 PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/issues/03-english-internals-with-compatible-member-workflows.md
 PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/issues/04-english-contributor-and-operations-documentation.md
-PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/issues/05-english-planning-and-delivery-records.md
 PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/issues/06-whole-spec-verification-and-handoff.md
 PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/spec.md
 PASS byte-identical already-English/observation record: .scratch/english-policy-light-default/ticket-breakdown.md
@@ -223,6 +222,7 @@ PASS byte-identical already-English/observation record: .scratch/repository-clea
 PASS byte-identical already-English/observation record: .scratch/repository-cleanup/review.md
 PASS byte-identical already-English/observation record: .scratch/repository-cleanup/spec.md
 PASS byte-identical already-English/observation record: docs/superpowers/plans/2026-10-30-association-journal.md
+PASS selected ticket retains scope/triage with only authorized execution tracking changes
 PASS unchanged protected/maintained source: .scratch/english-policy-light-default/spec.md
 PASS unchanged protected/maintained source: .scratch/english-policy-light-default/design.md
 PASS unchanged protected/maintained source: AGENTS.md
