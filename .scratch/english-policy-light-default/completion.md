@@ -190,3 +190,22 @@ Translation will preserve each record in place, with its original dates, referen
 Translated the thirteen identified historical records in place: journal builder review, scope/specification, four tickets and completion history; deployment-consolidation design/completion; dated association-site research; the complete journal design; and the French root closeout section. All original numerical evidence tokens, Markdown link targets, checklist states and technical inline references are retained. Historical pending/draft/unchecked statements remain historical rather than being silently updated to today's delivery state. The original user deferral quotation is preserved with an English gloss; real French UI labels remain literal. The parent specification and already-English records are unchanged.
 
 Reference/anchor validation and independent review are next. This translation does not execute the old plans, rerun journal browser QA or qualify production.
+
+
+### Ticket 05 — validation and review
+
+The [classified inventory](evidence/ticket-05/coverage.md) accounts for **44 baseline records: 13 translated, 29 byte-identical, 2 active execution trackers**. Exact historical numbers, inline technical references, link targets, checkbox/triage states, user approvals, interruptions and qualification limits are preserved. The initial **239 provenance/reference checks** passed before the final coverage links were added; the final audit passes **245 checks**, including all new evidence links and unchanged English/root/runtime scope checks. Three pinned Git sources exist in local immutable history. French remains only in attributed human quotation, actual UI/contract literals, proper names and unchanged observation artifacts. The parent specification/design, maintained guides, canonical instructions and runtime sources are unchanged.
+
+Local validation on signed source **`74ea429`** passed: PHPUnit **171 tests / 338 assertions**, with the same 10 existing metadata deprecations; standalone suites **48/186/78/26**; theme-script **5/5**; isolated HTTP **35 + 28 + 12**; PHP syntax and migration-access assertions. `AMEA_PUBLIC_PORT=58443 AMEA_STAFF_PORT=59443 AMEA_SKIP_BROWSER=1 bash tests/apps/run.sh` passed with **535 PASS observations**. Task-owned project `amea-ui-test-23866-81010` and its volumes were removed normally. Signed `09e4d81` changes only translated prose spacing/readability and rechecks provenance; no runtime code changes justify another full runtime run. Local logs are `/private/tmp/amea-records-*.log`. No separate typechecker is configured; no new behavior or test seam required a TDD test.
+
+Independent source review of `git diff 4d021fc...74ea429`:
+
+**Standards:** 0 documented violations / 0 material judgment-call smells. English narrative, literal exceptions, evidence placement and historical record roles follow the canonical instructions.
+
+**Spec:** 0 actionable findings. Bilingual review confirms the complete translation set, dates/counts/attribution/approval/interruptions, unchanged historical pending milestones and incomplete journal browser QA. No scope creep or omitted French engineering narrative found. Reviewers did not rerun runtime tests. Final evidence/readability review remains separate from these initial source results.
+
+Total initial source findings: **Standards 0 / Spec 0**. PR publication, final-head CI and actual merge remain separate milestones. No production, data migration, browser QA execution, real SMTP or history rewrite is performed; ticket 06 remains unstarted.
+
+### Ticket 04 — completed integration housekeeping
+
+Actually merged PR #26 (`4d021fc`) was integrated into local `main` from a temporary isolated worktree by verified signed merge `7d75d4f279f36c09e21dff6a7879915cecaf7677`. Remote `main` was not pushed. The complete ticket-04 feature tree was verified equal to its preserved merge revision before removing `/private/tmp/amea-docs-20261031` and local branch `docs/english-contributor-operations`. Its remote branch was already absent; the temporary integration worktree was also removed. The original checkout and unrelated worktrees/branches remain untouched.
