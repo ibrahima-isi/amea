@@ -1,8 +1,16 @@
 # Repository Guidelines
 
+## Canonical Instructions and Language
+
+This file is the single source of durable project instructions. `CLAUDE.md` and `GEMINI.md` each contain only `read AGENTS.md`. Keep ordinary documentation, domain records and task evidence in their own documents; avoid duplicating agent rules there.
+
+Use English for first-party technical documentation, code comments, internal identifiers, new commit messages and PR text. Preserve French application and email content, exact business values, existing URLs, form/JSON/session keys and other compatibility contracts. English prose may quote those literals and proper names. Preserve published Git history, human data, legal sources and third-party/generated content. The remaining documentation/identifier conversion is separate work, not a completed result of this instruction change.
+
+Keep replies concise and use the conversation's language. Use interactive input tools for user-facing design, scope and clarification questions; wait for answers before dependent decisions or work. Execute only authorized scope: ticket readiness is not permission to start another ticket.
+
 ## Project Structure & Module Organization
 
-AMEA manages AEESGS membership for Guinean pupils, students, and interns in Senegal. The interface is French. The stack uses PHP 8, MySQL 8, Bootstrap 5, vanilla JavaScript, Tagify, Twig, and PHPMailer via Brevo SMTP. Root PHP files are individual HTTP entry points; application code lives in `src/` under the PSR-4 namespace `Amea\`:
+AMEA manages AEESGS membership for Guinean pupils, students, and interns in Senegal. The interface is French. The stack uses PHP 8, MySQL/MariaDB, Bootstrap 5, vanilla JavaScript, Tagify, Twig, and PHPMailer via Brevo SMTP. Public and staff applications have independent entry points and route boundaries, with shared business code, database and files; physical separation into repository subprojects remains deferred. Root PHP files are individual HTTP entry points; application code lives in `src/` under the PSR-4 namespace `Amea\`:
 
 - `Controller/`: request handling; `Service/`: business logic; `Repository/`: PDO queries.
 - `Core/` and `Model/`: shared infrastructure and domain objects.
@@ -22,11 +30,16 @@ Place new classes in `src/` following PSR-4. Entry points bootstrap through `src
 - `./vendor/bin/phpunit`: run Unit and Integration suites from `phpunit.xml`.
 - `php tests/test_oop_unit.php`: run a standalone regression script; CI also runs `test_oop_integration.php`, `test_permissions_unit.php`, and `test_password_reset_security.php`.
 - `php -l path/to/file.php`: check changed PHP syntax.
-- `docker build -t amea:local .`: build the PHP 8.4 Apache production image.
+- `docker compose -f compose.dokploy.yml build public staff`: build the separate PHP 8.4 Apache application targets with the required deployment environment configured. Building is distinct from deployment approval.
+- `docker build -t amea:local .`: build the retained legacy root Dockerfile image.
 
 ## Coding Style & Naming Conventions
 
 Match adjacent code: four-space PHP indentation, PascalCase classes, camelCase methods, and namespace-aligned filenames. Keep business rules in services and SQL in repositories. No formatter configuration is supplied. Preserve French UI text and exact enum values such as `Masculin`, `Féminin`, `ELEVE`, `ETUDIANT`, and `STAGIAIRE`. Support `[data-bs-theme="dark"]` through CSS variables; `assets/js/theme.js` handles switching. Keep `edit-student.php` visually and logically aligned with registration.
+
+## Theme Requirement
+
+The approved product requirement is a light first visit regardless of the operating-system theme, with a valid explicitly saved light/dark choice taking priority. Preserve manual switching, French action labels, pre-render initialization, keyboard accessibility and the existing light no-JavaScript fallback. Invalid or unavailable storage must allow a usable light fallback and page-local switching. This is an implementation requirement: editing these instructions does not implement or validate the separate theme ticket.
 
 ## Testing Guidelines
 
@@ -45,22 +58,40 @@ Use existing prefixes such as `feat:`, `fix:`, `security:`, `infra:`, `ci:`, and
 
 ## Security & Collaboration
 
-Configure database credentials, Brevo SMTP credentials, and `APP_URL` in untracked `.env`; no `.env.example` currently exists. PHP needs `pdo_mysql`, `fileinfo`, `mbstring`, and `gd`; tests also need `pdo_sqlite`. Preserve CSRF checks, escaped output, prepared queries, and authenticated private-document access. Validate upload MIME types strictly. Student photos, CVs, and IDs use `uploads/students/`; serve private downloads through `download.php` and staged previews through authorized endpoints. Preserve session authentication, `admin`/`user` role checks, secure cookies, and the 30-minute session lifetime. Obtain explicit approval for production changes. Always use interactive input tools for user-facing questions, including design, scope, and clarification. Wait for the user’s answers before proceeding with dependent decisions or work. Separate public and administration applications are an agreed design direction, not an implemented architecture.
+Configure database credentials, Brevo SMTP credentials, and application origins in untracked `.env`; no `.env.example` currently exists. PHP needs `pdo_mysql`, `fileinfo`, `mbstring`, and `gd`; tests also need `pdo_sqlite`. Preserve CSRF checks, escaped output, prepared queries, and authenticated private-document access. Validate upload MIME types strictly. Student photos, CVs, and IDs use `uploads/students/`; serve private downloads through `download.php` and staged previews through authorized endpoints. Preserve session authentication, `admin`/`user` role checks, host-scoped public/staff session isolation, secure cookies, and the 30-minute session lifetime. Obtain explicit approval for production changes; repository validation is not production deployment or live-data qualification.
 
 ## Database Changes
 
 Add schema changes as new idempotent PHP CLI scripts in `migrations/` and update `schema.sql`. Run migrations manually in numeric order, for example `php migrations/00_init_schema.php`, against the explicitly selected database.
 
-## Agent skills
+## Local Issue Tracker
 
-### Issue tracker
+Specs and work items use local Markdown, not remote issues or labels. For a skill's "publish to the issue tracker", create the corresponding local file. For "fetch the relevant ticket", read that file, including its appended comments. Keep specs/tickets version-controlled unless the user explicitly requests disposable tracking.
 
-Use local Markdown specs and numbered tickets under `.scratch/<feature-slug>/`. Keep feature designs and plans alongside them; `docs/` is for maintained guides and ADRs. Read `docs/agents/issue-tracker.md` before creating, updating, or resolving work items.
+- One feature directory: `.scratch/<feature-slug>/`; its spec is `spec.md`. Keep feature designs/plans alongside it; `docs/` contains maintained guides and ADRs.
+- One implementation ticket per `issues/<NN>-<slug>.md`, numbered from `01`, with blockers numbered before dependents; never combine all tickets in one issue file.
+- Record triage in a `Status:` line near the top. Append conversation under `## Comments` at the bottom.
+- Each implementation ticket declares blockers and acceptance criteria. Start only after every blocker is verified complete. `ready-for-agent` describes specification readiness, not execution permission or completion.
+- Record implementation, tests, reviews, CI, actual merge and release evidence separately in `.scratch/<feature-slug>/completion.md`. Keep per-feature execution evidence out of the canonical instructions and triage status.
 
-### Triage labels
+### Triage Roles
 
-Use the five default triage statuses. Read `docs/agents/triage-labels.md` when setting issue status; track execution and evidence separately in `completion.md`.
+Use these exact local `Status` strings when a skill names a canonical triage role; create no remote labels:
 
-### Domain docs
+| Status | Meaning |
+| --- | --- |
+| `needs-triage` | A maintainer must evaluate the issue. |
+| `needs-info` | Waiting for information from the reporter. |
+| `ready-for-agent` | Fully specified for agent implementation, subject to authorization and blockers. |
+| `ready-for-human` | Requires human implementation. |
+| `wontfix` | Will not be actioned. |
 
-Single-context layout: root `GLOSSARY.md` and `docs/adr/`. Before domain exploration or spec/ticket writing, read `docs/agents/domain.md` and the applicable glossary/ADRs.
+### Wayfinding Lifecycle
+
+Wayfinding uses `.scratch/<effort>/map.md` with Notes, Decisions-so-far and Fog, plus one child ticket per `issues/NN-<slug>.md`. Record the child question, `Type:` (`research`, `prototype`, `grilling` or `task`), `Status:` (`claimed` or `resolved`) and numbered `Blocked by:` edges.
+
+The frontier contains open, unblocked, unclaimed children; every listed blocker must be `resolved`, and the first eligible number wins unless the user selects work. Claim by saving `Status: claimed` before work. Resolve by appending `## Answer`, setting `Status: resolved` and adding a summary/link context pointer to the map's Decisions-so-far. These lifecycle states belong to wayfinding; implementation progress stays separate from the five triage roles.
+
+## Domain Documents
+
+Before domain exploration or spec/ticket writing, read root `GLOSSARY.md` and applicable ADRs under `docs/adr/`. If `GLOSSARY-MAP.md` exists, follow it to the relevant context glossaries and context-scoped ADRs, including any `src/<context>/docs/adr/`. If these documents are absent, proceed silently rather than requesting their creation up front. Create domain records lazily only when terms or decisions are actually resolved.
