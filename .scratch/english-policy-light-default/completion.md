@@ -75,3 +75,8 @@ Pinned source comparison: `git diff b139f57...f054310`.
 Final totals: **Standards 0 / Spec 0**. Reviewers performed read-only source review; they did not rerun runtime tests. Final-head CI, actual merge and any release remain separate milestones.
 
 No production deployment, live data, real SMTP, schema/data migration or unrelated cleanup is performed. Browser flags remain disabled, and the journal browser acceptance explicitly deferred by the user remains deferred.
+
+
+### Ticket 03 — PR publication
+
+[PR #25](https://github.com/ibrahima-isi/amea/pull/25) targets `dev` from `refactor/english-internals`. Independent Standards and Spec evidence review through `05d2155` found zero actionable issues or inconsistencies. Final-head CI is available in the [PR checks](https://github.com/ibrahima-isi/amea/pull/25/checks); earlier green results cannot qualify a later evidence commit. Publication does not claim actual merge, production deployment or local-main integration. Keep this task worktree/branch for review until safely merged; unrelated worktrees/branches remain untouched.
