@@ -12,10 +12,15 @@ Exactly two unresolved items remain: journal browser acceptance (`ready-for-huma
 
 ## Local validation
 
-Signed implementation commit `dcb7652ffde60f18f483755f9525eb3687b98ee7` contains the cleanup and repaired index/navigation. Removal-manifest equality, preserved Git blobs (4,069,809 bytes), active scope, unchanged orphan triage, unchanged journal acceptance checkbox states and all surviving local/immutable links pass. Source review verifies that changes outside `.scratch` only repair Markdown link destinations. The final check count is reported in the cleanup PR after maintenance-record links are included.
+Signed implementation commit `dcb7652ffde60f18f483755f9525eb3687b98ee7` contains the cleanup and repaired index/navigation. Removal-manifest equality, preserved Git blobs (4,069,809 bytes), active scope, unchanged orphan triage, unchanged journal acceptance checkbox states and all surviving local/immutable links pass. Source review verifies that changes outside `.scratch` only repair Markdown link destinations. Final scope/link/history validation passes 135 checks after maintenance-record links are included. A separate tracked executable-source search finds no `.scratch/` consumers.
 
 Existing regression command groups both completed with exit 0: PHPUnit 171 tests / 338 assertions (the same 10 metadata deprecations), standalone suites 48/186/78/26, theme-script 5/5, and isolated HTTP 35 + 28 + 12. Local artifacts: `/private/tmp/amea-scratch-cleanup-{validation.txt,regression.log,regression.exit,http.log,http.exit}`. No new behavior/test seam is introduced and no browser QA or production command is executed. No separate typechecker is configured.
 
 ## Review and delivery
 
 The scope/link/history checks and focused documentation diff were reviewed locally. No independent agent review is claimed. PR publication, required exact-final-head CI, actual merge and any subsequent local integration/owned cleanup remain separate milestones. No production, DNS, real SMTP, live-data change or unrelated worktree cleanup is included.
+
+
+## PR publication
+
+[PR #32](https://github.com/ibrahima-isi/amea/pull/32) targets `dev` from the signed cleanup branch. The [PR checks](https://github.com/ibrahima-isi/amea/pull/32/checks) qualify its exact final head; an earlier green run does not qualify this evidence update. Actual merge and subsequent local integration/owned cleanup remain separate. The active backlog stays limited to the two unresolved items above.
