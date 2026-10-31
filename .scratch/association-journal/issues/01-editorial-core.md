@@ -1,15 +1,15 @@
-# 01 — Moteur éditorial et données
+# 01 — Editorial engine and data
 
 **Status:** ready-for-agent
-**Blocked by:** aucun
+**Blocked by:** none
 
-[Spec](../spec.md), tâche1 du [plan](../../../docs/superpowers/plans/2026-10-30-association-journal.md).
+[Spec](../spec.md), task 1 of the [plan](../../../docs/superpowers/plans/2026-10-30-association-journal.md).
 
-- [ ] Migration07 additive/idempotente et schéma de référence.
-- [ ] Requêtes publiques limitées aux publications publiées ; dates/archives déterministes.
-- [ ] Brouillon/publication/retrait et URL/date initiale stables, validation serveur.
-- [ ] Preuve rouge/verte, tests, commit signé et revue consignés.
+- [ ] Additive/idempotent migration 07 and reference schema.
+- [ ] Public queries limited to published content; deterministic dates/archives.
+- [ ] Draft/publication/withdrawal with stable initial URL/date and server validation.
+- [ ] Recorded red/green evidence, tests, signed commit and review.
 
 ## Comments
 
-Réalisation autorisée le 30 octobre ; code en worktree dédié.
+Implementation authorized on 30 October; code in a dedicated worktree.

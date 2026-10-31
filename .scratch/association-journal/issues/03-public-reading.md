@@ -1,15 +1,15 @@
-# 03 — Lecture publique et archives
+# 03 — Public reading and archives
 
 **Status:** ready-for-agent
 **Blocked by:** 02
 
-[Spec](../spec.md), tâche3 du [plan](../../../docs/superpowers/plans/2026-10-30-association-journal.md).
+[Spec](../spec.md), task 3 of the [plan](../../../docs/superpowers/plans/2026-10-30-association-journal.md).
 
-- [ ] Liste filtrable/paginée, article et couverture publiés seulement, brouillons404.
-- [ ] Archives d’activités terminées, page conservée, aucun compte rendu généré.
-- [ ] Lien Journal et trois publications récentes sur l’accueil sans casser les parcours actuels.
-- [ ] Aucun lien de gestion, route staff ni redirection admin sur le public ; HTTP/tests/revue.
+- [ ] Filterable/paginated list, published articles and covers only, 404 for drafts.
+- [ ] Archives for ended activities, page retained, no generated activity report.
+- [ ] Journal link and three recent publications on the homepage without breaking existing journeys.
+- [ ] No management link, staff route or admin redirect on the public website; HTTP/tests/review.
 
 ## Comments
 
-La maquette n’est pas l’application ; aucune publication fictive livrée.
+The mockup is not the application; no fictional publication is delivered.

@@ -1,67 +1,67 @@
-# Journal de l’amicale — suivi
+# Association journal — tracking
 
-## État actuel vérifié — 31 octobre 2026
+## Verified current state — 31 October 2026
 
-**Implémentation et livraison dans `dev` terminées ; QA navigateur reportée à l’utilisateur.** Le 31 octobre, l’utilisateur indique « laisse tomber cela je le ferai après » et demande la mise à jour du suivi. Ce report ne constitue ni un succès de QA, ni une conformité complète au cadrage visuel.
+**Implementation and delivery to `dev` complete; browser QA deferred to the user.** On 31 October, the user said “laisse tomber cela je le ferai après” (leave it; I will do it later) and requested a tracking update. This deferral is neither successful QA nor full compliance with the visual design.
 
-PR #17, #18, #19 et [#20](https://github.com/ibrahima-isi/amea/pull/20) sont fusionnées dans `dev` (`23b5c55`, `87d6a19`, `4aab39f`, `3033d4b`). La tête finale signée de #20, `09a414c9100e6ebebddddf65ae09ca6d88264f44`, a ses trois jobs verts : [CI 41162939038](https://github.com/ibrahima-isi/amea/actions/runs/41162939038). La [CI de `dev` 41163154556](https://github.com/ibrahima-isi/amea/actions/runs/41163154556) est également verte sur `3033d4b`. L’intégration locale signée est `0343f9d` ; aucun push vers `main` distant.
+PR #17, #18, #19 and [#20](https://github.com/ibrahima-isi/amea/pull/20) are merged into `dev` (`23b5c55`, `87d6a19`, `4aab39f`, `3033d4b`). Final signed head `09a414c9100e6ebebddddf65ae09ca6d88264f44` of #20 has three green jobs: [CI 41162939038](https://github.com/ibrahima-isi/amea/actions/runs/41162939038). [`dev` CI 41163154556](https://github.com/ibrahima-isi/amea/actions/runs/41163154556) is also green on `3033d4b`. Signed local integration is `0343f9d`; no push to remote `main`.
 
-Validation acquise : PHP 159 tests / 310 assertions, scripts 48/186/78/24, HTTP 35 + 28 PASS ; 10 dépréciations PHPUnit préexistantes. Le défaut d’initialisation du volume de restauration est reproduit au 7e essai puis corrigé, avec 100/100 essais ciblés verts et 535 lignes PASS dans la répétition CI finale, dont restauration SQL/fichiers et journal/couvertures. Deux revues indépendantes du support, puis deux du correctif : Standards 0 / Spec 0 à chaque fois. [Preuves de restauration](restore-ci.md).
+Validation obtained: PHP 159 tests / 310 assertions, scripts 48/186/78/24, HTTP 35 + 28 PASS; 10 pre-existing PHPUnit deprecations. The restore-volume initialization defect was reproduced on trial 7 then corrected, with 100/100 green targeted trials and 535 PASS lines in the final CI rehearsal, including SQL/files and journal/cover restoration. Two independent support reviews, then two fix reviews: Standards 0 / Spec 0 each time. [Restore evidence](restore-ci.md).
 
-QA navigateur partielle uniquement : vue publique sombre/grand écran et connexion claire observées. Restent à faire par l’utilisateur : journal clair/sombre à 375 px et grand écran, clavier/focus, filtres/pagination et cycle rédaction/couverture/aperçu/publication/modification/retrait/republication. Le contrôle natif est activé mais ses frappes restent non vérifiables ; Playwright n’a pas été lancé. La fixture de la dernière tentative est arrêtée et ses données temporaires supprimées. [Procédure de reprise et limites](browser-qa.md).
+Only partial browser QA: public dark/large-screen and light login views observed. Still for the user to do: light/dark journal at 375 px and large screen, keyboard/focus, filters/pagination and writing/cover/preview/publication/edit/withdrawal/republication cycle. Native control is enabled but its keystrokes remain unverifiable; Playwright was not launched. The last attempt's fixture is stopped and its temporary data removed. [Resumption procedure and limits](browser-qa.md).
 
-Les worktrees/branches de la livraison précédente ont été archivés et nettoyés ; les worktrees sans rapport et leurs fichiers de démonstration sont préservés. Aucune production, migration réelle supplémentaire, modification DNS ou livraison SMTP réelle.
+Previous delivery worktrees/branches were archived and cleaned; unrelated worktrees and their demo files are preserved. No production, additional real migration, DNS change or real SMTP delivery.
 
-## Historique de réalisation
+## Implementation history
 
-- [x] Retrouver le besoin antérieur, explicitement différé dans la première livraison.
-- [x] Examiner des sites associatifs et enregistrer les sources/limites.
-- [x] Confirmer une rubrique publique et les trois types de contenus par réponse interactive.
-- [x] Confirmer la gestion depuis le seul back-office indépendant.
-- [x] Préparer une maquette publique exploratoire du fil et des pages d'article, avec contenus fictifs signalés.
-- [x] Vérifier les filtres, l'ouverture d'une annonce/activité/compte rendu, le retour au fil et l'absence de contrôles admin dans le navigateur réel.
-- [x] Vérifier le chargement des images et l'absence de débordement à 375px de fenêtre (contenu 343px).
-- [x] Administrateurs autorisés, brouillon puis publication directe confirmés.
-- [x] Archivage automatique des activités terminées, conservation des pages et compte rendu séparé confirmés.
-- [x] Rédiger le cadrage complet, relu puis validé avant réalisation.
-- [x] Relecture indépendante du cadrage : aucune question importante manquante pour planifier ; [rapport](builder-check.md).
-- [x] Cadrage complet validé le 30 octobre 2026, réalisation explicitement autorisée.
-- [x] Plan et quatre tickets locaux établis avec dépendances01→02→03→04.
-- [x] Implémenter les parcours réels et qualifier PHP/HTTP/images/archives en environnement synthétique.
-- [x] Clôture de livraison distante : PR #18 et #20 fusionnées, CI des têtes finales et de `dev` verte.
-- [ ] QA navigateur complète : reportée explicitement, reprise ultérieure par l’utilisateur.
+- [x] Retrieve the earlier need, explicitly deferred in the initial delivery.
+- [x] Examine association websites and record sources/limits.
+- [x] Confirm a public section and three content types through interactive input.
+- [x] Confirm management only from the independent staff application.
+- [x] Prepare an exploratory public feed/article mockup with clearly marked fictional content.
+- [x] Check filters, opening an announcement/activity/report, returning to the feed and absence of administration controls in a real browser.
+- [x] Check image loading and no overflow at a 375px viewport (343px content).
+- [x] Authorized administrators, draft then direct publication confirmed.
+- [x] Automatic archiving of ended activities, page retention and separate activity report confirmed.
+- [x] Write the complete scope, reviewed and approved before implementation.
+- [x] Independent scope review: no important missing question for planning; [report](builder-check.md).
+- [x] Complete scope approved on 30 October 2026, implementation explicitly authorized.
+- [x] Plan and four local tickets established with dependencies 01→02→03→04.
+- [x] Implement actual journeys and qualify PHP/HTTP/images/archives in a synthetic environment.
+- [x] Remote delivery closeout: PR #18 and #20 merged, final-head and `dev` CI green.
+- [ ] Complete browser QA: explicitly deferred; the user will resume it later.
 
-Contexte et décisions : [design.md](design.md), [spec](spec.md), [plan approuvé](../../docs/superpowers/plans/2026-10-30-association-journal.md). Le journal est implémenté dans son worktree dédié et publié dans la [PR #18](https://github.com/ibrahima-isi/amea/pull/18), ciblant `dev`. Les anciens fichiers de cadrage locaux du worktree de refonte sont préservés séparément.
+Context/decisions: [design.md](design.md), [spec](spec.md), [approved plan](../../docs/superpowers/plans/2026-10-30-association-journal.md). The journal is implemented in its dedicated worktree and published in [PR #18](https://github.com/ibrahima-isi/amea/pull/18), targeting `dev`. Earlier local design files in the redesign worktree are preserved separately.
 
-Maquette historique : `http://localhost:18444/journal.html`, [capture](../../docs/testing/evidence/2026-10-29/journal-public-maquette.jpg). Elle est distincte de l'application réelle : journal `https://localhost:18443/journal.php`, lecture HTTP locale uniquement `http://localhost:18447/journal.php`, gestion indépendante `https://localhost:19443/manage-journal.php`. La façade18447 ne permet aucun POST ou accès staff ; les formulaires de gestion restent HTTPS et protégés.
+Historical mockup: `http://localhost:18444/journal.html`, [capture](../../docs/testing/evidence/2026-10-29/journal-public-maquette.jpg). It is distinct from the actual application: journal `https://localhost:18443/journal.php`, local read-only HTTP `http://localhost:18447/journal.php`, independent management `https://localhost:19443/manage-journal.php`. The 18447 facade allows no POST or staff access; management forms remain HTTPS and protected.
 
-Réalisation : worktree géré dédié `/Users/ibrahimadiallo/.codex/worktrees/association-journal/amea`, branche `feat/association-journal`, base `4b16e1644bcf34c28db0d3922fd7687ddf9a0a8d` (ancienne tête de PR #17). PR #17 a été squash-fusionnée dans `dev` en `23b5c55` le 30 octobre ; cette dépendance est résolue. Aucun changement du checkout principal ou du worktree de démonstration.
+Implementation: dedicated managed worktree `/Users/ibrahimadiallo/.codex/worktrees/association-journal/amea`, branch `feat/association-journal`, base `4b16e1644bcf34c28db0d3922fd7687ddf9a0a8d` (former PR #17 head). PR #17 was squash-merged into `dev` as `23b5c55` on 30 October; that dependency is resolved. No change to the primary checkout or demo worktree.
 
-| Ticket | Exécution | Preuves |
+| Ticket | Execution | Evidence |
 |---|---|---|
-| [01](issues/01-editorial-core.md) | Implémenté/testé et relu | Commits signés1b8d3d7/ddbe909 ; CASconcurrent rouge→vert ; journal15/56, suite158/306 ; revuePASS ;10dépréciations existantes |
-| [02](issues/02-private-management.md) | Implémenté/testé et relu | Signatures47c2b7e/8f03831 ; PHP159/310,permissions48 ; deuxP2 de422 corrigés et relecturePASS ; HTTPsynthétique vert |
-| [03](issues/03-public-reading.md) | Implémenté/relu après correctif session | Signatures8132513/e7721a5 ;481PASS dernière répétition ; P2sessionexpired corrigé et revuePASS |
-| [04](issues/04-integrated-qualification.md) | Livraison fusionnée et CI finale validée ; QA navigateur reportée à l’utilisateur | #20 : tête signée `09a414c`, CI 3/3 et `dev` verts ; 535 PASS de répétition ; PHP 159/310 ; revues Standards 0 / Spec 0 ; [reprise navigateur](browser-qa.md) |
+| [01](issues/01-editorial-core.md) | Implemented/tested and reviewed | Signed commits 1b8d3d7/ddbe909; concurrent CAS red→green; journal 15/56, suite 158/306; review PASS; 10 existing deprecations |
+| [02](issues/02-private-management.md) | Implemented/tested and reviewed | Signatures 47c2b7e/8f03831; PHP 159/310, permissions 48; two P2 findings for 422 form retention fixed and re-review PASS; synthetic HTTP green |
+| [03](issues/03-public-reading.md) | Implemented/reviewed after session fix | Signatures 8132513/e7721a5; 481 PASS in latest rehearsal; sessionexpired P2 fixed and review PASS |
+| [04](issues/04-integrated-qualification.md) | Delivery merged and final CI validated; browser QA deferred to the user | #20: signed head `09a414c`, CI 3/3 and `dev` green; 535 rehearsal PASS; PHP 159/310; reviews Standards 0 / Spec 0; [browser resumption](browser-qa.md) |
 
-Le premier agent a atteint sa limite d'usage ; le parent a terminé le moteur et la revue indépendante a trouvé un P2 de concurrence, corrigé avec révision atomique. Les deux P2 de conservation du formulaire422 et le P2 de session anonyme ont ensuite été reproduits/corrigés/revus. La revue globale n'a trouvé qu'un P3 de libellés anglais dans la liste privée, corrigé en7dc5faa et relecturePASS. [Revue](evidence/reviews/final-review.md), [correctif vérifié](evidence/reviews/final-rereview.md).
+The first agent reached its usage limit; the parent completed the engine and independent review found a concurrency P2, fixed with atomic revision. The two P2 findings for 422 form retention and anonymous-session P2 were then reproduced/fixed/reviewed. Global review found only a P3 for English labels in the private list, fixed in 7dc5faa and re-review PASS. [Review](evidence/reviews/final-review.md), [verified correction](evidence/reviews/final-rereview.md).
 
-Démo réelle : migration07 appliquée manuellement après vérification de la base synthétique amea_rehearsal, avant remplacement web. Deux adhérents et quatre comptes conservés ; journal_posts vide, aucune publication fictive ajoutée. [Preuve migration](../../docs/testing/evidence/2026-10-30/journal-demo-migration.json). Les quatre assets et33contrôles runtime correspondent au code7dc5faa : [preuve servie](../../docs/testing/evidence/2026-10-30/journal-served.json).
+Actual demo: migration 07 applied manually after verifying the synthetic amea_rehearsal database, before web replacement. Two members and four accounts retained; journal_posts empty, no fictional publication added. [Migration evidence](../../docs/testing/evidence/2026-10-30/journal-demo-migration.json). The four assets and 33 runtime checks match code 7dc5faa: [served evidence](../../docs/testing/evidence/2026-10-30/journal-served.json).
 
-Limites : le navigateur automatisé a renvoyé « Local browser use is disabled in Work settings » lors de l'essai de lecture HTTP réelle ; aucune capture ou QA navigateur de l'application revendiquée. Le certificat HTTPS n'a pas été contourné et les sessions privées restent protégées. PR #18 est publiée et ses trois checks ont réussi sur `bb2745e` ; PR #17 est maintenant fusionnée. Après la correction de conflits, la CI de la nouvelle tête doit être vérifiée à nouveau. La QA navigateur et la fusion de PR #18 restent ouvertes ; aucune production autorisée. L'auto-fusion de PR #18 a été désactivée avant la correction. Conserver les fichiers local-runtime montés tant que la démonstration les utilise.
+Limits: the automated browser returned “Local browser use is disabled in Work settings” during the actual HTTP reading attempt; no application capture or browser QA claimed. The HTTPS certificate was not bypassed and private sessions remain protected. PR #18 is published and its three checks succeeded on `bb2745e`; PR #17 is now merged. After conflict correction, the new head's CI must be checked again. Browser QA and PR #18 merge remain open; no production authorized. PR #18 auto-merge was disabled before the correction. Retain mounted local-runtime files while the demo uses them.
 
-## Reprise vérifiée — 30 octobre 2026
+## Verified resumption — 30 October 2026
 
-Le worktree existant et tous ses changements ont été conservés sur `feat/association-journal`, code `7dc5faa`. Les vérifications GitHub en lecture seule confirment PR #17 ouverte/brouillon/non fusionnée, aucune branche ni PR journal distante ; `dev` reste `01e6a3b`, `main` `137c851`. Aucun fetch, push ou changement de ces branches.
+The existing worktree and all its changes were preserved on `feat/association-journal`, code `7dc5faa`. Read-only GitHub checks confirm PR #17 open/draft/unmerged, no remote journal branch or PR; `dev` remains `01e6a3b`, `main` `137c851`. No fetch, push or change to those branches.
 
-**21 contrôles HTTP publics supplémentaires PASS**, sans création de publication ni réinitialisation : cinq vues anonymes vides sans cookie/lien privé, dix refus GET/POST des routes privées, deux ressources absentes en 404, POST du journal refusé et trois assets servis identiques au worktree. [Preuve de reprise](../../docs/testing/evidence/2026-10-30/journal-resumption.json). Cette vérification ne remplace pas les 33 contrôles historiques de la démo et ne répète ni HTTPS privé ni la suite Docker complète.
+**21 additional public HTTP checks PASS**, without creating a publication or resetting: five empty anonymous views without cookies/private links, ten private-route GET/POST denials, two missing resources returning 404, journal POST denied and three served assets identical to the worktree. [Resumption evidence](../../docs/testing/evidence/2026-10-30/journal-resumption.json). This verification does not replace the demo's 33 historical checks or repeat private HTTPS/full Docker suite.
 
-L'outil navigateur pris en charge est indisponible et l'inventaire ne contient aucun navigateur contrôlable ; QA navigateur toujours ouverte, sans contournement de réglage ou de certificat. Le contrôle d'approbation a de nouveau accepté des commandes ciblées, dont les lectures distantes et ces contrôles locaux. Le commit documentaire signé peut donc repasser par ce contrôle normal. La publication de la branche journal et la création de sa PR brouillon restent soumises à une autorisation explicite ; le corps de PR est préparé localement.
+The supported browser tool is unavailable and the inventory contains no controllable browser; browser QA remains open without a settings/certificate bypass. Approval review again accepted targeted commands, including remote reads and these local checks. The signed documentation commit can therefore use that normal review process again. Publishing the journal branch and creating its draft PR still require explicit authorization; the PR body is prepared locally.
 
-## PR #18 — résolution des conflits après PR #17
+## PR #18 — conflict resolution after PR #17
 
-La publication de `bb2745e` a été explicitement autorisée, puis PR #18 créée et rattachée au chat. Ses trois checks ont réussi : [CI PHP/HTTP et applications](https://github.com/ibrahima-isi/amea/actions/runs/41135097285), [validation migrations](https://github.com/ibrahima-isi/amea/actions/runs/41135097506), avec 534 contrôles HTTPS et 159 tests/310 assertions PHP.
+Publication of `bb2745e` was explicitly authorized, then PR #18 created and linked to the chat. Its three checks passed: [PHP/HTTP and application CI](https://github.com/ibrahima-isi/amea/actions/runs/41135097285), [migration validation](https://github.com/ibrahima-isi/amea/actions/runs/41135097506), with 534 HTTPS checks and 159 tests/310 PHP assertions.
 
-Après le squash de PR #17 dans `23b5c55`, Git reproduisait six conflits, alors que les arbres complets de cette tête de `dev` et de la base initiale `4b16e16` sont identiques. Une fusion de ces historiques conserve donc intégralement le code de `bb2745e`, sans force-push ni abandon de changements propres à `dev`. Seuls ce suivi, le suivi racine, le plan et la preuve de résolution sont actualisés. Vérification indépendante favorable. [Preuve](../../docs/testing/evidence/2026-10-30/journal-dev-merge.json).
+After PR #17 was squashed into `23b5c55`, Git reproduced six conflicts, although the full trees of that `dev` head and initial base `4b16e16` are identical. Merging those histories therefore retains all code from `bb2745e`, without force-push or abandoning `dev`-specific changes. Only this tracking record, root tracking, plan and resolution evidence are updated. Favorable independent verification. [Evidence](../../docs/testing/evidence/2026-10-30/journal-dev-merge.json).
 
-Validation locale du résultat : PHPUnit 159/310 (10 dépréciations préexistantes), scripts PHP 48/186/78/24 et parcours HTTP historiques 35+28 PASS. La nouvelle tête nécessite ses propres checks distants avant toute conclusion. La QA navigateur reste ouverte, l'auto-fusion est désactivée et aucun déploiement n'est effectué.
+Local result validation: PHPUnit 159/310 (10 pre-existing deprecations), PHP scripts 48/186/78/24 and historical HTTP journeys 35+28 PASS. The new head requires its own remote checks before any conclusion. Browser QA remains open, auto-merge is disabled and no deployment is performed.
