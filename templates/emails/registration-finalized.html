@@ -28,20 +28,20 @@
     <p>Amicale des Élèves, Étudiants et Stagiaires Guinéens au Sénégal</p>
   </div>
   <div class="body">
-    <h2>Bonjour {{prenom}} {{nom}},</h2>
+    <h2>Bonjour {{first_name}} {{last_name}},</h2>
     <p>Votre dossier d'inscription a été <strong>finalisé avec succès</strong>. Il est désormais verrouillé et transmis à notre équipe pour traitement.</p>
 
     <div class="info-box">
       <table>
         <tr>
           <td class="label">Numéro de dossier</td>
-          <td class="value"><span class="badge-finalized">#{{id_personne}}</span></td>
+          <td class="value"><span class="badge-finalized">#{{student_id}}</span></td>
         </tr>
-        <tr><td class="label">Nom complet</td><td class="value">{{prenom}} {{nom}}</td></tr>
-        <tr><td class="label">Statut</td><td class="value">{{statut}}</td></tr>
-        <tr><td class="label">Établissement</td><td class="value">{{etablissement}}</td></tr>
-        <tr><td class="label">Niveau d'études</td><td class="value">{{niveau_etudes}}</td></tr>
-        <tr><td class="label">Type de logement</td><td class="value">{{type_logement}}</td></tr>
+        <tr><td class="label">Nom complet</td><td class="value">{{first_name}} {{last_name}}</td></tr>
+        <tr><td class="label">Statut</td><td class="value">{{status}}</td></tr>
+        <tr><td class="label">Établissement</td><td class="value">{{institution}}</td></tr>
+        <tr><td class="label">Niveau d'études</td><td class="value">{{study_level}}</td></tr>
+        <tr><td class="label">Type de logement</td><td class="value">{{housing_type}}</td></tr>
         <tr><td class="label">Email</td><td class="value">{{email}}</td></tr>
       </table>
     </div>

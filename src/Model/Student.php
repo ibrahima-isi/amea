@@ -70,7 +70,7 @@ class Student
         return is_array($decoded) ? $decoded : [];
     }
 
-    public function isDiplome(): bool
+    public function isGraduate(): bool
     {
         return $this->status === 'Diplômé(e)';
     }

@@ -38,7 +38,7 @@ expect(
 );
 
 expect(
-    'export.php excludes null and blank niveaux from options',
+    'export.php excludes null and blank study levels from options',
     $exportPhp !== false
         && preg_match("/SELECT DISTINCT study_level FROM students WHERE study_level IS NOT NULL AND study_level <> '' ORDER BY study_level/", $exportPhp) === 1
 );

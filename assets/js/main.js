@@ -1,22 +1,22 @@
 /**
- * Scripts JavaScript généraux
- * Fichier: assets/js/main.js
+ * Shared JavaScript behavior
+ * File: assets/js/main.js
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialiser les tooltips Bootstrap
+    // Initialize Bootstrap tooltips
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl)
     });
 
-    // Initialiser les popovers Bootstrap
+    // Initialize Bootstrap popovers
     var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
     var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
         return new bootstrap.Popover(popoverTriggerEl)
     });
 
-    // Ajouter la classe active au lien de navigation actuel
+    // Mark the current navigation link as active
     const currentLocation = window.location.pathname;
     const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
     
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Fonction pour afficher/masquer les messages de notification après un délai
+    // Dismiss notification messages after a delay
     setTimeout(function() {
         const alerts = document.querySelectorAll('.alert.alert-dismissible');
         alerts.forEach(alert => {

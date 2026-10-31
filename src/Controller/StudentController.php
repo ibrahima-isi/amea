@@ -58,8 +58,8 @@ class StudentController extends BaseController
             'perPage'      => $perPage,
             'totalPages'   => (int) ceil(max(1, $total) / $perPage),
             'filters'      => $filters,
-            'institutions' => $this->studentRepo->getDistinctEtablissements(),
-            'niveaux'      => $this->studentRepo->getDistinctNiveaux(),
+            'institutions' => $this->studentRepo->getDistinctInstitutions(),
+            'study_levels' => $this->studentRepo->getDistinctStudyLevels(),
         ]);
     }
 
@@ -88,9 +88,9 @@ class StudentController extends BaseController
 
         // Build formData array from student model for pre-filling the form
         // Detect "Autre" values for dropdowns
-        $schools   = $this->studentRepo->getDistinctEtablissements();
-        $domaines  = $this->studentRepo->getDistinctDomaines();
-        $niveaux   = $this->studentRepo->getDistinctNiveaux();
+        $schools   = $this->studentRepo->getDistinctInstitutions();
+        $studyFields  = $this->studentRepo->getDistinctStudyFields();
+        $studyLevels   = $this->studentRepo->getDistinctStudyLevels();
         $locations = $this->studentRepo->getLocations();
         $allLocNames = array_merge(...array_values($locations));
 
@@ -103,14 +103,14 @@ class StudentController extends BaseController
 
         $studyFieldVal = $student->getStudyField();
         $otherStudyField = '';
-        if ($studyFieldVal !== '' && !in_array($studyFieldVal, $domaines, true)) {
+        if ($studyFieldVal !== '' && !in_array($studyFieldVal, $studyFields, true)) {
             $otherStudyField = $studyFieldVal;
             $studyFieldVal   = 'Autre';
         }
 
         $studyLevelVal = $student->getStudyLevel();
         $otherStudyLevel = '';
-        if ($studyLevelVal !== '' && !in_array($studyLevelVal, $niveaux, true)) {
+        if ($studyLevelVal !== '' && !in_array($studyLevelVal, $studyLevels, true)) {
             $otherStudyLevel = $studyLevelVal;
             $studyLevelVal   = 'Autre';
         }
@@ -163,8 +163,8 @@ class StudentController extends BaseController
             'student'   => $student,
             'formData'  => $formData,
             'schools'   => $schools,
-            'domaines'  => $domaines,
-            'niveaux'   => $niveaux,
+            'study_fields' => $studyFields,
+            'study_levels' => $studyLevels,
             'locations' => $locations,
             'errors'    => $errors,
         ]);
@@ -230,13 +230,13 @@ class StudentController extends BaseController
 
         // Ensure new institutions/fields/levels are added to lookup tables
         if (!empty($dbData['institution'])) {
-            $this->studentRepo->ensureEtablissementExists($dbData['institution']);
+            $this->studentRepo->ensureInstitutionExists($dbData['institution']);
         }
         if (!empty($dbData['study_field'])) {
-            $this->studentRepo->ensureDomaineExists($dbData['study_field']);
+            $this->studentRepo->ensureStudyFieldExists($dbData['study_field']);
         }
         if (!empty($dbData['study_level'])) {
-            $this->studentRepo->ensureNiveauExists($dbData['study_level']);
+            $this->studentRepo->ensureStudyLevelExists($dbData['study_level']);
         }
 
         $this->studentRepo->update($id, $dbData);

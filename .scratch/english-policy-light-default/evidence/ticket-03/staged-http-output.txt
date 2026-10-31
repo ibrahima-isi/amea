@@ -1,0 +1,12 @@
+PASS: previous staged session retains its protected preview
+PASS: foreign session cannot preview the previous staged document
+PASS: /registration-details.php renders
+PASS: /registration-details.php exposes CSRF form
+PASS: previous staged data renders unchanged French member values
+PASS: previous staged session still requires valid CSRF
+PASS: previous staged session confirms without a session migration
+PASS: /login.php renders
+PASS: /login.php exposes CSRF form
+PASS: confirmed member and shared lookup options render through staff editing
+PASS: authorized staff downloads the finalized previous staged document
+PASS: confirmation consumes the previous staged session

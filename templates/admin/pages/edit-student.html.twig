@@ -41,7 +41,7 @@
         >
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
-          <!-- Informations personnelles -->
+          <!-- Personal information -->
           <h3 class="registration-section-heading">
             <span class="registration-section-title">Informations personnelles</span>
           </h3>
@@ -163,7 +163,7 @@
 
           </div>
 
-          <!-- Contact et résidence -->
+          <!-- Contact and residence -->
           <h3 class="mb-0">
             <button type="button"
                     class="registration-section-heading registration-section-toggle"
@@ -239,7 +239,7 @@
             </div>
           </div>
 
-          <!-- Informations académiques -->
+          <!-- Academic information -->
           <h3 class="mb-0">
             <button type="button"
                     class="registration-section-heading registration-section-toggle"
@@ -293,8 +293,8 @@
                 <select class="form-select {{ errors.study_field ? 'is-invalid' : '' }}"
                         id="study_field" name="study_field">
                   <option value="" disabled {{ formData.study_field|default('') == '' ? 'selected' : '' }}>Sélectionnez votre domaine d'études</option>
-                  {% for dom in domaines %}
-                    <option value="{{ dom }}" {{ formData.study_field|default('') == dom ? 'selected' : '' }}>{{ dom }}</option>
+                  {% for studyField in study_fields %}
+                    <option value="{{ studyField }}" {{ formData.study_field|default('') == studyField ? 'selected' : '' }}>{{ studyField }}</option>
                   {% endfor %}
                   <option value="Autre" {{ formData.study_field|default('') == 'Autre' ? 'selected' : '' }}>Autre</option>
                 </select>
@@ -314,8 +314,8 @@
                 <select class="form-select {{ errors.study_level ? 'is-invalid' : '' }}"
                         id="study_level" name="study_level">
                   <option value="" disabled {{ formData.study_level|default('') == '' ? 'selected' : '' }}>Sélectionnez votre niveau d'études</option>
-                  {% for niv in niveaux %}
-                    <option value="{{ niv }}" {{ formData.study_level|default('') == niv ? 'selected' : '' }}>{{ niv }}</option>
+                  {% for studyLevel in study_levels %}
+                    <option value="{{ studyLevel }}" {{ formData.study_level|default('') == studyLevel ? 'selected' : '' }}>{{ studyLevel }}</option>
                   {% endfor %}
                   <option value="Autre" {{ formData.study_level|default('') == 'Autre' ? 'selected' : '' }}>Autre</option>
                 </select>
@@ -333,7 +333,7 @@
             </div>
           </div>
 
-          <!-- Projets futurs -->
+          <!-- Future plans -->
           <h3 class="mb-0">
             <button type="button"
                     class="registration-section-heading registration-section-toggle"
@@ -373,7 +373,7 @@
             </div>
           </div>
 
-          <!-- Boutons -->
+          <!-- Actions -->
           <div class="d-grid gap-2 d-md-flex justify-content-md-end">
             <a href="students.php" class="btn btn-secondary"><i class="fas fa-times"></i> Annuler</a>
             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Enregistrer les modifications</button>

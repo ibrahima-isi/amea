@@ -63,6 +63,7 @@ jobs:
         run: |
           python3 tests/http/baseline.py
           python3 tests/http/tokens.py
+          python3 tests/http/internals.py
 
   php-tests:
     runs-on: ubuntu-latest

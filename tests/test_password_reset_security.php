@@ -80,6 +80,7 @@ preg_match('/token=([a-f0-9]{64})/i', $emailBody, $match);
 $rawToken = $match[1] ?? '';
 
 expect('requestForEmail() succeeds for existing active user', $requestOk === true);
+expect('reset email retains the French greeting and full recipient name', str_contains($emailBody, 'Bonjour Reset User,'));
 expect('reset email contains a 64-hex raw token link', strlen($rawToken) === 64 && ctype_xdigit($rawToken));
 expect('database stores token hash, not raw token', $reset !== null && $reset['token'] === hash('sha256', $rawToken) && $reset['token'] !== $rawToken);
 expect('stored token hash is 64 hex chars', $reset !== null && strlen($reset['token']) === 64 && ctype_xdigit($reset['token']));
@@ -104,6 +105,7 @@ expect('resetPassword() accepts a valid token and matching strong password', $co
 expect('resetPassword() updates the password hash', password_verify('NewPassword#2026', $updatedHash));
 expect('resetPassword() increments session_version', $sessionVersion === 2);
 expect('resetPassword() deletes all reset tokens for the email', $remainingTokens === 0);
+expect('confirmation email retains the French greeting and full recipient name', str_contains($confirmationBody, 'Bonjour Reset User,'));
 expect('confirmation email does not include raw reset token', !str_contains($confirmationBody, $rawToken));
 expect('confirmation email does not include new password', !str_contains($confirmationBody, 'NewPassword#2026'));
 

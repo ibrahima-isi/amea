@@ -1,0 +1,34 @@
+PASS unchanged directives/schema after removing comments: .htaccess
+PASS unchanged JavaScript after removing comments: assets/js/edit-student.js
+PASS unchanged JavaScript after removing comments: assets/js/main.js
+PASS unchanged JavaScript after removing comments: assets/js/register.js
+PASS unchanged directives/schema after removing comments: database/init.sql
+PASS static French template content: templates/admin/pages/dashboard.html.twig
+PASS static French template content: templates/admin/pages/edit-student.html.twig
+PASS static French template content: templates/emails/admin-update-notification.html
+PASS static French template content: templates/emails/bulk-communication.html
+PASS static French template content: templates/emails/cgu-reminder.html
+PASS static French template content: templates/emails/grade-upgrade-email.html
+PASS static French template content: templates/emails/new-registration-admin.html
+PASS static French template content: templates/emails/password-reset-email.html
+PASS static French template content: templates/emails/password-updated-confirmation.html
+PASS static French template content: templates/emails/registration-confirmation.html
+PASS static French template content: templates/emails/registration-finalized.html
+PASS static French template content: templates/register.html.twig
+PASS unchanged directives/schema after removing comments: uploads/.htaccess
+PASS exact excluded/boundary source bytes: schema.sql
+PASS exact excluded/boundary source bytes: templates/legal-notice.html.twig
+PASS exact excluded/boundary source bytes: assets/json/countries.json
+PASS exact excluded/boundary source bytes: assets/js/tagify.min.js
+PASS exact excluded/boundary source bytes: config/database.php
+PASS exact excluded/boundary source bytes: config/session.php
+PASS exact excluded/boundary source bytes: migrations/00_init_schema.php
+PASS exact excluded/boundary source bytes: migrations/01_migration_add_settings_table.php
+PASS exact excluded/boundary source bytes: migrations/02_migration_add_user_session_version.php
+PASS exact excluded/boundary source bytes: migrations/03_migration_fix_role_enum.php
+PASS exact excluded/boundary source bytes: migrations/04_migration_add_kyc_workflow.php
+PASS exact excluded/boundary source bytes: migrations/05_migration_add_soft_delete.php
+PASS exact excluded/boundary source bytes: migrations/06_expand_member_enum_compatibility.php
+PASS exact excluded/boundary source bytes: migrations/07_create_association_journal.php
+PASS identical HTTP route methods/paths
+PASS no executable caller retains any removed method/class name
