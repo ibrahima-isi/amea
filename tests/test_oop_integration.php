@@ -328,7 +328,7 @@ expect('countAll() total is 3',              $stuRepo->countAll() === 3);
 expect('countAll() filter by gender Masculin', $stuRepo->countAll(['gender' => 'Masculin']) === 2);
 expect('countAll() filter by status',        $stuRepo->countAll(['status' => 'Diplômé(e)']) === 1);
 expect('countAll() filter by institution', $stuRepo->countAll(['institution' => 'UCAD']) === 2);
-expect('countAll() filter by niveau',        $stuRepo->countAll(['study_level' => 'Master']) === 1);
+expect('countAll() filter by study level',        $stuRepo->countAll(['study_level' => 'Master']) === 1);
 expect('countAll() search by last_name',           $stuRepo->countAll(['search' => 'Sarr']) === 1);
 expect('countAll() search by email',         $stuRepo->countAll(['search' => 'amadou']) === 1);
 
@@ -367,9 +367,9 @@ expect('existsByPhone() false when excluded',$stuRepo->existsByPhone('779876543'
 // getStats()
 $stats = $stuRepo->getStats();
 expect('getStats() total is 3',              (int)$stats['total'] === 3);
-expect('getStats() femmes is 1',             (int)$stats['femmes'] === 1);
-expect('getStats() hommes is 2',             (int)$stats['hommes'] === 2);
-expect('getStats() diplomes is 2',           (int)$stats['diplomes'] === 2); // s1 updated + s2
+expect('getStats() women is 1',             (int)$stats['women'] === 1);
+expect('getStats() men is 2',             (int)$stats['men'] === 2);
+expect('getStats() graduates is 2',           (int)$stats['graduates'] === 2); // s1 updated + s2
 
 // updateField() — locked status (Student model has no getIsLocked(); verify via raw query)
 $stuRepo->updateField($s3, 'is_locked', 1);

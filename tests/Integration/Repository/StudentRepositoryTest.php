@@ -39,6 +39,66 @@ class StudentRepositoryTest extends TestCase
         ], $overrides);
     }
 
+    public function testStatisticsRetainFrenchBusinessValuesAndExcludeTrashedMembers(): void
+    {
+        foreach (['ELEVE', 'ETUDIANT', 'STAGIAIRE', 'Diplômé(e)'] as $index => $status) {
+            $this->repo->save($this->makeStudent([
+                'status' => $status,
+                'gender' => $index % 2 === 0 ? 'Masculin' : 'Féminin',
+                'phone' => '77900000' . $index,
+                'email' => "stats{$index}@example.invalid",
+            ]));
+        }
+        $trashed = $this->repo->save($this->makeStudent([
+            'status' => 'ETUDIANT', 'phone' => '779000009', 'email' => 'trashed@example.invalid',
+        ]));
+        $this->repo->softDelete($trashed);
+
+        $stats = array_map('intval', $this->repo->getStats());
+        $this->assertSame([
+            'total' => 4, 'men' => 2, 'women' => 2, 'pupils' => 1,
+            'students' => 1, 'interns' => 1, 'graduates' => 1,
+        ], $stats);
+        $this->assertSame('Diplômé(e)', $this->repo->findAll(['status' => 'Diplômé(e)'])[0]->getStatus());
+    }
+
+    public function testSharedLookupEntriesRemainSortedAndReusable(): void
+    {
+        $this->db->exec('CREATE TABLE study_fields (id INTEGER PRIMARY KEY, name TEXT UNIQUE);
+            CREATE TABLE study_levels (id INTEGER PRIMARY KEY, name TEXT UNIQUE);
+            CREATE TABLE countries (id INTEGER PRIMARY KEY, name_fr TEXT)');
+        foreach (['Zoologie', 'Biologie', 'Biologie'] as $name) {
+            $this->repo->ensureInstitutionExists($name);
+            $this->repo->ensureStudyFieldExists($name);
+            $this->repo->ensureStudyLevelExists($name);
+        }
+        $this->assertSame(['Biologie', 'Zoologie'], $this->repo->getDistinctInstitutions());
+        $this->assertSame(['Biologie', 'Zoologie'], $this->repo->getDistinctStudyFields());
+        $this->assertSame(['Biologie', 'Zoologie'], $this->repo->getDistinctStudyLevels());
+        $this->db->exec("INSERT INTO countries VALUES (1, 'Guinée'), (2, 'Sénégal')");
+        $this->assertSame(['id' => 1, 'name_fr' => 'Guinée'], $this->repo->getGuineaCountry());
+        $this->assertSame([['id' => 2, 'name_fr' => 'Sénégal']], $this->repo->getCountriesByName(['Sénégal']));
+        $this->assertSame([], $this->repo->getCountriesByName([]));
+    }
+
+    public function testInstitutionReportKeepsNamesCountsAndActiveMemberBoundary(): void
+    {
+        foreach (['Université A', 'Université A', 'Université B'] as $index => $institution) {
+            $this->repo->save($this->makeStudent([
+                'institution' => $institution, 'phone' => '77800000' . $index,
+                'email' => "report{$index}@example.invalid",
+            ]));
+        }
+        $trashed = $this->repo->save($this->makeStudent([
+            'institution' => 'Université B', 'phone' => '778000009', 'email' => 'old@example.invalid',
+        ]));
+        $this->repo->softDelete($trashed);
+        $this->assertSame([
+            ['institution' => 'Université A', 'count' => 2],
+            ['institution' => 'Université B', 'count' => 1],
+        ], $this->repo->getTopInstitutions());
+    }
+
     public function testReviewQueueFiltersOrdersAndLimitsActiveDossiers(): void
     {
         $ids = [];

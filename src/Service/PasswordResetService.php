@@ -136,8 +136,8 @@ class PasswordResetService
         }
 
         $body = $this->view->render('emails/password-reset-email.html', [
-            'prenom' => (string)($user['first_name'] ?? ''),
-            'nom' => (string)($user['last_name'] ?? ''),
+            'first_name' => (string)($user['first_name'] ?? ''),
+            'last_name' => (string)($user['last_name'] ?? ''),
             'reset_link' => $this->resetLink($rawToken),
             'expires_in' => '5 minutes',
         ]);
@@ -195,8 +195,8 @@ class PasswordResetService
     private function sendPasswordChangedConfirmation(array $user, callable $sendMail): bool
     {
         $body = $this->view->render('emails/password-updated-confirmation.html', [
-            'prenom' => (string)($user['first_name'] ?? ''),
-            'nom' => (string)($user['last_name'] ?? ''),
+            'first_name' => (string)($user['first_name'] ?? ''),
+            'last_name' => (string)($user['last_name'] ?? ''),
         ]);
 
         $sent = $sendMail(

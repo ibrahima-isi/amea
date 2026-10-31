@@ -141,16 +141,16 @@ class StudentTest extends TestCase
         $this->assertNull($s->getIdentityDocument());
     }
 
-    public function testIsDiplomeReturnsFalseForRegularStatus(): void
+    public function testIsGraduateReturnsFalseForRegularStatus(): void
     {
         $s = Student::fromRow($this->row);
-        $this->assertFalse($s->isDiplome());
+        $this->assertFalse($s->isGraduate());
     }
 
-    public function testIsDiplomeReturnsTrueForDiplomeStatus(): void
+    public function testIsGraduateReturnsTrueForGraduateStatus(): void
     {
         $s = Student::fromRow(array_merge($this->row, ['status' => 'Diplômé(e)']));
-        $this->assertTrue($s->isDiplome());
+        $this->assertTrue($s->isGraduate());
     }
 
     public function testFromRowUsesDefaults(): void

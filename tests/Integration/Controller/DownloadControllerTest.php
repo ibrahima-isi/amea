@@ -2,7 +2,7 @@
 
 namespace Amea\Tests\Integration\Controller;
 
-use Amea\Controller\AcceptCguController;
+use Amea\Controller\AcceptTermsController;
 use Amea\Controller\DownloadController;
 use Amea\Controller\LegalController;
 use PHPUnit\Framework\TestCase;
@@ -22,7 +22,7 @@ class DownloadControllerTest extends TestCase
         return [
             [DownloadController::class,   'serve'],
             [LegalController::class,      'index'],
-            [AcceptCguController::class,  'accept'],
+            [AcceptTermsController::class,  'accept'],
         ];
     }
 }

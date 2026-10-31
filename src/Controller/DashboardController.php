@@ -21,7 +21,7 @@ class DashboardController extends BaseController
         $stats       = $this->students->getStats();
         $recentWeek  = $this->students->getRecentCount(7);
         $recentMonth = $this->students->getRecentCount(30);
-        $topEtabs    = $this->students->getTopEtablissements(5);
+        $topInstitutions    = $this->students->getTopInstitutions(5);
 
         $role      = $this->session->get('role');
         $canReview = $role === 'admin';
@@ -31,8 +31,8 @@ class DashboardController extends BaseController
         // Build chart data
         $schoolLabels = [];
         $schoolValues = [];
-        foreach ($topEtabs as $row) {
-            $schoolLabels[] = json_encode($row['nom'] ?? 'Non renseigné');
+        foreach ($topInstitutions as $row) {
+            $schoolLabels[] = json_encode($row['institution'] ?? 'Non renseigné');
             $schoolValues[] = (int)($row['count'] ?? 0);
         }
 

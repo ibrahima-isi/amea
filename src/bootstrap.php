@@ -107,7 +107,7 @@ $router->add('POST', '/reset-password.php',  'PasswordResetController@resetSubmi
 // Download, legal, CGU
 $router->add('GET',  '/download.php',     'DownloadController@serve');
 $router->add('GET',  '/legal-notice.php', 'LegalController@index');
-$router->add('GET',  '/accept-cgu.php',   'AcceptCguController@accept');
-$router->add('POST', '/accept-cgu.php',   'AcceptCguController@accept');
+$router->add('GET',  '/accept-cgu.php',   'AcceptTermsController@accept');
+$router->add('POST', '/accept-cgu.php',   'AcceptTermsController@accept');
 
 return $router;
