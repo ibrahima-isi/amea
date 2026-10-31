@@ -278,6 +278,7 @@ PASS local Markdown destination .scratch/english-policy-light-default/completion
 PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-06/integrated-corpus-manifest.json
 PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-06/execution-summary.json
 PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-06/integrated-browser-output.txt
+PASS local Markdown destination .scratch/english-policy-light-default/completion.md -> evidence/ticket-06/first-verified-pr-head.json
 PASS local Markdown destination .scratch/english-policy-light-default/design.md -> spec.md
 PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-02/README.md -> browser-output.txt
 PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-02/README.md -> authentication-dark.png
@@ -307,6 +308,7 @@ PASS local Markdown destination .scratch/english-policy-light-default/evidence/t
 PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-06/handoff.md -> integrated-contract-and-link-checks.txt
 PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-06/handoff.md -> integrated-browser-output.txt
 PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-06/handoff.md -> execution-summary.json
+PASS local Markdown destination .scratch/english-policy-light-default/evidence/ticket-06/handoff.md -> first-verified-pr-head.json
 PASS local Markdown destination .scratch/english-policy-light-default/issues/01-canonical-agent-instructions.md -> ../spec.md
 PASS local Markdown destination .scratch/english-policy-light-default/issues/01-canonical-agent-instructions.md -> ../completion.md
 PASS local Markdown destination .scratch/english-policy-light-default/issues/02-light-default-with-persistent-user-preference.md -> ../spec.md

@@ -272,3 +272,17 @@ Final source review totals: **Standards 0 / Spec 0**. Final verification readine
 Final evidence review found two tracking-only inconsistencies: the compound final-head CI/protected-delivery acceptance boxes were checked before those gates, and the executed-source manifest used the edited ticket-06 bytes for one entry while declaring revision `8d51c92`. Both are corrected before publication: the two external-gate boxes remain unchecked, and every one of the 361 manifest hashes now comes directly from the declared committed source. The other 360 hashes and all 13 screenshot hashes were already correct. The full implementation review remains Standards 0 / Spec 0; evidence re-review is recorded separately.
 
 The first final-evidence commit attempt created no commit: the configured 1Password helper returned `failed to fill whole buffer`. Signing settings and keys remain unchanged; no unsigned fallback is used. The concrete corrected evidence remains staged while the signing-helper issue is resolved.
+
+
+### Ticket 06 — signing resolved and verification PR published
+
+After the user explicitly unlocked 1Password, the unchanged configured helper/key created verified signed commit **`3766022c4fbc6b7abee8a1b66fe0e86ebc8ecd17`**. This supersedes the earlier pre-signing checkpoint: evidence is committed and published, not merely staged. No unsigned commit or signing-setting change occurred. Re-review confirms both evidence findings resolved: all 361 hashes match `8d51c92`, and external-gate boxes remain pending until checked. Final evidence findings: **Standards 0 / Spec 0**; reviewers did not rerun runtime tests.
+
+[PR #28](https://github.com/ibrahima-isi/amea/pull/28) targets `dev` from `test/english-policy-final-verification`. Its [exact-head checks](https://github.com/ibrahima-isi/amea/pull/28/checks) are the readiness gate. Actual ticket-06 merge, local-main integration and owned cleanup remain distinct and conditional; no production or remote-main push is claimed.
+
+
+### Ticket 06 — verified CI checkpoint and final evidence closeout
+
+Signed PR #28 head **`3766022c4fbc6b7abee8a1b66fe0e86ebc8ecd17`** passed all three checks: `apps-rehearsal`, `test` and `php-tests` ([CI run](https://github.com/ibrahima-isi/amea/actions/runs/41251039361)). [The exact-head snapshot](evidence/ticket-06/first-verified-pr-head.json) records successful conclusions and completion timestamps. The CI/protected-delivery acceptance boxes are closed only after this observed result and publication through the existing `dev` PR workflow. This supersedes their earlier pending checkpoint; it does not claim an actual merge.
+
+The final evidence-only closeout commit still requires its own three successful current-head checks before readiness is reported. Executed application/test source remains unchanged from `8d51c92`; earlier green CI is not substituted for that final check. The complete handoff and classification/compatibility proofs remain valid. Journal browser QA, production qualification and primary-checkout/local-main synchronization limits remain unchanged.

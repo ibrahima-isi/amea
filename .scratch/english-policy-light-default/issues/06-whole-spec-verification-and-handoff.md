@@ -15,8 +15,8 @@ Specification: [English technical content, canonical agent instructions, and a l
 - [x] Record real isolated browser evidence across the supported public/staff/authentication/member/preview surfaces and distinguish injected storage failures from ordinary rendering. Preserve keyboard and no-JavaScript light fallback behavior.
 - [x] Verify existing registration staging, French values, secure links, form/JSON/session contracts, authorization, CSRF, private documents and applicable correction/consent/reset behavior remain compatible after the integrated internal-name changes.
 - [x] Complete the approved regression/CI command set for the final integrated source, reusing meaningful ticket evidence where unchanged and rerunning checks when integration changes or unresolved concerns require them. Keep local results, browser observations and CI evidence distinct.
-- [ ] Obtain independent Standards and Spec reviews against the approved specification and full implementation baseline, resolve actionable findings, and verify required CI checks on the exact final signed PR head before reporting readiness.
-- [ ] Keep all created commit messages and PR text in English and every created commit cryptographically signed. Deliver through the protected development-branch workflow; record actual merge separately from readiness and condition local integration/owned cleanup on a real remote merge.
+- [x] Obtain independent Standards and Spec reviews against the approved specification and full implementation baseline, resolve actionable findings, and verify required CI checks on the exact final signed PR head before reporting readiness.
+- [x] Keep all created commit messages and PR text in English and every created commit cryptographically signed. Deliver through the protected development-branch workflow; record actual merge separately from readiness and condition local integration/owned cleanup on a real remote merge.
 - [x] Produce one coherent feature completion handoff with revisions, executed checks, evidence, legitimate exceptions and material limits. Preserve the user-deferred journal browser QA as deferred rather than closing it with theme checks.
 
 ## Boundaries
@@ -28,3 +28,5 @@ No production deployment, DNS/SMTP action, schema/data migration, published-hist
 2026-10-31: The user approved publication of this six-ticket breakdown. This final ticket is blocked by all five independently verifiable deliveries, and none is marked complete by ticket publication.
 
 2026-10-31: The user explicitly authorized ticket-06 implementation. All five blockers are delivered; the combined local gate and full implementation reviews are complete. See [completion](../completion.md#ticket-06--whole-spec-verification-and-handoff) for exact revisions, evidence and the separate final-head CI/merge milestones. Readiness is reported only after the latest signed PR head passes its required checks.
+
+2026-10-31: The two external-gate criteria were closed only after signed head `3766022` passed all three PR #28 checks. This evidence-only closeout commit must also pass its own current-head checks before final readiness is reported; actual merge remains separate.
