@@ -1,29 +1,81 @@
+# Canonical Dokploy stack; keep the existing project name to preserve its volumes.
 services:
-  app:
+  public:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile.apps
+      target: public
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment: &shared_environment
+      DB_HOST: db
+      DB_NAME: ${DB_NAME:?set DB_NAME}
+      DB_USER: ${DB_USER:?set DB_USER}
+      DB_PASS: ${DB_PASS:?set DB_PASS}
+      APP_URL: ${PUBLIC_APP_URL:?set PUBLIC_APP_URL}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:?set PUBLIC_APP_URL}
+      APP_ENV: ${APP_ENV:-production}
+      MAIL_USER: ${MAIL_USER:?set MAIL_USER}
+      MAIL_PASS: ${MAIL_PASS:?set MAIL_PASS}
+      MAIL_ASYNC: ${MAIL_ASYNC:-0}
+    volumes:
+      - amea_uploads:/opt/amea/uploads
+      - amea_storage:/opt/amea/storage
+      - amea_logs:/opt/amea/logs
+      - public_sessions:/var/lib/amea/sessions
+    tmpfs:
+      - /opt/amea/storage/cache:uid=33,gid=33,mode=0770
+    networks:
+      - default
+      - dokploy-network
+
+  staff:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.apps
+      target: staff
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
     environment:
-      DB_HOST: db
-      DB_NAME: ${DB_NAME:?set DB_NAME}
-      DB_USER: ${DB_USER:?set DB_USER}
-      DB_PASS: ${DB_PASS:?set DB_PASS}
-      APP_URL: ${APP_URL:?set APP_URL}
-      APP_ENV: ${APP_ENV:-production}
-      MAIL_USER: ${MAIL_USER:?set MAIL_USER}
-      MAIL_PASS: ${MAIL_PASS:?set MAIL_PASS}
-      MAIL_ASYNC: "0"
+      <<: *shared_environment
+      APP_URL: ${STAFF_APP_URL:?set STAFF_APP_URL}
+      STAFF_APP_URL: ${STAFF_APP_URL:?set STAFF_APP_URL}
     volumes:
-      - amea_uploads:/var/www/html/uploads
-      - amea_storage:/var/www/html/storage
-      - amea_logs:/var/www/html/logs
+      - amea_uploads:/opt/amea/uploads
+      - amea_storage:/opt/amea/storage
+      - amea_logs:/opt/amea/logs
+      - staff_sessions:/var/lib/amea/sessions
+    tmpfs:
+      - /opt/amea/storage/cache:uid=33,gid=33,mode=0770
     networks:
       - default
       - dokploy-network
+
+  jobs:
+    profiles: [jobs]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.apps
+      target: jobs
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      <<: *shared_environment
+      AMEA_TRASH_BACKUP_CONFIRMED: ${AMEA_TRASH_BACKUP_CONFIRMED:-0}
+    volumes:
+      - amea_uploads:/opt/amea/uploads
+      - amea_storage:/opt/amea/storage
+      - amea_logs:/opt/amea/logs
+    tmpfs:
+      - /opt/amea/storage/cache:uid=33,gid=33,mode=0770
+    networks:
+      - default
 
   db:
     image: mariadb:10.11
@@ -48,6 +100,8 @@ volumes:
   amea_uploads:
   amea_storage:
   amea_logs:
+  public_sessions:
+  staff_sessions:
 
 networks:
   dokploy-network:
