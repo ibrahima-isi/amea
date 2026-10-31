@@ -1,6 +1,6 @@
 # Fresh restore volume initialization
 
-Follow-up to [journal qualification ticket 04](issues/04-integrated-qualification.md), within draft PR #20. Product code, deployment configuration and retained demo data are unchanged.
+Follow-up to [journal qualification ticket 04](issues/04-integrated-qualification.md), delivered in merged PR #20. Product code, deployment configuration and retained demo data are unchanged.
 
 ## Reproduced failure
 
@@ -19,3 +19,7 @@ Two fresh-context reviewers independently inspected `f8a4ad2...840a507`: Standar
 The complete local rehearsal recorded 521 PASS lines and crossed the previously failing creation step. Its execution channel was lost after a tool-host renewal; process inspection confirmed it was no longer running, and its final exit was unavailable. This is **incomplete local evidence**, not a successful full restore. Both owned source/restore projects were explicitly cleaned afterward. The final complete gate is [PR #20 latest-head CI](https://github.com/ibrahima-isi/amea/pull/20/checks).
 
 Local detailed artifacts: `/private/tmp/amea-copyup-red-20261031.md`, `/private/tmp/amea-restore-ci-diagnosis-20261031.md`, and `/private/tmp/amea-restore-ci-full-20261031.log`. The reduced loop and its original red version are retained alongside them. These operational tests do not qualify the separately open browser journeys.
+
+## Final complete gate
+
+[CI 41162939038](https://github.com/ibrahima-isi/amea/actions/runs/41162939038) passed all three jobs on exact signed head `09a414c9100e6ebebddddf65ae09ca6d88264f44`. The application rehearsal log contains 535 PASS lines, including separate SQL/files restore, preserved journal/cover bytes, storage marker and private-document denial. PR #20 merged as `3033d4b`; its [merged-dev CI](https://github.com/ibrahima-isi/amea/actions/runs/41163154556) also passed. The incomplete local run above remains recorded as incomplete; it is not the evidence used for this final gate.
