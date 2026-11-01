@@ -1,0 +1,37 @@
+{
+  "headRefOid": "02110ab19416f83179f277e47d2f64cfffa72cf9",
+  "isDraft": true,
+  "state": "OPEN",
+  "statusCheckRollup": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-01T00:16:16Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/ibrahima-isi/amea/actions/runs/41255810564/job/124698608956",
+      "name": "System tests: Docker & recovery",
+      "startedAt": "2026-11-01T00:13:43Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-01T00:14:07Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/ibrahima-isi/amea/actions/runs/41255810564/job/124698608977",
+      "name": "Regression tests: PHP, JS & HTTP",
+      "startedAt": "2026-11-01T00:13:43Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-01T00:13:55Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/ibrahima-isi/amea/actions/runs/41255810564/job/124698608793",
+      "name": "Static checks: Syntax & access",
+      "startedAt": "2026-11-01T00:13:44Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    }
+  ]
+}
