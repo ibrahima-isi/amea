@@ -1,17 +1,136 @@
+# Local stack mirroring compose.dokploy.yml, fronted by Caddy for HTTPS.
+# Run: docker compose up -d --build  →  https://public.localhost, https://staff.localhost
 services:
-  mysql:
-    image: mysql:8.0
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    restart: always
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=${DB_NAME}
-      - MYSQL_USER=${DB_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-    ports:
-      - "3306:3306"
+  public:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.apps
+      target: public
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment: &shared_environment
+      DB_HOST: db
+      DB_NAME: ${DB_NAME:?set DB_NAME}
+      DB_USER: ${DB_USER:?set DB_USER}
+      DB_PASS: ${DB_PASS:?set DB_PASS}
+      APP_URL: ${PUBLIC_APP_URL:-https://public.localhost}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-https://public.localhost}
+      # Non-production values (local, dev, ...) skip real email delivery.
+      APP_ENV: ${APP_ENV:-local}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASS: ${MAIL_PASS:-}
+      MAIL_ASYNC: ${MAIL_ASYNC:-0}
     volumes:
-      - mysql_data:/var/lib/mysql
+      - amea_uploads:/opt/amea/uploads
+      - amea_storage:/opt/amea/storage
+      - amea_logs:/opt/amea/logs
+      - public_sessions:/var/lib/amea/sessions
+    tmpfs:
+      - /opt/amea/storage/cache:uid=33,gid=33,mode=0770
+
+  staff:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.apps
+      target: staff
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      <<: *shared_environment
+      APP_URL: ${STAFF_APP_URL:-https://staff.localhost}
+      STAFF_APP_URL: ${STAFF_APP_URL:-https://staff.localhost}
+    volumes:
+      - amea_uploads:/opt/amea/uploads
+      - amea_storage:/opt/amea/storage
+      - amea_logs:/opt/amea/logs
+      - staff_sessions:/var/lib/amea/sessions
+    tmpfs:
+      - /opt/amea/storage/cache:uid=33,gid=33,mode=0770
+
+  jobs:
+    profiles: [jobs]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.apps
+      target: jobs
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      <<: *shared_environment
+      AMEA_TRASH_BACKUP_CONFIRMED: ${AMEA_TRASH_BACKUP_CONFIRMED:-0}
+    volumes:
+      - amea_uploads:/opt/amea/uploads
+      - amea_storage:/opt/amea/storage
+      - amea_logs:/opt/amea/logs
+    tmpfs:
+      - /opt/amea/storage/cache:uid=33,gid=33,mode=0770
+
+  # Runs all idempotent migrations on every `up` before the apps start.
+  migrate:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.apps
+      target: migrate
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_NAME: ${DB_NAME:?set DB_NAME}
+      DB_USER: ${DB_USER:?set DB_USER}
+      DB_PASS: ${DB_PASS:?set DB_PASS}
+
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?set MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DB_NAME:?set DB_NAME}
+      MARIADB_USER: ${DB_USER:?set DB_USER}
+      MARIADB_PASSWORD: ${DB_PASS:?set DB_PASS}
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - amea_db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "healthcheck.sh --connect --innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  caddy:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    depends_on:
+      - public
+      - staff
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
 
 volumes:
-  mysql_data:
+  amea_db:
+  amea_uploads:
+  amea_storage:
+  amea_logs:
+  public_sessions:
+  staff_sessions:
+  caddy_data:
+  caddy_config:

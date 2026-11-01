@@ -42,6 +42,7 @@ try {
     echo "Migration completed successfully.\n";
 
 } catch(PDOException $e) {
-    echo "Error: " . $e->getMessage();
+    echo "Error: " . $e->getMessage() . "\n";
+    exit(1);
 }
 ?>

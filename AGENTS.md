@@ -25,12 +25,12 @@ Place new classes in `src/` following PSR-4. Entry points bootstrap through `src
 
 - `composer install`: install locked PHP dependencies, including development tools.
 - `mysql -u root -p amea_db < schema.sql`: initialize an empty local database.
-- `docker compose up -d mysql`: start local MySQL using configured environment variables.
+- `docker compose up -d --build`: start the local Docker stack (same PHP 8.5 targets and MariaDB as Dokploy, migrations, Caddy HTTPS on `https://public.localhost` and `https://staff.localhost`); `.env` needs `DB_NAME`, `DB_USER`, `DB_PASS` and `MARIADB_ROOT_PASSWORD`.
 - `php -S localhost:8000`: serve locally after configuring `.env` and initializing the database.
 - `./vendor/bin/phpunit`: run Unit and Integration suites from `phpunit.xml`.
 - `php tests/test_oop_unit.php`: run a standalone regression script; CI also runs `test_oop_integration.php`, `test_permissions_unit.php`, and `test_password_reset_security.php`.
 - `php -l path/to/file.php`: check changed PHP syntax.
-- `docker compose -f compose.dokploy.yml build public staff`: build the separate PHP 8.4 Apache application targets with the required deployment environment configured. Building is distinct from deployment approval.
+- `docker compose -f compose.dokploy.yml build public staff`: build the separate PHP 8.5 Apache application targets with the required deployment environment configured. Building is distinct from deployment approval.
 - `docker build -t amea:local .`: build the retained legacy root Dockerfile image.
 
 ## Coding Style & Naming Conventions
@@ -62,7 +62,7 @@ Configure database credentials, Brevo SMTP credentials, and application origins 
 
 ## Database Changes
 
-Add schema changes as new idempotent PHP CLI scripts in `migrations/` and update `schema.sql`. Run migrations manually in numeric order, for example `php migrations/00_init_schema.php`, against the explicitly selected database.
+Add schema changes as new idempotent PHP CLI scripts in `migrations/` and update `schema.sql`. Both Compose stacks run every migration in numeric order through the one-shot `migrate` service before `public`, `staff` and `jobs` start, so each migration must stay idempotent and exit non-zero on failure. Outside Docker, run them manually in numeric order, for example `php migrations/00_init_schema.php`, against the explicitly selected database.
 
 ## Local Issue Tracker
 

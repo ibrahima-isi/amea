@@ -1,4 +1,4 @@
-FROM php:8.4-apache-bookworm AS shared
+FROM php:8.5.12-apache-bookworm AS shared
 RUN apt-get update && apt-get install -y --no-install-recommends libpng-dev libjpeg62-turbo-dev libfreetype6-dev libonig-dev unzip git \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" pdo_mysql mbstring gd \
@@ -32,3 +32,8 @@ COPY scripts scripts
 RUN printf 'jobs' > /opt/amea-apps/identity
 USER www-data
 CMD ["sh", "/opt/amea-apps/jobs.sh"]
+
+# One-shot schema step: runs every idempotent migration in order, then exits.
+FROM shared AS migrate
+USER www-data
+CMD ["sh", "-c", "for f in migrations/[0-9]*.php; do php \"$f\" || exit 1; done"]
