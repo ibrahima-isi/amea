@@ -1,9 +1,0 @@
-PASS exact rendered email equivalence: templates/emails/admin-update-notification.html
-PASS exact rendered email equivalence: templates/emails/bulk-communication.html
-PASS exact rendered email equivalence: templates/emails/cgu-reminder.html
-PASS exact rendered email equivalence: templates/emails/grade-upgrade-email.html
-PASS exact rendered email equivalence: templates/emails/new-registration-admin.html
-PASS exact rendered email equivalence: templates/emails/password-reset-email.html
-PASS exact rendered email equivalence: templates/emails/password-updated-confirmation.html
-PASS exact rendered email equivalence: templates/emails/registration-confirmation.html
-PASS exact rendered email equivalence: templates/emails/registration-finalized.html
