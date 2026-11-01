@@ -1,0 +1,10 @@
+# Local HTTPS only: Caddy's internal CA signs both *.localhost origins.
+public.localhost {
+	tls internal
+	reverse_proxy public:80
+}
+
+staff.localhost {
+	tls internal
+	reverse_proxy staff:80
+}

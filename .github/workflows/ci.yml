@@ -44,7 +44,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@8358ee0e2e8afe63c2fb8253d1d52085811ab1e5 # v2
         with:
-          php-version: '8.4'
+          php-version: '8.5'
           extensions: pdo, pdo_sqlite, fileinfo, mbstring, gd
 
       - name: Install dependencies
@@ -75,7 +75,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@8358ee0e2e8afe63c2fb8253d1d52085811ab1e5 # v2
         with:
-          php-version: '8.4'
+          php-version: '8.5'
           coverage: none
       - name: Validate PHP syntax
         run: |

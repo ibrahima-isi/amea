@@ -1,6 +1,6 @@
 # Testing and rehearsal
 
-Install locked dependencies with `composer install`. CI runs PHP 8.4 with SQLite:
+Install locked dependencies with `composer install`. CI runs PHP 8.5 with SQLite:
 
 ```sh
 ./vendor/bin/phpunit --colors=never
@@ -26,3 +26,22 @@ AMEA_REHEARSAL_PROJECT=amea-ui-test-example AMEA_PUBLIC_PORT=28443 AMEA_STAFF_PO
 ```
 
 Check source ports 28443/29443 and restore ports 18448/19448 are free first. The rehearsal uses synthetic accounts, storage and mail; it does not qualify production, DNS or real SMTP. The [rollout guide](../operations/public-staff-rollout.md) describes deployment and rollback separately. Screenshots are generated artifacts and ignored.
+
+## Local Docker stack
+
+`compose.yml` mirrors `compose.dokploy.yml` locally (PHP 8.5.12 targets, MariaDB 10.11, the `migrate` step) and adds Caddy for HTTPS, which the `Secure` session cookies and the `https`-only origin checks need:
+
+```sh
+docker compose up -d --build
+docker compose logs migrate   # migration output
+```
+
+Open `https://public.localhost` and `https://staff.localhost`. Caddy signs both with its own local CA; to stop the browser warning, trust it once on macOS:
+
+```sh
+docker compose cp caddy:/data/caddy/pki/authorities/local/root.crt ./caddy-root.crt
+sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ./caddy-root.crt
+rm ./caddy-root.crt
+```
+
+`APP_ENV` defaults to `local`, which skips real email delivery. MariaDB listens on `127.0.0.1:3306`.
