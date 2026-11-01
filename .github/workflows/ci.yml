@@ -20,7 +20,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  apps-rehearsal:
+  system-tests:
+    name: "System tests: Docker & recovery"
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -33,7 +34,8 @@ jobs:
 
   # Regression checks only; no deployment.
   # The test suite uses SQLite in-memory, so it needs no secrets and no database.
-  test:
+  regression-tests:
+    name: "Regression tests: PHP, JS & HTTP"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -65,7 +67,8 @@ jobs:
           python3 tests/http/tokens.py
           python3 tests/http/internals.py
 
-  php-tests:
+  static-checks:
+    name: "Static checks: Syntax & access"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
