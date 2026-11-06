@@ -25,7 +25,7 @@ Place new classes in `src/` following PSR-4. Entry points bootstrap through `src
 
 - `composer install`: install locked PHP dependencies, including development tools.
 - `mysql -u root -p amea_db < schema.sql`: initialize an empty local database.
-- `docker compose up -d --build`: start the local Docker stack (same PHP 8.5 targets and MariaDB as Dokploy, migrations, Caddy HTTPS on `https://public.localhost` and `https://staff.localhost`); `.env` needs `DB_NAME`, `DB_USER`, `DB_PASS` and `MARIADB_ROOT_PASSWORD`.
+- `docker compose up -d --build --remove-orphans`: start the local Docker stack. See [local Docker setup](docs/testing/README.md#local-docker-stack) for URLs and certificate setup.
 - `php -S localhost:8000`: serve locally after configuring `.env` and initializing the database.
 - `./vendor/bin/phpunit`: run Unit and Integration suites from `phpunit.xml`.
 - `php tests/test_oop_unit.php`: run a standalone regression script; CI also runs `test_oop_integration.php`, `test_permissions_unit.php`, and `test_password_reset_security.php`.
