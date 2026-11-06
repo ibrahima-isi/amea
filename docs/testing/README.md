@@ -32,11 +32,11 @@ Check source ports 28443/29443 and restore ports 18448/19448 are free first. The
 `compose.yml` mirrors `compose.dokploy.yml` locally (PHP 8.5.12 targets, MariaDB 10.11, the `migrate` step) and adds Caddy for HTTPS, which the `Secure` session cookies and the `https`-only origin checks need:
 
 ```sh
-docker compose up -d --build
+docker compose up -d --build --remove-orphans
 docker compose logs migrate   # migration output
 ```
 
-Open `https://public.localhost` and `https://staff.localhost`. Caddy signs both with its own local CA; to stop the browser warning, trust it once on macOS:
+Open `https://public.localhost:8000` for `web` and `https://staff.localhost:8090` for `backoffice`. If your local `.env` sets `PUBLIC_APP_URL` or `STAFF_APP_URL`, update those values to match. Caddy signs both with its own local CA; to stop the browser warning, trust it once on macOS:
 
 ```sh
 docker compose cp caddy:/data/caddy/pki/authorities/local/root.crt ./caddy-root.crt

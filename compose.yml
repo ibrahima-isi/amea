@@ -1,7 +1,7 @@
 # Local stack mirroring compose.dokploy.yml, fronted by Caddy for HTTPS.
-# Run: docker compose up -d --build  →  https://public.localhost, https://staff.localhost
+# Run: docker compose up -d --build  →  https://public.localhost:8000, https://staff.localhost:8090
 services:
-  public:
+  web:
     build:
       context: .
       dockerfile: docker/Dockerfile.apps
@@ -17,8 +17,8 @@ services:
       DB_NAME: ${DB_NAME:?set DB_NAME}
       DB_USER: ${DB_USER:?set DB_USER}
       DB_PASS: ${DB_PASS:?set DB_PASS}
-      APP_URL: ${PUBLIC_APP_URL:-https://public.localhost}
-      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-https://public.localhost}
+      APP_URL: ${PUBLIC_APP_URL:-https://public.localhost:8000}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-https://public.localhost:8000}
       # Non-production values (local, dev, ...) skip real email delivery.
       APP_ENV: ${APP_ENV:-local}
       MAIL_USER: ${MAIL_USER:-}
@@ -32,7 +32,7 @@ services:
     tmpfs:
       - /opt/amea/storage/cache:uid=33,gid=33,mode=0770
 
-  staff:
+  backoffice:
     build:
       context: .
       dockerfile: docker/Dockerfile.apps
@@ -45,8 +45,8 @@ services:
         condition: service_completed_successfully
     environment:
       <<: *shared_environment
-      APP_URL: ${STAFF_APP_URL:-https://staff.localhost}
-      STAFF_APP_URL: ${STAFF_APP_URL:-https://staff.localhost}
+      APP_URL: ${STAFF_APP_URL:-https://staff.localhost:8090}
+      STAFF_APP_URL: ${STAFF_APP_URL:-https://staff.localhost:8090}
     volumes:
       - amea_uploads:/opt/amea/uploads
       - amea_storage:/opt/amea/storage
@@ -115,11 +115,11 @@ services:
     image: caddy:2.10.2-alpine
     restart: unless-stopped
     depends_on:
-      - public
-      - staff
+      - web
+      - backoffice
     ports:
-      - "80:80"
-      - "443:443"
+      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8090:8090"
     volumes:
       - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
