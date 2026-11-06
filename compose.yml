@@ -118,8 +118,8 @@ services:
       - web
       - backoffice
     ports:
-      - "127.0.0.1:8000:8000"
-      - "127.0.0.1:8090:8090"
+      - "8000:8000"
+      - "8090:8090"
     volumes:
       - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
