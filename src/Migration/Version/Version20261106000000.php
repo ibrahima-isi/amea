@@ -1,0 +1,203 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Amea\Migration\Version;
+
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\Migrations\AbstractMigration;
+
+final class Version20261106000000 extends AbstractMigration
+{
+    public function getDescription(): string
+    {
+        return 'Create the initial AMEA schema';
+    }
+
+    public function isTransactional(): bool
+    {
+        // MariaDB commits DDL implicitly.
+        return false;
+    }
+
+    public function up(Schema $schema): void
+    {
+        // Frozen snapshot of schema.sql at Doctrine adoption.
+        $ddl = <<<'SQL'
+CREATE TABLE `students`
+(
+    `id`                     int(11)                                                                  NOT NULL AUTO_INCREMENT,
+    `last_name`              varchar(100)                                                             NOT NULL,
+    `first_name`             varchar(100)                                                             NOT NULL,
+    `gender`                 enum ('Male','Female','Masculin','Féminin')                                                   NOT NULL,
+    `age`                    int(11)      DEFAULT NULL,
+    `birth_date`             date             DEFAULT NULL,
+    `residence`              varchar(150)      DEFAULT NULL,
+    `institution`            varchar(200)      DEFAULT NULL,
+    `status`                 enum ('PUPIL','STUDENT','TRAINEE','ELEVE','ETUDIANT','STAGIAIRE','GRADUATE','Diplômé','Diplômé(e)')                                       NOT NULL,
+    `study_field`            varchar(200)      DEFAULT NULL,
+    `study_level`            varchar(100)      DEFAULT NULL,
+    `phone`                  varchar(20)       DEFAULT NULL UNIQUE,
+    `email`                  varchar(100)      DEFAULT NULL UNIQUE,
+    `arrival_year`           int(11)      DEFAULT NULL,
+    `housing_type`           enum ('With family','Shared housing','University residence','Other','Colocation','Famille','Hébergement temporaire','Location','Résidence universitaire','Autre')     DEFAULT NULL,
+    `housing_details`        varchar(100) DEFAULT NULL,
+    `post_training_project`  text         DEFAULT NULL,
+    `identity_document`      varchar(255) DEFAULT NULL,
+    `cv_path`                varchar(255) DEFAULT NULL,
+    `nationalities`          text         DEFAULT NULL,
+    `kyc_status`             enum ('PENDING_CONFIRMATION','UNDER_REVIEW','APPROVED','NEEDS_CLARIFICATION','REJECTED') NOT NULL DEFAULT 'PENDING_CONFIRMATION',
+    `kyc_notes`              text         DEFAULT NULL,
+    `review_token`           varchar(64)  DEFAULT NULL UNIQUE,
+    `kyc_updated_at`         datetime     DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+    `registration_date`      datetime     DEFAULT current_timestamp(),
+    `graduation_date`        date         DEFAULT NULL,
+    `is_locked`              tinyint(1)   NOT NULL DEFAULT 0,
+    `consent_privacy`        tinyint(1)   NOT NULL DEFAULT 0,
+    `deleted_at`             datetime     DEFAULT NULL,
+    `deleted_by`             int(11)      DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_students_deleted_at` (`deleted_at`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci;
+
+CREATE TABLE `users`
+(
+    `id`                 int(11)                      NOT NULL AUTO_INCREMENT,
+    `username`           varchar(50)                  NOT NULL,
+    `password`           varchar(255)                 NOT NULL,
+    `last_name`          varchar(100)                 NOT NULL,
+    `first_name`         varchar(100)                 NOT NULL,
+    `email`              varchar(100)                 NOT NULL,
+    `role`               enum ('admin','user')        NOT NULL DEFAULT 'user',
+    `is_active`          tinyint(1)                   NOT NULL DEFAULT 1,
+    `session_version`    int(11)                      NOT NULL DEFAULT 1,
+    `last_login`         datetime                              DEFAULT NULL,
+    `created_at`         datetime                              DEFAULT current_timestamp(),
+    `permissions`        text                                  DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `username` (`username`),
+    UNIQUE KEY `email` (`email`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci;
+
+CREATE TABLE institutions
+(
+    id   INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci;
+
+-- Normalize client charset
+SET NAMES utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE study_fields
+(
+    id   INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE
+);
+
+CREATE TABLE study_levels
+(
+    id   INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE
+);
+
+CREATE TABLE locations
+(
+    id     INT AUTO_INCREMENT PRIMARY KEY,
+    name   VARCHAR(255) NOT NULL,
+    region VARCHAR(100) NOT NULL,
+    UNIQUE (name)
+);
+
+CREATE TABLE `slider_images` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `image_path` varchar(255) NOT NULL,
+  `title` varchar(100) DEFAULT NULL,
+  `caption` text DEFAULT NULL,
+  `display_order` int(11) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `uploaded_by` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `uploaded_by` (`uploaded_by`),
+  CONSTRAINT `slider_images_ibfk_1` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `password_resets` (
+  `email` varchar(100) NOT NULL,
+  `token` varchar(100) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  PRIMARY KEY (`token`),
+  KEY `email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `countries` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code_iso` char(2) NOT NULL,
+  `name_fr` varchar(100) NOT NULL,
+  `name_en` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code_iso` (`code_iso`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `student_country` (
+  `student_id` int(11) NOT NULL,
+  `country_id` int(11) NOT NULL,
+  PRIMARY KEY (`student_id`,`country_id`),
+  KEY `country_id` (`country_id`),
+  CONSTRAINT `student_country_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `student_country_ibfk_2` FOREIGN KEY (`country_id`) REFERENCES `countries` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `settings` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `setting_key` varchar(50) NOT NULL,
+    `setting_value` text,
+    `setting_group` varchar(50) DEFAULT 'general',
+    `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `setting_key` (`setting_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE journal_posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    revision INT NOT NULL DEFAULT 1,
+    type ENUM('ACTIVITY','REPORT','ANNOUNCEMENT') NOT NULL,
+    status ENUM('DRAFT','PUBLISHED') NOT NULL DEFAULT 'DRAFT',
+    slug VARCHAR(220) NOT NULL UNIQUE,
+    title VARCHAR(180) NOT NULL,
+    summary VARCHAR(320) NOT NULL DEFAULT '',
+    body MEDIUMTEXT NOT NULL,
+    cover_path VARCHAR(255) NULL,
+    cover_mime VARCHAR(100) NULL,
+    cover_alt VARCHAR(500) NOT NULL DEFAULT '',
+    activity_start_at DATETIME NULL,
+    activity_end_at DATETIME NULL,
+    activity_start_time_set BOOLEAN NOT NULL DEFAULT 0,
+    activity_end_time_set BOOLEAN NOT NULL DEFAULT 0,
+    location VARCHAR(255) NULL,
+    published_at DATETIME NULL,
+    created_by INT NOT NULL,
+    updated_by INT NOT NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    INDEX journal_publication (status,published_at,id),
+    INDEX journal_activity (status,type,activity_end_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+SQL;
+
+        foreach (explode(";\n", $ddl) as $statement) {
+            $this->addSql(trim($statement));
+        }
+    }
+
+    public function down(Schema $schema): void
+    {
+        $this->throwIrreversibleMigrationException();
+    }
+}
