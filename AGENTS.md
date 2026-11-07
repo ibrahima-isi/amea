@@ -24,7 +24,7 @@ Place new classes in `src/` following PSR-4. Entry points bootstrap through `src
 ## Build, Test, and Development Commands
 
 - `composer install`: install locked PHP dependencies, including development tools.
-- `mysql -u root -p amea_db < schema.sql`: initialize an empty local database.
+- `php scripts/migrate.php migrate`: initialize or migrate the explicitly selected database; export its `DB_*` connection variables first.
 - `docker compose up -d --build --remove-orphans`: start the local Docker stack. See [local Docker setup](docs/testing/README.md#local-docker-stack) for URLs and certificate setup.
 - `php -S localhost:8000`: serve locally after configuring `.env` and initializing the database.
 - `./vendor/bin/phpunit`: run Unit and Integration suites from `phpunit.xml`.
@@ -62,7 +62,9 @@ Configure database credentials, Brevo SMTP credentials, and application origins 
 
 ## Database Changes
 
-Add schema changes as new idempotent PHP CLI scripts in `migrations/` and update `schema.sql`. Both Compose stacks run every migration in numeric order through the one-shot `migrate` service before `public`, `staff` and `jobs` start, so each migration must stay idempotent and exit non-zero on failure. Outside Docker, run them manually in numeric order, for example `php migrations/00_init_schema.php`, against the explicitly selected database.
+Add new Doctrine versions in `src/Migration/Version/` and keep `schema.sql` aligned. Preserve applied versions and the historical `migrations/` scripts as reference. Both Compose stacks run pending Doctrine versions through the one-shot `migrate` service before the applications and jobs start. Outside Docker, export the selected database's `DB_*` variables and run `php scripts/migrate.php migrate`.
+
+For an existing database, follow [enrollment](docs/operations/doctrine-enrollment.md) before startup. For schema changes, interruptions or reconciliation, follow [migration recovery](docs/operations/migration-recovery.md): separate nontransactional DDL from transactional data versions, verify a restorable backup, and preserve the shared database lock and durable recovery markers.
 
 ## Local Issue Tracker
 

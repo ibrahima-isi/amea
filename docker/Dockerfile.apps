@@ -33,7 +33,8 @@ RUN printf 'jobs' > /opt/amea-apps/identity
 USER www-data
 CMD ["sh", "/opt/amea-apps/jobs.sh"]
 
-# One-shot schema step: runs every idempotent migration in order, then exits.
+# One-shot Doctrine runner; command scripts remain outside the HTTP targets.
 FROM shared AS migrate
+COPY scripts/migrate.php scripts/enroll-migrations.php scripts/
 USER www-data
-CMD ["sh", "-c", "for f in migrations/[0-9]*.php; do php \"$f\" || exit 1; done"]
+CMD ["php", "scripts/migrate.php", "migrate"]

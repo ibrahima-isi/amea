@@ -41,6 +41,8 @@ and the historical nullable timestamp. Migration `06` member enums may retain
 any order of the same known values, valid defaults, comments and
 `utf8mb4_general_ci`/`utf8mb4_unicode_ci` collation; gender and member status remain
 non-nullable. Other table, column, index and foreign-key definitions must match.
+The runner's canonical empty `amea_migration_recovery` table is permitted;
+an interrupted marker or altered recovery structure blocks enrollment.
 Extra views/tables, triggers, routines and events are refused. Unsupported
 variants require investigation; do not suppress diagnostics to force enrollment.
 
@@ -106,8 +108,9 @@ written until verification succeeds. Ledger provisioning is separate DDL; both
 version inserts then run in one InnoDB transaction. An insert failure leaves zero
 baseline rows, so a verified retry is safe. Partial or unknown ledgers are refused
 for operator reconciliation. Do not delete versions or edit business data to
-bypass a refusal. Advisory locking and interrupted-schema recovery are handled
-by the shared runner integration; keep writers stopped during this procedure.
+bypass a refusal. Enrollment and migration hold the same database advisory lock
+before validation or ledger provisioning. Both reject interrupted schema markers;
+keep writers stopped during this procedure.
 
 ## Disposable command regression
 
