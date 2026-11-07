@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use Amea\Migration\MigrationRuntime;
+
+require __DIR__ . '/../vendor/autoload.php';
+
 // Run only against a disposable MariaDB instance with two empty databases.
 if (PHP_SAPI !== 'cli' || getenv('DB_HOST') !== '127.0.0.1' || getenv('DB_NAME') !== 'amea_doctrine_fresh') {
     throw new RuntimeException('Select the disposable localhost database amea_doctrine_fresh.');
@@ -47,7 +51,7 @@ function readTableDefinitions(PDO $database): array
 {
     $tables = $database->query('SHOW FULL TABLES')->fetchAll(PDO::FETCH_COLUMN);
     $definitions = [];
-    foreach (array_diff($tables, ['doctrine_migration_versions']) as $table) {
+    foreach (array_diff($tables, [MigrationRuntime::LEDGER_TABLE, MigrationRuntime::RECOVERY_TABLE]) as $table) {
         $definition = $database->query("SHOW CREATE TABLE `{$table}`")->fetch(PDO::FETCH_NUM)[1];
         $definitions[$table] = preg_replace('/ AUTO_INCREMENT=\d+\b/', '', $definition);
     }
