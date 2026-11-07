@@ -7,8 +7,9 @@ use Amea\Migration\MigrationRuntime;
 require __DIR__ . '/../vendor/autoload.php';
 
 // Run only against a disposable MariaDB instance with two empty databases.
-if (PHP_SAPI !== 'cli' || getenv('DB_HOST') !== '127.0.0.1' || getenv('DB_NAME') !== 'amea_doctrine_fresh') {
-    throw new RuntimeException('Select the disposable localhost database amea_doctrine_fresh.');
+if (PHP_SAPI !== 'cli' || getenv('DB_NAME') !== 'amea_doctrine_fresh'
+    || !(getenv('DB_HOST') === '127.0.0.1' || (getenv('DB_HOST') === 'db' && getenv('APP_ENV') === 'test'))) {
+    throw new RuntimeException('Select the disposable amea_doctrine_fresh database on localhost or the APP_ENV=test Compose db service.');
 }
 
 function runMigrationCommand(string $command, string $database = 'amea_doctrine_fresh'): array
@@ -40,7 +41,7 @@ function check(bool $condition, string $message): void
 function connectToTestDatabase(string $name): PDO
 {
     return new PDO(
-        'mysql:host=127.0.0.1;port=' . (getenv('DB_PORT') ?: '3306') . ";dbname={$name};charset=utf8mb4",
+        'mysql:host=' . getenv('DB_HOST') . ';port=' . (getenv('DB_PORT') ?: '3306') . ";dbname={$name};charset=utf8mb4",
         (string) getenv('DB_USER'),
         (string) getenv('DB_PASS'),
         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]

@@ -28,7 +28,10 @@ require __DIR__ . '/../vendor/autoload.php';
 
 try {
     $runtime = MigrationRuntime::fromEnvironment();
-    $enrolled = (new BaselineEnrollment($runtime))->enroll($database, $evidence);
+    $enrolled = $runtime->withLock(static function () use ($runtime, $database, $evidence): bool {
+        $runtime->assertNoInterruptedSchemaMigration();
+        return (new BaselineEnrollment($runtime))->enroll($database, $evidence);
+    });
     fwrite(STDOUT, $enrolled ? "Recorded 2 baseline versions without replaying historical migrations.\n" : "Baseline already enrolled; no versions changed.\n");
 } catch (Throwable $error) {
     fwrite(STDERR, 'Enrollment failed: ' . $error->getMessage() . "\n");

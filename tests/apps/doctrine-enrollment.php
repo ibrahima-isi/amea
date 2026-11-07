@@ -76,6 +76,53 @@ try {
     $snapshot = static fn (): array => array_map($connection->fetchAllAssociative(...), $proofQueries);
     $before = $snapshot();
     checkCommand(['scripts/migrate.php', 'migrate'], 1, 'without a recorded baseline');
+
+    $runs = [];
+    $runtime = MigrationRuntime::fromEnvironment();
+    $runtime->withLock(static function () use ($connection, $enroll, &$runs): void {
+        foreach ([$enroll, ['scripts/migrate.php', 'migrate']] as $command) {
+            $process = proc_open([PHP_BINARY, ...$command], [1 => ['pipe', 'w'], 2 => ['redirect', 1]], $pipes, dirname(__DIR__, 2));
+            $runs[] = [$process, $pipes[1]];
+        }
+        $deadline = microtime(true) + 5;
+        do {
+            $waiting = (int) $connection->fetchOne("SELECT COUNT(*) FROM information_schema.PROCESSLIST
+                WHERE DB = DATABASE() AND INFO LIKE 'SELECT GET_LOCK(%'");
+            if ($waiting < 2) {
+                usleep(20000);
+            }
+        } while ($waiting < 2 && microtime(true) < $deadline);
+        if ($waiting !== 2 || in_array('doctrine_migration_versions', $connection->fetchFirstColumn('SHOW FULL TABLES'), true)) {
+            throw new RuntimeException('Enrollment and migration must both wait on the same lock before any ledger provisioning.');
+        }
+    });
+    foreach ($runs as $index => [$process, $pipe]) {
+        $output = stream_get_contents($pipe);
+        fclose($pipe);
+        $exit = proc_close($process);
+        if (($index === 0 && ($exit !== 0 || !str_contains($output, 'Recorded 2 baseline versions')))
+            || ($index === 1 && !(($exit === 0 && str_contains($output, 'Already at the latest version'))
+                || ($exit === 1 && str_contains($output, 'without a recorded baseline'))))) {
+            throw new RuntimeException('Mixed enrollment/migration attempt failed: ' . $output);
+        }
+    }
+    checkCommand(['scripts/migrate.php', 'migrate'], 0, 'Already at the latest version');
+    if ($snapshot() !== $before || (int) $connection->fetchOne('SELECT COUNT(*) FROM doctrine_migration_versions') !== 2) {
+        throw new RuntimeException('Mixed attempts must preserve application rows and record each baseline once.');
+    }
+    $connection->executeStatement('DROP TABLE doctrine_migration_versions');
+    echo "PASS: mixed enrollment and migration wait on one database lock and preserve rows.\n";
+
+    $connection->executeStatement('CREATE TABLE amea_migration_recovery (
+        version VARCHAR(191) NOT NULL PRIMARY KEY,
+        started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB');
+    $connection->insert('amea_migration_recovery', ['version' => MigrationRuntime::BASELINE_VERSIONS[0]]);
+    checkCommand($enroll, 1, 'Interrupted schema migration');
+    $connection->executeStatement('DELETE FROM amea_migration_recovery');
+    $connection->executeStatement('ALTER TABLE amea_migration_recovery ADD COLUMN unexpected INT');
+    checkCommand($enroll, 1, 'canonical empty migration recovery table');
+    $connection->executeStatement('ALTER TABLE amea_migration_recovery DROP COLUMN unexpected');
     checkCommand($enroll, 0, 'Recorded 2 baseline versions');
     $ledgerSql = 'SELECT * FROM doctrine_migration_versions ORDER BY version';
     $ledger = $connection->fetchAllAssociative($ledgerSql);

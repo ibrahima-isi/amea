@@ -32,6 +32,23 @@ jobs:
           AMEA_SKIP_BROWSER: '1'
         run: bash tests/apps/run.sh
 
+  doctrine-compose:
+    name: "Doctrine: MariaDB & Compose startup gates"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup PHP
+        uses: shivammathur/setup-php@8358ee0e2e8afe63c2fb8253d1d52085811ab1e5 # v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_mysql
+      - name: Install command regression dependencies
+        run: composer install --prefer-dist --no-progress
+      - name: Rehearse both canonical Compose stacks
+        run: bash tests/apps/doctrine-compose.sh
+
   # Regression checks only; no deployment.
   # The test suite uses SQLite in-memory, so it needs no secrets and no database.
   regression-tests:

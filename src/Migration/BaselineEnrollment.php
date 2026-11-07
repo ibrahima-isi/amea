@@ -113,10 +113,25 @@ final class BaselineEnrollment
         $tables = $connection->fetchAllKeyValue('SELECT TABLE_NAME, TABLE_TYPE FROM information_schema.TABLES WHERE TABLE_SCHEMA = BINARY DATABASE()');
         $expected = array_keys($definitions);
         $missing = array_diff($expected, array_keys($tables));
-        $unexpected = array_diff(array_keys($tables), [...$expected, MigrationRuntime::LEDGER_TABLE]);
+        $unexpected = array_diff(array_keys($tables), [...$expected, MigrationRuntime::LEDGER_TABLE, MigrationRuntime::RECOVERY_TABLE]);
         if ($missing !== [] || $unexpected !== []) {
             throw new RuntimeException('Unexpected database objects. Missing: [' . implode(', ', $missing)
                 . ']. Extra: [' . implode(', ', $unexpected) . ']. Review the database schema before enrollment.');
+        }
+
+        if (isset($tables[MigrationRuntime::RECOVERY_TABLE])) {
+            $definition = $connection->fetchNumeric('SHOW CREATE TABLE ' . MigrationRuntime::RECOVERY_TABLE)[1];
+            // Only the runner's empty marker table is an expected adoption artifact.
+            $canonical = '/\ACREATE TABLE `amea_migration_recovery` \(\n'
+                . '  `version` varchar\(191\) NOT NULL,\n'
+                . '  `started_at` datetime NOT NULL DEFAULT (?:CURRENT_TIMESTAMP|current_timestamp\(\)),\n'
+                . '  PRIMARY KEY \(`version`\)\n'
+                . '\) ENGINE=InnoDB DEFAULT CHARSET=[a-z0-9_]+(?: COLLATE=[a-z0-9_]+)?\z/';
+            if ($tables[MigrationRuntime::RECOVERY_TABLE] !== 'BASE TABLE'
+                || !preg_match($canonical, $definition)
+                || $connection->fetchOne('SELECT COUNT(*) FROM ' . MigrationRuntime::RECOVERY_TABLE) !== 0) {
+                throw new RuntimeException('Enrollment requires the canonical empty migration recovery table. Reconcile recovery metadata before retrying.');
+            }
         }
 
         foreach ($definitions as $table => $expectedDefinition) {
