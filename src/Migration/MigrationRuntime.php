@@ -8,16 +8,21 @@ use Amea\Migration\Version\Version20261106000000;
 use Amea\Migration\Version\Version20261106000001;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\Common\EventManager;
 use Doctrine\Migrations\Configuration\Connection\ExistingConnection;
 use Doctrine\Migrations\Configuration\Migration\ConfigurationArray;
 use Doctrine\Migrations\DependencyFactory;
+use Doctrine\Migrations\EventDispatcher;
+use Doctrine\Migrations\Events;
 use Doctrine\Migrations\Metadata\ExecutedMigration;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use Throwable;
 
 final class MigrationRuntime
 {
     public const LEDGER_TABLE = 'doctrine_migration_versions';
+    public const RECOVERY_TABLE = 'amea_migration_recovery';
     public const BASELINE_VERSIONS = [
         Version20261106000000::class,
         Version20261106000001::class,
@@ -59,15 +64,46 @@ final class MigrationRuntime
             'all_or_nothing' => false,
         ]);
 
+        $doctrine = DependencyFactory::fromConnection($configuration, new ExistingConnection($connection), $logger);
+        $events = new EventManager();
+        $events->addEventListener(
+            [Events::onMigrationsVersionExecuting, Events::onMigrationsMigrated],
+            new SchemaMigrationGuard($connection)
+        );
+        $doctrine->setService(EventDispatcher::class, new EventDispatcher($connection, $events));
+
         return new self(
             $connection,
-            DependencyFactory::fromConnection($configuration, new ExistingConnection($connection), $logger)
+            $doctrine
         );
     }
 
     public function connection(): Connection
     {
         return $this->connection;
+    }
+
+    public function withLock(callable $operation): mixed
+    {
+        $database = $this->connection->fetchOne(
+            'SELECT IF(@@lower_case_table_names = 0, DATABASE(), LOWER(DATABASE()))'
+        );
+        $lock = 'amea:migrations:' . substr(hash('sha256', $database), 0, 48);
+        if ((int) $this->connection->fetchOne('SELECT GET_LOCK(?, 30)', [$lock]) !== 1) {
+            throw new RuntimeException("Could not acquire the migration lock for database {$database}. Wait for the other operation and retry.");
+        }
+
+        try {
+            $result = $operation();
+            if ((int) $this->connection->fetchOne('SELECT RELEASE_LOCK(?)', [$lock]) !== 1) {
+                throw new RuntimeException("The migration lock for database {$database} was lost.");
+            }
+            return $result;
+        } catch (Throwable $error) {
+            // Closing the nonpersistent session releases its lock, even after a failed operation.
+            $this->connection->close();
+            throw $error;
+        }
     }
 
     /** @return list<string> */
@@ -81,6 +117,7 @@ final class MigrationRuntime
 
     public function assertCanMigrate(): void
     {
+        $this->assertNoInterruptedSchemaMigration();
         $recorded = $this->recordedVersions();
         if (count($this->doctrine->getMigrationStatusCalculator()->getExecutedUnavailableMigrations()) > 0) {
             throw new RuntimeException('The database records unknown migration versions. Review the ledger before migrating.');
@@ -90,7 +127,7 @@ final class MigrationRuntime
         }
 
         $objects = $this->connection->fetchFirstColumn('SHOW FULL TABLES');
-        if ($recorded === [] && array_diff($objects, [self::LEDGER_TABLE]) === []) {
+        if ($recorded === [] && array_diff($objects, [self::LEDGER_TABLE, self::RECOVERY_TABLE]) === []) {
             return;
         }
 
@@ -100,5 +137,16 @@ final class MigrationRuntime
         }
 
         throw new RuntimeException("Database {$database} has a partial migration baseline. Reconcile the schema and ledger before retrying.");
+    }
+
+    public function assertNoInterruptedSchemaMigration(): void
+    {
+        if (!in_array(self::RECOVERY_TABLE, $this->connection->fetchFirstColumn('SHOW FULL TABLES'), true)) {
+            return;
+        }
+        $version = $this->connection->fetchOne('SELECT version FROM ' . self::RECOVERY_TABLE . ' LIMIT 1');
+        if ($version !== false) {
+            throw new RuntimeException("Interrupted schema migration {$version}. Reconcile the schema and ledger using docs/operations/migration-recovery.md before retrying.");
+        }
     }
 }

@@ -35,8 +35,10 @@ try {
         exit((new StatusCommand($runtime->doctrine))->run($input, $output));
     }
 
-    $runtime->assertCanMigrate();
-    exit((new MigrateCommand($runtime->doctrine))->run($input, $output));
+    exit($runtime->withLock(static function () use ($runtime, $input, $output): int {
+        $runtime->assertCanMigrate();
+        return (new MigrateCommand($runtime->doctrine))->run($input, $output);
+    }));
 } catch (Throwable $error) {
     fwrite(STDERR, 'Migration command failed: ' . $error->getMessage() . "\n");
     exit(1);
