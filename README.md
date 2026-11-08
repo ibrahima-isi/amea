@@ -61,9 +61,10 @@ composer install
 touch .env # no .env.example file is provided
 # Edit .env with local credentials (see the section below)
 
-# 4. Create the database and load the schema
+# 4. Create an empty database and initialize it with Doctrine
 mysql -u root -p -e "CREATE DATABASE amea_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root -p amea_db < schema.sql
+# Export DB_HOST, DB_PORT, DB_NAME, DB_USER and DB_PASS from your private configuration.
+php scripts/migrate.php migrate
 
 # 5. Create the first administrator account
 mysql -u root -p amea_db <<'SQL'
@@ -134,7 +135,7 @@ amea/
 │   ├── email-service.php       # sendMail() + renderEmailTemplate() through Brevo SMTP
 │   └── document-reconcile.php  # File-path reconciliation helpers
 │
-├── migrations/                 # Migration scripts (CLI only)
+├── migrations/                 # Historical scripts retained for reference
 │
 ├── templates/                  # Twig views and HTML email templates
 │   ├── layouts/                # Public and administration layouts
@@ -205,13 +206,14 @@ amea/
 
 ### Migrations
 
-Migrations are idempotent PHP CLI scripts in `migrations/`. They add columns, change constraints or create tables without recreating the existing schema.
-
-Run them manually in numeric order against the explicitly selected database:
+Doctrine records applied versions in the selected database. Fresh databases initialize automatically; existing databases require [verified enrollment](docs/operations/doctrine-enrollment.md). The local and Dokploy one-shot services use the same command and block application startup on failure. Outside Docker, export the selected database's `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` and `DB_PASS`, then run:
 
 ```bash
-php migrations/00_init_schema.php
+php scripts/migrate.php status
+php scripts/migrate.php migrate
 ```
+
+New versions belong in `src/Migration/Version/`; keep `schema.sql` aligned. Historical `migrations/` scripts are retained for reference and are excluded from routine startup. Schema changes and interrupted runs require the [backup and recovery procedure](docs/operations/migration-recovery.md).
 
 ---
 

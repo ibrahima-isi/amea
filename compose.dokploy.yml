@@ -83,7 +83,7 @@ services:
     networks:
       - default
 
-  # Runs all idempotent migrations on every deploy before the apps start.
+  # Applies pending Doctrine versions before the apps start.
   migrate:
     build:
       context: .

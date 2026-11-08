@@ -77,7 +77,7 @@ services:
     tmpfs:
       - /opt/amea/storage/cache:uid=33,gid=33,mode=0770
 
-  # Runs all idempotent migrations on every `up` before the apps start.
+  # Applies pending Doctrine versions before the apps start.
   migrate:
     build:
       context: .
