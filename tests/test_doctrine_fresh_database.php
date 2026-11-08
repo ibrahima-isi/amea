@@ -70,6 +70,23 @@ check(
     'Start with two empty databases'
 );
 
+foreach ([
+    ['PROCEDURE', 'CREATE PROCEDURE existing_object() SELECT 1', 'ROUTINES', 'ROUTINE_SCHEMA'],
+    ['FUNCTION', 'CREATE FUNCTION existing_object() RETURNS INT DETERMINISTIC RETURN 1', 'ROUTINES', 'ROUTINE_SCHEMA'],
+    ['EVENT', 'CREATE EVENT existing_object ON SCHEDULE EVERY 1 DAY DISABLE DO SELECT 1', 'EVENTS', 'EVENT_SCHEMA'],
+] as [$kind, $create, $catalog, $schemaColumn]) {
+    $fresh->exec($create);
+    [$exit, $output] = runMigrationCommand('migrate');
+    check($exit !== 0 && str_contains($output, 'without a recorded baseline'), "Refuse a database containing only a {$kind} without enrollment\n{$output}");
+    check($fresh->query('SHOW FULL TABLES')->fetchAll() === [], "{$kind} refusal creates no schema or ledger tables");
+    check(
+        (int) $fresh->query("SELECT COUNT(*) FROM information_schema.{$catalog} WHERE {$schemaColumn} = DATABASE() AND "
+            . ($catalog === 'EVENTS' ? 'EVENT_NAME' : 'ROUTINE_NAME') . " = 'existing_object'")->fetchColumn() === 1,
+        "{$kind} refusal preserves the existing object"
+    );
+    $fresh->exec("DROP {$kind} existing_object");
+}
+
 [$exit, $output] = runMigrationCommand('migrate');
 check($exit === 0 && str_contains($output, '2 migrations executed'), "Fresh migration applies two versions\n{$output}");
 check(

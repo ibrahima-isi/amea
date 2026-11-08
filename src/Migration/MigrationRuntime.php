@@ -127,6 +127,13 @@ final class MigrationRuntime
         }
 
         $objects = $this->connection->fetchFirstColumn('SHOW FULL TABLES');
+        foreach (['ROUTINES' => 'ROUTINE_SCHEMA', 'EVENTS' => 'EVENT_SCHEMA'] as $catalog => $schemaColumn) {
+            if ((int) $this->connection->fetchOne(
+                "SELECT COUNT(*) FROM information_schema.{$catalog} WHERE {$schemaColumn} = BINARY DATABASE()"
+            ) > 0) {
+                $objects[] = $catalog;
+            }
+        }
         if ($recorded === [] && array_diff($objects, [self::LEDGER_TABLE, self::RECOVERY_TABLE]) === []) {
             return;
         }
