@@ -10,9 +10,11 @@ Prove that two migration attempts against the same database cannot apply a versi
 
 ## Acceptance criteria
 
-- [ ] Concurrent migration attempts against the same database are serialized and each version is applied at most once.
-- [ ] An injected failure in a data-only migration rolls back both business data and its version record.
-- [ ] A rehearsal interrupts execution after a schema change succeeds but before its version is recorded. The runner reports failure, and the documented recovery procedure verifies the real schema and reconciles the ledger before retry.
-- [ ] The procedure separates schema changes from transactional data writes and requires a verified restorable backup before schema changes to an existing database.
+- [x] Concurrent migration attempts against the same database are serialized and each version is applied at most once.
+- [x] An injected failure in a data-only migration rolls back both business data and its version record.
+- [x] A rehearsal interrupts execution after a schema change succeeds but before its version is recorded. The runner reports failure, and the documented recovery procedure verifies the real schema and reconciles the ledger before retry.
+- [x] The procedure separates schema changes from transactional data writes and requires a verified restorable backup before schema changes to an existing database.
 
 ## Comments
+
+2026-11-08: Acceptance criteria verified on the local integration branch. See [completion evidence](../completion.md) for implementation, disposable MariaDB/Compose rehearsals, reviews and delivery limits. Triage status remains specification readiness; no hosted CI, remote merge or production deployment is claimed.
