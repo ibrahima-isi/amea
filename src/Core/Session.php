@@ -1,6 +1,8 @@
 <?php
 namespace Amea\Core;
 
+use Amea\Repository\UserRepository;
+
 class Session
 {
     private const LIFETIME = 1800; // 30 minutes
@@ -17,7 +19,6 @@ class Session
         if (defined('AMEA_APP')) {
             // Fixed image identity, never Host or forwarded headers. No Domain cookie.
             session_name('AMEA_' . strtoupper(AMEA_APP));
-            session_save_path('/var/lib/amea/sessions');
             ini_set('session.cookie_domain', '');
             ini_set('session.cookie_path', '/');
         }
@@ -35,6 +36,38 @@ class Session
             session_start();
         }
         $this->checkExpiry();
+    }
+
+    public function startRequest(bool $renderLoginAfterRevocation = false): void
+    {
+        $this->start();
+        if (!$this->isLoggedIn()) {
+            return;
+        }
+
+        try {
+            setlocale(LC_ALL, 'fr_FR.UTF-8');
+            $users = new UserRepository(Container::db());
+            if ($users->isSessionVersionCurrent($this->userId(), (int)$this->get('session_version', 0))) {
+                return;
+            }
+
+            $returnTarget = StaffNavigation::requestedTarget();
+            $_SESSION = [];
+            $this->regenerate();
+            $this->set('last_activity', time());
+            if ($returnTarget !== null) {
+                $this->set('staff_return_to', $returnTarget);
+            }
+            (new Flash($this))->set('warning', 'Votre session a expiré. Veuillez vous reconnecter.');
+
+            if (!$renderLoginAfterRevocation) {
+                header('Location: login.php');
+                exit();
+            }
+        } catch (\Throwable $e) {
+            error_log('[session] Session version check skipped: ' . $e->getMessage());
+        }
     }
 
     private function checkExpiry(): void

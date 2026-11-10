@@ -33,7 +33,7 @@ class HttpFixture:
     def __init__(self, base):
         self.base = base
 
-    def request(self, browser, path, data=None, multipart=False, image=False, upload=None):
+    def request(self, browser, path, data=None, multipart=False, image=False, upload=None, method=None):
         headers = {}
         if multipart:
             boundary = 'AMEAfixtureBoundary'
@@ -49,7 +49,7 @@ class HttpFixture:
         else:
             payload = urllib.parse.urlencode(data).encode() if data is not None else None
         try:
-            response = browser.open(urllib.request.Request(self.base + path, data=payload, headers=headers), timeout=10)
+            response = browser.open(urllib.request.Request(self.base + path, data=payload, headers=headers, method=method), timeout=10)
         except urllib.error.HTTPError as error:
             response = error
         return response.code, response.headers, response.read()
@@ -62,12 +62,14 @@ class HttpFixture:
         return token.group(1).decode()
 
 @contextlib.contextmanager
-def disposable_app(extra_fixtures=()):
+def disposable_app(extra_fixtures=(), *, application=None):
     # PHP fixture/router also require this basename prefix and isolated DB file.
     with tempfile.TemporaryDirectory(prefix='amea-http-') as directory:
         app = pathlib.Path(directory)
         for name in ['src', 'templates', 'functions', 'assets', 'config', 'vendor', 'tests']:
             shutil.copytree(ROOT / name, app / name, ignore=shutil.ignore_patterns('__pycache__'))
+        if application is not None:
+            shutil.copytree(ROOT / 'apps', app / 'apps')
         for entry in ROOT.glob('*.php'):
             shutil.copy2(entry, app / entry.name)
         (app / 'sessions').mkdir()
@@ -78,7 +80,8 @@ def disposable_app(extra_fixtures=()):
             port = listener.getsockname()[1]
         base = f'http://127.0.0.1:{port}'
         with open(app / 'server.log', 'w+') as log:
-            server = subprocess.Popen(['php', '-d', f'session.save_path={app / "sessions"}', '-S', f'127.0.0.1:{port}', 'tests/http/router.php'], cwd=app, stdout=log, stderr=log, env=SAFE_ENV)
+            environment = SAFE_ENV if application is None else {**SAFE_ENV, 'AMEA_HTTP_TEST_APPLICATION': application}
+            server = subprocess.Popen(['php', '-d', f'session.save_path={app / "sessions"}', '-S', f'127.0.0.1:{port}', 'tests/http/router.php'], cwd=app, stdout=log, stderr=log, env=environment)
             fixture = HttpFixture(base)
             try:
                 for attempt in range(50):

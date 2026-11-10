@@ -30,6 +30,15 @@ $db = new SqliteFixture('sqlite:' . __DIR__ . '/../../fixture.sqlite');
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 \Amea\Core\Container::setDb($db);
+$entryPoint = match (getenv('AMEA_HTTP_TEST_APPLICATION')) {
+    'public' => '/apps/web/public/index.php',
+    'staff' => '/apps/backoffice/public/index.php',
+    default => null,
+};
+if ($entryPoint !== null) {
+    require $root . $entryPoint;
+    exit;
+}
 // Loopback HTTP cannot send Secure cookies. Start a test session first;
 // production Session still applies expiry/authentication, never changed here.
 ini_set('session.cookie_httponly', '1');

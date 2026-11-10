@@ -80,6 +80,7 @@ jobs:
 
       - name: Run isolated HTTP journeys
         run: |
+          python3 tests/http/split-routes.py
           python3 tests/http/baseline.py
           python3 tests/http/tokens.py
           python3 tests/http/internals.py
@@ -96,11 +97,10 @@ jobs:
           coverage: none
       - name: Validate PHP syntax
         run: |
-          find src -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          find src apps -type f -name '*.php' -print0 | xargs -0 -n1 php -l
           php -l registration-preview.php
       - name: Verify migration access rules
         run: |
           grep -Fq 'Require all denied' docker/apache-security.conf
           grep -Fq 'X-Forwarded-Proto' .htaccess
-          grep -Fq "RegistrationController@preview" src/bootstrap.php
           grep -Fq 'requireAdmin()' src/Controller/DownloadController.php
