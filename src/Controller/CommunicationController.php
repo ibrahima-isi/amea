@@ -15,7 +15,7 @@ class CommunicationController extends BaseController
     {
         parent::__construct();
         $this->requireAdmin();
-        if (!\hasPermission('communications')) {
+        if (!$this->auth->hasPermission('communications')) {
             $this->flash->set('error', 'Accès refusé : vous n\'avez pas la permission d\'accéder aux communications.');
             $this->redirect('dashboard.php');
             return;
@@ -58,7 +58,7 @@ class CommunicationController extends BaseController
 
     public function send(): void
     {
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->set('error', 'La session a expiré. Veuillez réessayer.');
             $this->redirect('communications.php');
             return;

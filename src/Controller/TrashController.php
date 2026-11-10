@@ -16,7 +16,7 @@ class TrashController extends BaseController
     {
         parent::__construct();
         $this->requireAdmin();
-        if (!\hasPermission('students')) {
+        if (!$this->auth->hasPermission('students')) {
             $this->flash->set('error', "Accès refusé : vous n'avez pas la permission de gérer les étudiants.");
             $this->redirect('dashboard.php');
         }
@@ -57,7 +57,7 @@ class TrashController extends BaseController
 
     public function handlePost(): void
     {
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->set('error', 'La session a expiré. Veuillez réessayer.');
             $this->redirect('trash.php');
             return;

@@ -15,7 +15,7 @@ class SliderController extends BaseController
     {
         parent::__construct();
         $this->requireAdmin();
-        if (!\hasPermission('slider')) {
+        if (!$this->auth->hasPermission('slider')) {
             $this->flash->set('error', 'Accès refusé : vous n\'avez pas la permission de gérer le carrousel.');
             $this->redirect('dashboard.php');
             return;
@@ -49,7 +49,7 @@ class SliderController extends BaseController
 
     public function store(): void
     {
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->set('error', 'La session a expiré. Veuillez réessayer.');
             $this->redirect('manage-slider.php');
             return;
@@ -82,7 +82,7 @@ class SliderController extends BaseController
 
     public function delete(): void
     {
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->set('error', 'La session a expiré. Veuillez réessayer.');
             $this->redirect('manage-slider.php');
             return;

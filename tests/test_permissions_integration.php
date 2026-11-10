@@ -12,7 +12,6 @@
  *   4. Tear down the test user unconditionally.
  */
 
-require_once __DIR__ . '/../functions/utility-functions.php';
 require_once __DIR__ . '/../config/database.php'; // sets $conn
 
 define('BASE_URL', 'http://localhost:8000');

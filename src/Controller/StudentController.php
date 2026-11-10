@@ -175,7 +175,7 @@ class StudentController extends BaseController
         $this->requireAdmin();
         $id = (int)($_GET['id'] ?? 0);
 
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->add('error', 'Session expirée. Veuillez réessayer.');
             $this->redirect('edit-student.php?id=' . $id);
             return;
@@ -263,7 +263,7 @@ class StudentController extends BaseController
     {
         $this->requireAdmin();
 
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->add('error', 'Session expirée.');
             $this->redirect('students.php');
             return;

@@ -13,7 +13,7 @@ class SettingsController extends BaseController
     {
         parent::__construct();
         $this->requireAdmin();
-        if (!\hasPermission('settings')) {
+        if (!$this->auth->hasPermission('settings')) {
             $this->flash->set('error', 'Accès refusé : vous n\'avez pas la permission de modifier les paramètres.');
             $this->redirect('dashboard.php');
             return;
@@ -38,7 +38,7 @@ class SettingsController extends BaseController
 
     public function update(): void
     {
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->set('error', 'La session a expiré. Veuillez réessayer.');
             $this->redirect('settings.php');
             return;

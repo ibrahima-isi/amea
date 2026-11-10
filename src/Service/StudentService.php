@@ -4,6 +4,8 @@ namespace Amea\Service;
 
 use Amea\Repository\StudentRepository;
 use Amea\Core\FileUploader;
+use DateTime;
+use Exception;
 
 class StudentService
 {
@@ -75,7 +77,7 @@ class StudentService
             $errors['phone'] = 'This phone number is already in use.';
         }
         // 4. Phone validation
-        if (!empty($input['phone']) && !\isValidPhone($input['phone'])) {
+        if (!empty($input['phone']) && strlen(preg_replace('/[^0-9]/', '', $input['phone'])) !== 9) {
             $errors['phone'] = 'Invalid phone number (9 digits expected).';
         }
         if (!empty($input['status']) && !in_array($input['status'], ['ELEVE', 'ETUDIANT', 'STAGIAIRE'], true)) {
@@ -112,7 +114,7 @@ class StudentService
 
         // 6. Age
         if (!empty($input['birth_date'])) {
-            $age = \calculateAge($input['birth_date']);
+            $age = $this->calculateAge($input['birth_date']);
             if ($age < 15) $errors['birth_date'] = 'Minimum age is 15 years old.';
         }
 
@@ -158,5 +160,14 @@ class StudentService
                 'consent_privacy' => $input['consent_privacy']
             ]
         ];
+    }
+
+    private function calculateAge(string $birthDate): int
+    {
+        try {
+            return (int)(new DateTime($birthDate))->diff(new DateTime())->y;
+        } catch (Exception) {
+            return 0;
+        }
     }
 }

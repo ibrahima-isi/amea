@@ -1,12 +1,16 @@
 <?php
 /**
- * Unit tests for the hasPermission() function.
+ * Unit tests for AuthService::hasPermission().
  *
  * Uses a SQLite in-memory database to mock MySQL so no live DB is required.
  * Run from project root: php tests/test_permissions_unit.php
  */
 
-require_once __DIR__ . '/../functions/utility-functions.php';
+use Amea\Core\{Flash, Session};
+use Amea\Repository\UserRepository;
+use Amea\Service\{AuthService, UserService};
+
+require_once __DIR__ . '/../vendor/autoload.php';
 
 // ─── Minimal test runner ──────────────────────────────────────────────────────
 $passed = 0;
@@ -24,9 +28,9 @@ function expect(string $name, bool $result): void {
 }
 
 // ─── SQLite in-memory DB mimicking the users table ────────────────────────────
-$conn = new PDO('sqlite::memory:');
-$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-$conn->exec("
+$db = new PDO('sqlite::memory:');
+$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$db->exec("
     CREATE TABLE users (
         id   INTEGER PRIMARY KEY,
         role      TEXT,
@@ -35,24 +39,21 @@ $conn->exec("
 ");
 
 // Super Admin (ID 1) — permissions column is intentionally left null; hasPermission bypasses DB for ID 1
-$conn->exec("INSERT INTO users (id, role, permissions) VALUES (1, 'admin', NULL)");
+$db->exec("INSERT INTO users (id, role, permissions) VALUES (1, 'admin', NULL)");
 // Regular admin with some permissions
-$conn->exec("INSERT INTO users (id, role, permissions) VALUES (2, 'admin', '[\"students\",\"export\"]')");
+$db->exec("INSERT INTO users (id, role, permissions) VALUES (2, 'admin', '[\"students\",\"export\"]')");
 // Admin with no permissions
-$conn->exec("INSERT INTO users (id, role, permissions) VALUES (3, 'admin', '[]')");
+$db->exec("INSERT INTO users (id, role, permissions) VALUES (3, 'admin', '[]')");
 // Admin with null permissions stored as empty string
-$conn->exec("INSERT INTO users (id, role, permissions) VALUES (4, 'admin', '')");
+$db->exec("INSERT INTO users (id, role, permissions) VALUES (4, 'admin', '')");
 // Non-admin user
-$conn->exec("INSERT INTO users (id, role, permissions) VALUES (5, 'user', NULL)");
+$db->exec("INSERT INTO users (id, role, permissions) VALUES (5, 'user', '[\"students\",\"export\"]')");
 // Admin with all permissions
-$allPerms = json_encode(['students','export','users','slider','upgrade','documents','communications','settings']);
-$stmt = $conn->prepare("INSERT INTO users (id, role, permissions) VALUES (6, 'admin', ?)");
+$allPerms = json_encode(['students','export','users','journal','slider','upgrade','documents','communications','settings']);
+$stmt = $db->prepare("INSERT INTO users (id, role, permissions) VALUES (6, 'admin', ?)");
 $stmt->execute([$allPerms]);
 // Admin with malformed JSON
-$conn->exec("INSERT INTO users (id, role, permissions) VALUES (7, 'admin', 'not-valid-json')");
-// Admin (ID 8) checked only AFTER the global $conn is removed, to exercise the
-// OOP/router code path where the DB must be resolved via Container::db().
-$conn->exec("INSERT INTO users (id, role, permissions) VALUES (8, 'admin', '[\"settings\"]')");
+$db->exec("INSERT INTO users (id, role, permissions) VALUES (7, 'admin', 'not-valid-json')");
 
 // Helper: set a fake session state
 function setSession(int $uid, string $role = 'admin'): void {
@@ -64,120 +65,112 @@ function setSession(int $uid, string $role = 'admin'): void {
 }
 
 // Start a CLI-safe session
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
-}
+$session = new Session();
+$session->start();
+$auth = new AuthService(new UserRepository($db), $session, new Flash($session));
 
 // ─── 1. Unauthenticated (no session) ─────────────────────────────────────────
 echo "\nUnauthenticated user\n";
 
 setSession(0);
-expect('returns false when no user_id in session',         !hasPermission('students'));
-expect('returns false for any module when not logged in',  !hasPermission('settings'));
+expect('returns false when no user_id in session',         !$auth->hasPermission('students'));
+expect('returns false for any module when not logged in',  !$auth->hasPermission('settings'));
 
 // ─── 2. Super Admin (ID 1) ────────────────────────────────────────────────────
 echo "\nSuper Admin (ID 1)\n";
 
 setSession(1);
-expect('always returns true for "students"',       hasPermission('students'));
-expect('always returns true for "settings"',       hasPermission('settings'));
-expect('always returns true for "documents"',      hasPermission('documents'));
-expect('always returns true for unknown module',   hasPermission('nonexistent_module'));
+expect('always returns true for "students"',       $auth->hasPermission('students'));
+expect('always returns true for "settings"',       $auth->hasPermission('settings'));
+expect('always returns true for "documents"',      $auth->hasPermission('documents'));
+expect('always returns true for unknown module',   $auth->hasPermission('nonexistent_module'));
 
 // ─── 3. Non-admin role ────────────────────────────────────────────────────────
 echo "\nNon-admin role\n";
 
 setSession(5, 'user');
-expect('returns false for role=user (students)',   !hasPermission('students'));
-expect('returns false for role=user (export)',     !hasPermission('export'));
+expect('returns false for role=user (students)',   !$auth->hasPermission('students'));
+expect('returns false for role=user (export)',     !$auth->hasPermission('export'));
 
 // ─── 4. Admin with specific permissions ──────────────────────────────────────
 echo "\nAdmin with [students, export] permissions (ID 2)\n";
 
 setSession(2);
-expect('returns true for "students" (granted)',    hasPermission('students'));
-expect('returns true for "export" (granted)',      hasPermission('export'));
-expect('returns false for "users" (not granted)',  !hasPermission('users'));
-expect('returns false for "settings" (not granted)', !hasPermission('settings'));
-expect('returns false for "documents" (not granted)', !hasPermission('documents'));
+expect('returns true for "students" (granted)',    $auth->hasPermission('students'));
+expect('returns true for "export" (granted)',      $auth->hasPermission('export'));
+expect('returns false for "users" (not granted)',  !$auth->hasPermission('users'));
+expect('returns false for "settings" (not granted)', !$auth->hasPermission('settings'));
+expect('returns false for "documents" (not granted)', !$auth->hasPermission('documents'));
 
 // ─── 5. Admin with empty permissions array ────────────────────────────────────
 echo "\nAdmin with empty permissions [] (ID 3)\n";
 
 setSession(3);
-expect('returns false for "students"',  !hasPermission('students'));
-expect('returns false for "export"',    !hasPermission('export'));
-expect('returns false for "settings"',  !hasPermission('settings'));
+expect('returns false for "students"',  !$auth->hasPermission('students'));
+expect('returns false for "export"',    !$auth->hasPermission('export'));
+expect('returns false for "settings"',  !$auth->hasPermission('settings'));
 
 // ─── 6. Admin with empty-string permissions (null stored as "") ───────────────
 echo "\nAdmin with empty-string permissions (ID 4)\n";
 
 setSession(4);
-expect('returns false for "students"',  !hasPermission('students'));
-expect('returns false for "users"',     !hasPermission('users'));
+expect('returns false for "students"',  !$auth->hasPermission('students'));
+expect('returns false for "users"',     !$auth->hasPermission('users'));
 
 // ─── 7. Admin with all permissions ───────────────────────────────────────────
 echo "\nAdmin with all permissions (ID 6)\n";
 
 setSession(6);
-expect('returns true for "students"',       hasPermission('students'));
-expect('returns true for "export"',         hasPermission('export'));
-expect('returns true for "users"',          hasPermission('users'));
-expect('returns true for "slider"',         hasPermission('slider'));
-expect('returns true for "upgrade"',        hasPermission('upgrade'));
-expect('returns true for "documents"',      hasPermission('documents'));
-expect('returns true for "communications"', hasPermission('communications'));
-expect('returns true for "settings"',       hasPermission('settings'));
+expect('returns true for "students"',       $auth->hasPermission('students'));
+expect('returns true for "export"',         $auth->hasPermission('export'));
+expect('returns true for "users"',          $auth->hasPermission('users'));
+expect('returns true for "journal"',        $auth->hasPermission('journal'));
+expect('returns true for "slider"',         $auth->hasPermission('slider'));
+expect('returns true for "upgrade"',        $auth->hasPermission('upgrade'));
+expect('returns true for "documents"',      $auth->hasPermission('documents'));
+expect('returns true for "communications"', $auth->hasPermission('communications'));
+expect('returns true for "settings"',       $auth->hasPermission('settings'));
 
 // ─── 8. Admin with malformed JSON ─────────────────────────────────────────────
 echo "\nAdmin with malformed JSON permissions (ID 7)\n";
 
 setSession(7);
-expect('returns false for "students" (bad JSON)',  !hasPermission('students'));
-expect('returns false for "settings" (bad JSON)',  !hasPermission('settings'));
+expect('returns false for "students" (bad JSON)',  !$auth->hasPermission('students'));
+expect('returns false for "settings" (bad JSON)',  !$auth->hasPermission('settings'));
 
 // ─── 9. Module name injection attempts ───────────────────────────────────────
 echo "\nModule name injection (ID 2 — has [students, export])\n";
 
 setSession(2);
-expect('returns false for empty module name',      !hasPermission(''));
-expect('returns false for SQL-like module name',   !hasPermission("' OR '1'='1"));
-expect('returns false for wildcard module name',   !hasPermission('*'));
+expect('returns false for empty module name',      !$auth->hasPermission(''));
+expect('returns false for SQL-like module name',   !$auth->hasPermission("' OR '1'='1"));
+expect('returns false for wildcard module name',   !$auth->hasPermission('*'));
 
-// ─── 10. Per-request static cache ─────────────────────────────────────────────
-// Call hasPermission() twice for the same user — second call must hit the cache
-// (no way to inspect the cache directly, but we verify the result is consistent).
-//
-// IMPORTANT — UID isolation:
-// hasPermission() uses a static $cache keyed by user ID that persists for the
-// entire PHP process lifetime. Each test group MUST use a distinct user ID.
-// Re-using a UID that was already exercised in a previous group will hit the
-// cache and return stale results, causing misleading test failures or passes.
-echo "\nPer-request static cache (ID 2)\n";
+// ─── 10. Per-request permissions cache ───────────────────────────────────────
+echo "\nPer-request permissions cache (ID 2)\n";
 
 setSession(2);
-$first  = hasPermission('students');
-$second = hasPermission('students');
+$first  = $auth->hasPermission('students');
+$second = $auth->hasPermission('students');
 expect('cached result matches first call (true)',  $first  === true  && $second === true);
 
-$firstNo  = hasPermission('settings');
-$secondNo = hasPermission('settings');
+$firstNo  = $auth->hasPermission('settings');
+$secondNo = $auth->hasPermission('settings');
 expect('cached result matches first call (false)', $firstNo === false && $secondNo === false);
 
-// ─── 11. PERMISSION_MODULES constant ─────────────────────────────────────────
-echo "\nPERMISSION_MODULES constant\n";
+// ─── 11. UserService::MODULES constant ─────────────────────────────────────────
+echo "\nUserService::MODULES constant\n";
 
-expect('constant is defined',                   defined('PERMISSION_MODULES'));
-expect('contains exactly 9 modules',            count(PERMISSION_MODULES) === 9);
-expect('contains "students"',                   in_array('students',       PERMISSION_MODULES));
-expect('contains "export"',                     in_array('export',         PERMISSION_MODULES));
-expect('contains "users"',                      in_array('users',          PERMISSION_MODULES));
-expect('contains "journal"',                    in_array('journal',        PERMISSION_MODULES));
-expect('contains "slider"',                     in_array('slider',         PERMISSION_MODULES));
-expect('contains "upgrade"',                    in_array('upgrade',        PERMISSION_MODULES));
-expect('contains "documents"',                  in_array('documents',      PERMISSION_MODULES));
-expect('contains "communications"',             in_array('communications', PERMISSION_MODULES));
-expect('contains "settings"',                   in_array('settings',       PERMISSION_MODULES));
+expect('contains exactly 9 modules',            count(UserService::MODULES) === 9);
+expect('contains "students"',                   in_array('students',       UserService::MODULES));
+expect('contains "export"',                     in_array('export',         UserService::MODULES));
+expect('contains "users"',                      in_array('users',          UserService::MODULES));
+expect('contains "journal"',                    in_array('journal',        UserService::MODULES));
+expect('contains "slider"',                     in_array('slider',         UserService::MODULES));
+expect('contains "upgrade"',                    in_array('upgrade',        UserService::MODULES));
+expect('contains "documents"',                  in_array('documents',      UserService::MODULES));
+expect('contains "communications"',             in_array('communications', UserService::MODULES));
+expect('contains "settings"',                   in_array('settings',       UserService::MODULES));
 
 // ─── 12. DB is authoritative — $_SESSION['permissions'] is NOT used ───────────
 echo "\nDB is authoritative (session shortcut removed)\n";
@@ -189,24 +182,8 @@ $_SESSION = [
     'role'        => 'admin',
     'permissions' => json_encode(['slider', 'upgrade']), // would grant access if session were used
 ];
-expect('returns false for "slider" — user not in DB, session value ignored',  !hasPermission('slider'));
-expect('returns false for "upgrade" — user not in DB, session value ignored', !hasPermission('upgrade'));
-
-// ─── 13. OOP/router flow — no global $conn, DB resolved via Container ─────────
-// Regression: dashboard.php and other shims run through the router, which never
-// sets a global $conn. Before the fix, hasPermission() did `new UserRepository($conn)`
-// with $conn === null → "Call to a member function on null" → HTTP 500 for any
-// admin other than the Super Admin (ID 1). hasPermission() must instead resolve
-// the connection via Container::db(). UID 8 is used here because it has not been
-// queried yet, guaranteeing a cache miss so the DB path is actually exercised.
-echo "\nOOP/router flow — no global \$conn (resolves DB via Container)\n";
-
-\Amea\Core\Container::setDb($conn); // same SQLite handle the test seeded
-unset($GLOBALS['conn']);            // simulate the router/bootstrap request flow
-
-setSession(8);
-expect('hasPermission() works without a global $conn (granted module)',  hasPermission('settings'));
-expect('hasPermission() denies an ungranted module via Container path',  !hasPermission('users'));
+expect('returns false for "slider" — user not in DB, session value ignored',  !$auth->hasPermission('slider'));
+expect('returns false for "upgrade" — user not in DB, session value ignored', !$auth->hasPermission('upgrade'));
 
 // ─── Summary ─────────────────────────────────────────────────────────────────
 echo "\n";

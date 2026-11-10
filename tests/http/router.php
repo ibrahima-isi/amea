@@ -20,7 +20,6 @@ if ($publicAsset && $file && str_starts_with($file, $root . '/') && is_file($fil
     }
 }
 require __DIR__ . '/../../vendor/autoload.php';
-require __DIR__ . '/../../functions/utility-functions.php';
 $_ENV['APP_ENV'] = 'test';
 $_ENV['MAIL_USER'] = '';
 $_ENV['MAIL_PASS'] = '';

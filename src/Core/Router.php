@@ -117,9 +117,7 @@ class Router
         }
 
         define('AMEA_APP', $application);
-        $projectRoot = dirname(__DIR__, 2);
-        Environment::load($projectRoot);
-        require_once $projectRoot . '/functions/utility-functions.php';
+        Environment::load(dirname(__DIR__, 2));
 
         if ($route['session'] ?? true) {
             (new Session())->startRequest();

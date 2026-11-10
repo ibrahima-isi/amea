@@ -13,7 +13,7 @@ class UpgradeController extends BaseController
     {
         parent::__construct();
         $this->requireAdmin();
-        if (!\hasPermission('upgrade')) {
+        if (!$this->auth->hasPermission('upgrade')) {
             $this->flash->set('error', 'Accès refusé : vous n\'avez pas la permission de gérer la mise à niveau des membres.');
             $this->redirect('dashboard.php');
             return;
@@ -34,7 +34,7 @@ class UpgradeController extends BaseController
 
     public function confirm(): void
     {
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->set('error', 'La session a expiré. Veuillez réessayer.');
             $this->redirect('upgrade-levels.php');
             return;

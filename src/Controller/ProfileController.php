@@ -41,7 +41,7 @@ class ProfileController extends BaseController
     {
         $this->requireAuth();
 
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->set('error', 'La session a expiré. Veuillez réessayer.');
             $this->redirect('profile.php');
             return;
