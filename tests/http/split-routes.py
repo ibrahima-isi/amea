@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """Exercise both fixed-identity front controllers with disposable SQLite data."""
-from harness import check, client, disposable_app
+from harness import check, client, disposable_apps
 
 for app, allowed, foreign, allow in [
     ('public', '/register.php', '/login.php', 'GET, POST'),
     ('staff', '/confirm-upgrade.php', '/register.php', 'POST'),
 ]:
-    with disposable_app(application=app) as fixture:
+    with disposable_apps(app) as (fixture,):
+        (fixture.root / 'unlisted.php').write_text('<?php echo "Unlisted file";')
         browser = client()
         for method in ['GET', 'POST', 'OPTIONS']:
-            for path in [foreign, '/404-handler.php', '/src/bootstrap.php']:
+            for path in [foreign, '/404-handler.php', '/src/bootstrap.php', '/unlisted.php']:
                 status, headers, _ = fixture.request(browser, path, method=method)
                 check(status == 404 and all(name not in headers for name in ['Allow', 'Location', 'Set-Cookie']),
                       f'{app} rejects {method} {path} locally before methods and sessions')
@@ -28,7 +29,7 @@ for app, allowed, foreign, allow in [
                       f'staff redirects {path} to login before starting a session')
 
         entry = '/register.php' if app == 'public' else '/login.php'
-        status, headers, _ = fixture.request(browser, entry)
+        status, headers, _ = fixture.request(client(), entry)
         cookie = headers.get('Set-Cookie', '').lower()
         check(status == 200 and cookie.startswith(f'amea_{app}=')
               and all(attribute in cookie for attribute in ['; path=/', '; secure', '; httponly', '; samesite=strict'])

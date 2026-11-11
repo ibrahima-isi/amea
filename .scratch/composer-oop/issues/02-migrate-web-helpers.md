@@ -10,6 +10,6 @@ Move active controller and template callers from procedural compatibility functi
 
 ## Acceptance criteria
 
-- [ ] Live web callers use Composer-autoloaded classes for CSRF, permissions, configuration, validation, formatting, logging, and file handling.
-- [ ] Member submission, correction and staged previews, staff workflows and private downloads retain their existing contracts, including French content and access checks.
-- [ ] Existing PHPUnit, standalone and HTTP regressions exercise the migrated class entry points. Any compatibility functions still present are used only by callers scheduled for retirement or historical coverage.
+- [x] Live web callers use Composer-autoloaded classes for CSRF, permissions, configuration, validation, formatting, logging, and file handling.
+- [x] Member submission, correction and staged previews, staff workflows and private downloads retain their existing contracts, including French content and access checks.
+- [x] Existing PHPUnit, standalone and HTTP regressions exercise the migrated class entry points. Any compatibility functions still present are used only by callers scheduled for retirement or historical coverage.

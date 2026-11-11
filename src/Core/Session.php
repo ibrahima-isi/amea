@@ -38,10 +38,10 @@ class Session
         $this->checkExpiry();
     }
 
-    public function startRequest(bool $renderLoginAfterRevocation = false): void
+    public function startRequest(): void
     {
         $this->start();
-        if (!$this->isLoggedIn()) {
+        if (empty($this->get('user_id'))) {
             return;
         }
 
@@ -61,10 +61,8 @@ class Session
             }
             (new Flash($this))->set('warning', 'Votre session a expiré. Veuillez vous reconnecter.');
 
-            if (!$renderLoginAfterRevocation) {
-                header('Location: login.php');
-                exit();
-            }
+            header('Location: login.php');
+            exit();
         } catch (\Throwable $e) {
             error_log('[session] Session version check skipped: ' . $e->getMessage());
         }

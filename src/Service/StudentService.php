@@ -2,8 +2,9 @@
 
 namespace Amea\Service;
 
-use Amea\Repository\StudentRepository;
 use Amea\Core\FileUploader;
+use Amea\Model\Student;
+use Amea\Repository\StudentRepository;
 use DateTime;
 use Exception;
 
@@ -13,6 +14,19 @@ class StudentService
         private StudentRepository $studentRepo,
         private FileUploader $fileUploader
     ) {}
+
+    /** Permanently remove a student selected from the trash and their associated files. */
+    public function purgeTrashedStudent(Student $student): bool
+    {
+        if ($student->getIdentityDocument()) {
+            $this->fileUploader->safeDelete($student->getIdentityDocument());
+        }
+        if ($student->getCvPath()) {
+            $this->fileUploader->safeDelete($student->getCvPath());
+        }
+
+        return $this->studentRepo->forceDelete($student->getId());
+    }
 
     public function sanitizeAndValidate(
         array $post,

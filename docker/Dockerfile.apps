@@ -9,11 +9,9 @@ COPY composer.json composer.lock ./
 RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
 COPY src src
 COPY config config
-COPY functions functions
 COPY templates templates
 COPY assets assets
 COPY migrations migrations
-COPY *.php ./
 RUN printf 'variables_order = "EGPCS"\ndisplay_errors = Off\nlog_errors = On\n' > /usr/local/etc/php/conf.d/zz-amea-env.ini \
     && mkdir -p /var/lib/amea/sessions /opt/amea/uploads /opt/amea/storage/mail-queue /opt/amea/storage/cache /opt/amea/logs \
     && chown -R www-data:www-data /var/lib/amea /opt/amea/uploads /opt/amea/storage /opt/amea/logs

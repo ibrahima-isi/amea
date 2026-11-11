@@ -10,7 +10,7 @@ Make the split Compose applications the supported web runtime. Remove the combin
 
 ## Acceptance criteria
 
-- [ ] Root HTTP shims, file fallback, combined Docker and Apache setup, and obsolete active helper files are gone. Historical migration support stays confined to its callers.
-- [ ] Maintained instructions, development setup, and CI use the new layout. The SQLite test harness remains disposable.
-- [ ] PHP, JavaScript, HTTP, split-app and Doctrine Compose rehearsals verify the migration against disposable fixtures. Both Compose stacks preserve existing service layouts and volume identities.
-- [ ] Validation and integration evidence is recorded separately from ticket triage, and the work is ready for review through the signed PR to `dev`.
+- [x] Root HTTP shims, file fallback, combined Docker and Apache setup, and obsolete active helper files are gone. Historical migration support stays confined to its callers.
+- [x] Maintained instructions, development setup, and CI use the new layout. The SQLite test harness remains disposable.
+- [x] PHP, JavaScript, HTTP, split-app and Doctrine Compose rehearsals verify the migration against disposable fixtures. Both Compose stacks preserve existing service layouts and volume identities.
+- [x] Validation and integration evidence is recorded separately from ticket triage, and the work is ready for review through the signed PR to `dev`.

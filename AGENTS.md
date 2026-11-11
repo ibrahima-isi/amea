@@ -10,28 +10,26 @@ Keep replies concise and use the conversation's language. Use interactive input 
 
 ## Project Structure & Module Organization
 
-AMEA manages AEESGS membership for Guinean pupils, students, and interns in Senegal. The interface is French. The stack uses PHP 8, MySQL/MariaDB, Bootstrap 5, vanilla JavaScript, Tagify, Twig, and PHPMailer via Brevo SMTP. Public and staff applications have independent entry points and route boundaries, with shared business code, database and files; physical separation into repository subprojects remains deferred. Root PHP files are individual HTTP entry points; application code lives in `src/` under the PSR-4 namespace `Amea\`:
+AMEA manages AEESGS membership for Guinean pupils, students, and interns in Senegal. The interface is French. The stack uses PHP 8, MySQL/MariaDB, Bootstrap 5, vanilla JavaScript, Tagify, Twig, and PHPMailer via Brevo SMTP. The public website and administration share one Composer package, business code, database, and files. They have independent document roots and route boundaries.
 
-- `Controller/`: request handling; `Service/`: business logic; `Repository/`: PDO queries.
-- `Core/` and `Model/`: shared infrastructure and domain objects.
-- `templates/`: Twig and legacy HTML templates; `assets/`: CSS, vanilla JavaScript, images.
-- `tests/`: PHPUnit suites and standalone regression scripts.
-- `database/`, `migrations/`, and `schema.sql`: database definitions, evolution, and baseline schema.
-- `functions/`: procedural helpers, including `utility-functions.php` and `email-service.php`; `config/`: database and session setup.
+- `apps/web/public/` and `apps/backoffice/public/`: thin HTTP entry points. `src/Core/Router.php` owns the route inventory and dispatch.
+- `src/`: PSR-4 classes under `Amea\`, including controllers for requests, services for business logic, and repositories for PDO queries.
+- `scripts/`: thin CLI entry points backed by classes in `src/Command/`.
+- `templates/`: Twig views and HTML email templates. `assets/` contains CSS, vanilla JavaScript and images.
+- `tests/`: PHPUnit suites and standalone regressions.
+- `database/`, `migrations/`, and `schema.sql`: database definitions and history. `config/database.php` supports historical migration rehearsal.
 
-Place new classes in `src/` following PSR-4. Entry points bootstrap through `src/bootstrap.php` and use PDO configuration from `config/database.php`. Use current Twig views; older guides describing a custom `TemplateEngine.php` are outdated.
+Place new classes in `src/` following PSR-4. Use `Amea\Core\Container` for the shared PDO connection and current Twig views for rendering.
 
 ## Build, Test, and Development Commands
 
 - `composer install`: install locked PHP dependencies, including development tools.
 - `php scripts/migrate.php migrate`: initialize or migrate the explicitly selected database; export its `DB_*` connection variables first.
 - `docker compose up -d --build --remove-orphans`: start the local Docker stack. See [local Docker setup](docs/testing/README.md#local-docker-stack) for URLs and certificate setup.
-- `php -S localhost:8000`: serve locally after configuring `.env` and initializing the database.
 - `./vendor/bin/phpunit`: run Unit and Integration suites from `phpunit.xml`.
 - `php tests/test_oop_unit.php`: run a standalone regression script; CI also runs `test_oop_integration.php`, `test_permissions_unit.php`, and `test_password_reset_security.php`.
 - `php -l path/to/file.php`: check changed PHP syntax.
 - `docker compose -f compose.dokploy.yml build public staff`: build the separate PHP 8.5 Apache application targets with the required deployment environment configured. Building is distinct from deployment approval.
-- `docker build -t amea:local .`: build the retained legacy root Dockerfile image.
 
 ## Coding Style & Naming Conventions
 

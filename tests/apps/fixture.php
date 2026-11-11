@@ -3,7 +3,8 @@
 if (PHP_SAPI !== 'cli' || getenv('APP_ENV') !== 'test' || getenv('DB_NAME') !== 'amea_rehearsal') {
     exit(1);
 }
-require '/opt/amea/config/database.php';
+require '/opt/amea/vendor/autoload.php';
+$conn = \Amea\Core\Container::db();
 $conn->exec('DELETE FROM password_resets; DELETE FROM users; DELETE FROM students');
 $conn->exec("INSERT IGNORE INTO countries (code_iso,name_fr,name_en) VALUES ('GN','Guinée','Guinea')");
 $insert = $conn->prepare('INSERT INTO users (username,password,last_name,first_name,email,role) VALUES (?,?,?,?,?,?)');

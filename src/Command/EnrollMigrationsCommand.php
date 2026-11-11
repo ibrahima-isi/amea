@@ -10,7 +10,7 @@ use Throwable;
 
 final class EnrollMigrationsCommand
 {
-    public function run(int $argumentCount): int
+    public function run(int $argumentCount, string $autoload): int
     {
         $arguments = getopt('', ['database:', 'writers-stopped', 'evidence:'], $firstPositional);
         $database = $arguments['database'] ?? null;
@@ -25,6 +25,8 @@ final class EnrollMigrationsCommand
             fwrite(STDERR, "Enrollment failed: --database does not match DB_NAME. Select the intended database before retrying.\n");
             return 1;
         }
+
+        require_once $autoload;
 
         try {
             $runtime = MigrationRuntime::fromEnvironment();

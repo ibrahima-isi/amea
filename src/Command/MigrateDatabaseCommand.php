@@ -16,13 +16,15 @@ use Throwable;
 
 final class MigrateDatabaseCommand
 {
-    public function run(array $arguments): int
+    public function run(array $arguments, string $autoload): int
     {
         $operation = $arguments[1] ?? '';
         if (count($arguments) !== 2 || !in_array($operation, ['migrate', 'status'], true)) {
             fwrite(STDERR, "Usage: php scripts/migrate.php migrate|status\n");
             return 2;
         }
+
+        require_once $autoload;
 
         try {
             $output = new ConsoleOutput();

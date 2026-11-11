@@ -62,7 +62,7 @@ jobs:
         uses: shivammathur/setup-php@8358ee0e2e8afe63c2fb8253d1d52085811ab1e5 # v2
         with:
           php-version: '8.5'
-          extensions: pdo, pdo_sqlite, fileinfo, mbstring, gd
+          extensions: pdo, pdo_sqlite, fileinfo, mbstring, gd, curl
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
@@ -84,6 +84,7 @@ jobs:
           python3 tests/http/baseline.py
           python3 tests/http/tokens.py
           python3 tests/http/internals.py
+          python3 tests/http/permissions.py
 
   static-checks:
     name: "Static checks: Syntax & access"
@@ -97,10 +98,9 @@ jobs:
           coverage: none
       - name: Validate PHP syntax
         run: |
-          find src apps -type f -name '*.php' -print0 | xargs -0 -n1 php -l
-          php -l registration-preview.php
-      - name: Verify migration access rules
+          find src apps scripts tests config -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Verify split runtime access rules
         run: |
-          grep -Fq 'Require all denied' docker/apache-security.conf
-          grep -Fq 'X-Forwarded-Proto' .htaccess
+          grep -Fq 'DocumentRoot AMEA_DOCUMENT_ROOT' docker/apps/apache.conf
+          grep -Fq 'AllowOverride None' docker/apps/apache.conf
           grep -Fq 'requireAdmin()' src/Controller/DownloadController.php

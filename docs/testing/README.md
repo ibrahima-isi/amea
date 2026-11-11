@@ -8,11 +8,15 @@ php tests/test_permissions_unit.php
 php tests/test_oop_unit.php
 php tests/test_oop_integration.php
 php tests/test_password_reset_security.php
+node --test tests/js/theme.test.mjs
+python3 tests/http/split-routes.py
 python3 tests/http/baseline.py
 python3 tests/http/tokens.py
+python3 tests/http/internals.py
+python3 tests/http/permissions.py
 ```
 
-The HTTP fixtures use disposable synthetic data and loopback; see [HTTP harness](../../tests/http/README.md) for isolation and limits. Optional fresh-profile Chrome checks require Node 22+ and Chrome (`CHROME_BIN` can override its location):
+The staff permission suite uses PHP cURL. The HTTP fixtures use disposable synthetic data and loopback. See [HTTP harness](../../tests/http/README.md) for isolation and limits. Optional fresh-profile Chrome checks require Node 22+ and Chrome (`CHROME_BIN` can override its location):
 
 ```sh
 AMEA_BROWSER_CHECK=1 AMEA_REGISTRATION_BROWSER=1 python3 tests/http/baseline.py

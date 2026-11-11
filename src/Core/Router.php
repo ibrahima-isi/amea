@@ -85,16 +85,11 @@ class Router
         };
     }
 
-    public function dispatch(?string $application = null): void
+    public function dispatch(string $application): void
     {
         $path = (string)parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         $path = $path === '/index.php' ? '/' : $path;
         $method = $_SERVER['REQUEST_METHOD'];
-
-        if ($application === null) {
-            $this->dispatchLegacy($path, $method);
-            return;
-        }
 
         $route = self::route($application, $path);
         if ($route === null) {
@@ -123,51 +118,8 @@ class Router
             (new Session())->startRequest();
         }
 
-        $this->invoke($route['controller'], $action);
-    }
-
-    private function invoke(string $controllerClass, string $action): void
-    {
+        $controllerClass = $route['controller'];
         $controller = new $controllerClass();
         $controller->$action();
-    }
-
-    private function dispatchLegacy(string $path, string $method): void
-    {
-        $route = self::route('public', $path) ?? self::route('staff', $path);
-        $action = $route['methods'][$method] ?? null;
-        if ($action === null) {
-            $this->fallback($path);
-            return;
-        }
-        $this->invoke($route['controller'], $action);
-    }
-
-    private function fallback(string $path): void
-    {
-        $file = ltrim($path, '/');
-        if ($file === '') {
-            $file = 'index.php';
-        }
-
-        // Senior Security: Prevent path traversal
-        if (str_contains($file, '..') || str_contains($file, '\\')) {
-            $this->notFound();
-            return;
-        }
-
-        // Only allow .php files in the root directory for legacy support
-        if (file_exists($file) && str_ends_with($file, '.php') && $file !== 'index.php') {
-            require_once $file;
-            return;
-        }
-
-        $this->notFound();
-    }
-
-    private function notFound(): void
-    {
-        http_response_code(404);
-        require_once '404-handler.php';
     }
 }

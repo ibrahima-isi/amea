@@ -10,7 +10,7 @@ Keep the current CLI commands usable by operators and both Compose stacks while 
 
 ## Acceptance criteria
 
-- [ ] Thin CLI scripts preserve command paths, argument handling, outputs, exit statuses, and environment selection.
-- [ ] Mail and cleanup jobs retain the existing queue, locks, scheduler ownership, and trash backup confirmation. Failed and concurrent runs preserve existing handling.
-- [ ] Doctrine migration and enrollment retain command behavior, database selection, startup gates, and recovery safeguards. Historical migration sources remain intact.
-- [ ] Tests exercise the entry scripts and their job and Doctrine behavior with disposable data.
+- [x] Thin CLI scripts preserve command paths, argument handling, outputs, exit statuses, and environment selection.
+- [x] Mail and cleanup jobs retain the existing queue, locks, scheduler ownership, and trash backup confirmation. Failed and concurrent runs preserve existing handling.
+- [x] Doctrine migration and enrollment retain command behavior, database selection, startup gates, and recovery safeguards. Historical migration sources remain intact.
+- [x] Tests exercise the entry scripts and their job and Doctrine behavior with disposable data.

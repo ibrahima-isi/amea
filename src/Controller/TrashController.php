@@ -5,11 +5,12 @@ namespace Amea\Controller;
 use Amea\Core\Container;
 use Amea\Core\FileUploader;
 use Amea\Repository\StudentRepository;
+use Amea\Service\StudentService;
 
 class TrashController extends BaseController
 {
     private StudentRepository $studentRepo;
-    private FileUploader $uploader;
+    private StudentService $studentService;
     private int $retentionDays;
 
     public function __construct()
@@ -20,8 +21,8 @@ class TrashController extends BaseController
             $this->flash->set('error', "Accès refusé : vous n'avez pas la permission de gérer les étudiants.");
             $this->redirect('dashboard.php');
         }
-        $this->studentRepo   = new StudentRepository(Container::db());
-        $this->uploader      = new FileUploader(__DIR__ . '/../../');
+        $this->studentRepo = new StudentRepository(Container::db());
+        $this->studentService = new StudentService($this->studentRepo, new FileUploader(__DIR__ . '/../../'));
         $this->retentionDays = max(1, (int)($_ENV['TRASH_RETENTION_DAYS'] ?? 30));
     }
 
@@ -92,14 +93,7 @@ class TrashController extends BaseController
             return;
         }
 
-        // Permanent deletion — remove the associated files too.
-        if ($student->getIdentityDocument()) {
-            $this->uploader->safeDelete($student->getIdentityDocument());
-        }
-        if ($student->getCvPath()) {
-            $this->uploader->safeDelete($student->getCvPath());
-        }
-        $this->studentRepo->forceDelete($id);
+        $this->studentService->purgeTrashedStudent($student);
         $this->flash->set('success', 'Étudiant définitivement supprimé.');
     }
 }

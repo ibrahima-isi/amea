@@ -8,6 +8,7 @@ use Amea\Config\Environment;
 use Amea\Core\Container;
 use Amea\Core\FileUploader;
 use Amea\Repository\StudentRepository;
+use Amea\Service\StudentService;
 use Throwable;
 
 final class PurgeTrashedStudentsCommand
@@ -19,9 +20,9 @@ final class PurgeTrashedStudentsCommand
         $retentionDays = max(1, (int)($_ENV['TRASH_RETENTION_DAYS'] ?? getenv('TRASH_RETENTION_DAYS') ?: 30));
 
         try {
-            $pdo        = Container::db();
-            $repo       = new StudentRepository($pdo);
-            $uploader   = new FileUploader($projectRoot);
+            $pdo = Container::db();
+            $repo = new StudentRepository($pdo);
+            $studentService = new StudentService($repo, new FileUploader($projectRoot));
         } catch (Throwable $e) {
             JobLog::write('FATAL: cannot initialise database: ' . $e->getMessage());
             return 1;
@@ -40,13 +41,7 @@ final class PurgeTrashedStudentsCommand
         foreach ($purgeable as $student) {
             $id = $student->getId();
             try {
-                if ($student->getIdentityDocument()) {
-                    $uploader->safeDelete($student->getIdentityDocument());
-                }
-                if ($student->getCvPath()) {
-                    $uploader->safeDelete($student->getCvPath());
-                }
-                if ($repo->forceDelete($id)) {
+                if ($studentService->purgeTrashedStudent($student)) {
                     $deleted++;
                     JobLog::write("Purged student #{$id} ({$student->getEmail()}), trashed at {$student->getDeletedAt()}.");
                 } else {

@@ -9,8 +9,11 @@ if (PHP_SAPI !== 'cli-server' || !str_starts_with(basename(dirname(__DIR__, 2)),
 $path = rawurldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '');
 $root = realpath(__DIR__ . '/../..');
 $file = realpath($root . $path);
-$publicAsset = str_starts_with($path, '/assets/') || str_starts_with($path, '/uploads/slider/');
-if ($publicAsset && $file && str_starts_with($file, $root . '/') && is_file($file)) {
+$publicAsset = $file && (
+    (str_starts_with($path, '/assets/') && str_starts_with($file, $root . '/assets/')) ||
+    (str_starts_with($path, '/uploads/slider/') && str_starts_with($file, $root . '/uploads/slider/'))
+);
+if ($publicAsset && is_file($file)) {
     $types = ['json' => 'application/json', 'css' => 'text/css', 'js' => 'application/javascript', 'png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'webp' => 'image/webp'];
     $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
     if (isset($types[$ext])) {
@@ -19,7 +22,17 @@ if ($publicAsset && $file && str_starts_with($file, $root . '/') && is_file($fil
         exit;
     }
 }
-require __DIR__ . '/../../vendor/autoload.php';
+$entryPoint = match (getenv('AMEA_HTTP_TEST_APPLICATION')) {
+    'public' => '/apps/web/public/index.php',
+    'staff' => '/apps/backoffice/public/index.php',
+    default => null,
+};
+if ($entryPoint === null) {
+    http_response_code(404);
+    exit;
+}
+
+require $root . '/vendor/autoload.php';
 $_ENV['APP_ENV'] = 'test';
 $_ENV['MAIL_USER'] = '';
 $_ENV['MAIL_PASS'] = '';
@@ -29,19 +42,4 @@ $db = new SqliteFixture('sqlite:' . __DIR__ . '/../../fixture.sqlite');
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 \Amea\Core\Container::setDb($db);
-$entryPoint = match (getenv('AMEA_HTTP_TEST_APPLICATION')) {
-    'public' => '/apps/web/public/index.php',
-    'staff' => '/apps/backoffice/public/index.php',
-    default => null,
-};
-if ($entryPoint !== null) {
-    require $root . $entryPoint;
-    exit;
-}
-// Loopback HTTP cannot send Secure cookies. Start a test session first;
-// production Session still applies expiry/authentication, never changed here.
-ini_set('session.cookie_httponly', '1');
-ini_set('session.cookie_samesite', 'Strict');
-session_start();
-$router = require __DIR__ . '/../../src/bootstrap.php';
-$router->dispatch();
+require $root . $entryPoint;

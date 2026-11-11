@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Amea\Tests\Integration\Command;
 
 use FilesystemIterator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -19,6 +20,7 @@ final class CliCommandsTest extends TestCase
         $this->fixture = sys_get_temp_dir() . '/amea-cli-' . bin2hex(random_bytes(8));
         mkdir($this->fixture . '/scripts', 0700, true);
         symlink($projectRoot . '/vendor', $this->fixture . '/vendor');
+        symlink($projectRoot . '/src', $this->fixture . '/src');
         foreach (glob($projectRoot . '/scripts/*.php') as $script) {
             copy($script, $this->fixture . '/scripts/' . basename($script));
         }
@@ -40,8 +42,13 @@ final class CliCommandsTest extends TestCase
         rmdir($this->fixture);
     }
 
-    public function testDoctrineCommandsRequireTheirExistingArguments(): void
+    #[DataProvider('composerAvailability')]
+    public function testDoctrineCommandsCheckInputs(bool $composerInstalled): void
     {
+        if (!$composerInstalled) {
+            unlink($this->fixture . '/vendor');
+        }
+
         self::assertSame([2, '', "Usage: php scripts/migrate.php migrate|status\n"], $this->runCommand([
             'migrate.php', 'status', 'extra',
         ]));
@@ -49,22 +56,27 @@ final class CliCommandsTest extends TestCase
             [2, '', "Usage: php scripts/enroll-migrations.php --database=NAME --writers-stopped --evidence=FILE\n"],
             $this->runCommand(['enroll-migrations.php', '--database=fixture', '--evidence=evidence.json'])
         );
-    }
-
-    public function testDoctrineCommandsUseExportedDatabaseSelection(): void
-    {
-        file_put_contents($this->fixture . '/.env', "DB_HOST=127.0.0.1\nDB_NAME=fixture\nDB_USER=fixture\nDB_PASS=fixture\nDB_PORT=0\n");
-
-        self::assertSame(
-            [1, '', "Migration command failed: Set DB_HOST, DB_NAME, DB_USER and DB_PASS in the migration command environment.\n"],
-            $this->runCommand(['migrate.php', 'status'])
-        );
         self::assertSame(
             [1, '', "Enrollment failed: --database does not match DB_NAME. Select the intended database before retrying.\n"],
             $this->runCommand(
                 ['enroll-migrations.php', '--database=fixture', '--writers-stopped', '--evidence=evidence.json'],
                 ['DB_NAME' => 'other_fixture']
             )
+        );
+    }
+
+    public static function composerAvailability(): array
+    {
+        return ['Composer installed' => [true], 'Composer missing' => [false]];
+    }
+
+    public function testMigrationUsesExportedDatabaseSelection(): void
+    {
+        file_put_contents($this->fixture . '/.env', "DB_HOST=127.0.0.1\nDB_NAME=fixture\nDB_USER=fixture\nDB_PASS=fixture\nDB_PORT=0\n");
+
+        self::assertSame(
+            [1, '', "Migration command failed: Set DB_HOST, DB_NAME, DB_USER and DB_PASS in the migration command environment.\n"],
+            $this->runCommand(['migrate.php', 'status'])
         );
     }
 
