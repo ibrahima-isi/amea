@@ -8,7 +8,7 @@ mkdir($root . '/uploads/students/pending', 0775, true);
 file_put_contents($root . '/uploads/students/pending/previous.pdf', "%PDF-1.4\nPrevious synthetic identity\n%%EOF\n");
 $db = new PDO('sqlite:' . $root . '/fixture.sqlite');
 $db->exec("INSERT INTO countries VALUES (2, 'Sénégal')");
-session_save_path($root . '/sessions');
+session_save_path($root . '/sessions/public');
 session_id('amea-previous-registration');
 session_start();
 $_SESSION['pending_registration'] = [

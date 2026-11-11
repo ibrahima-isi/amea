@@ -27,18 +27,36 @@ def check(condition, message):
 
 if __name__ == '__main__':
     status, headers, body = request('public', '/students.php?page=2')
-    check(status == 404 and 'Location' not in headers, 'staff paths are unknown on the public application')
+    check(status == 404 and 'Location' not in headers and 'Set-Cookie' not in headers,
+          'staff paths are unknown on the public application before starting a session')
+    for path in ['/', '/index.php?source=bookmark']:
+        status, headers, body = request('public', path)
+        check(status == 200 and b'href="register.php"' in body, 'public home renders at ' + path)
+        status, headers, _ = request('staff', path)
+        check(status == 302 and headers.get('Location') == '/login.php' and 'Set-Cookie' not in headers,
+              'staff root redirects before starting a session at ' + path)
     for app, allowed, denied in [('public', '/register.php', '/login.php'), ('staff', '/login.php', '/register.php')]:
         status, headers, body = request(app, allowed)
         check(status == 200, app + ' allowed entry renders')
-        check(request(app, denied)[0] == 404, app + ' wrong-app PHP never executes')
-        for path in ['/.env', '/src/bootstrap.php', '/config/database.php', '/vendor/autoload.php', '/schema.sql', '/uploads/students/private.pdf', '/index.php/dashboard.php']:
+        for method in ['GET', 'POST', 'OPTIONS']:
+            status, headers, _ = request(app, denied, method=method)
+            check(status == 404 and all(name not in headers for name in ['Location', 'Allow', 'Set-Cookie']),
+                  app + ' rejects wrong-app ' + method + ' before checking methods or starting a session')
+        for path in ['/.env', '/404-handler.php', '/src/bootstrap.php', '/config/database.php', '/vendor/autoload.php', '/schema.sql', '/uploads/students/private.pdf', '/index.php/dashboard.php']:
             check(request(app, path)[0] == 404, app + ' denies ' + path)
     status, headers, _ = request('public', '/dashboard.php')
     check(status == 404 and 'Location' not in headers, 'public does not redirect to the staff dashboard')
     check(request('staff', '/dashboard.php')[0] == 302, 'staff dashboard requires authentication')
-    for app, path, method in [('public', '/legal-notice.php', 'POST'), ('public', '/registration-preview.php', 'POST'), ('public', '/register.php', 'DELETE'), ('staff', '/login.php', 'OPTIONS')]:
-        check(request(app, path, method=method)[0] == 405, app + ' rejects unsupported ' + method + ' without legacy dispatch')
+    for app, path, method, allow in [
+        ('public', '/legal-notice.php', 'POST', 'GET'),
+        ('public', '/registration-preview.php', 'POST', 'GET'),
+        ('public', '/register.php', 'DELETE', 'GET, POST'),
+        ('staff', '/login.php', 'OPTIONS', 'GET, POST'),
+        ('staff', '/confirm-upgrade.php', 'GET', 'POST'),
+    ]:
+        status, headers, _ = request(app, path, method=method)
+        check(status == 405 and headers.get('Allow') == allow and 'Set-Cookie' not in headers,
+              app + ' sends Allow for unsupported ' + method + ' before starting a session at ' + path)
     check(request('public', '/assets/img/WhatsApp%20Image%202025-04-28%20at%2022.07.41_c84e18a5.jpg')[0] == 200, 'approved image filenames with spaces remain available')
     check(request('public', '/uploads/slider/synthetic-public.jpg')[0] == 200, 'approved shared carousel image is public')
     check(request('public', '/uploads/slider/synthetic.php.jpg')[0] in [403, 404], 'uploaded PHP filenames cannot execute')

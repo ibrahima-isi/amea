@@ -4,7 +4,9 @@
  * Run from project root: php tests/test_document_reconcile.php
  */
 
-require_once __DIR__ . '/../functions/document-reconcile.php';
+use Amea\Service\DocumentReconcileService;
+
+require_once __DIR__ . '/../vendor/autoload.php';
 
 // ─── Minimal test runner ──────────────────────────────────────────────────────
 $passed = 0;
@@ -33,6 +35,7 @@ file_put_contents("$tmpDir/uploads/abc456.pdf",                'pdf');  // flat 
 file_put_contents("$tmpDir/uploads/students/def789.png",       'img');
 file_put_contents("$tmpDir/uploads/students/cvs/cv001.pdf",    'cv');
 
+$reconcile = new DocumentReconcileService(null, $tmpDir);
 $searchDirs = ['uploads/', 'uploads/students/', 'uploads/students/cvs/'];
 
 // ─── Test: dbPathExists ───────────────────────────────────────────────────────
@@ -40,15 +43,15 @@ echo "\ndbPathExists()\n";
 
 expect(
     'returns true when file is at exact DB path',
-    dbPathExists('uploads/students/abc123.jpg', $tmpDir)
+    $reconcile->dbPathExists('uploads/students/abc123.jpg')
 );
 expect(
     'returns false for wrong path',
-    !dbPathExists('uploads/students/missing.jpg', $tmpDir)
+    !$reconcile->dbPathExists('uploads/students/missing.jpg')
 );
 expect(
     'returns false for null/empty path',
-    !dbPathExists('', $tmpDir)
+    !$reconcile->dbPathExists('')
 );
 
 // ─── Test: findAlternativePath ────────────────────────────────────────────────
@@ -56,29 +59,29 @@ echo "\nfindAlternativePath()\n";
 
 expect(
     'finds file when it moved to uploads/ root',
-    findAlternativePath('uploads/students/abc456.pdf', $tmpDir, $searchDirs) === 'uploads/abc456.pdf'
+    $reconcile->findAlternativePath('uploads/students/abc456.pdf', $searchDirs) === 'uploads/abc456.pdf'
 );
 expect(
     'finds file in uploads/students/ when DB says cvs/',
-    findAlternativePath('uploads/students/cvs/def789.png', $tmpDir, $searchDirs) === 'uploads/students/def789.png'
+    $reconcile->findAlternativePath('uploads/students/cvs/def789.png', $searchDirs) === 'uploads/students/def789.png'
 );
 expect(
     'returns null when file not found anywhere',
-    findAlternativePath('uploads/students/ghost.jpg', $tmpDir, $searchDirs) === null
+    $reconcile->findAlternativePath('uploads/students/ghost.jpg', $searchDirs) === null
 );
 expect(
     'returns null for empty DB path',
-    findAlternativePath('', $tmpDir, $searchDirs) === null
+    $reconcile->findAlternativePath('', $searchDirs) === null
 );
 expect(
     'does not return the same path as the DB (only alternatives)',
-    findAlternativePath('uploads/students/abc123.jpg', $tmpDir, $searchDirs) === null
+    $reconcile->findAlternativePath('uploads/students/abc123.jpg', $searchDirs) === null
 );
 
 // ─── Test: scanUploadFiles ────────────────────────────────────────────────────
 echo "\nscanUploadFiles()\n";
 
-$allFiles = scanUploadFiles($tmpDir, $searchDirs);
+$allFiles = $reconcile->scanUploadFiles($searchDirs);
 expect(
     'finds files in uploads/students/',
     in_array('uploads/students/abc123.jpg', $allFiles)
@@ -104,7 +107,7 @@ $dbPaths = [
     null,                           // null entry
     'uploads/students/cvs/cv001.pdf', // exists, linked
 ];
-$orphans = findOrphanedFiles($allFiles, $dbPaths);
+$orphans = $reconcile->findOrphanedFiles($allFiles, $dbPaths);
 
 expect(
     'detects abc456.pdf as orphaned (not in DB)',
@@ -128,23 +131,23 @@ echo "\nclassifyDocument()\n";
 
 expect(
     'classifies null DB path as "null"',
-    classifyDocument(null, $tmpDir, $searchDirs)['status'] === 'null'
+    $reconcile->classifyDocument(null, $searchDirs)['status'] === 'null'
 );
 expect(
     'classifies existing-at-exact-path as "ok"',
-    classifyDocument('uploads/students/abc123.jpg', $tmpDir, $searchDirs)['status'] === 'ok'
+    $reconcile->classifyDocument('uploads/students/abc123.jpg', $searchDirs)['status'] === 'ok'
 );
 expect(
     'classifies wrong-path-but-found-elsewhere as "fixable"',
-    classifyDocument('uploads/students/cvs/abc456.pdf', $tmpDir, $searchDirs)['status'] === 'fixable'
+    $reconcile->classifyDocument('uploads/students/cvs/abc456.pdf', $searchDirs)['status'] === 'fixable'
 );
 expect(
     'fixable result includes the found_at path',
-    classifyDocument('uploads/students/cvs/abc456.pdf', $tmpDir, $searchDirs)['found_at'] === 'uploads/abc456.pdf'
+    $reconcile->classifyDocument('uploads/students/cvs/abc456.pdf', $searchDirs)['found_at'] === 'uploads/abc456.pdf'
 );
 expect(
     'classifies truly missing file as "missing"',
-    classifyDocument('uploads/students/ghost.jpg', $tmpDir, $searchDirs)['status'] === 'missing'
+    $reconcile->classifyDocument('uploads/students/ghost.jpg', $searchDirs)['status'] === 'missing'
 );
 
 // ─── Cleanup ─────────────────────────────────────────────────────────────────

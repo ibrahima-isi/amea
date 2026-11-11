@@ -5,23 +5,24 @@ namespace Amea\Controller;
 use Amea\Core\Container;
 use Amea\Core\FileUploader;
 use Amea\Repository\StudentRepository;
+use Amea\Service\StudentService;
 
 class TrashController extends BaseController
 {
     private StudentRepository $studentRepo;
-    private FileUploader $uploader;
+    private StudentService $studentService;
     private int $retentionDays;
 
     public function __construct()
     {
         parent::__construct();
         $this->requireAdmin();
-        if (!\hasPermission('students')) {
+        if (!$this->auth->hasPermission('students')) {
             $this->flash->set('error', "Accès refusé : vous n'avez pas la permission de gérer les étudiants.");
             $this->redirect('dashboard.php');
         }
-        $this->studentRepo   = new StudentRepository(Container::db());
-        $this->uploader      = new FileUploader(__DIR__ . '/../../');
+        $this->studentRepo = new StudentRepository(Container::db());
+        $this->studentService = new StudentService($this->studentRepo, new FileUploader(__DIR__ . '/../../'));
         $this->retentionDays = max(1, (int)($_ENV['TRASH_RETENTION_DAYS'] ?? 30));
     }
 
@@ -57,7 +58,7 @@ class TrashController extends BaseController
 
     public function handlePost(): void
     {
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->set('error', 'La session a expiré. Veuillez réessayer.');
             $this->redirect('trash.php');
             return;
@@ -92,14 +93,7 @@ class TrashController extends BaseController
             return;
         }
 
-        // Permanent deletion — remove the associated files too.
-        if ($student->getIdentityDocument()) {
-            $this->uploader->safeDelete($student->getIdentityDocument());
-        }
-        if ($student->getCvPath()) {
-            $this->uploader->safeDelete($student->getCvPath());
-        }
-        $this->studentRepo->forceDelete($id);
+        $this->studentService->purgeTrashedStudent($student);
         $this->flash->set('success', 'Étudiant définitivement supprimé.');
     }
 }

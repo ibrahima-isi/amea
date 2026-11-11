@@ -27,13 +27,20 @@ def check(condition, message):
     print('PASS:', message)
 
 def client():
-    return urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()), NoRedirect())
+    # These clients only call disposable loopback HTTP servers. Keep the
+    # production Secure attribute so route checks can still assert it.
+    policy = http.cookiejar.DefaultCookiePolicy(secure_protocols=('https', 'http'))
+    return urllib.request.build_opener(
+        urllib.request.ProxyHandler({}),
+        urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar(policy)),
+        NoRedirect())
 
 class HttpFixture:
-    def __init__(self, base):
+    def __init__(self, base, root):
         self.base = base
+        self.root = root
 
-    def request(self, browser, path, data=None, multipart=False, image=False, upload=None):
+    def request(self, browser, path, data=None, multipart=False, image=False, upload=None, method=None):
         headers = {}
         if multipart:
             boundary = 'AMEAfixtureBoundary'
@@ -49,7 +56,7 @@ class HttpFixture:
         else:
             payload = urllib.parse.urlencode(data).encode() if data is not None else None
         try:
-            response = browser.open(urllib.request.Request(self.base + path, data=payload, headers=headers), timeout=10)
+            response = browser.open(urllib.request.Request(self.base + path, data=payload, headers=headers, method=method), timeout=10)
         except urllib.error.HTTPError as error:
             response = error
         return response.code, response.headers, response.read()
@@ -62,38 +69,49 @@ class HttpFixture:
         return token.group(1).decode()
 
 @contextlib.contextmanager
-def disposable_app(extra_fixtures=()):
+def serve(app, application):
+    session_dir = app / 'sessions' / application
+    with socket.socket() as listener:
+        listener.bind(('127.0.0.1', 0))
+        port = listener.getsockname()[1]
+    address = f'127.0.0.1:{port}'
+    entry_root = 'web' if application == 'public' else 'backoffice'
+    with open(app / f'{application}.log', 'w+') as log:
+        server = subprocess.Popen([
+            'php', '-d', f'session.save_path={session_dir}', '-S', address,
+            '-t', f'apps/{entry_root}/public', 'tests/http/router.php',
+        ], cwd=app, stdout=log, stderr=log,
+            env={**SAFE_ENV, 'AMEA_HTTP_TEST_APPLICATION': application})
+        fixture = HttpFixture(f'http://{address}', app)
+        try:
+            for attempt in range(50):
+                try:
+                    fixture.request(client(), '/')
+                    break
+                except urllib.error.URLError:
+                    time.sleep(.1)
+            else:
+                raise RuntimeError(f'Disposable {application} HTTP server did not start')
+            yield fixture
+        except Exception:
+            log.flush()
+            log.seek(0)
+            print(log.read())
+            raise
+        finally:
+            server.terminate()
+            server.wait(timeout=10)
+
+
+@contextlib.contextmanager
+def disposable_apps(*applications, extra_fixtures=()):
     # PHP fixture/router also require this basename prefix and isolated DB file.
-    with tempfile.TemporaryDirectory(prefix='amea-http-') as directory:
+    with tempfile.TemporaryDirectory(prefix='amea-http-') as directory, contextlib.ExitStack() as servers:
         app = pathlib.Path(directory)
-        for name in ['src', 'templates', 'functions', 'assets', 'config', 'vendor', 'tests']:
+        for name in ['apps', 'src', 'templates', 'assets', 'vendor', 'tests']:
             shutil.copytree(ROOT / name, app / name, ignore=shutil.ignore_patterns('__pycache__'))
-        for entry in ROOT.glob('*.php'):
-            shutil.copy2(entry, app / entry.name)
-        (app / 'sessions').mkdir()
+        for application in ['public', 'staff']:
+            (app / 'sessions' / application).mkdir(parents=True)
         for fixture in ('fixture.php', *extra_fixtures):
             subprocess.run(['php', str(app / 'tests/http' / fixture)], cwd=app, check=True, env=SAFE_ENV)
-        with socket.socket() as listener:
-            listener.bind(('127.0.0.1', 0))
-            port = listener.getsockname()[1]
-        base = f'http://127.0.0.1:{port}'
-        with open(app / 'server.log', 'w+') as log:
-            server = subprocess.Popen(['php', '-d', f'session.save_path={app / "sessions"}', '-S', f'127.0.0.1:{port}', 'tests/http/router.php'], cwd=app, stdout=log, stderr=log, env=SAFE_ENV)
-            fixture = HttpFixture(base)
-            try:
-                for attempt in range(50):
-                    try:
-                        fixture.request(client(), '/legal-notice.php')
-                        break
-                    except urllib.error.URLError:
-                        time.sleep(.1)
-                else:
-                    raise RuntimeError('Disposable HTTP server did not start')
-                yield fixture
-            except Exception:
-                log.flush()
-                print((app / 'server.log').read_text())
-                raise
-            finally:
-                server.terminate()
-                server.wait(timeout=10)
+        yield tuple(servers.enter_context(serve(app, application)) for application in applications)

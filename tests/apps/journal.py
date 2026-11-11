@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Real HTTP checks against the disposable split applications and synthetic users."""
-from routes import request, check
+from routes import PUBLIC_PORT, check, request
 import re, pathlib, hashlib
 from datetime import datetime, timedelta, timezone
 class Client:
@@ -44,6 +44,8 @@ path = '/edit-journal.php?id=' + id
 status, _, body = admin.go(path)
 revision = re.search(rb'name="revision" value="(\d+)"', body).group(1).decode()
 public_url = re.search(rb'href="([^"]*journal-article.php\?slug=[^"]+)"', body).group(1).decode()
+check(public_url.startswith(f'https://public.amea.test:{PUBLIC_PORT}/journal-article.php?slug='),
+      'staff editor links to the configured public HTTPS origin')
 slug = public_url.split('slug=')[1]
 article = '/journal-article.php?slug=' + slug
 public_cover = '/journal-cover.php?slug=' + slug

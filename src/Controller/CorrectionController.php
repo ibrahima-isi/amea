@@ -61,7 +61,7 @@ class CorrectionController extends BaseController
             return;
         }
 
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->redirect('kyc-correction.php?token=' . $token);
             return;
         }

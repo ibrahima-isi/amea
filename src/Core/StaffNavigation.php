@@ -15,15 +15,6 @@ final class StaffNavigation
         '/journal-preview.php' => ['id'], '/journal-preview-cover.php' => ['id'],
     ];
 
-    public static function methods(string $path): array
-    {
-        if ($path === '/confirm-upgrade.php') {
-            return ['POST'];
-        }
-        $postRoutes = ['/register.php', '/registration-details.php', '/kyc-correction.php', '/accept-cgu.php', '/login.php', '/forgot-password.php', '/reset-password.php', '/students.php', '/edit-student.php', '/kyc-detail.php', '/trash.php', '/manage-slider.php', '/edit-journal.php', '/communications.php', '/export.php', '/settings.php', '/users.php', '/add-user.php', '/edit-user.php', '/profile.php'];
-        return in_array($path, $postRoutes, true) ? ['GET', 'POST'] : ['GET'];
-    }
-
     public static function publicOrigin(): ?string
     {
         return self::configuredOrigin('PUBLIC_APP_URL');
@@ -53,8 +44,7 @@ final class StaffNavigation
             return null;
         }
         $path = $parts['path'] ?? '';
-        $allowed = defined('AMEA_STAFF_PATHS') ? AMEA_STAFF_PATHS : [];
-        if ($path === '/' || !in_array($path, $allowed, true) || !in_array('GET', self::methods($path), true)
+        if (!defined('AMEA_APP') || AMEA_APP !== 'staff' || $path === '/' || !Router::supports('staff', $path, 'GET')
             || (!$allowAuthentication && in_array($path, self::AUTH_PATHS, true))) {
             return null;
         }
