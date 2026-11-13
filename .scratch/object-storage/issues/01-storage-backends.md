@@ -16,10 +16,12 @@ Implement [plan Task 1](../plan.md#task-1--storage-contract-and-backends) under 
 - [x] Missing objects and storage/permission failures have distinct behavior.
 - [x] Local and disposable S3 contract suites cover failure, retry and bounded-memory streaming.
 - [x] Public, staff and jobs receive the same explicit backend configuration.
-- [ ] Existing relevant checks pass and implementation/review/signed delivery evidence is recorded in `completion.md`.
+- [x] Existing relevant checks pass and implementation/review/signed delivery evidence is recorded in `completion.md`.
 
 ## Comments
 
 2026-11-12 — Planned after design approval. Execution requires user authorization. Provider credentials and actual R2 qualification belong to Ticket 05.
 
 2026-11-13 — Authorized implementation is locally complete in signed commits `53b2d10` and `45d6a35`. Independent task review and scoped re-review verified the copy-integrity correction and shared key validation. See [completion evidence](../completion.md) for backend tests, actual disposable-provider checks, image runtime proof and remaining delivery steps.
+
+2026-11-13 — Whole-branch review additionally identified a truncated destination GET in the identical-retry check. Signed correction `3fed1ba` and its clean scoped review close that finding. Local acceptance criteria are verified. Hosted CI and actual merge remain separately recorded delivery steps.
