@@ -61,9 +61,10 @@ class FileOperationRepository
         return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
     }
 
-    public function pending(string $backend, int $limit): array
+    public function pending(string $backend, int $limit, bool $includePurge = true): array
     {
-        $stmt = $this->db->prepare('SELECT operation_id FROM file_operations WHERE backend = ? ORDER BY created_at, operation_id LIMIT ?');
+        $filter = $includePurge ? '' : " AND reason NOT LIKE 'purge-%'";
+        $stmt = $this->db->prepare('SELECT operation_id FROM file_operations WHERE backend = ?' . $filter . ' ORDER BY created_at, operation_id LIMIT ?');
         $stmt->bindValue(1, $backend);
         $stmt->bindValue(2, max(1, min(1000, $limit)), \PDO::PARAM_INT);
         $stmt->execute();
@@ -87,6 +88,16 @@ class FileOperationRepository
 
     public function referenced(string $key, ?int $excludingStudent = null): bool
     {
+        // Historical journal covers are retained even after their last reference is removed.
+        if (str_starts_with($key, 'uploads/journal/covers/')) {
+            return true;
+        }
+        foreach (['SELECT 1 FROM slider_images WHERE image_path = ? LIMIT 1',
+            'SELECT 1 FROM journal_posts WHERE cover_path = ? LIMIT 1'] as $query) {
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([$key]);
+            if ($stmt->fetchColumn()) { return true; }
+        }
         $sql = 'SELECT 1 FROM students WHERE (identity_document = ? OR cv_path = ?)';
         $args = [$key, $key];
         if ($excludingStudent !== null) {

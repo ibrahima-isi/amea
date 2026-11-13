@@ -147,6 +147,15 @@ expect(
     classifyDocument('uploads/students/ghost.jpg', $tmpDir, $searchDirs)['status'] === 'missing'
 );
 
+// Complete keys remain distinct even when basenames collide.
+file_put_contents("$tmpDir/uploads/students/cvs/abc123.jpg", 'different');
+expect('equal basenames in different directories remain orphaned',
+    findOrphanedFiles(['uploads/students/cvs/abc123.jpg'], ['uploads/students/abc123.jpg']) === ['uploads/students/cvs/abc123.jpg']);
+file_put_contents("$tmpDir/uploads/ambiguous.pdf", 'one');
+file_put_contents("$tmpDir/uploads/students/ambiguous.pdf", 'two');
+expect('ambiguous alternatives require explicit resolution',
+    findAlternativePath('uploads/students/cvs/ambiguous.pdf', $tmpDir, $searchDirs) === null);
+
 // ─── Cleanup ─────────────────────────────────────────────────────────────────
 // Cleanup — files only, then dirs deepest-first
 foreach (glob("$tmpDir/uploads/students/cvs/*") as $f) { if (is_file($f)) unlink($f); }

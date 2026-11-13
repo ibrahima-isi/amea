@@ -54,3 +54,44 @@ STORAGE_TEST_PORT=62941 STORAGE_TEST_SECONDARY_PORT=62942 bash tests/storage/run
 The runner creates its own Compose project, disposable MinIO and SeaweedFS services, and random test buckets. It runs the shared local/S3 contract, 96 MiB stream/copy memory checks and failure tests. Its exit trap removes only its project resources. The fixed credentials in `tests/storage/` are disposable test credentials. S3 tests skip during ordinary PHPUnit runs unless `STORAGE_TEST_ENDPOINT` selects a disposable service.
 
 The first endpoint uses MinIO with `us-east-1`. The independent SeaweedFS endpoint exercises `auto` region and the same application configuration contract. The suite also injects explicit external SDK boundary errors and performs real denied-credential, unavailable-endpoint and missing-bucket requests. These local services provide repeatable compatibility evidence. R2 test-bucket qualification belongs to the later migration qualification ticket.
+
+## Public media and scheduled cleanup
+
+Journal uploads and carousel uploads use the selected backend. Journal publication
+and draft-preview routes check the current publication state and existing staff
+permissions on every request. Withdrawal denies public cover access immediately.
+Replacement and removal retain historical journal objects. Carousel images keep
+their `/uploads/slider/<filename>` URLs in both applications and resolve only
+current `slider_images` records. Apache forwards these paths to PHP, including
+when a matching local file exists. Both media readers verify actual image MIME,
+content length and available digest before streaming, with `nosniff` and
+`no-store` response headers. Storage outages return HTTP 503.
+
+Reconciliation uses the configured backend, traverses every listing page and
+compares complete relative keys. Multiple possible basename corrections remain
+unresolved. Storage failures propagate to the caller so operators can distinguish
+a confirmed missing object from an unavailable backend.
+
+Keep exactly one scheduled jobs owner enabled and disable former host crons before
+enabling `jobs`. The hourly `pending` command recursively expires staged objects
+using original `createdAt` metadata and `PENDING_UPLOAD_TTL_HOURS` (default 24).
+Copy time does not restart retention. It commits durable deletion intents and
+retries ordinary cleanup, including carousel removals. Reference publication and
+cleanup share `member_file_lock`. Referenced member/media objects and historical
+journal objects are retained. Failed listing or remaining retry work exits with a
+failure status, and the scheduler keeps running for subsequent attempts.
+
+The daily `trash` command also resumes interrupted permanent purges. Every
+scheduled purge continuation requires a verified coordinated backup and
+`AMEA_TRASH_BACKUP_CONFIRMED=1`. The hourly command explicitly excludes purge
+intents. Direct invocation of `scripts/purge-trashed-students.php` requires the same
+acknowledgement. Keep `file_operations` and original storage metadata with the
+matching database/files backup for recovery.
+
+For disposable S3 media qualification, `tests/apps/compose.yaml` accepts the same
+storage variables. Use a private synthetic bucket and a container-reachable
+endpoint. `tests/apps/journal.py`, `journal-retention.php`, `routes.py`,
+`tools-browser.mjs` and `jobs.php` exercise the real HTTP/browser and CLI paths.
+`STORAGE_TEST_ENDPOINT` enables isolated S3 buckets for the media/reconciliation
+and lifecycle PHPUnit cases, including paginated full-key listings and injected
+external-storage failures.

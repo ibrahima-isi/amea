@@ -38,6 +38,11 @@ function logLine(string $message): void
     fwrite(STDOUT, '[' . date('c') . '] ' . $message . PHP_EOL);
 }
 
+if (($_ENV['AMEA_TRASH_BACKUP_CONFIRMED'] ?? getenv('AMEA_TRASH_BACKUP_CONFIRMED')) !== '1') {
+    logLine('Trash purge requires a verified backup and AMEA_TRASH_BACKUP_CONFIRMED=1.');
+    exit(1);
+}
+
 $retentionDays = max(1, (int)($_ENV['TRASH_RETENTION_DAYS'] ?? getenv('TRASH_RETENTION_DAYS') ?: 30));
 
 try {
@@ -49,11 +54,12 @@ try {
     exit(1);
 }
 
+$lifecycle->retryDeletions(1000, true);
 $purgeable = $repo->findPurgeable($retentionDays);
 
 if ($purgeable === []) {
     logLine("Nothing to purge (retention {$retentionDays} days).");
-    exit(0);
+    exit($lifecycle->hasPendingDeletions() ? 1 : 0);
 }
 
 $deleted = 0;
@@ -76,4 +82,4 @@ foreach ($purgeable as $student) {
 }
 
 logLine("Purge complete: deleted={$deleted} failed={$failed} retention={$retentionDays}d.");
-exit(0);
+exit(($failed > 0 || $lifecycle->hasPendingDeletions()) ? 1 : 0);

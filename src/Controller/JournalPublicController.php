@@ -48,10 +48,17 @@ final class JournalPublicController extends BaseController
         header('X-Content-Type-Options: nosniff');
         header('Cache-Control: no-store');
         $post = $this->post();
-        $file = $post['cover_path'] ? (new JournalMediaService(__DIR__ . '/../..'))->resolve($post['cover_path']) : null;
+        try {
+            $file = $post['cover_path'] ? (new JournalMediaService(__DIR__ . '/../..', Container::storage()))->open($post['cover_path']) : null;
+        } catch (\OutOfBoundsException|\UnexpectedValueException) {
+            http_response_code(404); exit;
+        } catch (\Amea\Storage\StorageException) {
+            http_response_code(503); exit;
+        }
         if (!$file || $file['mime'] !== $post['cover_mime']) { http_response_code(404); exit; }
         header('Content-Type: ' . $file['mime']);
-        header('Content-Length: ' . $file['length']);
-        readfile($file['path']);
+        header('Content-Length: ' . $file['size']);
+        fpassthru($file['stream']);
+        fclose($file['stream']);
     }
 }

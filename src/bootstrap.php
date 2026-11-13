@@ -79,6 +79,12 @@ $router->add('GET',  '/export-preview.php', 'ExportController@preview');
 $router->add('GET',  '/settings.php', 'SettingsController@index');
 $router->add('POST', '/settings.php', 'SettingsController@update');
 
+// Existing carousel URLs are resolved against active database records.
+$mediaPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+if (is_string($mediaPath) && str_starts_with($mediaPath, '/uploads/slider/')) {
+    $router->add('GET', $mediaPath, 'SliderMediaController@serve');
+}
+
 // Slider
 $router->add('GET',  '/manage-slider.php', 'SliderController@index');
 $router->add('POST', '/manage-slider.php', 'SliderController@handlePost');

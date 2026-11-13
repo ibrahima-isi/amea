@@ -7,7 +7,8 @@ class DocumentReconcileService
 {
     public function __construct(
         private ?StudentRepository $repo,
-        private string             $projectRoot
+        private string             $projectRoot,
+        private ?\Amea\Storage\Storage $storage = null
     ) {}
 
     public function dbPathExists(string $dbPath): bool
@@ -16,7 +17,7 @@ class DocumentReconcileService
             return false;
         }
 
-        return is_file($this->absolutePath($dbPath));
+        return $this->storage()->stat($this->normalizeRelativePath($dbPath)) !== null;
     }
 
     public function findAlternativePath(string $dbPath, array $searchDirs): ?string
@@ -28,6 +29,7 @@ class DocumentReconcileService
         $filename = basename($dbPath);
         $normalizedDbPath = $this->normalizeRelativePath($dbPath);
 
+        $matches = [];
         foreach ($searchDirs as $dir) {
             $relativePath = $this->normalizeRelativePath(
                 $this->normalizeDirectory($dir) . '/' . $filename
@@ -37,12 +39,12 @@ class DocumentReconcileService
                 continue;
             }
 
-            if (is_file($this->absolutePath($relativePath))) {
-                return $relativePath;
+            if ($this->dbPathExists($relativePath)) {
+                $matches[$relativePath] = true;
             }
         }
 
-        return null;
+        return count($matches) === 1 ? array_key_first($matches) : null;
     }
 
     /** @return string[] relative paths */
@@ -50,36 +52,26 @@ class DocumentReconcileService
     {
         $files = [];
         foreach ($dirs as $dir) {
-            $normalizedDir = $this->normalizeDirectory($dir);
-            $absolute = $this->absolutePath($normalizedDir);
-
-            if (!is_dir($absolute)) {
-                continue;
-            }
-
-            foreach (scandir($absolute) ?: [] as $entry) {
-                if ($entry === '.' || $entry === '..') {
-                    continue;
+            $prefix = $this->normalizeDirectory($dir) . '/';
+            $cursor = null;
+            do {
+                $page = $this->storage()->listPage($prefix, $cursor, 1000);
+                foreach ($page['objects'] as $object) {
+                    $files[$object['key']] = true;
                 }
-
-                $relativePath = $normalizedDir . '/' . $entry;
-                if (is_file($this->absolutePath($relativePath))) {
-                    $files[] = $relativePath;
-                }
-            }
+                $cursor = $page['cursor'];
+            } while ($cursor !== null);
         }
-
-        return $files;
+        $keys = array_keys($files);
+        sort($keys, SORT_STRING);
+        return $keys;
     }
 
     /** @return string[] files on disk not referenced in DB */
     public function findOrphanedFiles(array $uploadFiles, array $dbPaths): array
     {
-        $dbBasenames = array_map('basename', array_filter($dbPaths, fn($p) => !empty($p)));
-        return array_values(array_filter(
-            $uploadFiles,
-            fn($f) => !in_array(basename($f), $dbBasenames, true)
-        ));
+        $references = array_map(fn ($path) => $this->normalizeRelativePath($path), array_filter($dbPaths));
+        return array_values(array_filter($uploadFiles, fn ($path) => !in_array($this->normalizeRelativePath($path), $references, true)));
     }
 
     /**
@@ -100,9 +92,9 @@ class DocumentReconcileService
         return ['status' => 'missing', 'found_at' => null];
     }
 
-    private function absolutePath(string $relativePath): string
+    private function storage(): \Amea\Storage\Storage
     {
-        return rtrim($this->projectRoot, '/') . '/' . $this->normalizeRelativePath($relativePath);
+        return $this->storage ??= \Amea\Storage\StorageFactory::fromEnvironment($this->projectRoot);
     }
 
     private function normalizeDirectory(string $dir): string

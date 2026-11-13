@@ -9,7 +9,7 @@ if (PHP_SAPI !== 'cli-server' || !str_starts_with(basename(dirname(__DIR__, 2)),
 $path = rawurldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '');
 $root = realpath(__DIR__ . '/../..');
 $file = realpath($root . $path);
-$publicAsset = str_starts_with($path, '/assets/') || str_starts_with($path, '/uploads/slider/');
+$publicAsset = str_starts_with($path, '/assets/');
 if ($publicAsset && $file && str_starts_with($file, $root . '/') && is_file($file)) {
     $types = ['json' => 'application/json', 'css' => 'text/css', 'js' => 'application/javascript', 'png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'webp' => 'image/webp'];
     $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
@@ -38,6 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_file($faultFile)) {
     $storage->copiesUntilFailure = $faults['copiesUntilFailure'] ?? -1;
     $storage->failDelete = $faults['failDelete'] ?? false;
     $storage->failWrite = $faults['failWrite'] ?? false;
+    $storage->failRead = $faults['failRead'] ?? false;
 }
 \Amea\Core\Container::setStorage($storage);
 

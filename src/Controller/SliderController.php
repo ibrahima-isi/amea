@@ -21,7 +21,7 @@ class SliderController extends BaseController
             return;
         }
         $this->sliderRepo = new SliderRepository(Container::db());
-        $this->uploader   = new FileUploader(__DIR__ . '/../../');
+        $this->uploader   = new FileUploader(__DIR__ . '/../../', Container::storage());
     }
 
     // ─── index ─────────────────────────────────────────────────────────────────
@@ -68,11 +68,33 @@ class SliderController extends BaseController
             return;
         }
 
-        $this->sliderRepo->save([
-            'image_path'    => $result['filepath'],
-            'caption'       => trim($_POST['caption'] ?? ''),
-            'display_order' => (int)($_POST['display_order'] ?? 0),
-        ]);
+        try {
+            $image = (new \Amea\Service\MemberDocumentService(Container::storage()))->open(
+                $result['filepath'], ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+            );
+            fclose($image['stream']);
+        } catch (\Amea\Storage\StorageException|\OutOfBoundsException|\UnexpectedValueException $error) {
+            error_log('[SliderController] ' . $error->getMessage());
+            $this->flash->set('error', 'Échec du téléchargement. Veuillez réessayer.');
+            $this->redirect('manage-slider.php');
+            return;
+        }
+
+        $db = Container::db();
+        $db->beginTransaction();
+        try {
+            (new \Amea\Repository\FileOperationRepository($db))->lockMembers();
+            $this->sliderRepo->save([
+                'image_path' => $result['filepath'],
+                'caption' => trim($_POST['caption'] ?? ''),
+                'display_order' => (int)($_POST['display_order'] ?? 0),
+            ]);
+            $db->commit();
+        } catch (\Throwable $error) {
+            if ($db->inTransaction()) { $db->rollBack(); }
+            // The unreferenced verified object stays available for reconciliation.
+            throw $error;
+        }
 
         $this->flash->set('success', 'L\'image a été ajoutée avec succès.');
         $this->redirect('manage-slider.php');
@@ -91,8 +113,18 @@ class SliderController extends BaseController
         $id  = (int)($_POST['id'] ?? 0);
         $img = $this->sliderRepo->findById($id);
         if ($img) {
-            $this->uploader->safeDelete($img['image_path']);
-            $this->sliderRepo->delete($id);
+            $db = Container::db();
+            $db->beginTransaction();
+            try {
+                (new \Amea\Repository\FileOperationRepository($db))->lockMembers();
+                $this->sliderRepo->delete($id);
+                Container::fileLifecycle()->scheduleDeletion(bin2hex(random_bytes(16)), [$img['image_path']], 'slider-removal');
+                $db->commit();
+            } catch (\Throwable $error) {
+                if ($db->inTransaction()) { $db->rollBack(); }
+                throw $error;
+            }
+            Container::fileLifecycle()->retryDeletions(100, false);
             $this->flash->set('success', 'L\'image a été supprimée.');
         }
 

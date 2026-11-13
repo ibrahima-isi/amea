@@ -34,30 +34,20 @@ function logLine(string $message): void
     fwrite(STDOUT, '[' . date('c') . '] ' . $message . PHP_EOL);
 }
 
-$pendingDir = $projectRoot . '/uploads/students/pending';
-if (!is_dir($pendingDir)) {
-    logLine('No pending-uploads directory; nothing to do.');
-    exit(0);
-}
-
+require_once $projectRoot . '/vendor/autoload.php';
 $ttlHours = max(1, (int)($_ENV['PENDING_UPLOAD_TTL_HOURS'] ?? getenv('PENDING_UPLOAD_TTL_HOURS') ?: 24));
-$cutoff   = time() - ($ttlHours * 3600);
-
-$iterator = new RecursiveIteratorIterator(
-    new RecursiveDirectoryIterator($pendingDir, FilesystemIterator::SKIP_DOTS),
-    RecursiveIteratorIterator::CHILD_FIRST
-);
-
-$deleted = 0;
-foreach ($iterator as $file) {
-    /** @var SplFileInfo $file */
-    if ($file->isFile() && $file->getMTime() < $cutoff) {
-        if (@unlink($file->getPathname())) {
-            $deleted++;
-            logLine('Removed stale staged file: ' . $file->getFilename());
-        }
+try {
+    $lifecycle = \Amea\Core\Container::fileLifecycle();
+    $cleanup = new \Amea\Service\PendingUploadCleanupService(
+        \Amea\Core\Container::db(), \Amea\Core\Container::storage(), $lifecycle
+    );
+    $completed = $cleanup->sweep($ttlHours);
+    if ($lifecycle->hasPendingDeletions(false)) {
+        throw new \RuntimeException('Storage cleanup remains queued for retry.');
     }
+    logLine("Pending-uploads sweep complete: operations={$completed} (TTL {$ttlHours}h).");
+    exit(0);
+} catch (\Throwable $error) {
+    logLine('ERROR: ' . $error->getMessage());
+    exit(1);
 }
-
-logLine("Pending-uploads sweep complete: removed={$deleted} (TTL {$ttlHours}h).");
-exit(0);

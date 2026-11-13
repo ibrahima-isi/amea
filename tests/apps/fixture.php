@@ -48,6 +48,11 @@ foreach (['syntheticexpiredstafflink' => [time() - 1801, 1], 'syntheticrevokedst
 }
 echo "Synthetic fixture ready\n";
 @mkdir('/opt/amea/uploads/slider', 0770, true);
-copy('/opt/amea/assets/img/presidents.jpg', '/opt/amea/uploads/slider/synthetic-public.jpg');
+$source = fopen('/opt/amea/assets/img/presidents.jpg', 'rb');
+\Amea\Core\Container::storage()->write('uploads/slider/synthetic-public.jpg', $source, 'image/jpeg', time());
+fclose($source);
+$conn->exec("DELETE FROM slider_images WHERE image_path = 'uploads/slider/synthetic-public.jpg'");
+$conn->exec("INSERT INTO slider_images (image_path, caption, display_order) VALUES ('uploads/slider/synthetic-public.jpg', 'Synthetic', 0)");
+copy('/opt/amea/assets/img/presidents.jpg', '/opt/amea/uploads/slider/synthetic-unregistered.jpg');
 file_put_contents('/opt/amea/uploads/slider/synthetic-private', 'Synthetic non-image must stay private');
 file_put_contents('/opt/amea/uploads/slider/synthetic.php.jpg', '<?php echo "must-not-execute";');

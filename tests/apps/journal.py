@@ -96,6 +96,8 @@ for route in [article, public_cover]:
 revision = re.search(rb'name="revision" value="(\d+)"',admin.go(path)[2]).group(1).decode()
 check(admin.go('/edit-journal.php', {'csrf_token':token,'id':id,'revision':revision,'_action':'withdraw'})[0] == 302, 'withdrawal succeeds')
 check(request('public', article)[0] == 404 and request('public', public_cover)[0] == 404, 'withdrawn article and cover inaccessible')
+status, headers, withdrawn_image = admin.go('/journal-preview-cover.php?id=' + id)
+check(status == 200 and hashlib.sha256(withdrawn_image).digest() == hashlib.sha256(image).digest(), 'withdrawn cover remains available to authorized staff preview')
 first_date = re.search(rb'<time[^>]*datetime="([^"]+)"', public_body)
 check(first_date is not None, 'article exposes first publication date')
 revision = re.search(rb'name="revision" value="(\d+)"', admin.go(path)[2]).group(1).decode()
@@ -156,3 +158,19 @@ for route in ['/', '/journal.php', '/journal.php?view=archives&page=2', article]
         status, headers, body = request('public', route, cookie=cookie)
         check(status == 200 and 'Location' not in headers and not any(marker in body for marker in [b'staff.amea.test', b'login.php', b'edit-journal.php', b'journal-preview.php', b'journal-admin', b'never-show-session-marker']), 'public reads never bridge staff ' + route)
 print('Expanded journal HTTP checks complete')
+
+# Replacement and removal preserve earlier objects for operational history.
+retained = {'csrf_token': token, '_action': 'publish', 'type': 'REPORT', 'title': 'Retained cover history', 'summary': 'Résumé', 'body': 'Texte', 'cover_alt': 'Image historique'}
+data, content = multipart(retained, image)
+status, headers, _ = admin.go('/edit-journal.php', data, content)
+check(status == 302, 'publish retained-cover fixture')
+retained_id = re.search(r'id=(\d+)', headers['Location']).group(1)
+retained_path = '/edit-journal.php?id=' + retained_id
+retained['id'] = retained_id
+retained['revision'] = re.search(rb'name="revision" value="(\d+)"', admin.go(retained_path)[2]).group(1).decode()
+data, content = multipart(retained, image)
+check(admin.go('/edit-journal.php', data, content)[0] == 302, 'replace cover through CSRF-protected staff form')
+retained['revision'] = re.search(rb'name="revision" value="(\d+)"', admin.go(retained_path)[2]).group(1).decode()
+retained['remove_cover'] = '1'
+check(admin.go('/edit-journal.php', retained)[0] == 302, 'remove current cover through staff form')
+check(admin.go('/journal-preview-cover.php?id=' + retained_id)[0] == 404, 'removed current cover is unavailable through preview')

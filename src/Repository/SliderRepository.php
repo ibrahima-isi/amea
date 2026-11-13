@@ -21,6 +21,13 @@ class SliderRepository
         return $row ?: null;
     }
 
+    public function findByPath(string $path): ?array
+    {
+        $stmt = $this->conn->prepare('SELECT * FROM slider_images WHERE image_path = ? ORDER BY id LIMIT 1');
+        $stmt->execute([$path]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
     public function save(array $data): int
     {
         $stmt = $this->conn->prepare(

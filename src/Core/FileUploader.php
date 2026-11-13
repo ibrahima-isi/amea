@@ -47,6 +47,13 @@ class FileUploader
             return ['success' => false, 'filepath' => null, 'message' => 'Type MIME invalide.'];
         }
 
+        if (is_string($mime) && str_starts_with($mime, 'image/')) {
+            $image = @getimagesize($fileInput['tmp_name']);
+            if (!$image || ($image['mime'] ?? null) !== $mime) {
+                return ['success' => false, 'filepath' => null, 'message' => 'Type MIME invalide.'];
+            }
+        }
+
         if ($this->storage !== null) {
             if (!is_uploaded_file($fileInput['tmp_name']) || filesize($fileInput['tmp_name']) !== (int)$fileInput['size']) {
                 return ['success' => false, 'filepath' => null, 'message' => 'Échec du déplacement du fichier.'];
