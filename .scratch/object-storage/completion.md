@@ -162,6 +162,18 @@ Affected local lifecycle checks passed 14 tests and 55 assertions. The actual S3
 
 Scoped Standards re-review confirmed both P2 findings resolved, with no new issue. Scoped Spec re-review confirmed the P1 resolved and found no new Spec problem. The independent axis reports are `standards-fix-review.md` and `spec-fix-review.md`. Source is ready for exact-head hosted CI and PR delivery; actual R2 and production remain later qualification.
 
+### Ticket 03 delivery
+
+[PR 42](https://github.com/ibrahima-isi/amea/pull/42) delivered Ticket 03 into remote `dev`. All four jobs passed on exact PR head `48dca0cf93841edb1fb605cc732926f228d6bda8` in [CI run 43474391582](https://github.com/ibrahima-isi/amea/actions/runs/43474391582). Hosted PHPUnit passed 287 tests and 615 assertions, with 25 endpoint-dependent skips and ten existing deprecations. This complete hosted run also verifies the local sandbox-bound HTTP case that had required an individual escalated retry.
+
+The PR actually merged at `2026-11-13T17:56:28Z` as `f532cd4a653fc87d651c8c33d2de6b081f5c774e`. GitHub reports the merge signature verified with reason `valid`. Ancestry verified the tested head in remote `dev` and local `main`. An isolated worktree fast-forwarded local `main` from `57de6f7` to that actual merged result. Production source, tests, routing and operations guides matched remote `dev` exactly before this documentation-only closeout.
+
+[Post-merge CI run 43477730651](https://github.com/ibrahima-isi/amea/actions/runs/43477730651) passed all four jobs on exact merge commit `f532cd4a653fc87d651c8c33d2de6b081f5c774e`, including Docker/recovery and MariaDB/Compose startup gates.
+
+The task's source worktree and branch were removed after clean-status and ancestry checks. Ignored contents were generated dependencies, PHPUnit/Python/Twig caches and an empty task-created storage lock. The original checkout and Composer refactor worktree were preserved. The task-owned MinIO project and its synthetic buckets were removed with its own Compose configuration. A final Docker inventory confirmed only the pre-existing MeetStudent MinIO remained on port 62182. Remote branch inventory confirmed `dev`, `main` and the unrelated Composer branch, with the task branch removed.
+
+The broad browser full-load check timed out in this environment. Focused actual media Chrome journeys passed on both backends, and the exact application CI harness passed with its configured browser-skip setting. The optional expiry-identity representation remark remains deferred. These are the qualification limits for this delivery, distinct from actual R2 and production qualification in later tickets. Tickets 04–06 require separate authorization. Detailed local evidence remains under `/private/tmp/amea-storage03-artifacts/`.
+
 ## R2 and production
 
 Actual bucket credentials, live file/reference inventory, backup restorability and measured maintenance duration require operational qualification. Production execution requires explicit approval of the selected resources and concrete transition. Source-copy deletion remains a separate decision after migration validation.
