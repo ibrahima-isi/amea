@@ -1,0 +1,9 @@
+{
+    "identities": [
+        {
+            "name": "disposable-storage-contract",
+            "credentials": [{"accessKey": "storage-test", "secretKey": "disposable-storage-secret"}],
+            "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+        }
+    ]
+}

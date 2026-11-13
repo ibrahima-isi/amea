@@ -2,7 +2,8 @@
     "require": {
         "phpmailer/phpmailer": "^6.9",
         "twig/twig": "^3.0",
-        "doctrine/migrations": "^3.9"
+        "doctrine/migrations": "^3.9",
+        "aws/aws-sdk-php": "^3"
     },
     "autoload": {
         "psr-4": {
