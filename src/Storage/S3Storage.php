@@ -16,16 +16,12 @@ class S3Storage implements Storage
     public function read(string $key): mixed
     {
         $this->validateKey($key);
-        try {
-            $result = $this->client->getObject(['Bucket' => $this->bucket, 'Key' => $key, '@http' => ['stream' => true]]);
-            $stream = $result['Body']->detach();
-            if (!is_resource($stream)) {
-                throw new StorageException('The S3 response did not contain a readable stream.');
-            }
-            return $stream;
-        } catch (AwsException $error) {
-            throw new StorageException('Unable to read the S3 object.', 0, $error);
+        $result = $this->response($key);
+        $stream = $result['Body']->detach();
+        if (!is_resource($stream)) {
+            throw new StorageException('The S3 response did not contain a readable stream.');
         }
+        return $stream;
     }
 
     public function write(string $key, mixed $source, string $mime, int $createdAt): array
@@ -53,14 +49,8 @@ class S3Storage implements Storage
                 throw new StorageException('Unable to spool the upload stream.');
             }
             rewind($temporary);
-            $hash = hash_init('sha256');
-            if (hash_update_stream($hash, $temporary) !== $size) {
-                throw new StorageException('Unable to verify the complete upload spool.');
-            }
-            $digest = hash_final($hash);
-            if (($expectedSize !== null && $size !== $expectedSize) || ($expectedDigest !== null && !hash_equals($expectedDigest, $digest))) {
-                throw new StorageException('The S3 copy source does not match its declared size or digest.');
-            }
+            $fingerprint = $this->fingerprint($temporary, $expectedSize ?? $size, $expectedDigest);
+            $digest = $fingerprint['sha256'];
             rewind($temporary);
             try {
                 $this->client->putObject([
@@ -72,15 +62,18 @@ class S3Storage implements Storage
                 if ($error->getStatusCode() !== 412) {
                     throw new StorageException('Unable to write the S3 object.', 0, $error);
                 }
-                $existing = $this->read($key);
+                $result = $this->response($key);
+                $existing = $result['Body']->detach();
+                if (!is_resource($existing)) {
+                    throw new StorageException('The S3 destination did not contain a readable stream.');
+                }
                 try {
-                    $hash = hash_init('sha256');
-                    $existingSize = hash_update_stream($hash, $existing);
-                    $existingDigest = hash_final($hash);
+                    $metadata = $this->metadata($result);
+                    $existingFingerprint = $this->fingerprint($existing, $metadata['size'], $metadata['sha256']);
                 } finally {
                     fclose($existing);
                 }
-                if ($existingSize !== $size || $existingDigest !== $digest) {
+                if ($existingFingerprint['size'] !== $size || $existingFingerprint['sha256'] !== $digest) {
                     throw new StorageException('The S3 destination contains conflicting content.', 0, $error);
                 }
             }
@@ -130,12 +123,8 @@ class S3Storage implements Storage
     {
         $this->validateKey($sourceKey);
         $this->validateKey($destinationKey);
-        try {
-            // Read metadata and bytes from the same object version.
-            $result = $this->client->getObject(['Bucket' => $this->bucket, 'Key' => $sourceKey, '@http' => ['stream' => true]]);
-        } catch (AwsException $error) {
-            throw new StorageException('Unable to read the S3 copy source.', 0, $error);
-        }
+        // Read metadata and bytes from the same object version.
+        $result = $this->response($sourceKey);
         $source = $result['Body']->detach();
         if (!is_resource($source)) {
             throw new StorageException('The S3 copy source did not contain a readable stream.');
@@ -186,6 +175,28 @@ class S3Storage implements Storage
         } catch (AwsException $error) {
             throw new StorageException('Unable to list S3 objects.', 0, $error);
         }
+    }
+
+    private function response(string $key): \Aws\ResultInterface
+    {
+        try {
+            return $this->client->getObject(['Bucket' => $this->bucket, 'Key' => $key, '@http' => ['stream' => true]]);
+        } catch (AwsException $error) {
+            throw new StorageException('Unable to read the S3 object.', 0, $error);
+        }
+    }
+
+    /** @param resource $stream
+     * @return array{size: int, sha256: string} */
+    private function fingerprint(mixed $stream, int $expectedSize, ?string $expectedDigest = null): array
+    {
+        $hash = hash_init('sha256');
+        $size = hash_update_stream($hash, $stream);
+        $digest = hash_final($hash);
+        if ($size !== $expectedSize || ($expectedDigest !== null && !hash_equals($expectedDigest, $digest))) {
+            throw new StorageException('The S3 content does not match its declared size or digest.');
+        }
+        return ['size' => $size, 'sha256' => $digest];
     }
 
     private function metadata(\Aws\ResultInterface $result): array

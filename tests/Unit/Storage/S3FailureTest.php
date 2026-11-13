@@ -141,4 +141,62 @@ class S3FailureTest extends TestCase
         }
     }
 
+    public static function invalidRetryResponses(): array
+    {
+        return [
+            'write truncated with digest' => ['write', true, true],
+            'write truncated without digest' => ['write', true, false],
+            'write same length wrong digest' => ['write', false, true],
+            'copy truncated with digest' => ['copy', true, true],
+            'copy truncated without digest' => ['copy', true, false],
+            'copy same length wrong digest' => ['copy', false, true],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('invalidRetryResponses')]
+    public function testInvalidDestinationResponsesCannotConfirmWriteOrCopyRetries(string $operation, bool $truncated, bool $hasDigest): void
+    {
+        $objects = [
+            'uploads/source' => 'prefix',
+            'uploads/destination' => $truncated ? 'prefix-and-existing-tail' : 'hidden',
+        ];
+        $destinationRequested = false;
+        $boundary = function (CommandInterface $command) use ($objects, &$destinationRequested, $hasDigest) {
+            if ($command->getName() === 'PutObject') {
+                return $this->error(412, 'PreconditionFailed');
+            }
+            $key = $command['Key'];
+            $content = $objects[$key];
+            $metadata = ['created-at' => '1234', 'sha256' => hash('sha256', $content)];
+            if ($key === 'uploads/destination' && !$destinationRequested) {
+                $destinationRequested = true;
+                $content = 'prefix';
+                if (!$hasDigest) {
+                    unset($metadata['sha256']);
+                }
+            }
+            return new Result([
+                'Body' => Utils::streamFor($content), 'ContentLength' => strlen($objects[$key]),
+                'ContentType' => 'text/plain', 'Metadata' => $metadata,
+            ]);
+        };
+        $storage = $this->storage(array_fill(0, 8, $boundary));
+        $input = Utils::streamFor('prefix')->detach();
+        $failed = false;
+        try {
+            if ($operation === 'write') {
+                $storage->write('uploads/destination', $input, 'text/plain', 1234);
+            } else {
+                $storage->copy('uploads/source', 'uploads/destination');
+            }
+        } catch (StorageException) {
+            $failed = true;
+        } finally {
+            fclose($input);
+        }
+        self::assertTrue($failed, 'Incomplete or incorrect destination responses cannot confirm a retry.');
+        self::assertSame('prefix', stream_get_contents($storage->read('uploads/source')));
+        self::assertSame($objects['uploads/destination'], stream_get_contents($storage->read('uploads/destination')));
+    }
+
 }
