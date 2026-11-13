@@ -30,6 +30,17 @@ $db = new SqliteFixture('sqlite:' . __DIR__ . '/../../fixture.sqlite');
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 \Amea\Core\Container::setDb($db);
+$storage = new \Amea\Tests\Support\FailingStorage(\Amea\Storage\StorageFactory::fromEnvironment($root));
+$faultFile = $root . '/storage-fault.json';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_file($faultFile)) {
+    $faults = json_decode(file_get_contents($faultFile), true, flags: JSON_THROW_ON_ERROR);
+    unlink($faultFile);
+    $storage->copiesUntilFailure = $faults['copiesUntilFailure'] ?? -1;
+    $storage->failDelete = $faults['failDelete'] ?? false;
+    $storage->failWrite = $faults['failWrite'] ?? false;
+}
+\Amea\Core\Container::setStorage($storage);
+
 // Loopback HTTP cannot send Secure cookies. Start a test session first;
 // production Session still applies expiry/authentication, never changed here.
 ini_set('session.cookie_httponly', '1');

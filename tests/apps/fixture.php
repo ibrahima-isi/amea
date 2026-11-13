@@ -4,6 +4,25 @@ if (PHP_SAPI !== 'cli' || getenv('APP_ENV') !== 'test' || getenv('DB_NAME') !== 
     exit(1);
 }
 require '/opt/amea/config/database.php';
+// This legacy MySQL fixture initializes the member tables from the exact new
+// version sources. Canonical MariaDB runner/backup/recovery is qualified by
+// doctrine-compose.sh; this file only provisions synthetic test fixtures.
+if ($conn->query("SHOW TABLES LIKE 'member_file_lock'")->fetchColumn() === false) {
+    $connection = \Doctrine\DBAL\DriverManager::getConnection([
+        'driver' => 'pdo_mysql', 'host' => getenv('DB_HOST'), 'dbname' => getenv('DB_NAME'),
+        'user' => getenv('DB_USER'), 'password' => getenv('DB_PASS'), 'charset' => 'utf8mb4',
+    ]);
+    foreach ([\Amea\Migration\Version\Version20261113000000::class,
+        \Amea\Migration\Version\Version20261113000001::class] as $version) {
+        $migration = new $version($connection, new \Psr\Log\NullLogger());
+        $migration->up(new \Doctrine\DBAL\Schema\Schema());
+        if ($migration->isTransactional()) { $connection->beginTransaction(); }
+        foreach ($migration->getSql() as $query) {
+            $connection->executeStatement($query->getStatement(), $query->getParameters(), $query->getTypes());
+        }
+        if ($migration->isTransactional()) { $connection->commit(); }
+    }
+}
 $conn->exec('DELETE FROM password_resets; DELETE FROM users; DELETE FROM students');
 $conn->exec("INSERT IGNORE INTO countries (code_iso,name_fr,name_en) VALUES ('GN','Guinée','Guinea')");
 $insert = $conn->prepare('INSERT INTO users (username,password,last_name,first_name,email,role) VALUES (?,?,?,?,?,?)');

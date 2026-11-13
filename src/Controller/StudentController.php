@@ -21,7 +21,7 @@ class StudentController extends BaseController
         $this->requireAuth();
         $db = Container::db();
         $this->studentRepo = new StudentRepository($db);
-        $this->uploader = new FileUploader(__DIR__ . '/../../');
+        $this->uploader = new FileUploader(__DIR__ . '/../../', \Amea\Core\Container::storage());
         $this->studentService = new StudentService(
             $this->studentRepo,
             $this->uploader
@@ -189,35 +189,20 @@ class StudentController extends BaseController
         }
 
         // sanitizeAndValidate returns ['input', 'errors', 'valid_pays_ids', 'db_data']
-        $result = $this->studentService->sanitizeAndValidate($_POST, $_FILES, $id);
+        $result = $this->studentService->sanitizeAndValidate($_POST, $_FILES, $id, 'uploads/students/pending');
 
         if (!empty($result['errors'])) {
             $_SESSION['form_errors'] = $result['errors'];
             $_SESSION['form_data']   = $_POST;
-            $this->redirect('edit-student.php?id=' . $id);
+            if ($result['storage_error']) {
+                http_response_code(503);
+                $this->edit();
+            }
+            else { $this->redirect('edit-student.php?id=' . $id); }
             return;
         }
 
         $dbData = $result['db_data'];
-
-        // File handling: keep existing paths if no new file was uploaded
-        if ($dbData['identity_document'] === null) {
-            $dbData['identity_document'] = $student->getIdentityDocument();
-        } else {
-            // New file uploaded — delete old one
-            if ($student->getIdentityDocument()) {
-                $this->uploader->safeDelete($student->getIdentityDocument());
-            }
-        }
-
-        if ($dbData['cv_path'] === null) {
-            $dbData['cv_path'] = $student->getCvPath();
-        } else {
-            // New CV uploaded — delete old one
-            if ($student->getCvPath()) {
-                $this->uploader->safeDelete($student->getCvPath());
-            }
-        }
 
         // graduation_date logic: set to today if status is GRADUATE and no date given; null otherwise
         $finalGraduationDate = null;
@@ -228,27 +213,23 @@ class StudentController extends BaseController
         }
         $dbData['graduation_date'] = $finalGraduationDate;
 
-        // Ensure new institutions/fields/levels are added to lookup tables
-        if (!empty($dbData['institution'])) {
-            $this->studentRepo->ensureInstitutionExists($dbData['institution']);
-        }
-        if (!empty($dbData['study_field'])) {
-            $this->studentRepo->ensureStudyFieldExists($dbData['study_field']);
-        }
-        if (!empty($dbData['study_level'])) {
-            $this->studentRepo->ensureStudyLevelExists($dbData['study_level']);
+        try {
+            $lifecycle = Container::fileLifecycle();
+            $lifecycle->saveMember($dbData, $result['valid_pays_ids'], $id);
+        } catch (\Throwable $error) {
+            error_log('[Student update] ' . $error->getMessage());
+            $_SESSION['form_data'] = $_POST;
+            $_SESSION['form_errors'] = ['cv' => 'Impossible de conserver votre dossier. Veuillez réessayer.'];
+            http_response_code(503);
+            $this->edit();
+            return;
         }
 
-        $this->studentRepo->update($id, $dbData);
-
-        // Update nationality pivot table
-        $db = Container::db();
-        $db->prepare("DELETE FROM student_country WHERE student_id = ?")->execute([$id]);
-        if (!empty($result['valid_pays_ids'])) {
-            $stmtPivot = $db->prepare("INSERT IGNORE INTO student_country (student_id, country_id) VALUES (?, ?)");
-            foreach ($result['valid_pays_ids'] as $pid) {
-                $stmtPivot->execute([$id, $pid]);
-            }
+        try {
+            $lifecycle->retryDeletions(20);
+        } catch (\Throwable $error) {
+            // The reference commit succeeded. Durable intents remain retryable.
+            error_log('[Member cleanup] ' . $error->getMessage());
         }
 
         // Send notification email (best-effort, non-blocking)

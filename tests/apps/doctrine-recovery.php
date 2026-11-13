@@ -75,7 +75,7 @@ $secondRun = startMigration($command);
 [$secondExit, $secondOutput] = finishMigration($secondRun);
 $db->executeStatement('DROP TRIGGER pause_schema_version');
 check($firstExit === 0 && $secondExit === 0, 'Concurrent commands succeed', $firstOutput . $secondOutput);
-check($db->fetchFirstColumn('SELECT version FROM doctrine_migration_versions ORDER BY version') === MigrationRuntime::BASELINE_VERSIONS, 'Concurrent runners record each baseline version once');
+check($db->fetchFirstColumn('SELECT version FROM doctrine_migration_versions ORDER BY version') === [...MigrationRuntime::BASELINE_VERSIONS, ...MigrationRuntime::MEMBER_FILE_VERSIONS], 'Concurrent runners record each baseline version once');
 check((int) $db->fetchOne('SELECT COUNT(*) FROM settings') === 3, 'Concurrent runners seed initial settings once');
 
 // Load test versions through the real CLI from a disposable copy of the migration sources.
@@ -96,7 +96,7 @@ register_shutdown_function(static function () use ($fixture): void {
 });
 foreach (['scripts/migrate.php', ...array_map(
     static fn (string $source): string => substr($source, strlen($project) + 1),
-    [...glob("{$project}/src/Migration/*.php"), ...glob("{$project}/src/Migration/Version/Version2026110600000[01].php")]
+    [...glob("{$project}/src/Migration/*.php"), ...glob("{$project}/src/Migration/Version/Version*.php")]
 )] as $source) {
     copy("{$project}/{$source}", "{$fixture}/{$source}");
 }
@@ -126,7 +126,7 @@ $db->executeStatement(<<<'SQL'
 [$dataExit, $dataOutput] = finishMigration(startMigration($fixtureCommand));
 check($dataExit !== 0 && str_contains($dataOutput, 'injected DML ledger failure'), 'DML reached the failing ledger write', $dataOutput);
 check($db->fetchOne("SELECT setting_value FROM settings WHERE setting_key = 'organization_name'") === 'AEESGS', 'Ledger failure rolled back the data write');
-check($db->fetchFirstColumn('SELECT version FROM doctrine_migration_versions ORDER BY version') === MigrationRuntime::BASELINE_VERSIONS, 'Ledger failure left the pending version unrecorded');
+check($db->fetchFirstColumn('SELECT version FROM doctrine_migration_versions ORDER BY version') === [...MigrationRuntime::BASELINE_VERSIONS, ...MigrationRuntime::MEMBER_FILE_VERSIONS], 'Ledger failure left the pending version unrecorded');
 $db->executeStatement('DROP TRIGGER fail_data_version');
 [$dataExit, $dataOutput] = finishMigration(startMigration($fixtureCommand));
 check($dataExit === 0, 'Data-only migration can retry', $dataOutput);

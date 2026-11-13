@@ -80,7 +80,7 @@ YAML
     "${compose[@]}" exec -T "$staff" test ! -e /opt/amea/scripts
     id=$("${compose[@]}" --profile jobs ps -aq jobs)
     [[ "$(docker inspect --format '{{.State.Status}}' "$id")" == running ]]
-    expect_sql 'SELECT COUNT(*) FROM doctrine_migration_versions' 2
+    expect_sql 'SELECT COUNT(*) FROM doctrine_migration_versions' 4
     expect_sql 'SELECT COUNT(*) FROM settings' 3
     expect_sql 'SELECT COUNT(*) FROM amea_migration_recovery' 0
     echo "PASS: $stack fresh Doctrine initialization starts both HTTP apps and jobs"
@@ -103,7 +103,7 @@ JSON
     grep -Fq 'Already at the latest version' "$scratch/enrolled.log"
     probe "$public" http://localhost/legal-notice.php
     probe "$staff" http://localhost/login.php
-    expect_sql 'SELECT COUNT(*) FROM doctrine_migration_versions' 2
+    expect_sql 'SELECT COUNT(*) FROM doctrine_migration_versions' 4
     expect_sql "SELECT setting_value FROM settings WHERE setting_key='organization_name'" 'Preserved setting'
     echo "PASS: $stack enrolled database starts with zero migrations"
 

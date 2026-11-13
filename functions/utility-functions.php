@@ -181,11 +181,36 @@ function hasPermission(string $module): bool
 // ─── File handling ────────────────────────────────────────────────────────────
 function handleFileUpload(array $file, array $allowedExtensions, int $maxSize, string $uploadDir): array
 {
-    return (new \Amea\Core\FileUploader(__DIR__ . '/..'))->handle($file, $allowedExtensions, $maxSize, $uploadDir);
+    $storage = str_starts_with(ltrim($uploadDir, '/'), 'uploads/students') ? \Amea\Core\Container::storage() : null;
+    return (new \Amea\Core\FileUploader(__DIR__ . '/..', $storage))->handle($file, $allowedExtensions, $maxSize, $uploadDir);
 }
 
 function safeUnlink(?string $filePath): bool
 {
+    if (str_starts_with((string)$filePath, 'uploads/students/')) {
+        $db = \Amea\Core\Container::db();
+        $ownsTransaction = !$db->inTransaction();
+        $lifecycle = \Amea\Core\Container::fileLifecycle();
+        if ($ownsTransaction) {
+            $db->beginTransaction();
+        }
+        try {
+            $lifecycle->scheduleDeletion(bin2hex(random_bytes(16)), [$filePath], 'legacy-cleanup');
+            if ($ownsTransaction) {
+                $db->commit();
+            }
+        } catch (\Throwable $error) {
+            if ($ownsTransaction && $db->inTransaction()) {
+                $db->rollBack();
+            }
+            throw $error;
+        }
+        if (!$ownsTransaction) {
+            return true;
+        }
+        $lifecycle->retryDeletions(20);
+        return \Amea\Core\Container::storage()->stat($filePath) === null;
+    }
     return (new \Amea\Core\FileUploader(__DIR__ . '/..'))->safeDelete($filePath);
 }
 

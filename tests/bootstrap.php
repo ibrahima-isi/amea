@@ -113,5 +113,15 @@ function makeTestDb(): PDO
     updated_at DATETIME NOT NULL
     ); CREATE INDEX journal_publication ON journal_posts(status,published_at,id); CREATE INDEX journal_activity ON journal_posts(status,type,activity_end_at);");
 
+    $db->exec("CREATE TABLE member_file_lock (id INTEGER PRIMARY KEY);
+        INSERT INTO member_file_lock VALUES (1);
+        CREATE TABLE file_operations (
+            operation_id VARCHAR(100) PRIMARY KEY, backend VARCHAR(64) NOT NULL,
+            reason VARCHAR(50) NOT NULL, keys_json TEXT NOT NULL, student_id INTEGER NULL,
+            expected_identity TEXT NULL, expected_cv TEXT NULL, expected_deleted_at DATETIME NULL,
+            started INTEGER NOT NULL DEFAULT 0, attempts INTEGER NOT NULL DEFAULT 0,
+            last_error TEXT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );");
+
     return $db;
 }

@@ -6,6 +6,12 @@ if (PHP_SAPI !== 'cli' || !str_starts_with(basename(dirname(__DIR__, 2)), 'amea-
 $root = dirname(__DIR__, 2);
 mkdir($root . '/uploads/students/pending', 0775, true);
 file_put_contents($root . '/uploads/students/pending/previous.pdf', "%PDF-1.4\nPrevious synthetic identity\n%%EOF\n");
+if (getenv('STORAGE_DRIVER') === 's3') {
+    require $root . '/vendor/autoload.php';
+    $source = fopen($root . '/uploads/students/pending/previous.pdf', 'rb');
+    \Amea\Storage\StorageFactory::fromEnvironment($root)->write('uploads/students/pending/previous.pdf', $source, 'application/pdf', filemtime($root . '/uploads/students/pending/previous.pdf'));
+    fclose($source);
+}
 $db = new PDO('sqlite:' . $root . '/fixture.sqlite');
 $db->exec("INSERT INTO countries VALUES (2, 'Sénégal')");
 session_save_path($root . '/sessions');

@@ -12,8 +12,6 @@ class RegistrationController extends BaseController
 {
     /** Uploads are staged here until the registration is confirmed. */
     private const PENDING_DIR = 'uploads/students/pending';
-    private const FINAL_PHOTO_DIR = 'uploads/students';
-    private const FINAL_CV_DIR    = 'uploads/students/cvs';
 
     private StudentRepository $studentRepo;
     private EmailService $emailService;
@@ -34,7 +32,7 @@ class RegistrationController extends BaseController
             'AEESGS Platform',
             $this->view
         );
-        $this->fileUploader = new FileUploader($projectRoot);
+        $this->fileUploader = new FileUploader($projectRoot, \Amea\Core\Container::storage());
         $this->studentService = new StudentService($this->studentRepo, $this->fileUploader);
     }
 
@@ -78,14 +76,18 @@ class RegistrationController extends BaseController
         if (!empty($data['errors'])) {
             $_SESSION['form_data']   = $data['input'];
             $_SESSION['form_errors'] = $data['errors'];
-            $this->redirect('register.php');
+            if ($data['storage_error']) {
+                http_response_code(503);
+                $this->showForm();
+            }
+            else { $this->redirect('register.php'); }
             return;
         }
 
         $dbData = $data['db_data'];
 
         // Across edits, keep the previously staged file when no new one is uploaded,
-        // and delete the old staged file when it is being replaced.
+        // and retain superseded staging until age-based pending cleanup.
         $previous = $_SESSION['pending_registration']['db_data'] ?? [];
         $dbData['identity_document'] = $this->reconcileStagedFile(
             $dbData['identity_document'], $previous['identity_document'] ?? null
@@ -142,27 +144,31 @@ class RegistrationController extends BaseController
             return;
         }
 
-        $root = realpath(__DIR__ . '/../../uploads/students/pending');
-        $file = realpath(__DIR__ . '/../../' . ltrim($relative, '/'));
-        if ($root === false || $file === false
-            || !str_starts_with($file, $root . DIRECTORY_SEPARATOR)
-            || !is_file($file)) {
+        if (!str_starts_with($relative, self::PENDING_DIR . '/')) {
             http_response_code(404);
             return;
         }
-
-        $mime = mime_content_type($file);
-        if (!in_array($mime, ['image/jpeg', 'image/png', 'application/pdf'], true)) {
+        try {
+            $reader = new \Amea\Service\MemberDocumentService(\Amea\Core\Container::storage());
+            $document = $reader->open($relative, ['image/jpeg', 'image/png', 'application/pdf']);
+        } catch (\OutOfBoundsException) {
+            http_response_code(404);
+            return;
+        } catch (\UnexpectedValueException) {
             http_response_code(415);
             return;
+        } catch (\Amea\Storage\StorageException $error) {
+            error_log($error->getMessage());
+            http_response_code(503);
+            return;
         }
-
-        header('Content-Type: ' . $mime);
+        header('Content-Type: ' . $document['mime']);
         header('Content-Disposition: inline');
-        header('Content-Length: ' . filesize($file));
+        header('Content-Length: ' . $document['size']);
         header('Cache-Control: private, no-store');
         header('X-Content-Type-Options: nosniff');
-        readfile($file);
+        fpassthru($document['stream']);
+        fclose($document['stream']);
     }
 
     public function confirm(): void
@@ -201,20 +207,23 @@ class RegistrationController extends BaseController
             return;
         }
 
-        // Move staged files to their final home so the pending-uploads cron won't reap them.
-        $dbData['identity_document'] = $this->fileUploader->finalize($dbData['identity_document'] ?? null, self::FINAL_PHOTO_DIR);
-        $dbData['cv_path']           = $this->fileUploader->finalize($dbData['cv_path'] ?? null, self::FINAL_CV_DIR);
-
-        // Persist now — the dossier goes straight to UNDER_REVIEW and is locked.
         $dbData['kyc_status'] = 'UNDER_REVIEW';
-        $id = $this->studentRepo->save($dbData);
-        $this->studentRepo->update($id, ['is_locked' => 1, 'kyc_updated_at' => date('Y-m-d H:i:s')]);
+        try {
+            $lifecycle = \Amea\Core\Container::fileLifecycle();
+            $id = $lifecycle->saveMember($dbData, $pending['valid_pays_ids'] ?? []);
+        } catch (\Throwable $error) {
+            error_log('[Registration] ' . $error->getMessage());
+            http_response_code(503);
+            $this->flash->add('error', 'Impossible de conserver votre dossier. Veuillez réessayer.');
+            $this->review();
+            return;
+        }
 
-        if (!empty($dbData['institution'])) $this->studentRepo->ensureInstitutionExists($dbData['institution']);
-        if (!empty($dbData['study_field'])) $this->studentRepo->ensureStudyFieldExists($dbData['study_field']);
-        if (!empty($dbData['study_level']))  $this->studentRepo->ensureStudyLevelExists($dbData['study_level']);
-        if (!empty($pending['valid_pays_ids'])) {
-            $this->studentRepo->saveStudentCountries($id, $pending['valid_pays_ids']);
+        try {
+            $lifecycle->retryDeletions(20);
+        } catch (\Throwable $error) {
+            // The reference commit succeeded. Durable intents remain retryable.
+            error_log('[Member cleanup] ' . $error->getMessage());
         }
 
         $student = $this->studentRepo->findById($id);
@@ -234,15 +243,14 @@ class RegistrationController extends BaseController
 
     /**
      * Decide which staged file path to keep after a (re)submission:
-     * a freshly uploaded file replaces (and deletes) the previously staged one;
+     * a freshly uploaded file replaces the session reference;
      * no new upload keeps whatever was staged before.
      */
     private function reconcileStagedFile(?string $new, ?string $previous): ?string
     {
         if ($new !== null) {
-            if ($previous !== null && $previous !== $new) {
-                $this->fileUploader->safeDelete($previous);
-            }
+            // Session persistence and PDO have separate commits. Retain superseded
+            // staging for age-based pending cleanup after the session is durable.
             return $new;
         }
         return $previous;
