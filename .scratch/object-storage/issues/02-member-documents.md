@@ -24,3 +24,5 @@ Implement [plan Task 2](../plan.md#task-2--member-documents-and-retryable-lifecy
 2026-11-12 — Planned after design approval. The auxiliary operation ledger is a planning choice for retry consistency. File references continue to use path keys.
 
 2026-11-13 — Implemented in signed commit `b1adb91` after the user invoked `implement` for the next ticket. Both independent Standards and Spec reviews passed without actionable defects. The optional cleanup-block duplication is documented. See [completion evidence](../completion.md) for full local/S3, browser, concurrency and migration/recovery checks. Hosted CI and actual merge remain separately tracked delivery steps.
+
+2026-11-13 — Delivered through [PR 41](https://github.com/ibrahima-isi/amea/pull/41), actually merged into `dev` as `3febc60`. All four CI jobs passed on exact PR head `975ed2a` and again on the merge commit. The merged result was integrated into local `main` from an isolated worktree. Source/runtime/provider, browser, recovery, independent reviews and delivery proof are recorded in [completion](../completion.md). Triage status retains its specification-readiness meaning.

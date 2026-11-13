@@ -6,13 +6,11 @@ use InvalidArgumentException;
 final class JournalMediaService
 {
     private const TYPES = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
-    private string $directory;
-    private string $root;
+    private \Amea\Storage\Storage $storage;
 
-    public function __construct(string $projectRoot)
+    public function __construct(string $projectRoot, ?\Amea\Storage\Storage $storage = null)
     {
-        $this->root = realpath($projectRoot) ?: rtrim($projectRoot, '/');
-        $this->directory = $this->root . '/uploads/journal/covers';
+        $this->storage = $storage ?? \Amea\Storage\StorageFactory::fromEnvironment($projectRoot);
     }
 
     public function store(array $upload): array
@@ -28,58 +26,52 @@ final class JournalMediaService
         if (!isset(self::TYPES[$mime]) || !$image || ($image['mime'] ?? null) !== $mime) {
             throw new InvalidArgumentException('Choisissez une image JPEG, PNG ou WebP valide.');
         }
-        foreach (['uploads', 'uploads/journal', 'uploads/journal/covers'] as $part) {
-            if (is_link($this->root . '/' . $part)) {
-                throw new \RuntimeException('Impossible de conserver l’image.');
-            }
-        }
-        if (!is_dir($this->directory) && !mkdir($this->directory, 0750, true) && !is_dir($this->directory)) {
-            throw new \RuntimeException('Impossible de conserver l’image.');
-        }
-        if (!$this->safeDirectory()) {
-            throw new \RuntimeException('Impossible de conserver l’image.');
-        }
         $name = bin2hex(random_bytes(16)) . '.' . self::TYPES[$mime];
-        if (!move_uploaded_file($upload['tmp_name'], $this->directory . '/' . $name)) {
-            throw new \RuntimeException('Impossible de conserver l’image.');
+        $key = 'uploads/journal/covers/' . $name;
+        $source = fopen($upload['tmp_name'], 'rb');
+        try {
+            $accepted = $this->storage->write($key, $source, $mime, time());
+            if ($accepted['size'] !== $upload['size'] || $accepted['sha256'] !== hash_file('sha256', $upload['tmp_name'])) {
+                throw new \Amea\Storage\StorageException('Incomplete journal upload.');
+            }
+            $verified = $this->open($key);
+            fclose($verified['stream']);
+        } finally {
+            fclose($source);
         }
         return ['path' => 'uploads/journal/covers/' . $name, 'mime' => $mime];
     }
 
-    public function resolve(string $relativePath): ?array
+    /** Verified temporary stream, independent of the storage backend. */
+    public function open(string $relativePath): array
     {
         if (!preg_match('#^uploads/journal/covers/[a-f0-9]{32}\.(jpg|png|webp)$#D', $relativePath)) {
-            return null;
+            throw new \OutOfBoundsException('Publication introuvable.');
         }
-        if (!$this->safeDirectory()) { return null; }
-        $directory = realpath($this->directory);
-        $candidate = $this->directory . '/' . basename($relativePath);
-        if (is_link($candidate)) { return null; }
-        $file = realpath($candidate);
-        if ($directory === false || $file === false || !str_starts_with($file, $directory . DIRECTORY_SEPARATOR) || !is_file($file)) {
-            return null;
+        $file = (new MemberDocumentService($this->storage))->open($relativePath, array_keys(self::TYPES));
+        $image = @getimagesize(stream_get_meta_data($file['stream'])['uri']);
+        if (!$image || ($image['mime'] ?? null) !== $file['mime'] || pathinfo($relativePath, PATHINFO_EXTENSION) !== self::TYPES[$file['mime']]) {
+            fclose($file['stream']);
+            throw new \UnexpectedValueException('Image invalide.');
         }
-        $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($file);
-        $image = @getimagesize($file);
-        if (!isset(self::TYPES[$mime]) || ($image['mime'] ?? null) !== $mime || !str_ends_with($file, '.' . self::TYPES[$mime])) {
-            return null;
-        }
-        return ['path' => $file, 'mime' => $mime, 'length' => filesize($file)];
+        return $file;
     }
 
-    private function safeDirectory(): bool
+    /** Compatibility for callers inspecting a locally readable temporary file. */
+    public function resolve(string $relativePath): ?array
     {
-        foreach (['uploads', 'uploads/journal', 'uploads/journal/covers'] as $part) {
-            if (is_link($this->root . '/' . $part)) { return false; }
+        try {
+            $file = $this->open($relativePath);
+            return $file + ['path' => stream_get_meta_data($file['stream'])['uri'], 'length' => $file['size']];
+        } catch (\OutOfBoundsException|\UnexpectedValueException|\Amea\Storage\StorageException) {
+            return null;
         }
-        return realpath($this->directory) === $this->directory;
     }
 
     public function discard(string $relativePath): void
     {
-        $file = $this->resolve($relativePath);
-        if ($file !== null) {
-            @unlink($file['path']);
+        if (preg_match('#^uploads/journal/covers/[a-f0-9]{32}\.(jpg|png|webp)$#D', $relativePath)) {
+            $this->storage->delete($relativePath);
         }
     }
 }

@@ -12,7 +12,8 @@ $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $routes = require '/opt/amea-apps/routes.php';
 $path = $path === '/index.php' ? '/' : $path;
 define('AMEA_STAFF_PATHS', $routes['staff']);
-if (!in_array($path, $routes[$appIdentity], true)) {
+$sliderMedia = is_string($path) && str_starts_with($path, '/uploads/slider/');
+if (!$sliderMedia && !in_array($path, $routes[$appIdentity], true)) {
     http_response_code(404);
     exit('Page introuvable.');
 }
@@ -27,7 +28,7 @@ if ($appIdentity === 'staff' && $path === '/') {
     exit;
 }
 $router = require '/opt/amea/src/bootstrap.php';
-if ($appIdentity !== 'public' || !in_array($path, $routes['public_stateless'], true)) {
+if (!$sliderMedia && ($appIdentity !== 'public' || !in_array($path, $routes['public_stateless'], true))) {
     require '/opt/amea/config/session.php';
 }
 $router->dispatch();

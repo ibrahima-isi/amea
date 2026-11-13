@@ -58,6 +58,90 @@ class FileLifecycleServiceTest extends TestCase
         fclose($stream);
     }
 
+    public function testPendingCleanupUsesOriginalAgeAndRetainsRecentNestedObjects(): void
+    {
+        $old = 'uploads/students/pending/nested/old.pdf';
+        $recent = 'uploads/students/pending/nested/recent.pdf';
+        $this->put('uploads/migration-original.pdf');
+        $this->storage->copy('uploads/migration-original.pdf', $old);
+        $stream = fopen('php://temp', 'w+b');
+        fwrite($stream, 'recent'); rewind($stream);
+        $this->storage->write($recent, $stream, 'text/plain', 2000000000);
+        fclose($stream);
+        $cleanup = new \Amea\Service\PendingUploadCleanupService($this->db, $this->storage, $this->service);
+        $cleanup->sweep(24, 2000000001);
+        self::assertNull($this->storage->stat($old));
+        self::assertNotNull($this->storage->stat($recent));
+    }
+
+    public function testOrdinaryCleanupCannotContinueAnInterruptedPurge(): void
+    {
+        $key = 'uploads/students/interrupted-purge.pdf';
+        $this->put($key);
+        $this->db->prepare('INSERT INTO students (id, cv_path, deleted_at) VALUES (90, ?, ?)')->execute([$key, '2020-01-01']);
+        $this->storage->failDelete = true;
+        self::assertFalse($this->service->purgeMember(90));
+        $this->storage->failDelete = false;
+        self::assertSame(0, $this->service->retryDeletions(100));
+        self::assertNotNull((new \Amea\Repository\StudentRepository($this->db))->findTrashedById(90));
+        self::assertNotNull($this->storage->stat($key));
+        putenv('AMEA_TRASH_BACKUP_CONFIRMED=1');
+        try { self::assertSame(1, $this->service->retryDeletions(100, true)); }
+        finally { putenv('AMEA_TRASH_BACKUP_CONFIRMED'); }
+    }
+
+    public function testExplicitPurgeRetryRequiresBackupAcknowledgement(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->service->retryDeletions(100, true);
+    }
+
+    public function testPendingCleanupFailureRemainsRetryableAndRechecksOriginalAge(): void
+    {
+        $key = 'uploads/students/pending/nested/retry.pdf';
+        $this->put($key);
+        $cleanup = new \Amea\Service\PendingUploadCleanupService($this->db, $this->storage, $this->service);
+        $this->storage->failList = true;
+        try { $cleanup->sweep(24, 2000000000); self::fail('Listing failures must propagate'); }
+        catch (StorageException) { self::assertNotNull($this->storage->stat($key)); }
+        $this->storage->failList = false;
+        $this->storage->failDelete = true;
+        self::assertSame(0, $cleanup->sweep(24, 2000000000));
+        self::assertTrue($this->service->hasPendingDeletions(false));
+        $this->storage->failDelete = false;
+        self::assertSame(1, $cleanup->sweep(24, 2000000000));
+        self::assertNull($this->storage->stat($key));
+        self::assertFalse($this->service->hasPendingDeletions(false));
+    }
+
+    public function testPendingRetryRetainsAnObjectRecreatedWithRecentOriginalAge(): void
+    {
+        $key = 'uploads/students/pending/recreated.pdf';
+        $this->put($key);
+        $this->storage->failDelete = true;
+        (new \Amea\Service\PendingUploadCleanupService($this->db, $this->storage, $this->service))->sweep(24, 2000000000);
+        $this->storage->failDelete = false;
+        $this->storage->delete($key);
+        $stream = fopen('php://temp', 'w+b'); fwrite($stream, 'new content'); rewind($stream);
+        $this->storage->write($key, $stream, 'text/plain', 2000000000); fclose($stream);
+        self::assertSame(1, $this->service->retryDeletions(10, false));
+        self::assertNotNull($this->storage->stat($key));
+    }
+
+    public function testCleanupRetainsActiveMediaAndHistoricalJournalCovers(): void
+    {
+        $slider = 'uploads/slider/shared.jpg';
+        $history = 'uploads/journal/covers/historical.jpg';
+        $this->put($slider); $this->put($history);
+        $this->db->prepare('INSERT INTO slider_images (image_path) VALUES (?)')->execute([$slider]);
+        $this->db->beginTransaction();
+        $this->service->scheduleDeletion('media-shared', [$slider, $history], 'slider-removal');
+        $this->db->commit();
+        self::assertSame(1, $this->service->retryDeletions(10, false));
+        self::assertNotNull($this->storage->stat($slider));
+        self::assertNotNull($this->storage->stat($history));
+    }
+
     public function testSecondDocumentCopyFailureRetainsSourcesAndCanBeRetried(): void
     {
         $identity = 'uploads/students/pending/identity.pdf';
@@ -134,7 +218,9 @@ class FileLifecycleServiceTest extends TestCase
         self::assertNotNull((new \Amea\Repository\StudentRepository($this->db))->findTrashedById(20));
         self::assertFalse($this->service->restoreMember(20));
         $this->storage->failDelete = false;
-        self::assertSame(1, $this->service->retryDeletions(10));
+        putenv('AMEA_TRASH_BACKUP_CONFIRMED=1');
+        try { self::assertSame(1, $this->service->retryDeletions(10, true)); }
+        finally { putenv('AMEA_TRASH_BACKUP_CONFIRMED'); }
         self::assertNull((new \Amea\Repository\StudentRepository($this->db))->findTrashedById(20));
         self::assertNull($this->storage->stat($key));
     }
@@ -163,7 +249,9 @@ class FileLifecycleServiceTest extends TestCase
         self::assertNotNull($this->storage->stat($cv));
         self::assertFalse($this->service->restoreMember(30));
         $restarted = new FileLifecycleService($this->db, $this->storage, 'test-local');
-        self::assertSame(1, $restarted->retryDeletions(10));
+        putenv('AMEA_TRASH_BACKUP_CONFIRMED=1');
+        try { self::assertSame(1, $restarted->retryDeletions(10, true)); }
+        finally { putenv('AMEA_TRASH_BACKUP_CONFIRMED'); }
         self::assertNull((new \Amea\Repository\StudentRepository($this->db))->findTrashedById(30));
     }
 

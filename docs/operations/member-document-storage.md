@@ -1,7 +1,7 @@
 # Member document lifecycle
 
 Registration, public correction and staff editing use the configured local or S3
-storage backend. Slider and journal integration continues in its own ticket.
+storage backend. Journal and carousel media use the same selected backend.
 Member files retain their relative `uploads/students/` keys. Existing pending
 session data and local files remain readable through the same routes.
 
@@ -27,10 +27,13 @@ the reference change. Cleanup failures retain their per-key errors and attempt
 count. A missing object completes successfully on retry.
 
 Successful member saves attempt a bounded cleanup batch after commit. Cleanup
-failure leaves the saved dossier usable. The public `retryDeletions(int $limit)`
-method supports the dedicated scheduler integration. It selects only intents
-whose backend identity matches the configured endpoint/bucket or local root.
-Keep those identities and retained intents available during migration inventory.
+failure leaves the saved dossier usable. The public
+`retryDeletions(int $limit, bool $includePurge = false)` method excludes permanent
+purge continuations by default. The backup-acknowledged daily trash worker opts in
+explicitly. Every explicit bulk purge retry also requires
+`AMEA_TRASH_BACKUP_CONFIRMED=1` inside the lifecycle service. Retry selection matches
+the configured endpoint/bucket or local-root identity. Keep those identities and
+retained intents available during migration inventory.
 
 Soft deletion keeps documents available for restoration. Explicit manual permanent
 deletion retains its immediate behavior. The existing retention purge command

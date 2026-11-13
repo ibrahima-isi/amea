@@ -114,7 +114,53 @@ The independent Standards review of `0595a34...b1adb91` found zero documented-ru
 
 The separate Spec review of the same range found zero actionable findings. It checked current-row replacement semantics, retained sources and rollback, shared-reference protection, partial purge/restore behavior, session ownership, MIME and headers, the migration split and exact enrollment snapshots. Its result is independent of the Standards axis.
 
-Evidence includes `task-2-report.md`, `standards-review.md`, `spec-review.md`, `review.diff`, `phpunit-full.txt`, `http-{local,s3}.txt`, `local-browser.txt`, `s3-browser.txt`, `concurrent-{local,s3}.txt`, `member-schema-recovery.txt`, `apps-green.txt` and `doctrine-compose-final.txt`. Dedicated MinIO/MariaDB and rehearsal resources were removed; the existing MeetStudent MinIO on port 62182 was preserved. Exact-head hosted CI, actual merge and local-main integration remain delivery steps.
+Evidence includes `task-2-report.md`, `standards-review.md`, `spec-review.md`, `review.diff`, `phpunit-full.txt`, `http-{local,s3}.txt`, `local-browser.txt`, `s3-browser.txt`, `concurrent-{local,s3}.txt`, `member-schema-recovery.txt`, `apps-green.txt` and `doctrine-compose-final.txt`. Dedicated MinIO/MariaDB and rehearsal resources were removed; the existing MeetStudent MinIO on port 62182 was preserved. The corresponding hosted CI, merge and local-main integration evidence follows.
+
+### Ticket 02 delivery
+
+[PR 41](https://github.com/ibrahima-isi/amea/pull/41) delivered Ticket 02 into remote `dev`. All four jobs passed on exact PR head `975ed2addc71ccfc16e5cefc32607d3ae4d3beca` in [CI run 43448858831](https://github.com/ibrahima-isi/amea/actions/runs/43448858831). Hosted PHPUnit reported 277 tests and 588 assertions, with 25 endpoint-dependent S3 skips and ten existing deprecations. The separately executed actual-S3 suite reported the 708 assertions and two skips recorded above.
+
+The PR actually merged at `2026-11-13T15:10:54Z` as `3febc60033d58a872bb4c80e89a68a61f6975739`. GitHub reports its merge signature verified with reason `valid`. Ancestry checks confirmed the tested PR head is in remote `dev` and local `main`. Local `main` was fast-forwarded from `0595a34` in an isolated worktree, and production source/tests/operations guidance matched remote `dev` exactly before this documentation-only closeout.
+
+[Post-merge CI run 43449988322](https://github.com/ibrahima-isi/amea/actions/runs/43449988322) passed all four jobs on the actual merge commit `3febc60033d58a872bb4c80e89a68a61f6975739`, including Docker/recovery and the MariaDB/Compose startup gates.
+
+After clean-status, ancestry and ignored-file inventory checks, the task implementation worktree and branch were removed. Ignored contents were only installed dependencies, PHPUnit/Python caches and compiled Twig cache files. The original checkout and the unrelated Composer refactor worktree/branch were preserved. Git's configured remote URL was retained; publication used a per-invocation HTTPS credential helper while SSH authentication was unavailable. Every created commit was signed. Final private evidence remains under `/private/tmp/amea-storage02-artifacts/`.
+
+The started-purge boundary is irreversible and prevents restoration of a partially deleted dossier. Superseded session-only staging retains its original age until pending cleanup. These implementation choices and the optional post-commit cleanup duplication remain documented for operators and subsequent work. Tickets 03–06 require separate execution authorization.
+
+## Ticket 03 execution
+
+On 2026-11-13 the user invoked `implement` for the next ticket, authorizing Ticket 03, "Integrate public media, reconciliation and jobs". Ticket 02 is recorded as delivered in merged PR 41 with successful exact-head and post-merge CI, and its signed closeout is part of the starting branch.
+
+The isolated worktree is `/private/tmp/amea-object-storage-03`, branch `feat/object-storage-03`, based on local `main` at `57de6f74590ad51e103a0629801d6e146bc9d36f`. Preserve the original checkout and active Composer refactor worktree. The reviewed starting code matches the delivered storage/member foundation.
+
+The pre-agreed test seams are the actual journal/slider HTTP and browser flows, backend-independent reconciliation, and scheduled cleanup/retry entry points. TDD covers published/withdrawn/draft access, retained historical covers, original slider URLs, full-key pagination and storage error distinctions, original staging age and single-owner job/backup behavior. Logs and reports are kept under `/private/tmp/amea-storage03-artifacts/`. The per-feature completion record remains the execution ledger.
+
+### Ticket 03 initial implementation and validation
+
+Signed commit `9b61c04901131fb961dbe2808a52b25939d7b3fd` adds storage-backed journal and active-record slider reads, original URL routing, full-key reconciliation, original-age pending cleanup and scheduled retry wiring. Its signature was verified independently. No schema change was needed.
+
+Focused local and actual MinIO qualification passed 15 tests and 59 assertions, including a real 1,002-object reconciliation. Additional original-age recreation and slider readback HTTP cases passed. The single full PHPUnit run reported 285 tests and 613 assertions, with one sandbox loopback-bind error in the existing member HTTP test, 25 endpoint-dependent skips and ten deprecations. The affected member test was rerun escalated and passed. Existing PHP/JS/HTTP checks, both canonical Doctrine Compose stacks and the exact browser-disabled CI application harness passed.
+
+Focused Chrome media journeys passed on local and S3, requiring present/loaded images and verifying publication, withdrawal denial, authorized preview and republishing. Post-logout private-route denial was observed directly. Broad pre-existing browser helpers encountered full-load synchronization timeouts; the focused media helper uses DOM readiness plus explicit image-loaded assertions. The unrelated general browser timeout remains a qualification, separately from the passing actual media journeys. The controller inspected S3 journal-publication and staff-carousel screenshots.
+
+The final slider upload readback slice was added during self-review, after the broad harness run, and passed its targeted local/S3 HTTP checks. All exact commands and output pointers are in `task-3-report.md`. Root owns the active disposable MinIO service on port 62941 until review reproduction completes.
+
+### Ticket 03 independent review findings
+
+Standards review found two P2 responsibility violations: slider lifecycle transaction/cleanup decisions in its controller, and unconditional retained-cover policy in the SQL repository. One optional P3 primitive-identity smell was noted. Spec review found one P1: the default generic retry path still included purge intents, allowing an ordinary member save to continue a purge without backup acknowledgement. A synthetic omitted-argument reproduction confirmed deletion of a pending member/object.
+
+The findings were sent together to the implementer for a focused fix wave and independent scoped re-reviews. Optional identity refactoring is deferred unless needed for correctness. The two axes remain separately reported in `standards-review.md` and `spec-review.md`.
+
+### Ticket 03 reviewed correction
+
+Signed correction `5c6165b7c4147e62db904f5865fd8dd99667b9ba` makes ordinary retries exclude purge intents by default. Explicit bulk purge opt-in additionally checks the backup acknowledgement inside the lifecycle API. The targeted manual purge retains its explicit action contract. A missing-argument regression and an actual ordinary staff-save regression first reproduced the bypass, then passed.
+
+The new `SliderService` owns verified publication, locking/rollback and removal scheduling. The controller retains request, CSRF, input and response handling. Historical-cover retention now lives in `FileLifecycleService`, while its repository returns actual database reference information. The optional P3 representation of expiry identity in a reason string remains deferred and documented.
+
+Affected local lifecycle checks passed 14 tests and 55 assertions. The actual S3 lifecycle/member/media selection passed 19 tests and 64 assertions. Both local and S3 HTTP/Chrome media and jobs proofs passed again after the correction, including backup-gated retries and explicit logout/private-route denial. The correction signature was verified independently. Exact commands and logs are in the report's `Independent review fixes` section.
+
+Scoped Standards re-review confirmed both P2 findings resolved, with no new issue. Scoped Spec re-review confirmed the P1 resolved and found no new Spec problem. The independent axis reports are `standards-fix-review.md` and `spec-fix-review.md`. Source is ready for exact-head hosted CI and PR delivery; actual R2 and production remain later qualification.
 
 ## R2 and production
 

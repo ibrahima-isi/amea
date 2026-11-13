@@ -9,6 +9,8 @@ if (!isset($jobs[$job])) {
     fwrite(STDERR, "Usage: php scripts/run-shared-jobs.php mail|pending|trash\n");
     exit(1);
 }
+// The pending worker retries ordinary cleanup only. Permanent purge retries run
+// exclusively through the backup-acknowledged trash worker.
 // Web images do not contain scripts. Refuse accidental use under a web identity.
 $identity = '/opt/amea-apps/identity';
 if (is_file($identity) && trim((string)file_get_contents($identity)) !== 'jobs') exit(1);

@@ -26,6 +26,9 @@ ErrorDocument 404 /404-handler.php
     RewriteCond %{HTTP:X-Forwarded-Proto} !^https$ [NC]
     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
+    # Resolve carousel files through current records even when a local file exists.
+    RewriteRule ^uploads/slider/ index.php [L]
+
     # Front Controller: Send all non-existent requests to index.php
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d

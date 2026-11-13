@@ -11,10 +11,13 @@ class FailingStorage implements Storage
     public bool $failDelete = false;
     public int $deletesUntilFailure = -1;
     public bool $failWrite = false;
+    public bool $failStat = false;
+    public bool $failRead = false;
+    public bool $failList = false;
     public function __construct(public Storage $inner) {}
     public function failNextWrite(): void { $this->failWrite = true; }
-    public function read(string $key): mixed { return $this->inner->read($key); }
-    public function stat(string $key): ?array { return $this->inner->stat($key); }
+    public function read(string $key): mixed { if ($this->failRead) { throw new StorageException('Injected read failure'); } return $this->inner->read($key); }
+    public function stat(string $key): ?array { if ($this->failStat) { throw new StorageException('Injected metadata failure'); } return $this->inner->stat($key); }
     public function write(string $key, mixed $source, string $mime, int $createdAt): array
     {
         if ($this->failWrite) { $this->failWrite = false; throw new StorageException('Injected write failure'); }
@@ -32,5 +35,5 @@ class FailingStorage implements Storage
         $this->deletesUntilFailure--;
         $this->inner->delete($key);
     }
-    public function listPage(string $prefix, ?string $cursor, int $limit): array { return $this->inner->listPage($prefix, $cursor, $limit); }
+    public function listPage(string $prefix, ?string $cursor, int $limit): array { if ($this->failList) { throw new StorageException('Injected listing failure'); } return $this->inner->listPage($prefix, $cursor, $limit); }
 }

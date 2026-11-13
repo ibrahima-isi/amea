@@ -98,20 +98,28 @@ class FileLifecycleService
         (new FileOperationRepository($this->db))->enqueue($operationId, $this->backend, $reason, $keys);
     }
 
-    public function retryDeletions(int $limit): int
+    public function retryDeletions(int $limit, bool $includePurge = false): int
     {
         if ($this->db->inTransaction()) {
             throw new \LogicException('Cleanup must follow the reference commit.');
+        }
+        if ($includePurge && ($_ENV['AMEA_TRASH_BACKUP_CONFIRMED'] ?? getenv('AMEA_TRASH_BACKUP_CONFIRMED')) !== '1') {
+            throw new \LogicException('Permanent purge retries require a verified backup and AMEA_TRASH_BACKUP_CONFIRMED=1.');
         }
         if ($limit < 1) {
             return 0;
         }
         $operations = new FileOperationRepository($this->db);
         $completed = 0;
-        foreach ($operations->pending($this->backend, $limit) as $id) {
+        foreach ($operations->pending($this->backend, $limit, $includePurge) as $id) {
             $completed += (int)$this->retryDeletion($id);
         }
         return $completed;
+    }
+
+    public function hasPendingDeletions(bool $includePurge = true): bool
+    {
+        return (new FileOperationRepository($this->db))->pending($this->backend, 1, $includePurge) !== [];
     }
 
     private function retryDeletion(string $id): bool
@@ -139,6 +147,16 @@ class FileLifecycleService
             $failures = [];
             foreach (json_decode($operation['keys_json'], true, flags: JSON_THROW_ON_ERROR) as $key) {
                 try {
+                    // Historical journal covers remain retained after replacement/removal.
+                    if (str_starts_with($key, 'uploads/journal/covers/')) {
+                        continue;
+                    }
+                    if (str_starts_with($operation['reason'], 'pending-expiry-')) {
+                        $metadata = $this->storage->stat($key);
+                        if ($metadata !== null && $metadata['createdAt'] !== (int)substr($operation['reason'], strlen('pending-expiry-'))) {
+                            continue;
+                        }
+                    }
                     if (!$operations->referenced($key, $studentId)) {
                         $this->storage->delete($key);
                     }
