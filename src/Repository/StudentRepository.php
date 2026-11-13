@@ -357,6 +357,12 @@ class StudentRepository
         }
     }
 
+    public function replaceStudentCountries(int $studentId, array $countryIds): void
+    {
+        $this->pdo->prepare('DELETE FROM student_country WHERE student_id = ?')->execute([$studentId]);
+        $this->saveStudentCountries($studentId, $countryIds);
+    }
+
     public function getCountriesByName(array $names): array
     {
         if (empty($names)) return [];

@@ -3,13 +3,11 @@
 namespace Amea\Controller;
 
 use Amea\Core\Container;
-use Amea\Core\FileUploader;
 use Amea\Repository\StudentRepository;
 
 class TrashController extends BaseController
 {
     private StudentRepository $studentRepo;
-    private FileUploader $uploader;
     private int $retentionDays;
 
     public function __construct()
@@ -21,7 +19,6 @@ class TrashController extends BaseController
             $this->redirect('dashboard.php');
         }
         $this->studentRepo   = new StudentRepository(Container::db());
-        $this->uploader      = new FileUploader(__DIR__ . '/../../');
         $this->retentionDays = max(1, (int)($_ENV['TRASH_RETENTION_DAYS'] ?? 30));
     }
 
@@ -77,7 +74,7 @@ class TrashController extends BaseController
 
     private function restore(int $id): void
     {
-        if ($this->studentRepo->restore($id)) {
+        if (Container::fileLifecycle()->restoreMember($id)) {
             $this->flash->set('success', 'Étudiant restauré avec succès.');
         } else {
             $this->flash->set('error', 'Restauration impossible : étudiant introuvable dans la corbeille.');
@@ -92,14 +89,10 @@ class TrashController extends BaseController
             return;
         }
 
-        // Permanent deletion — remove the associated files too.
-        if ($student->getIdentityDocument()) {
-            $this->uploader->safeDelete($student->getIdentityDocument());
+        if (!Container::fileLifecycle()->purgeMember($id)) {
+            $this->flash->set('error', 'Suppression incomplète. Veuillez réessayer.');
+            return;
         }
-        if ($student->getCvPath()) {
-            $this->uploader->safeDelete($student->getCvPath());
-        }
-        $this->studentRepo->forceDelete($id);
         $this->flash->set('success', 'Étudiant définitivement supprimé.');
     }
 }

@@ -100,14 +100,14 @@ try {
         $output = stream_get_contents($pipe);
         fclose($pipe);
         $exit = proc_close($process);
-        if (($index === 0 && ($exit !== 0 || !str_contains($output, 'Recorded 2 baseline versions')))
+        if (($index === 0 && ($exit !== 0 || !str_contains($output, 'Recorded 4 baseline versions')))
             || ($index === 1 && !(($exit === 0 && str_contains($output, 'Already at the latest version'))
                 || ($exit === 1 && str_contains($output, 'without a recorded baseline'))))) {
             throw new RuntimeException('Mixed enrollment/migration attempt failed: ' . $output);
         }
     }
     checkCommand(['scripts/migrate.php', 'migrate'], 0, 'Already at the latest version');
-    if ($snapshot() !== $before || (int) $connection->fetchOne('SELECT COUNT(*) FROM doctrine_migration_versions') !== 2) {
+    if ($snapshot() !== $before || (int) $connection->fetchOne('SELECT COUNT(*) FROM doctrine_migration_versions') !== 4) {
         throw new RuntimeException('Mixed attempts must preserve application rows and record each baseline once.');
     }
     $connection->executeStatement('DROP TABLE doctrine_migration_versions');
@@ -123,14 +123,16 @@ try {
     $connection->executeStatement('ALTER TABLE amea_migration_recovery ADD COLUMN unexpected INT');
     checkCommand($enroll, 1, 'canonical empty migration recovery table');
     $connection->executeStatement('ALTER TABLE amea_migration_recovery DROP COLUMN unexpected');
-    checkCommand($enroll, 0, 'Recorded 2 baseline versions');
+    checkCommand($enroll, 0, 'Recorded 4 baseline versions');
     $ledgerSql = 'SELECT * FROM doctrine_migration_versions ORDER BY version';
     $ledger = $connection->fetchAllAssociative($ledgerSql);
     if (array_column($ledger, 'version') !== [
         'Amea\\Migration\\Version\\Version20261106000000',
         'Amea\\Migration\\Version\\Version20261106000001',
+        'Amea\\Migration\\Version\\Version20261113000000',
+        'Amea\\Migration\\Version\\Version20261113000001',
     ] || $snapshot() !== $before) {
-        throw new RuntimeException('Enrollment must record both baseline versions and preserve all existing data.');
+        throw new RuntimeException('Enrollment must record all snapshot versions and preserve all existing data.');
     }
     checkCommand($enroll, 0, 'Baseline already enrolled');
     checkCommand(['scripts/migrate.php', 'migrate'], 0, 'Already at the latest version');
@@ -146,7 +148,7 @@ try {
     $connection->executeStatement("ALTER TABLE students MODIFY gender ENUM('Féminin','Masculin','Female','Male') NOT NULL, MODIFY status ENUM('Diplômé(e)','Diplômé','GRADUATE','STAGIAIRE','ETUDIANT','ELEVE','TRAINEE','STUDENT','PUPIL') NOT NULL");
     $legacyBefore = $connection->fetchAllAssociative('SELECT * FROM settings ORDER BY setting_key');
     $memberBefore = $connection->fetchAllAssociative('SELECT * FROM students ORDER BY id');
-    checkCommand($enroll, 0, 'Recorded 2 baseline versions');
+    checkCommand($enroll, 0, 'Recorded 4 baseline versions');
     if ($connection->fetchAllAssociative('SELECT * FROM settings ORDER BY setting_key') !== $legacyBefore
         || $connection->fetchAllAssociative('SELECT * FROM students ORDER BY id') !== $memberBefore) {
         throw new RuntimeException('Supported legacy variants must preserve every existing row.');
@@ -197,8 +199,8 @@ try {
         throw new RuntimeException('A failure after the first baseline insert must roll back every version and preserve application rows.');
     }
     $connection->executeStatement('ALTER TABLE doctrine_migration_versions DROP CONSTRAINT enrollment_failure');
-    checkCommand($enroll, 0, 'Recorded 2 baseline versions');
-    echo "PASS: a second-insert failure rolls back both baseline versions and a retry succeeds.\n";
+    checkCommand($enroll, 0, 'Recorded 4 baseline versions');
+    echo "PASS: a second-insert failure rolls back all snapshot versions and a retry succeeds.\n";
 
     checkCommand(['scripts/enroll-migrations.php', '--database=amea_doctrine_enrollment', '--evidence=' . $evidence], 2, '--writers-stopped');
     checkCommand(['scripts/enroll-migrations.php', '--database=amea_doctrine_enrollment', '--writers-stopped', '--evidence=/missing-enrollment-evidence.json'], 1, 'readable local enrollment evidence');

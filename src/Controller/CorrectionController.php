@@ -17,7 +17,7 @@ class CorrectionController extends BaseController
         parent::__construct();
         $db = \Amea\Core\Container::db();
         $this->studentRepo = new StudentRepository($db);
-        $this->fileUploader = new FileUploader(__DIR__ . '/../../');
+        $this->fileUploader = new FileUploader(__DIR__ . '/../../', \Amea\Core\Container::storage());
         $this->studentService = new StudentService($this->studentRepo, $this->fileUploader);
     }
 
@@ -66,29 +66,40 @@ class CorrectionController extends BaseController
             return;
         }
 
-        $data = $this->studentService->sanitizeAndValidate($_POST, $_FILES, $student->getId());
+        $data = $this->studentService->sanitizeAndValidate($_POST, $_FILES, $student->getId(), 'uploads/students/pending');
 
         if (!empty($data['errors'])) {
             $_SESSION['form_data']   = $data['input'];
             $_SESSION['form_errors'] = $data['errors'];
-            $this->redirect('kyc-correction.php?token=' . $token);
+            if ($data['storage_error']) {
+                http_response_code(503);
+                $this->edit();
+            }
+            else { $this->redirect('kyc-correction.php?token=' . $token); }
             return;
         }
 
-        // Update DB
         $dbData = $data['db_data'];
-        // A correction without replacement uploads must retain the shared dossier.
-        $dbData['identity_document'] ??= $student->getIdentityDocument();
-        $dbData['cv_path'] ??= $student->getCvPath();
-        $dbData['kyc_status'] = 'UNDER_REVIEW'; // Back to review
-        $dbData['is_locked']  = 1;
-        
-        $this->studentRepo->update($student->getId(), $dbData);
+        $dbData['kyc_status'] = 'UNDER_REVIEW';
+        $dbData['is_locked'] = 1;
+        try {
+            $lifecycle = \Amea\Core\Container::fileLifecycle();
+            $lifecycle->saveMember($dbData, $data['valid_pays_ids'], $student->getId(), $token);
+        } catch (\Throwable $error) {
+            error_log('[Correction] ' . $error->getMessage());
+            $_SESSION['form_data'] = $data['input'];
+            $_SESSION['form_errors'] = ['cv' => 'Impossible de conserver votre dossier. Veuillez réessayer.'];
+            http_response_code(503);
+            $this->edit();
+            return;
+        }
 
-        // Handle auxiliary tables
-        if (!empty($dbData['institution'])) $this->studentRepo->ensureInstitutionExists($dbData['institution']);
-        if (!empty($dbData['study_field'])) $this->studentRepo->ensureStudyFieldExists($dbData['study_field']);
-        if (!empty($dbData['study_level']))  $this->studentRepo->ensureStudyLevelExists($dbData['study_level']);
+        try {
+            $lifecycle->retryDeletions(20);
+        } catch (\Throwable $error) {
+            // The reference commit succeeded. Durable intents remain retryable.
+            error_log('[Member cleanup] ' . $error->getMessage());
+        }
 
         $this->flash->add('success', 'Votre dossier a été mis à jour et est à nouveau sous révision.');
         $this->redirect('/');

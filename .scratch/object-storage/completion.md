@@ -70,7 +70,51 @@ Signed correction `3fed1bac6a0dcab40aa36222f4eecda7e54f6b2b` retains and verifie
 
 ## CI and merge
 
-Ticket 01 is ready for publication after independent task and whole-branch reviews plus their scoped re-reviews. Exact-commit hosted CI and actual PR merge will be checked separately. Integrate the actual merged result into local `main` from an isolated worktree, retaining unrelated branches/worktrees.
+Ticket 01 was delivered through [PR 40](https://github.com/ibrahima-isi/amea/pull/40), targeting `dev`.
+
+- Final PR head `7732f15e2091375a83a9c6ec121ed885b25c8a19` passed all four jobs in [CI run 43337676711](https://github.com/ibrahima-isi/amea/actions/runs/43337676711). Its regression output reports 268 tests and 551 assertions, with 25 endpoint-dependent S3 skips and the ten existing PHPUnit deprecations. The actual disposable-provider tests are separately evidenced above.
+- Task review, its scoped re-review, independent whole-branch review and its scoped re-review completed before publication. All source and documentation commits report good cryptographic signatures.
+- PR 40 actually merged at `2026-11-13T00:35:43Z` as `e3fb18002563f4ad1660c3d703d9e76dd7bf810e`. GitHub reports its merge signature verified with reason `valid`. An ancestry check verified the tested PR head is contained in remote `dev`.
+- [Post-merge CI run 43338302280](https://github.com/ibrahima-isi/amea/actions/runs/43338302280) passed all four jobs on that exact merge commit, including Docker/recovery and Doctrine/Compose startup qualification.
+- An isolated worktree fast-forwarded local `main` from `581244b` to the actual merged result. Storage source, dependencies and both Compose files matched remote `dev` exactly. This local closeout adds only the final execution evidence and ticket comment.
+- The original `dev` checkout and the unrelated Composer refactor worktree/branch were preserved. The task's implementation/design worktrees and temporary branches were removed after clean-status and ancestry checks. Their only ignored implementation-worktree contents were generated dependency, PHPUnit, Python and Twig caches plus the task-owned skill ignore file. Local test reports remain under `/private/tmp/amea-storage01-artifacts/`.
+- Disposable test providers and runtime containers were removed. The pre-existing `meetstudent-ticket02-minio` service remained running on its original port 62182. The original production configuration and live data were outside this repository delivery scope.
+
+The signed local-main closeout is retained locally under the project's main-integration workflow. Tickets 02–06 continue to require their own execution authorization.
+
+## Ticket 02 execution
+
+On 2026-11-13 the user invoked `implement` for the next ticket, authorizing Ticket 02, "Integrate member documents and consistent file lifecycle". Ticket 01's blocker was rechecked through merged PR 40, remote `dev` containing `e3fb180`, and the successful post-merge CI run.
+
+The isolated implementation worktree is `/private/tmp/amea-object-storage-02`, branch `feat/object-storage-02`, starting from local `main` at `0595a34bd9dfbc5db1b008ff1905edc1a2a33ccb`. That base contains the delivered storage foundation and its signed closeout. The original checkout and active Composer refactor PR/worktree remain preserved.
+
+The approved test seams are the public file-lifecycle API and the actual registration, correction, editing, preview/download, trash and restore entry points. TDD will cover storage/DB failure consistency at those seams, then real local/S3 HTTP/browser journeys and disposable MariaDB migration/concurrency qualification. The existing per-flow MIME/size rules, French UI, permissions and session ownership remain compatibility contracts. Ticket 03's journal/slider integration and scheduled-job migration remain separate work.
+
+Execution evidence and review results will be appended here. Private local logs and agent reports live under `/private/tmp/amea-storage02-artifacts/`.
+
+### Ticket 02 implementation and validation
+
+Signed commit `b1adb917efa9ace412cb3b983372a99299d629c8` integrates the configured storage into member registration, correction, editing, private reads and permanent deletion. The controller independently verified its cryptographic signature. The current-row and shared member-file locks preserve concurrent replacements. References and cleanup intents commit together, and finalization reads source/destination bytes before publishing references. Deletion checks references across members and trash. Interrupted purges retain their identity and keys.
+
+Two new versions separate nontransactional operation-table DDL from transactional lock-row initialization. Historical migration sources remain frozen. Enrollment verifies the exact historical two-version adoption snapshot or maintained four-version snapshot, including the new tables and singleton data.
+
+The full PHPUnit suite passed once with the actual disposable S3 endpoint selected, reporting 277 tests, 708 assertions, ten existing deprecations and two filesystem-only skips. Four standalone PHP regressions, five theme tests and HTTP baseline/token/internal journeys passed. Focused lifecycle/controller checks passed on MinIO. Real MariaDB concurrency checks passed with local and S3 objects, including different-field replacement, same-field replacement and restoration winning before purge starts.
+
+Chrome registration, both staged-document previews and confirmation passed in local and S3 modes. Desktop/mobile, light/dark captures are retained under `browser-local/` and `browser-s3/` in the artifact directory. The controller inspected the S3 desktop-light and mobile-dark review screenshots. Actual form/HTTP tests also cover correction, private download, role denial, content-based MIME rejection, DB rollback, legacy staged sessions and purge failure/retry.
+
+An isolated MariaDB recovery rehearsal exercised a failure after the first new CREATE, durable recovery-marker refusal, verified SQL/files restore, successful four-version upgrade and zero-change retry. Both canonical Compose stacks passed `tests/apps/doctrine-compose.sh`. The full `tests/apps/run.sh` public/staff/jobs, backup/restore and rollback chain passed. Legacy fixtures were updated to the exact new migration sources and four-version expectations after their initial failures. Source-level and fixture PHP syntax checks passed.
+
+Implementation choices retain superseded session-only staging for the existing pending cleanup because DB and session persistence have no shared commit. Once purge durably begins, restoration is refused until it completes. The existing retention purge has a minimal lifecycle bridge to prevent bypassing the new guarantees. General scheduler and media migration remain Ticket 03 scope.
+
+### Ticket 02 Standards review
+
+The independent Standards review of `0595a34...b1adb91` found zero documented-rule violations. It recorded one optional possible Duplicated Code smell in the three controllers' post-commit best-effort cleanup blocks. No present functional defect was identified. The optional consolidation is deferred, preserving the reviewed working behavior.
+
+### Ticket 02 Spec review
+
+The separate Spec review of the same range found zero actionable findings. It checked current-row replacement semantics, retained sources and rollback, shared-reference protection, partial purge/restore behavior, session ownership, MIME and headers, the migration split and exact enrollment snapshots. Its result is independent of the Standards axis.
+
+Evidence includes `task-2-report.md`, `standards-review.md`, `spec-review.md`, `review.diff`, `phpunit-full.txt`, `http-{local,s3}.txt`, `local-browser.txt`, `s3-browser.txt`, `concurrent-{local,s3}.txt`, `member-schema-recovery.txt`, `apps-green.txt` and `doctrine-compose-final.txt`. Dedicated MinIO/MariaDB and rehearsal resources were removed; the existing MeetStudent MinIO on port 62182 was preserved. Exact-head hosted CI, actual merge and local-main integration remain delivery steps.
 
 ## R2 and production
 

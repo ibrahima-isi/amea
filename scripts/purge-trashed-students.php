@@ -43,7 +43,7 @@ $retentionDays = max(1, (int)($_ENV['TRASH_RETENTION_DAYS'] ?? getenv('TRASH_RET
 try {
     $pdo        = \Amea\Core\Container::db();
     $repo       = new \Amea\Repository\StudentRepository($pdo);
-    $uploader   = new \Amea\Core\FileUploader($projectRoot);
+    $lifecycle  = \Amea\Core\Container::fileLifecycle();
 } catch (\Throwable $e) {
     logLine('FATAL: cannot initialise database: ' . $e->getMessage());
     exit(1);
@@ -62,13 +62,7 @@ $failed  = 0;
 foreach ($purgeable as $student) {
     $id = $student->getId();
     try {
-        if ($student->getIdentityDocument()) {
-            $uploader->safeDelete($student->getIdentityDocument());
-        }
-        if ($student->getCvPath()) {
-            $uploader->safeDelete($student->getCvPath());
-        }
-        if ($repo->forceDelete($id)) {
+        if ($lifecycle->purgeMember($id, $retentionDays)) {
             $deleted++;
             logLine("Purged student #{$id} ({$student->getEmail()}), trashed at {$student->getDeletedAt()}.");
         } else {

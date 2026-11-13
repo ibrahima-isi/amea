@@ -53,6 +53,15 @@ class StorageFactory
         }
     }
 
+    /** Non-secret backend identity prevents replay against another bucket/root. */
+    public static function identity(string $projectRoot): string
+    {
+        $driver = self::environment('STORAGE_DRIVER', 'local');
+        $target = $driver === 'local' ? (realpath($projectRoot) ?: $projectRoot)
+            : self::environment('S3_ENDPOINT') . '\n' . self::environment('S3_BUCKET');
+        return hash('sha256', $driver . '\n' . $target);
+    }
+
     private static function environment(string $name, string $default = ''): string
     {
         return (string) ($_ENV[$name] ?? (getenv($name) !== false ? getenv($name) : $default));

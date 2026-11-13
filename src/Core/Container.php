@@ -27,6 +27,11 @@ class Container
         return self::$storage ??= StorageFactory::fromEnvironment(dirname(__DIR__, 2));
     }
 
+    public static function fileLifecycle(): \Amea\Service\FileLifecycleService
+    {
+        return new \Amea\Service\FileLifecycleService(self::db(), self::storage(), StorageFactory::identity(dirname(__DIR__, 2)));
+    }
+
     public static function setStorage(Storage $storage): void
     {
         self::$storage = $storage;

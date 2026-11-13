@@ -118,11 +118,13 @@ class StudentService
 
         // 7. Files
         $uploadBaseDir = rtrim($uploadBaseDir, '/');
+        $storageError = false;
         $identityDocumentPath = null;
         if (!empty($files['photo']['name'])) {
             $res = $this->fileUploader->handle($files['photo'], ['jpg','jpeg','png','pdf'], 2*1024*1024, $uploadBaseDir);
             if ($res['success']) $identityDocumentPath = $res['filepath'];
             else $errors['identity_document'] = $res['message'];
+            $storageError = $storageError || ($res['retryable'] ?? false);
         }
 
         $cvPath = null;
@@ -130,9 +132,11 @@ class StudentService
             $res = $this->fileUploader->handle($files['cv_file'], ['pdf','png'], 5*1024*1024, $uploadBaseDir . '/cvs');
             if ($res['success']) $cvPath = $res['filepath'];
             else $errors['cv'] = $res['message'];
+            $storageError = $storageError || ($res['retryable'] ?? false);
         }
 
         return [
+            'storage_error' => $storageError,
             'input' => $input,
             'errors' => $errors,
             'valid_pays_ids' => $validIds,
