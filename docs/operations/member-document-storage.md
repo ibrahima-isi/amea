@@ -27,12 +27,13 @@ the reference change. Cleanup failures retain their per-key errors and attempt
 count. A missing object completes successfully on retry.
 
 Successful member saves attempt a bounded cleanup batch after commit. Cleanup
-failure leaves the saved dossier usable. The public `retryDeletions(int $limit, bool $includePurge = true)`
-method supports the dedicated scheduler integration. The hourly worker passes
-`false` to exclude permanent purge continuations. The backup-acknowledged daily
-trash worker includes them. It selects only intents
-whose backend identity matches the configured endpoint/bucket or local root.
-Keep those identities and retained intents available during migration inventory.
+failure leaves the saved dossier usable. The public
+`retryDeletions(int $limit, bool $includePurge = false)` method excludes permanent
+purge continuations by default. The backup-acknowledged daily trash worker opts in
+explicitly. Every explicit bulk purge retry also requires
+`AMEA_TRASH_BACKUP_CONFIRMED=1` inside the lifecycle service. Retry selection matches
+the configured endpoint/bucket or local-root identity. Keep those identities and
+retained intents available during migration inventory.
 
 Soft deletion keeps documents available for restoration. Explicit manual permanent
 deletion retains its immediate behavior. The existing retention purge command

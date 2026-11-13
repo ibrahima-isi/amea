@@ -82,10 +82,18 @@ class FileLifecycleServiceTest extends TestCase
         $this->storage->failDelete = true;
         self::assertFalse($this->service->purgeMember(90));
         $this->storage->failDelete = false;
-        self::assertSame(0, $this->service->retryDeletions(100, false));
+        self::assertSame(0, $this->service->retryDeletions(100));
         self::assertNotNull((new \Amea\Repository\StudentRepository($this->db))->findTrashedById(90));
         self::assertNotNull($this->storage->stat($key));
-        self::assertSame(1, $this->service->retryDeletions(100, true));
+        putenv('AMEA_TRASH_BACKUP_CONFIRMED=1');
+        try { self::assertSame(1, $this->service->retryDeletions(100, true)); }
+        finally { putenv('AMEA_TRASH_BACKUP_CONFIRMED'); }
+    }
+
+    public function testExplicitPurgeRetryRequiresBackupAcknowledgement(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->service->retryDeletions(100, true);
     }
 
     public function testPendingCleanupFailureRemainsRetryableAndRechecksOriginalAge(): void
@@ -210,7 +218,9 @@ class FileLifecycleServiceTest extends TestCase
         self::assertNotNull((new \Amea\Repository\StudentRepository($this->db))->findTrashedById(20));
         self::assertFalse($this->service->restoreMember(20));
         $this->storage->failDelete = false;
-        self::assertSame(1, $this->service->retryDeletions(10));
+        putenv('AMEA_TRASH_BACKUP_CONFIRMED=1');
+        try { self::assertSame(1, $this->service->retryDeletions(10, true)); }
+        finally { putenv('AMEA_TRASH_BACKUP_CONFIRMED'); }
         self::assertNull((new \Amea\Repository\StudentRepository($this->db))->findTrashedById(20));
         self::assertNull($this->storage->stat($key));
     }
@@ -239,7 +249,9 @@ class FileLifecycleServiceTest extends TestCase
         self::assertNotNull($this->storage->stat($cv));
         self::assertFalse($this->service->restoreMember(30));
         $restarted = new FileLifecycleService($this->db, $this->storage, 'test-local');
-        self::assertSame(1, $restarted->retryDeletions(10));
+        putenv('AMEA_TRASH_BACKUP_CONFIRMED=1');
+        try { self::assertSame(1, $restarted->retryDeletions(10, true)); }
+        finally { putenv('AMEA_TRASH_BACKUP_CONFIRMED'); }
         self::assertNull((new \Amea\Repository\StudentRepository($this->db))->findTrashedById(30));
     }
 

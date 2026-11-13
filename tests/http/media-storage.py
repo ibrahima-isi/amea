@@ -39,3 +39,9 @@ with media_app() as fixture:
     check(fixture.request(staff, '/manage-slider.php', dict(csrf_token=token, caption='Unreadable rejected image'), True, True)[0] == 302, 'unreadable upload returns through the staff form')
     check(b'Unreadable rejected image' not in fixture.request(public, '/')[2], 'failed storage read cannot publish a carousel reference')
     check(fixture.request(public, path)[0] == 200, 'failed save preserves the previous readable carousel image')
+
+    page = fixture.request(staff, '/manage-slider.php')[2]
+    image_id = re.search(rb'name="id"\s+value="(\d+)"', page).group(1).decode()
+    token = fixture.csrf(staff, '/manage-slider.php')
+    check(fixture.request(staff, '/manage-slider.php', dict(csrf_token=token, _action='delete', id=image_id))[0] == 302, 'carousel removal commits through the staff form')
+    check(fixture.request(public, path)[0] == 404, 'removed carousel reference immediately denies its old URL')

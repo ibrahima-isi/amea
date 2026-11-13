@@ -20,6 +20,7 @@ def member_app(extra_fixtures=()):
     try:
         with disposable_app(extra_fixtures=extra_fixtures, storage_env=storage_env) as fixture:
             fixture.storage_bucket = bucket
+            fixture.storage_env = storage_env
             yield fixture
     finally:
         if endpoint:
@@ -83,8 +84,12 @@ with member_app() as fixture:
     check(status == 200 and body == PDF, 'DB rollback keeps previous private document readable')
     db.execute('DROP TRIGGER fail_member_save')
     db.commit()
+    subprocess.run(['php', str(fixture.app / 'tests/http/purge-retry-fixture.php')], cwd=fixture.app,
+        check=True, env=dict(SAFE_ENV, **fixture.storage_env))
+    check(b'AwaitingBackup' in fixture.request(staff, '/trash.php')[2], 'interrupted purge is visible before ordinary staff save')
     status, _, _ = http.replaceCv(1, path)
     check(status == 302, 'staff retries replacement successfully')
+    check(b'AwaitingBackup' in fixture.request(staff, '/trash.php')[2], 'ordinary staff save cannot resume a purge without backup acknowledgement')
     status, _, body = fixture.request(staff, '/download.php?id=1&type=cv')
     check(status == 200 and body == path.read_bytes(), 'successful replacement publishes new private document')
 
@@ -135,7 +140,8 @@ with member_app() as fixture:
     check(db.execute('SELECT deleted_at FROM students WHERE id=1').fetchone()[0] is not None, 'in-progress purge cannot restore a partial dossier')
     fixture.request(staff, '/trash.php', dict(csrf_token=token, id=1, action='force_delete'))
     check(db.execute('SELECT COUNT(*) FROM students WHERE id=1').fetchone()[0] == 0, 'manual purge retries to completion')
-    check(db.execute('SELECT COUNT(*) FROM file_operations').fetchone()[0] == 0, 'all durable deletion intents complete')
+    check(db.execute("SELECT COUNT(*) FROM file_operations WHERE reason NOT LIKE 'purge-%'").fetchone()[0] == 0, 'ordinary durable deletion intents complete')
+    check(b'AwaitingBackup' in fixture.request(staff, '/trash.php')[2], 'targeted manual purge preserves the unrelated backup-gated purge')
     if os.environ.get('AMEA_REGISTRATION_BROWSER') == '1':
         subprocess.run(['node', str(ROOT / 'tests/http/registration-browser.mjs'), fixture.base,
             os.environ['AMEA_BROWSER_OUTPUT']], check=True, timeout=120)

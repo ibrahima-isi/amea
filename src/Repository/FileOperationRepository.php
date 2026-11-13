@@ -61,7 +61,7 @@ class FileOperationRepository
         return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
     }
 
-    public function pending(string $backend, int $limit, bool $includePurge = true): array
+    public function pending(string $backend, int $limit, bool $includePurge = false): array
     {
         $filter = $includePurge ? '' : " AND reason NOT LIKE 'purge-%'";
         $stmt = $this->db->prepare('SELECT operation_id FROM file_operations WHERE backend = ?' . $filter . ' ORDER BY created_at, operation_id LIMIT ?');
@@ -88,10 +88,6 @@ class FileOperationRepository
 
     public function referenced(string $key, ?int $excludingStudent = null): bool
     {
-        // Historical journal covers are retained even after their last reference is removed.
-        if (str_starts_with($key, 'uploads/journal/covers/')) {
-            return true;
-        }
         foreach (['SELECT 1 FROM slider_images WHERE image_path = ? LIMIT 1',
             'SELECT 1 FROM journal_posts WHERE cover_path = ? LIMIT 1'] as $query) {
             $stmt = $this->db->prepare($query);

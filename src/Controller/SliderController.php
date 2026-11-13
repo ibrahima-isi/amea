@@ -5,11 +5,13 @@ namespace Amea\Controller;
 use Amea\Core\Container;
 use Amea\Core\FileUploader;
 use Amea\Repository\SliderRepository;
+use Amea\Service\SliderService;
 
 class SliderController extends BaseController
 {
     private SliderRepository $sliderRepo;
     private FileUploader $uploader;
+    private SliderService $slider;
 
     public function __construct()
     {
@@ -22,6 +24,7 @@ class SliderController extends BaseController
         }
         $this->sliderRepo = new SliderRepository(Container::db());
         $this->uploader   = new FileUploader(__DIR__ . '/../../', Container::storage());
+        $this->slider = new SliderService(Container::db(), Container::storage(), Container::fileLifecycle());
     }
 
     // ─── index ─────────────────────────────────────────────────────────────────
@@ -69,31 +72,12 @@ class SliderController extends BaseController
         }
 
         try {
-            $image = (new \Amea\Service\MemberDocumentService(Container::storage()))->open(
-                $result['filepath'], ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-            );
-            fclose($image['stream']);
+            $this->slider->publish($result['filepath'], trim($_POST['caption'] ?? ''), (int)($_POST['display_order'] ?? 0));
         } catch (\Amea\Storage\StorageException|\OutOfBoundsException|\UnexpectedValueException $error) {
             error_log('[SliderController] ' . $error->getMessage());
             $this->flash->set('error', 'Échec du téléchargement. Veuillez réessayer.');
             $this->redirect('manage-slider.php');
             return;
-        }
-
-        $db = Container::db();
-        $db->beginTransaction();
-        try {
-            (new \Amea\Repository\FileOperationRepository($db))->lockMembers();
-            $this->sliderRepo->save([
-                'image_path' => $result['filepath'],
-                'caption' => trim($_POST['caption'] ?? ''),
-                'display_order' => (int)($_POST['display_order'] ?? 0),
-            ]);
-            $db->commit();
-        } catch (\Throwable $error) {
-            if ($db->inTransaction()) { $db->rollBack(); }
-            // The unreferenced verified object stays available for reconciliation.
-            throw $error;
         }
 
         $this->flash->set('success', 'L\'image a été ajoutée avec succès.');
@@ -111,20 +95,7 @@ class SliderController extends BaseController
         }
 
         $id  = (int)($_POST['id'] ?? 0);
-        $img = $this->sliderRepo->findById($id);
-        if ($img) {
-            $db = Container::db();
-            $db->beginTransaction();
-            try {
-                (new \Amea\Repository\FileOperationRepository($db))->lockMembers();
-                $this->sliderRepo->delete($id);
-                Container::fileLifecycle()->scheduleDeletion(bin2hex(random_bytes(16)), [$img['image_path']], 'slider-removal');
-                $db->commit();
-            } catch (\Throwable $error) {
-                if ($db->inTransaction()) { $db->rollBack(); }
-                throw $error;
-            }
-            Container::fileLifecycle()->retryDeletions(100, false);
+        if ($this->slider->remove($id)) {
             $this->flash->set('success', 'L\'image a été supprimée.');
         }
 
