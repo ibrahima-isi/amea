@@ -10,15 +10,17 @@ Implement [plan Task 3](../plan.md#task-3--public-media-reconciliation-and-sched
 
 ## Acceptance criteria
 
-- [ ] Published journal covers, permissioned draft previews and withdrawn-cover denial work through private storage.
-- [ ] Historical journal covers remain retained after replacement/removal.
-- [ ] Existing slider URLs work in public/staff applications through validated active records.
-- [ ] Complete-key paginated reconciliation distinguishes identical basenames under different directories.
-- [ ] Pending cleanup uses original staging age, including migrated objects.
-- [ ] A single jobs owner handles cleanup/retries and honors backup requirements.
-- [ ] Actual browser/HTTP media journeys, reconciliation and job failure/retry checks pass on both backends.
-- [ ] Reviews, signed delivery and verification limitations are recorded in `completion.md`.
+- [x] Published journal covers, permissioned draft previews and withdrawn-cover denial work through private storage.
+- [x] Historical journal covers remain retained after replacement/removal.
+- [x] Existing slider URLs work in public/staff applications through validated active records.
+- [x] Complete-key paginated reconciliation distinguishes identical basenames under different directories.
+- [x] Pending cleanup uses original staging age, including migrated objects.
+- [x] A single jobs owner handles cleanup/retries and honors backup requirements.
+- [x] Actual browser/HTTP media journeys, reconciliation and job failure/retry checks pass on both backends.
+- [x] Reviews, signed delivery and verification limitations are recorded in `completion.md`.
 
 ## Comments
 
 2026-11-12 — Depends on the member lifecycle contract and durable cleanup from Ticket 02.
+
+2026-11-13 — Authorized through `implement` for the next ticket. Signed implementation `9b61c04` and correction `5c6165b` passed local/S3 media, reconciliation, retention, jobs and focused Chrome checks. Independent Standards/Spec reviews and scoped re-reviews verified the correction of the generic-retry purge bypass and service/repository separation. One optional reason-identity representation remark remains documented. See [completion evidence](../completion.md) for exact results, browser qualification limits and pending hosted delivery.
