@@ -7,6 +7,8 @@ use Aws\S3\S3Client;
 
 class S3Storage implements Storage
 {
+    use ValidatesStorageKeys;
+
     public function __construct(private S3Client $client, private string $bucket)
     {
     }
@@ -28,6 +30,11 @@ class S3Storage implements Storage
 
     public function write(string $key, mixed $source, string $mime, int $createdAt): array
     {
+        return $this->writeStream($key, $source, $mime, $createdAt);
+    }
+
+    private function writeStream(string $key, mixed $source, string $mime, int $createdAt, ?int $expectedSize = null, ?string $expectedDigest = null): array
+    {
         $this->validateKey($key);
         if (!is_resource($source) || get_resource_type($source) !== 'stream' || !strpbrk(stream_get_meta_data($source)['mode'], 'r+')) {
             throw new StorageException('Storage writes require a readable stream.');
@@ -47,8 +54,13 @@ class S3Storage implements Storage
             }
             rewind($temporary);
             $hash = hash_init('sha256');
-            hash_update_stream($hash, $temporary);
+            if (hash_update_stream($hash, $temporary) !== $size) {
+                throw new StorageException('Unable to verify the complete upload spool.');
+            }
             $digest = hash_final($hash);
+            if (($expectedSize !== null && $size !== $expectedSize) || ($expectedDigest !== null && !hash_equals($expectedDigest, $digest))) {
+                throw new StorageException('The S3 copy source does not match its declared size or digest.');
+            }
             rewind($temporary);
             try {
                 $this->client->putObject([
@@ -131,7 +143,7 @@ class S3Storage implements Storage
         try {
             $metadata = $this->metadata($result);
             // PutObject provides atomic destination protection across S3 providers.
-            $this->write($destinationKey, $source, $metadata['mime'], $metadata['createdAt']);
+            $this->writeStream($destinationKey, $source, $metadata['mime'], $metadata['createdAt'], $metadata['size'], $metadata['sha256']);
         } finally {
             fclose($source);
         }
@@ -178,6 +190,10 @@ class S3Storage implements Storage
 
     private function metadata(\Aws\ResultInterface $result): array
     {
+        $size = filter_var($result['ContentLength'], FILTER_VALIDATE_INT);
+        if ($size === false || $size < 0) {
+            throw new StorageException('The S3 object has no valid content length.');
+        }
         $original = $result['Metadata']['created-at'] ?? null;
         $digest = $result['Metadata']['sha256'] ?? null;
         if (($original !== null && (!ctype_digit($original) || strlen($original) > 18)) || ($digest !== null && !preg_match('/^[a-f0-9]{64}$/', $digest))) {
@@ -187,22 +203,10 @@ class S3Storage implements Storage
             throw new StorageException('The S3 object has no lifecycle timestamp.');
         }
         return [
-            'size' => (int) $result['ContentLength'],
+            'size' => $size,
             'mime' => $result['ContentType'] ?? 'application/octet-stream',
             'createdAt' => $original !== null ? (int) $original : $result['LastModified']->getTimestamp(),
             'sha256' => $digest,
         ];
-    }
-
-    private function validateKey(string $key): void
-    {
-        if (strlen($key) > 1024 || !mb_check_encoding($key, 'UTF-8') || !str_starts_with($key, 'uploads/') || str_contains($key, '\\') || preg_match('/[\x00-\x1f\x7f]/', $key)) {
-            throw new StorageException('Invalid storage key.');
-        }
-        foreach (explode('/', $key) as $segment) {
-            if ($segment === '' || $segment === '.' || $segment === '..') {
-                throw new StorageException('Invalid storage key.');
-            }
-        }
     }
 }

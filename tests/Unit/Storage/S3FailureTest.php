@@ -5,11 +5,13 @@ namespace Amea\Tests\Unit\Storage;
 use Amea\Storage\S3Storage;
 use Amea\Storage\StorageException;
 use Aws\Command;
+use Aws\CommandInterface;
 use Aws\MockHandler;
 use Aws\Result;
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\TestCase;
 
 class S3FailureTest extends TestCase
@@ -78,4 +80,65 @@ class S3FailureTest extends TestCase
         $this->storage([$this->error(404, 'NoSuchKey')])->delete('uploads/missing');
         self::assertTrue(true);
     }
+    public static function incompleteCopyResponses(): array
+    {
+        return [
+            'truncated new destination' => [true, false],
+            'truncated existing destination' => [true, true],
+            'wrong digest new destination' => [false, false],
+            'wrong digest existing destination' => [false, true],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('incompleteCopyResponses')]
+    public function testInvalidCopyContentFailsBeforeDestinationPublication(bool $truncated, bool $destinationExists): void
+    {
+        $original = 'original content';
+        $objects = ['uploads/source' => $original];
+        if ($destinationExists) {
+            $objects['uploads/destination'] = 'existing destination';
+        }
+        $sourceRequested = false;
+        $putAccepted = false;
+        $boundary = function (CommandInterface $command) use (&$objects, &$sourceRequested, &$putAccepted, $original, $truncated) {
+            $key = $command['Key'];
+            if ($command->getName() === 'PutObject') {
+                $putAccepted = true;
+                $objects[$key] = (string) $command['Body'];
+                return new Result([]);
+            }
+            if (!isset($objects[$key])) {
+                return $this->error(404, 'NoSuchKey');
+            }
+            $content = $objects[$key];
+            $metadata = ['created-at' => '1234', 'sha256' => hash('sha256', $content)];
+            if ($key === 'uploads/source' && !$sourceRequested) {
+                $sourceRequested = true;
+                $content = $truncated ? 'partial' : str_repeat('x', strlen($original));
+                if ($truncated) {
+                    unset($metadata['sha256']);
+                }
+            }
+            return new Result([
+                'Body' => Utils::streamFor($content), 'ContentLength' => strlen($objects[$key]),
+                'ContentType' => 'text/plain', 'Metadata' => $metadata,
+            ]);
+        };
+        $storage = $this->storage(array_fill(0, 8, $boundary));
+        $failed = false;
+        try {
+            $storage->copy('uploads/source', 'uploads/destination');
+        } catch (StorageException) {
+            $failed = true;
+        }
+        self::assertTrue($failed, 'Incomplete or mismatched source responses must fail.');
+        self::assertFalse($putAccepted, 'Source verification must finish before destination publication.');
+        self::assertSame($original, stream_get_contents($storage->read('uploads/source')));
+        if ($destinationExists) {
+            self::assertSame('existing destination', stream_get_contents($storage->read('uploads/destination')));
+        } else {
+            self::assertNull($storage->stat('uploads/destination'));
+        }
+    }
+
 }

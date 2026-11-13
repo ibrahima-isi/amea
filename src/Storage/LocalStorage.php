@@ -4,6 +4,8 @@ namespace Amea\Storage;
 
 class LocalStorage implements Storage
 {
+    use ValidatesStorageKeys;
+
     private string $root;
 
     public function __construct(string $projectRoot)
@@ -222,18 +224,6 @@ class LocalStorage implements Storage
             throw new StorageException('The storage object is not a regular file.');
         }
         return $path;
-    }
-
-    private function validateKey(string $key): void
-    {
-        if (strlen($key) > 1024 || !mb_check_encoding($key, 'UTF-8') || !str_starts_with($key, 'uploads/') || str_contains($key, '\\') || preg_match('/[\x00-\x1f\x7f]/', $key)) {
-            throw new StorageException('Invalid storage key.');
-        }
-        foreach (explode('/', $key) as $segment) {
-            if ($segment === '' || $segment === '.' || $segment === '..') {
-                throw new StorageException('Invalid storage key.');
-            }
-        }
     }
 
     private function checkedPath(string $relative): string
