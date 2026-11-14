@@ -174,6 +174,14 @@ The task's source worktree and branch were removed after clean-status and ancest
 
 The broad browser full-load check timed out in this environment. Focused actual media Chrome journeys passed on both backends, and the exact application CI harness passed with its configured browser-skip setting. The optional expiry-identity representation remark remains deferred. These are the qualification limits for this delivery, distinct from actual R2 and production qualification in later tickets. Tickets 04–06 require separate authorization. Detailed local evidence remains under `/private/tmp/amea-storage03-artifacts/`.
 
+## Remaining-spec integration
+
+On 2026-11-14 the user invoked `implement-spec` for all remaining tickets, superseding the earlier one-ticket execution boundary. The integration branch is `integration/object-storage-migration`, in `/private/tmp/amea-object-storage-integration`, starting from signed local-main closeout `b54d4613f311f54cb7c4adf7e1d5c271819165d9`.
+
+The task graph is `04 -> 05 -> 06`, with Ticket 03 already delivered. Each implementation starts from the current integration tip in a fresh worktree. A merger agent integrates each completed ticket with a signed merge. The feature's existing completion record remains the single execution ledger. Local reports and detailed evidence are under `/private/tmp/amea-storage-integration-artifacts/`.
+
+Ticket 04 is the current implementation frontier. R2 test-bucket configuration for Ticket 05 and the actual deployment/access details for Ticket 06 were requested while independent coding continues. No storage-provider configuration is present in the existing local environment. Actual production transition requires the selected resources, verified recovery point and concrete operator approval described by the already approved specification and AGENTS.md.
+
 ## R2 and production
 
 Actual bucket credentials, live file/reference inventory, backup restorability and measured maintenance duration require operational qualification. Production execution requires explicit approval of the selected resources and concrete transition. Source-copy deletion remains a separate decision after migration validation.
