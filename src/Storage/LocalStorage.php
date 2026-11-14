@@ -8,6 +8,16 @@ class LocalStorage implements Storage
 
     private string $root;
 
+    public function migrationRoot(): string
+    {
+        return $this->root;
+    }
+
+    public function migrationIdentity(): string
+    {
+        return hash('sha256', 'local:' . $this->root);
+    }
+
     public function __construct(string $projectRoot)
     {
         $root = realpath($projectRoot);
