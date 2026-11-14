@@ -13,6 +13,17 @@ class S3Storage implements Storage
     {
     }
 
+    public function migrationIdentity(): string
+    {
+        return hash('sha256', json_encode(['s3', (string) $this->client->getEndpoint(),
+            $this->client->getRegion(), $this->bucket, (bool) $this->client->getConfig('use_path_style_endpoint')], JSON_THROW_ON_ERROR));
+    }
+
+    public function migrationNamespace(): string
+    {
+        return hash('sha256', json_encode(['s3', (string) $this->client->getEndpoint(), $this->bucket], JSON_THROW_ON_ERROR));
+    }
+
     public function read(string $key): mixed
     {
         $this->validateKey($key);
