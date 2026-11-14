@@ -180,7 +180,27 @@ On 2026-11-14 the user invoked `implement-spec` for all remaining tickets, super
 
 The task graph is `04 -> 05 -> 06`, with Ticket 03 already delivered. Each implementation starts from the current integration tip in a fresh worktree. A merger agent integrates each completed ticket with a signed merge. The feature's existing completion record remains the single execution ledger. Local reports and detailed evidence are under `/private/tmp/amea-storage-integration-artifacts/`.
 
-Ticket 04 is the current implementation frontier. R2 test-bucket configuration for Ticket 05 and the actual deployment/access details for Ticket 06 were requested while independent coding continues. No storage-provider configuration is present in the existing local environment. Actual production transition requires the selected resources, verified recovery point and concrete operator approval described by the already approved specification and AGENTS.md.
+Ticket 04 is the current implementation frontier. R2 test-bucket configuration for Ticket 05 and the actual deployment/access details for Ticket 06 were requested while independent coding continues. The initial local environment check found no storage-provider configuration. Actual production transition requires the selected resources, verified recovery point and concrete operator approval described by the already approved specification and AGENTS.md.
+
+Ticket 06 explicitly consumes merged, qualified implementation. Therefore code review, latest-head CI and the implementation PR merge must precede its live transition, even though the generic `implement-spec` sequence places final review after all work. The same integration branch will carry the implementation and subsequent operational evidence, advancing to the actual merged revision before production qualification. This follows the ticket dependency and keeps the live approval attached to a concrete reviewed revision.
+
+The deferred closeout publication is [PR 43](https://github.com/ibrahima-isi/amea/pull/43). Its signed closeout commit is already included in this integration ancestry. Ticket 04 starts in `/private/tmp/amea-object-storage-04` from `0bb162e`; its detailed evidence is under `/private/tmp/amea-storage04-artifacts/`.
+
+The user confirmed a production VPS managed through Dokploy, with SSH and GitOps/CI/CD, and is preparing the R2 test bucket. The concrete Dokploy address/application and private test credential-file path remain requested. Connected tools expose no Dokploy/Cloudflare connector. Only names of existing GitHub configuration were inspected, with no secret values read or printed.
+
+The user then supplied a Dokploy project URL. The assistant browser reached its sign-in page, and the user declined the browser login. No authenticated deployment configuration or production state was accessed. The access purpose was clarified as the operational Ticket 06 transition, while Tickets 04/05 coding can continue independently. An operator-executed transition procedure was offered; actual execution and its evidence remain distinct from preparing that procedure. Private target pointers are stored outside Git under the integration artifact directory.
+
+Read-only Ticket 05 exploration saved `/private/tmp/amea-storage-integration-artifacts/05-writer-map.md`. It identified session mutation before controller dispatch, exit-based redirects, nested lock/session ordering and missing session/S3 coverage in the existing backup harness. These findings guide the gate/backup implementation after Ticket 04 integrates.
+
+### Ticket 04 integration
+
+Signed implementation `f5ea343af3d2be91785caca8ec426b4a8b4a0d94` adds complete raw local/S3 inventory, private JSONL manifests and atomic checkpoints, resumable content-verified transfer, current DB/session/ledger reference audit, reviewed guarded corrections and current-state reverse-copy. Source is retained. Same-namespace S3 aliases and overlapping local upload roots are refused. Unknown/special entries and ambiguous or missing references remain explicit unresolved evidence.
+
+The final exact-code migration suite passed 18 tests and 155 assertions with no skips. Its final affected suite passed 115 tests and 486 assertions. An earlier full run passed 303 tests and 878 assertions before the last namespace/current-presence/remapping guards, which received targeted reruns. PHP standalone, JS theme, three HTTP and Linux invalid-UTF-8/FIFO checks passed. Native MariaDB corrections used the existing migration advisory lock and member lock on the same PDO, including rollback and lock-release proof. Actual MinIO transfer/read-back and newly submitted document reverse-copy passed. Detailed evidence and consumed API/CLI contracts are in `/private/tmp/amea-storage04-artifacts/task-4-report.md`.
+
+A fresh merger agent created signed merge `91a5f7c80e31382e6b97a894da4b3e2912c3bceb` into the integration branch. It verified baseline ancestry, source and merge signatures, exact source-tree equality and byte-for-byte preservation of the controller-owned completion record. Its report is `/private/tmp/amea-storage-integration-artifacts/04-merge-report.md`.
+
+Ticket 04's repository implementation is locally qualified and integrated. Final whole-integration review, latest-head hosted CI and the eventual implementation PR merge remain separate delivery evidence. Ticket 05 is now the implementation frontier. R2 test-bucket qualification and the actual production transition are still operational prerequisites, with the user preparing the bucket and declining assistant-browser production login.
 
 ## R2 and production
 
