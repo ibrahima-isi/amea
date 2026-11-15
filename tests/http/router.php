@@ -44,8 +44,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_file($faultFile)) {
 
 // Loopback HTTP cannot send Secure cookies. Start a test session first;
 // production Session still applies expiry/authentication, never changed here.
+if (!in_array($path, ['/journal.php', '/journal-article.php', '/journal-cover.php'], true)
+    && !str_starts_with($path, '/uploads/slider/')) {
+    \Amea\Core\FileWriteGate::admitHttp();
+}
 ini_set('session.cookie_httponly', '1');
 ini_set('session.cookie_samesite', 'Strict');
-session_start();
+if (!in_array($path, ['/journal.php', '/journal-article.php', '/journal-cover.php'], true)
+    && !str_starts_with($path, '/uploads/slider/')) {
+    session_start(\Amea\Core\Session::isReadOnly() ? ['read_and_close' => true] : []);
+}
 $router = require __DIR__ . '/../../src/bootstrap.php';
 $router->dispatch();

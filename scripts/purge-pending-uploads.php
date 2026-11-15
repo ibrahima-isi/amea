@@ -35,6 +35,7 @@ function logLine(string $message): void
 }
 
 require_once $projectRoot . '/vendor/autoload.php';
+\Amea\Core\FileWriteGate::admitProcess();
 $ttlHours = max(1, (int)($_ENV['PENDING_UPLOAD_TTL_HOURS'] ?? getenv('PENDING_UPLOAD_TTL_HOURS') ?: 24));
 try {
     $lifecycle = \Amea\Core\Container::fileLifecycle();

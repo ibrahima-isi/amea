@@ -17,6 +17,11 @@ if (!empty($_SESSION['user_id'])) {
         $sessionVersion = (int)($_SESSION['session_version'] ?? 0);
 
         if (!$repo->isSessionVersionCurrent((int)$_SESSION['user_id'], $sessionVersion)) {
+            if (\Amea\Core\Session::isReadOnly()) {
+                http_response_code(503);
+                header('Retry-After: 60');
+                exit('Maintenance en cours. Veuillez réessayer plus tard.');
+            }
             $returnTarget = \Amea\Core\StaffNavigation::requestedTarget();
             $_SESSION = [];
             session_regenerate_id(true);

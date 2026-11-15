@@ -7,7 +7,7 @@ project="${AMEA_REHEARSAL_PROJECT:-amea-ui-test-${RANDOM}-$$}"
 [[ -z "$(docker ps -aq --filter label=com.docker.compose.project="$project")" ]] || { echo "Project already exists" >&2; exit 1; }
 [[ -z "$(docker volume ls -q --filter label=com.docker.compose.project="$project")" ]] || { echo "Project volumes already exist" >&2; exit 1; }
 compose=(docker compose -p "$project" -f tests/apps/compose.yaml)
-cleanup() { result=$?; if [[ "$result" != 0 ]]; then "${compose[@]}" logs --tail 40 public staff; fi; "${compose[@]}" down -v --remove-orphans; }
+cleanup() { result=$?; if [[ "$result" != 0 ]]; then "${compose[@]}" logs --tail 40 public staff; fi; "${compose[@]}" --profile jobs down -v --remove-orphans; }
 trap cleanup EXIT
 independent_probe() {
     "${compose[@]}" exec -T "$1" php -r '
@@ -66,7 +66,7 @@ python3 tests/apps/registration.py
 "${compose[@]}" exec -u www-data -T staff php < tests/apps/member-fixture.php
 python3 tests/apps/visual-refresh.py --populated
 python3 tests/apps/members.py
-if [[ "${AMEA_SKIP_BROWSER:-0}" != "1" ]]; then
+if [[ "${AMEA_SKIP_BROWSER:-0}" != "1" && "${AMEA_BROWSER_SCOPE:-all}" != "storage" ]]; then
     node tests/apps/browser.mjs "${AMEA_SCREENSHOT_DIR:-/private/tmp/amea-app-browser}"
 fi
 

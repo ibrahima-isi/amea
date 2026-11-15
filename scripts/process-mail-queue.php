@@ -42,6 +42,8 @@ if (is_file($projectRoot . '/.env')) {
     }
 }
 
+\Amea\Core\FileWriteGate::admitProcess();
+
 function mailEnv(string $key, string $default = ''): string
 {
     $value = $_ENV[$key] ?? getenv($key);

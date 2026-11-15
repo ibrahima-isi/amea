@@ -186,9 +186,17 @@ class MigrationTest extends TestCase
         file_put_contents($mappingPath, json_encode($mappings, JSON_THROW_ON_ERROR));
         chmod($mappingPath, 0600);
         $environment = array_merge(getenv(), ['MIGRATION_DB_DSN' => '', 'MIGRATION_ENVIRONMENT' => 'synthetic',
+            'FILE_WRITE_GATE_PATH' => $this->fixture['root'] . '/gate',
             'MIGRATION_SOURCE_DRIVER' => 'local', 'MIGRATION_SOURCE_ROOT' => $this->fixture['source'],
             'MIGRATION_DESTINATION_DRIVER' => 'local', 'MIGRATION_DESTINATION_ROOT' => $this->fixture['destination'],
             'MIGRATION_SESSION_PATH' => $this->fixture['sessions'], 'MIGRATION_SESSION_SERIALIZER' => 'php']);
+        [$code, $output] = $this->cli('audit-references', ['--environment=synthetic', '--database=' . $this->identity['database'],
+            '--source=' . $this->identity['source'], '--destination=' . $this->identity['destination'], '--manifest=' . $this->fixture['manifest'],
+            '--review-manifest=' . $manifest->reviewIdentity(), '--corrections=' . $mappingPath, '--review-corrections=' . hash_file('sha256', $mappingPath)], $environment);
+        self::assertSame(1, $code, 'Reference correction requires the exclusive persistent pause.');
+        [$pauseCode, $pauseOutput] = $this->cli('pause', ['--environment=synthetic', '--database=' . $this->identity['database'],
+            '--source=' . $this->identity['source'], '--destination=' . $this->identity['destination'], '--manifest=' . $this->fixture['manifest']], $environment);
+        self::assertSame(0, $pauseCode, $pauseOutput);
         [$code, $output] = $this->cli('audit-references', ['--environment=synthetic', '--database=' . $this->identity['database'],
             '--source=' . $this->identity['source'], '--destination=' . $this->identity['destination'], '--manifest=' . $this->fixture['manifest'],
             '--review-manifest=' . $manifest->reviewIdentity(), '--corrections=' . $mappingPath, '--review-corrections=' . hash_file('sha256', $mappingPath)], $environment);
@@ -205,6 +213,7 @@ class MigrationTest extends TestCase
         $this->identity['database'] = ReferenceAudit::databaseIdentity($database);
         $environment = array_merge(getenv(), [
             'MIGRATION_DB_DSN' => 'sqlite:' . $databasePath, 'MIGRATION_ENVIRONMENT' => 'synthetic',
+            'FILE_WRITE_GATE_PATH' => $this->fixture['root'] . '/gate',
             'MIGRATION_SOURCE_DRIVER' => 'local', 'MIGRATION_SOURCE_ROOT' => $this->fixture['source'],
             'MIGRATION_DESTINATION_DRIVER' => 'local', 'MIGRATION_DESTINATION_ROOT' => $this->fixture['destination'],
             'MIGRATION_SESSION_PATH' => $this->fixture['sessions'], 'MIGRATION_SESSION_SERIALIZER' => 'php',
@@ -243,10 +252,13 @@ class MigrationTest extends TestCase
         $dispositionPath = $this->fixture['root'] . '/evidence/dispositions.json';
         file_put_contents($dispositionPath, json_encode($dispositions, JSON_THROW_ON_ERROR));
         chmod($dispositionPath, 0600);
+        [$code, $output] = $this->cli('pause', $arguments, $environment);
+        self::assertSame(0, $code, $output);
         [$code, $output] = $this->cli('verify', [...$arguments, '--review-manifest=' . $manifest->reviewIdentity(),
             '--dispositions=' . $dispositionPath, '--review-dispositions=' . hash_file('sha256', $dispositionPath)], $environment);
         self::assertSame(0, $code, $output);
 
+        (new \Amea\Core\FileWriteGate($this->fixture['root'] . '/gate'))->resume(static fn () => null);
         $new = 'uploads/students/cvs/new-submission.pdf';
         $stream = fopen('php://temp', 'w+b');
         fwrite($stream, "%PDF-1.4\nnew submission\n");
@@ -264,6 +276,8 @@ class MigrationTest extends TestCase
         [$code, $output] = $this->cli('inventory', $reverseArguments, $environment);
         self::assertSame(0, $code, $output);
         $reverse = Manifest::load($this->fixture['root'] . '/evidence/reverse.jsonl', $reverseIdentity);
+        [$code, $output] = $this->cli('pause', $reverseArguments, $environment);
+        self::assertSame(0, $code, $output);
         [$code, $output] = $this->cli('reverse-copy', [...$reverseArguments, '--review-manifest=' . $reverse->reviewIdentity()], $environment);
         self::assertSame(0, $code, $output);
         self::assertSame("%PDF-1.4\nnew submission\n", file_get_contents($this->fixture['source'] . '/' . $new));

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Final operational boundary: owned temporary projects, real HTTPS and files."""
-import hashlib, json, os, pathlib, re, subprocess, sys, tempfile, time
+import base64, hashlib, json, os, pathlib, re, shutil, subprocess, sys, tempfile, time, uuid
 from http.client import HTTPException
 import routes as http
 
@@ -84,6 +84,7 @@ for kind in ['container', 'volume']:
 with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
     directory = pathlib.Path(temporary)
     images = {service: capture(project, 'images', '-q', service).decode().strip() for service in ['public', 'staff']}
+    images['jobs'] = subprocess.check_output(['docker', 'image', 'inspect', project + '-jobs', '--format', '{{.Id}}']).decode().strip()
     assert all(images.values())
     forward = directory / 'forward.json'
     forward.write_text(json.dumps({'services': {s: {'image': image} for s, image in images.items()}}))
@@ -108,13 +109,15 @@ with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
         assert observe_journal() == journal
         assert storage_hash(project) == storage
     http.check(True, 'storage volume persists through all container replacements')
-    # A real retained pre-08 public image has different compatibility behavior.
-    prior = source_env.get('AMEA_ROLLBACK_PUBLIC_IMAGE', 'amea-ui-prior-public:ff3a8ab')
+    # Retain the pre-08 local image and a backend-aware base revision for S3.
+    backend_aware = source_env.get('STORAGE_DRIVER') == 's3'
+    prior_revision = '6201369b6e9144afda2a36565130dbcdac546af4' if backend_aware else 'ff3a8abac51eda2bec3e115b603c7e788de472f8'
+    prior = source_env.get('AMEA_ROLLBACK_PUBLIC_IMAGE', 'amea-ui-prior-public:storage-6201369' if backend_aware else 'amea-ui-prior-public:ff3a8ab')
     prior_id = subprocess.run(['docker','image','inspect',prior,'--format','{{.Id}}'], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
     if prior_id.returncode != 0:
         context = directory / 'prior'
         context.mkdir()
-        revision = 'ff3a8abac51eda2bec3e115b603c7e788de472f8'
+        revision = prior_revision
         present = subprocess.run(['git','cat-file','-e',revision+'^{commit}'],cwd=ROOT,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
         if present.returncode != 0:
             subprocess.run(['git','fetch','--no-tags','--depth=1','origin',revision],cwd=ROOT,check=True)
@@ -127,7 +130,7 @@ with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
     rollback.write_text(json.dumps({'services': {'public': {'image': prior}}}))
     command(project, 'up', '-d', '--no-deps', '--no-build', '--force-recreate', 'public', override=rollback)
     wait_ready(source_ports)
-    http.check(http.request('public','/login.php')[0] == 404, 'retained pre-08 image restores its observable legacy 404 behavior')
+    http.check(http.request('public','/login.php')[0] == 404, 'retained prior image preserves public staff-route denial')
     verify(expected, 'real prior image rollback preserves candidate database and file bytes')
     command(project, 'up', '-d', '--no-deps', '--no-build', '--force-recreate', 'public', override=forward)
     wait_ready(source_ports)
@@ -136,33 +139,90 @@ with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
     verify(expected, 'forward deployment preserves candidate database and files')
     assert observe_journal() == journal
     http.check(True, 'forward after legacy rollback restores published journal and cover bytes')
-    sql, files = directory/'database.sql', directory/'files.tar'
-    with sql.open('wb') as output:
-        command(project,'exec','-T','mysql','mysqldump','--single-transaction','--no-tablespaces','-uamea','-psynthetic-only','amea_rehearsal',stdout=output)
-    with files.open('wb') as output:
-        command(project,'exec','-T','public','tar','-C','/opt/amea','--exclude=storage/cache','-cf','-','uploads','storage',stdout=output)
-    assert sql.stat().st_size and files.stat().st_size
+    def recovery(name, mode, *args, env=None):
+        with (ROOT / 'tests/apps/recovery.php').open('rb') as source:
+            return capture(name, '--profile', 'jobs', 'run', '--rm', '-T', '--no-deps', 'jobs',
+                           'php', '/dev/stdin', mode, *args, env=env, override=forward, stdin=source)
+
+    recovery(project, 'seed')
+    pending_cookie = 'AMEA_PUBLIC=recoverypending'
+    status, _, pending_bytes = http.request('public', '/registration-preview.php?type=identite', cookie=pending_cookie)
+    http.check(status == 200 and b'Synthetic registration opened before recovery pause' in pending_bytes, 'pre-pause registration has an actual authorized preview')
+    browser_enabled = source_env.get('AMEA_SKIP_BROWSER', '0') != '1'
+    if browser_enabled:
+        subprocess.run(['node', 'tests/apps/recovery-browser.mjs', source_env.get('AMEA_SCREENSHOT_DIR', '/private/tmp/amea-app-browser')], cwd=ROOT, env={**source_env, 'AMEA_RECOVERY_BROWSER_PHASE':'before'}, check=True)
+    proof = json.loads(recovery(project, 'capture').decode().strip())
+    http.check(http.request('public', '/register.php')[0] == 503 and http.request('staff', '/login.php')[0] == 503,
+               'durable coordinated pause closes public and staff session/DB mutations')
+    http.check(http.request('public', '/journal.php')[0] == 200, 'stateless journal remains available during backup pause')
+    status, headers, paused_preview = http.request('public', '/registration-preview.php?type=identite', cookie=pending_cookie)
+    http.check(status == 200 and paused_preview == pending_bytes and 'Set-Cookie' not in headers,
+               'private preview smoke read remains available during pause without cookie/session mutation')
+    backup = directory / 'coordinated-backup.tar'
+    with backup.open('wb') as output:
+        backup.chmod(0o600)
+        command(project, '--profile', 'jobs', 'run', '--rm', '-T', '--no-deps', 'jobs', 'tar', '-C', '/var/lib/amea/recovery', '-cf', '-', '.', stdout=output)
+    if source_env.get('AMEA_RECOVERY_EVIDENCE_DIR'):
+        retained = pathlib.Path(source_env['AMEA_RECOVERY_EVIDENCE_DIR'])
+        retained.mkdir(mode=0o700, parents=True, exist_ok=True)
+        shutil.copy2(backup, retained / (project + '-coordinated-backup.tar'))
+    http.check(proof['objects'] > 0 and backup.stat().st_size > 0, 'snapshot includes verified private/public objects and finalized manifest/checkpoint identity')
+    restore_bucket = None
+    if source_env.get('STORAGE_DRIVER') == 's3':
+        restore_bucket = 'amea-ui-restore-' + uuid.uuid4().hex
+        recovery(project, 'create-restore-bucket', restore_bucket)
+        restore_env['S3_BUCKET'] = restore_bucket
     try:
-        # Let one app populate the fresh shared volumes before sibling creation.
-        # Concurrent image copy-up can race on storage/mail-queue in Docker.
-        command(restore_project,'create','--no-build','public',env=restore_env,override=forward)
-        command(restore_project,'up','-d','--no-build',env=restore_env,override=forward)
-        for _ in range(120):
-            check = subprocess.run(['docker','compose','-p',restore_project,'-f',str(compose_file),'-f',str(forward),'exec','-T','mysql','mysql','--protocol=TCP','-h','127.0.0.1','-uamea','-psynthetic-only','amea_rehearsal','-e','SELECT 1'],env=restore_env,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
-            if check.returncode == 0: break
+        command(restore_project, 'create', '--no-build', 'public', env=restore_env, override=forward)
+        command(restore_project, 'create', '--no-build', 'staff', env=restore_env, override=forward)
+        command(restore_project, 'up', '-d', '--wait', '--wait-timeout', '90', '--no-build', 'mysql', env=restore_env, override=forward)
+        with backup.open('rb') as source:
+            command(restore_project, '--profile', 'jobs', 'run', '--rm', '-T', '--no-deps', 'jobs',
+                    'tar', '-C', '/var/lib/amea/recovery', '-xf', '-', env=restore_env, override=forward, stdin=source)
+        restored = json.loads(recovery(restore_project, 'restore', env=restore_env).decode().strip())
+        http.check(restored['state'] == 'verified', 'separate restore verifies DB, ledger, bytes, lifecycle ages and both session stores before reopening')
+        command(restore_project, 'up', '-d', '--no-build', 'public', 'staff', 'tls', env=restore_env, override=forward)
+        http.PUBLIC_PORT, http.STAFF_PORT = (18448, 19448)
+        for _ in range(60):
+            try:
+                if http.request('public', '/register.php')[0] == 503 and http.request('staff', '/login.php')[0] == 503:
+                    break
+            except (OSError, HTTPException):
+                pass
             time.sleep(.5)
-        else: raise RuntimeError('Restore MySQL did not become ready')
-        with sql.open('rb') as source:
-            command(restore_project,'exec','-T','mysql','mysql','-uamea','-psynthetic-only','amea_rehearsal',env=restore_env,override=forward,stdin=source)
-        with files.open('rb') as source:
-            command(restore_project,'exec','-T','public','tar','-C','/opt/amea','-xf','-',env=restore_env,override=forward,stdin=source)
-        wait_ready((18448,19448))
-        verify(expected, 'separate fresh SQL/files restore reproduces member and authorized private/public bytes over HTTPS')
+        else:
+            raise RuntimeError('Fresh restored images did not preserve the persistent pause')
+        status, headers, paused_preview = http.request('public', '/registration-preview.php?type=identite', cookie=pending_cookie)
+        http.check(status == 200 and paused_preview == pending_bytes and 'Set-Cookie' not in headers,
+                   'fresh paused images preserve private read-only preview and block new mutations')
+        reports = []
+        for role in ['public', 'staff']:
+            reports.append(json.loads(capture(restore_project, 'exec', '-u', 'www-data', '-T', role, 'php',
+                                               '/opt/amea-apps/storage-target.php', env=restore_env, override=forward)))
+        reports.append(json.loads(capture(restore_project, '--profile', 'jobs', 'run', '--rm', '-T', '--no-deps', 'jobs',
+                                           'php', '/opt/amea-apps/storage-target.php', env=restore_env, override=forward)))
+        encoded = base64.b64encode(json.dumps(reports).encode()).decode()
+        recovery(restore_project, 'resume', encoded, env=restore_env)
+        wait_ready((18448, 19448))
+        verify(expected, 'separate coordinated restore reproduces member and authorized private/public bytes over HTTPS')
         assert observe_journal() == journal
-        http.check(True, 'fresh SQL/files restore preserves published journal and controlled cover bytes')
-        assert storage_hash(restore_project,restore_env) == storage
-        http.check(True, 'separate restored storage marker matches backup')
-        http.check(http.request('public','/uploads/students/member-review.pdf')[0] in [403,404], 'restoration does not expose private uploaded documents')
+        assert storage_hash(restore_project, restore_env) == storage
+        http.check(True, 'restored journal and persistent storage marker match the coordinated recovery point')
+        status, _, restored_pending = http.request('public', '/registration-preview.php?type=identite', cookie=pending_cookie)
+        http.check(status == 200 and restored_pending == pending_bytes, 'original browser session retains its pre-pause preview after isolated restore')
+        if browser_enabled:
+            subprocess.run(['node', 'tests/apps/recovery-browser.mjs', source_env.get('AMEA_SCREENSHOT_DIR', '/private/tmp/amea-app-browser')], cwd=ROOT, env={**restore_env, 'AMEA_RECOVERY_BROWSER_PHASE':'after'}, check=True)
+        else:
+            status, _, review = http.request('public', '/registration-details.php', cookie=pending_cookie)
+            token = re.search(rb'name="csrf_token"\s+value="([^"]+)"', review).group(1).decode()
+            status, headers, _ = http.request('public', '/registration-details.php', {'csrf_token': token}, cookie=pending_cookie)
+            http.check(status == 302 and headers.get('Location') == '/', 'registration opened before pause confirms after restored reopening')
+        http.check(http.request('public', '/uploads/students/member-review.pdf')[0] in [403, 404], 'restoration preserves private-document route protection')
+        print('RECOVERY', json.dumps({'source_snapshot': proof, 'restore': restored}))
     finally:
-        command(restore_project,'down','-v','--remove-orphans',env=restore_env,override=forward)
+        if sys.exc_info()[0] is not None:
+            command(restore_project, 'logs', '--tail', '60', 'public', 'staff', env=restore_env, override=forward)
+        command(restore_project, '--profile', 'jobs', 'down', '-v', '--remove-orphans', env=restore_env, override=forward)
+        if restore_bucket:
+            recovery(project, 'cleanup-restore-bucket', restore_bucket)
         http.PUBLIC_PORT, http.STAFF_PORT = source_ports

@@ -24,6 +24,7 @@ services:
       DB_USER: amea
       DB_PASS: synthetic-only
       APP_ENV: test
+      FILE_WRITE_GATE_PATH: /opt/amea/storage/write-gate
       STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
       S3_ENDPOINT: ${S3_ENDPOINT:-}
       S3_REGION: ${S3_REGION:-us-east-1}
@@ -72,6 +73,9 @@ services:
     volumes:
       - uploads:/opt/amea/uploads
       - storage:/opt/amea/storage
+      - public_sessions:/var/lib/amea/recovery-sessions/public
+      - staff_sessions:/var/lib/amea/recovery-sessions/staff
+      - recovery:/var/lib/amea/recovery
     tmpfs:
       - /opt/amea/storage/cache:uid=33,gid=33,mode=0770
     depends_on:
@@ -89,3 +93,4 @@ volumes:
   storage:
   public_sessions:
   staff_sessions:
+  recovery:

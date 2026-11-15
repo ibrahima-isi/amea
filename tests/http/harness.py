@@ -65,7 +65,7 @@ class HttpFixture:
         return token.group(1).decode()
 
 @contextlib.contextmanager
-def disposable_app(extra_fixtures=(), storage_env=None):
+def disposable_app(extra_fixtures=(), storage_env=None, php_options=()):
     # PHP fixture/router also require this basename prefix and isolated DB file.
     with tempfile.TemporaryDirectory(prefix='amea-http-') as directory:
         app = pathlib.Path(directory)
@@ -82,7 +82,7 @@ def disposable_app(extra_fixtures=(), storage_env=None):
             port = listener.getsockname()[1]
         base = f'http://127.0.0.1:{port}'
         with open(app / 'server.log', 'w+') as log:
-            server = subprocess.Popen(['php', '-d', f'session.save_path={app / "sessions"}', '-S', f'127.0.0.1:{port}', 'tests/http/router.php'], cwd=app, stdout=log, stderr=log, env=fixture_env)
+            server = subprocess.Popen(['php', *php_options, '-d', f'session.save_path={app / "sessions"}', '-S', f'127.0.0.1:{port}', 'tests/http/router.php'], cwd=app, stdout=log, stderr=log, env=fixture_env)
             fixture = HttpFixture(base)
             try:
                 for attempt in range(50):

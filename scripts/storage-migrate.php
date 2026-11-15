@@ -79,14 +79,15 @@ function reviewedMigrationMappings(array $options, string $name): array
     return $mappings;
 }
 
-try {
+function storageMigrationMain(array $argv): int
+{
     $arguments = array_slice($argv, 1);
     $operation = isset($arguments[0]) && !str_starts_with($arguments[0], '--') ? array_shift($arguments) : 'inventory';
-    if (!in_array($operation, ['inventory', 'audit-references', 'copy', 'verify', 'reverse-copy'], true)) {
-        throw new InvalidArgumentException('Use inventory, audit-references, copy, verify or reverse-copy.');
+    if (!in_array($operation, ['inventory', 'audit-references', 'copy', 'verify', 'reverse-copy', 'pause', 'final-check', 'resume', 'status', 'drain-intents'], true)) {
+        throw new InvalidArgumentException('Select a documented inventory, transfer or write-gate command.');
     }
     $allowed = ['environment', 'database', 'source', 'destination', 'manifest', 'review-manifest',
-        'mappings', 'review-mappings', 'corrections', 'review-corrections', 'dispositions', 'review-dispositions', 'reference-backend'];
+        'mappings', 'review-mappings', 'corrections', 'review-corrections', 'dispositions', 'review-dispositions', 'reference-backend', 'targets'];
     $options = [];
     foreach ($arguments as $argument) {
         if (!preg_match('/^--([a-z-]+)=(.+)$/s', $argument, $match) || !in_array($match[1], $allowed, true) || isset($options[$match[1]])) {
@@ -138,92 +139,153 @@ try {
             throw new InvalidArgumentException('The selected target identity differs from the actual configuration.');
         }
     }
-    $referenceBackend = $options['reference-backend'] ?? 'source';
-    $auditor = new ReferenceAudit($db, $referenceBackend === 'destination' ? $destination : $source,
-        $identity, $sessionPath, $serializer, $referenceBackend);
-    $inventory = new Inventory($source, $identity, $source instanceof LocalStorage ? $source->migrationRoot() : null);
-    $mappings = reviewedMigrationMappings($options, 'mappings');
-    $corrections = reviewedMigrationMappings($options, 'corrections');
-    $dispositions = reviewedMigrationMappings($options, 'dispositions');
-    if (($mappings !== [] && !in_array($operation, ['inventory', 'copy', 'reverse-copy'], true))
-        || ($corrections !== [] && $operation !== 'audit-references') || ($dispositions !== [] && $operation === 'inventory')) {
-        throw new InvalidArgumentException('Mappings belong to inventory/copy/reverse-copy and corrections belong to audit-references.');
+    $gate = \Amea\Core\FileWriteGate::application();
+    $cutover = new \Amea\Storage\Migration\Cutover($gate, $db, $source, $destination, $identity, $options['manifest']);
+    if ($operation === 'pause') {
+        fwrite(STDOUT, json_encode($cutover->pause(), JSON_THROW_ON_ERROR) . "\n");
+        return 0;
     }
-    if ($operation === 'inventory') {
-        if ($referenceBackend !== 'source') {
-            throw new InvalidArgumentException('Initial inventory audits the selected source backend.');
+    if ($operation === 'status') {
+        fwrite(STDOUT, json_encode($gate->status(), JSON_THROW_ON_ERROR) . "\n");
+        return 0;
+    }
+    if (in_array($operation, ['final-check', 'resume'], true)) {
+        if (!isset($options['targets'])) {
+            throw new InvalidArgumentException('Collect all actual target reports in a private --targets JSON array.');
         }
-        $manifest = $inventory->scan();
-        foreach ($mappings as $mapping) {
-            $manifest->map($mapping['source_key'] ?? '', $mapping['destination_key'] ?? '', $mapping['expected_sha256'] ?? '');
+        Manifest::assertPrivatePath($options['targets']);
+        $targets = json_decode(file_get_contents($options['targets']), true, 64, JSON_THROW_ON_ERROR);
+        if (!is_array($targets) || !array_is_list($targets)) {
+            throw new InvalidArgumentException('Target reports must be a JSON array.');
         }
-        $auditor->audit($manifest);
-        $manifest->save($options['manifest']);
-    } else {
-        $manifest = Manifest::load($options['manifest'], $identity);
-        $mutating = in_array($operation, ['copy', 'reverse-copy'], true) || $corrections !== [] || $dispositions !== [];
-        if ($mutating && ($options['review-manifest'] ?? '') !== $manifest->reviewIdentity()) {
-            throw new InvalidArgumentException('Mutation requires --review-manifest with the immutable inventory SHA-256.');
-        }
-        if ($operation === 'reverse-copy' && (!($destination instanceof LocalStorage) || $referenceBackend !== 'source')) {
-            throw new InvalidArgumentException('Reverse-copy selects the current active source, current references and a local recovery destination.');
-        }
-        if ($corrections !== [] && $runtime === null) {
-            throw new InvalidArgumentException('Reference correction requires the existing MariaDB migration runtime and advisory lock.');
-        }
-        $manifest->locked(function (Manifest $manifest) use ($auditor, $dispositions) {
-            $auditor->audit($manifest);
-            if ($dispositions !== []) {
-                $manifest->dispose($dispositions, hash('sha256', json_encode($dispositions, JSON_THROW_ON_ERROR)));
+        $result = $operation === 'final-check' ? $cutover->finalCheck($targets) : $cutover->resume($targets);
+        fwrite(STDOUT, json_encode(['operation' => $operation, 'verification' => $result], JSON_THROW_ON_ERROR) . "\n");
+        return 0;
+    }
+    if ($operation === 'drain-intents') {
+        $gate->exclusive(function (array $state) use ($identity, $db, $source) {
+            if (($state['selection'] ?? null) !== $identity) {
+                throw new StorageException('Paused migration selection mismatch.');
             }
-            $manifest->checkpoint();
+            $environment = $_ENV;
+            try {
+                $_ENV['STORAGE_DRIVER'] = migrationEnvironment('MIGRATION_SOURCE_DRIVER');
+                $_ENV['S3_ENDPOINT'] = migrationEnvironment('MIGRATION_SOURCE_S3_ENDPOINT');
+                $_ENV['S3_BUCKET'] = migrationEnvironment('MIGRATION_SOURCE_S3_BUCKET');
+                $backend = StorageFactory::identity($source instanceof LocalStorage ? $source->migrationRoot() : dirname(__DIR__));
+            } finally {
+                $_ENV = $environment;
+            }
+            $lifecycle = new \Amea\Service\FileLifecycleService($db, $source, $backend);
+            $lifecycle->retryDeletions(100000, migrationEnvironment('AMEA_TRASH_BACKUP_CONFIRMED') === '1');
+            if ((int)$db->query('SELECT COUNT(*) FROM file_operations')->fetchColumn() !== 0) {
+                throw new StorageException('Pending intents remain. Resolve them on their owning backend before cutover.');
+            }
         });
-        if ($corrections !== []) {
-            $auditor->correct($manifest, $corrections, hash('sha256', json_encode($corrections, JSON_THROW_ON_ERROR)), $destination, $runtime);
-            $manifest->locked(function (Manifest $manifest) use ($auditor) {
-                $auditor->audit($manifest);
-                $manifest->checkpoint();
-            });
+        return 0;
+    }
+    $run = function () use ($operation, $options, $source, $destination, $runtime, $db, $sessionPath, $serializer, $identity): int {
+        $referenceBackend = $options['reference-backend'] ?? 'source';
+        $auditor = new ReferenceAudit($db, $referenceBackend === 'destination' ? $destination : $source,
+            $identity, $sessionPath, $serializer, $referenceBackend);
+        $inventory = new Inventory($source, $identity, $source instanceof LocalStorage ? $source->migrationRoot() : null);
+        $mappings = reviewedMigrationMappings($options, 'mappings');
+        $corrections = reviewedMigrationMappings($options, 'corrections');
+        $dispositions = reviewedMigrationMappings($options, 'dispositions');
+        if (($mappings !== [] && !in_array($operation, ['inventory', 'copy', 'reverse-copy'], true))
+            || ($corrections !== [] && $operation !== 'audit-references') || ($dispositions !== [] && $operation === 'inventory')) {
+            throw new InvalidArgumentException('Mappings belong to inventory/copy/reverse-copy and corrections belong to audit-references.');
         }
-        $copier = new Copier($source, $destination, $identity, $inventory);
-        if (in_array($operation, ['copy', 'reverse-copy'], true)) {
-            $copier->copy($manifest, $mappings, $mappings === [] ? null : hash('sha256', json_encode($mappings, JSON_THROW_ON_ERROR)));
-            // New submissions and staged sessions are read again after transfer.
-            $manifest->locked(function (Manifest $manifest) use ($auditor) {
+        if ($operation === 'inventory') {
+            if ($referenceBackend !== 'source') {
+                throw new InvalidArgumentException('Initial inventory audits the selected source backend.');
+            }
+            $manifest = $inventory->scan();
+            foreach ($mappings as $mapping) {
+                $manifest->map($mapping['source_key'] ?? '', $mapping['destination_key'] ?? '', $mapping['expected_sha256'] ?? '');
+            }
+            $auditor->audit($manifest);
+            $manifest->save($options['manifest']);
+        } else {
+            $manifest = Manifest::load($options['manifest'], $identity);
+            $mutating = in_array($operation, ['copy', 'reverse-copy'], true) || $corrections !== [] || $dispositions !== [];
+            if ($mutating && ($options['review-manifest'] ?? '') !== $manifest->reviewIdentity()) {
+                throw new InvalidArgumentException('Mutation requires --review-manifest with the immutable inventory SHA-256.');
+            }
+            if ($operation === 'reverse-copy' && (!($destination instanceof LocalStorage) || $referenceBackend !== 'source')) {
+                throw new InvalidArgumentException('Reverse-copy selects the current active source, current references and a local recovery destination.');
+            }
+            if ($corrections !== [] && $runtime === null) {
+                throw new InvalidArgumentException('Reference correction requires the existing MariaDB migration runtime and advisory lock.');
+            }
+            $manifest->locked(function (Manifest $manifest) use ($auditor, $dispositions) {
                 $auditor->audit($manifest);
+                if ($dispositions !== []) {
+                    $manifest->dispose($dispositions, hash('sha256', json_encode($dispositions, JSON_THROW_ON_ERROR)));
+                }
                 $manifest->checkpoint();
             });
-            if ($operation === 'reverse-copy') {
-                $differences = array_filter($manifest->references, static fn ($reference) => $reference['state'] !== 'resolved' && empty($reference['disposition']));
+            if ($corrections !== []) {
+                $auditor->correct($manifest, $corrections, hash('sha256', json_encode($corrections, JSON_THROW_ON_ERROR)), $destination, $runtime);
+                $manifest->locked(function (Manifest $manifest) use ($auditor) {
+                    $auditor->audit($manifest);
+                    $manifest->checkpoint();
+                });
+            }
+            $copier = new Copier($source, $destination, $identity, $inventory);
+            if (in_array($operation, ['copy', 'reverse-copy'], true)) {
+                $copier->copy($manifest, $mappings, $mappings === [] ? null : hash('sha256', json_encode($mappings, JSON_THROW_ON_ERROR)));
+                // New submissions and staged sessions are read again after transfer.
+                $manifest->locked(function (Manifest $manifest) use ($auditor) {
+                    $auditor->audit($manifest);
+                    $manifest->checkpoint();
+                });
+                if ($operation === 'reverse-copy') {
+                    $differences = array_filter($manifest->references, static fn ($reference) => $reference['state'] !== 'resolved' && empty($reference['disposition']));
+                    if ($differences !== []) {
+                        fwrite(STDOUT, 'Reverse-copy reference differences ' . count($differences) . "\n");
+                        return 3;
+                    }
+                }
+            }
+            if ($operation === 'verify') {
+                $destinationAudit = new ReferenceAudit($db, $destination, $identity, $sessionPath, $serializer, 'destination');
+                $manifest->locked(function (Manifest $manifest) use ($destinationAudit) {
+                    $destinationAudit->audit($manifest);
+                    $manifest->checkpoint();
+                });
+                $differences = $copier->verify($manifest);
+                fwrite(STDOUT, 'Verification differences ' . count($differences) . "\n");
                 if ($differences !== []) {
-                    fwrite(STDOUT, 'Reverse-copy reference differences ' . count($differences) . "\n");
-                    exit(3);
+                    return 3;
+                }
+            }
+            if ($operation === 'audit-references') {
+                $differences = array_filter($manifest->references, static fn ($reference) => $reference['state'] !== 'resolved' && empty($reference['disposition']));
+                fwrite(STDOUT, 'Reference differences ' . count($differences) . "\n");
+                if ($differences !== []) {
+                    return 3;
                 }
             }
         }
-        if ($operation === 'verify') {
-            $destinationAudit = new ReferenceAudit($db, $destination, $identity, $sessionPath, $serializer, 'destination');
-            $manifest->locked(function (Manifest $manifest) use ($destinationAudit) {
-                $destinationAudit->audit($manifest);
-                $manifest->checkpoint();
-            });
-            $differences = $copier->verify($manifest);
-            fwrite(STDOUT, 'Verification differences ' . count($differences) . "\n");
-            if ($differences !== []) {
-                exit(3);
+        fwrite(STDOUT, 'Manifest SHA256 ' . $manifest->reviewIdentity() . "\nFiles " . count($manifest->files)
+            . "\nReferences " . count($manifest->references) . "\nIssues " . count($manifest->issues) . "\n");
+        return 0;
+    };
+    $paused = $gate->status()['paused'];
+    if ($paused || isset($options['corrections']) || isset($options['dispositions']) || $operation === 'reverse-copy') {
+        return $gate->exclusive(function (array $state) use ($identity, $run) {
+            if (($state['selection'] ?? null) !== $identity) {
+                throw new StorageException('Paused migration selection mismatch.');
             }
-        }
-        if ($operation === 'audit-references') {
-            $differences = array_filter($manifest->references, static fn ($reference) => $reference['state'] !== 'resolved' && empty($reference['disposition']));
-            fwrite(STDOUT, 'Reference differences ' . count($differences) . "\n");
-            if ($differences !== []) {
-                exit(3);
-            }
-        }
+            return $run();
+        });
     }
-    fwrite(STDOUT, 'Manifest SHA256 ' . $manifest->reviewIdentity() . "\nFiles " . count($manifest->files)
-        . "\nReferences " . count($manifest->references) . "\nIssues " . count($manifest->issues) . "\n");
-    exit(0);
+    return $gate->mutate($run);
+}
+
+try {
+    exit(storageMigrationMain($argv));
 } catch (InvalidArgumentException $error) {
     fwrite(STDERR, $error->getMessage() . "\n");
     exit(2);
