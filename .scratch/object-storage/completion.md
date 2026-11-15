@@ -202,6 +202,24 @@ A fresh merger agent created signed merge `91a5f7c80e31382e6b97a894da4b3e2912c3b
 
 Ticket 04's repository implementation is locally qualified and integrated. Final whole-integration review, latest-head hosted CI and the eventual implementation PR merge remain separate delivery evidence. Ticket 05 is now the implementation frontier. R2 test-bucket qualification and the actual production transition are still operational prerequisites, with the user preparing the bucket and declining assistant-browser production login.
 
+The integration draft is [PR 44](https://github.com/ibrahima-isi/amea/pull/44), targeting `dev`. Its first exact head `6201369b6e9144afda2a36565130dbcdac546af4` passed all four jobs in [CI run 43655924451](https://github.com/ibrahima-isi/amea/actions/runs/43655924451). This qualifies the Ticket 04 integration snapshot, separately from the future Ticket 05/final head. Publication used the existing SSH GitHub access with a TTY, which was verified without changing credentials.
+
+### Ticket 05 in progress
+
+The fresh worktree `/private/tmp/amea-object-storage-05`, branch `feat/object-storage-05`, starts from `6201369`. The shared synthetic services remain under the root-owned integration namespace, with a dedicated `amea_storage05_test` database separate from Ticket 04's qualified database. Initial gate RED/GREEN evidence includes admission/draining, restart closure, nested calls, exit-safe staged-session persistence and actual HTTP/CLI mutation guards. Final code/runtime, R2 qualification and merge evidence will be recorded separately.
+
+### Ticket 05 repository integration and open qualifications
+
+Signed source `7299837d141ab6bd5d58d877d007858d4d6de517` implements the persistent admission/drain gate, session-safe HTTP/CLI guards, final-check/resume and runtime target attestations, coordinated snapshots and isolated restore/reopen, current-state rollback rehearsal, deterministic S3 CI and the dedicated R2 qualification harness. The source signature was independently verified.
+
+The full suite ran once with synthetic MariaDB/S3 and passed 311 tests and 931 assertions, with two opt-in skips and ten inherited deprecations. Final affected checks passed 29 tests and 209 assertions, followed by six final gate/recovery tests with 48 assertions. Standalone PHP, theme, HTTP, both deterministic S3 providers and canonical Doctrine Compose checks passed. Actual local/S3 Compose/Chrome runs exercised the shipped capture/restore/reopen CLIs with baked public/staff/jobs reports, paused private reads, restored sessions and a pre-pause registration confirmed after reopening. Snapshots remain private in the artifact directory. Simulated outage/missing-object/ack-loss cases are identified as injections in the detailed report.
+
+A fresh merger created signed merge `07c142c11aa96bdeb326659d0c1f271368275472`, preserving both the source tree exactly and the dirty controller-owned tracker. Its report is `/private/tmp/amea-storage-integration-artifacts/05-merge-report.md`. Full implementation/CLI/API and evidence pointers are in `/private/tmp/amea-storage05-artifacts/task-5-report.md`.
+
+Actual R2 qualification remains unchecked. The user selected `amea-sandbox` and confirmed generating keys, but the prepared private config still has empty endpoint/access/secret fields at the last check. No actual R2 request has been made. The JPEG path initially supplied was not read because OS access was denied and no image was transmitted.
+
+The implementer additionally flagged an unqualified recovery edge: snapshot reference validation may reconstruct inventory without the earlier reviewed missing-reference dispositions. The global Spec review must verify it against the approved recovery-or-disposition contract. Ticket 05 remains operationally incomplete until this review/fix and real R2 evidence are resolved. Ticket 06 has not executed; no authenticated production access or changes occurred.
+
 ## R2 and production
 
 Actual bucket credentials, live file/reference inventory, backup restorability and measured maintenance duration require operational qualification. Production execution requires explicit approval of the selected resources and concrete transition. Source-copy deletion remains a separate decision after migration validation.
