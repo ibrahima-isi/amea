@@ -309,8 +309,7 @@ database and sessions intact. Conflicting local bytes require an explicit review
 mapping. Unresolved current references make `reverse-copy` exit with code `3`.
 Run `verify` and the application recovery checks against that current
 recovery point before reopening mutations. Keep writers paused when unique active
-objects cannot be read or recovered. The cutover ticket owns the persistent gate,
-coordinated backup, switch and reopening procedure.
+objects cannot be read or recovered. Use the persistent gate and coordinated recovery commands below before reopening.
 
 | Exit code | Meaning |
 | --- | --- |
@@ -321,6 +320,191 @@ coordinated backup, switch and reopening procedure.
 
 Synthetic qualification covers local and MinIO transfers, actual CLI selection,
 resumability, current-reference reverse transfer and guarded MariaDB corrections.
-R2 compatibility, restored production-data rehearsal, backup restorability,
-measured write pause and an approved production transition require their own
-recorded operational evidence.
+Actual R2 compatibility and an approved production-data transition require their own recorded operational evidence.
+
+
+## Persistent write admission
+
+`FileWriteGate::mutate()` admits a complete operation under the shared lock. Nested
+operations inherit admission. HTTP admission precedes session opening and covers
+redirects, expiry, DB publication, queueing and cleanup. Shutdown explicitly calls
+`session_write_close()` before unlocking. The three direct workers and their shared
+scheduler wrapper participate.
+
+The canonical stacks share `/opt/amea/storage/write-gate` through persistent
+storage. Run operator commands as the same owner, normally `www-data`. Directory
+mode is `0700`, marker/lock mode is `0600`. Preserve both lock-file inodes across
+deployment. Keep the gate outside cache/tmpfs. Verify advisory locking on the
+actual host/mount topology. Stop and drain writers outside this topology separately.
+
+`pause` persists its marker before waiting for the exclusive admission lock.
+Completed drain, selected identities and a random challenge are durable. A killed
+pause or failed final transition leaves admission closed. Operator transitions
+serialize through a separate persistent lock. Preserve the marker until verified
+explicit reopening.
+
+Stateful requests and workers fail during pause. Stateless journal/slider reads
+remain available. After completed drain, existing files-handler sessions can make
+GET-only private download, registration review/preview and staff journal-preview
+requests. These opens disable PHP session GC and cookies, use `read_and_close`,
+preserve bytes/mtime and reject missing/expired sessions. POSTs, logout and
+password-reset mutations remain closed.
+
+Keep schema migration/enrollment, historical migration scripts, manual SQL,
+external cron and ad-hoc writers stopped during this boundary. Finish startup
+Doctrine before final checks. Resume the designated jobs owner after reopening
+and the applicable purge backup acknowledgement.
+
+## Guarded transition commands
+
+The migration CLI retains its explicit environment/database/source/destination/
+manifest selections. Additional commands use those same selections.
+
+| Command | Effect |
+| --- | --- |
+| `pause` | Persist closure, drain writers and record selected identities |
+| `status` | Report durable pause/drain, recovery and verification state |
+| `drain-intents` | Privileged source-owned retry under exclusive pause |
+| `final-check --targets=PRIVATE_JSON` | Verify current bytes/references and actual role reports |
+| `resume --targets=PRIVATE_JSON` | Repeat verification and reopen the bound recovery point |
+
+Corrections, reviewed dispositions and reverse-copy require exclusive pause.
+Ordinary inventory/copy/verification can run online under shared admission. While
+paused, those commands use the exclusive operator path, allowing final copy and
+corrections while application writers remain closed.
+
+Cutover requires an empty `file_operations` ledger. Finish intents on their owning
+source backend, including obsolete owners. `drain-intents` fails while any row
+remains. Purge continuation still requires a verified backup and
+`AMEA_TRASH_BACKUP_CONFIRMED=1`. This prevents orphaning or replaying an intent in
+another bucket. Restore preserves the ledger and explicitly rebinds its verified
+single source owner to the qualified isolated restored backend.
+
+Collect fresh reports as the application owner inside actual public/staff/jobs
+images using `php /opt/amea-apps/storage-target.php`. This executable lives outside
+the HTTP application source. Jobs also contains `scripts/storage-target.php`.
+Assemble their three objects in a private JSON array. Reports expire after five
+minutes and bind the pause challenge, backend, DB, code digest, shared gate inode
+and serializer. Public/staff also report their session-volume inode identities.
+
+Mount both actual session volumes into the operator as sibling `public` and
+`staff` directories. `MIGRATION_SESSION_PATH` selects their canonical parent.
+Final-check compares these mounts with the role reports. Freeze deployment/config
+while collecting and using reports.
+
+The initial JSONL review identity remains immutable. Final-check separately binds
+the finalized checkpoint SHA-256, actual role digest and coordinated snapshot
+identity. Resume requires a capture matching the current DB, both session trees,
+manifest and checkpoint. After corrections or reconciliation, create a new capture
+and repeat final-check. Earlier snapshots and source objects stay retained.
+
+Use online inventory/review/copy, pause, final reconciliation/corrections,
+source-owned intent drain, coordinated capture, synchronized target selection,
+fresh reports, final-check, read-only smoke checks and explicit resume. An initial
+final-check can prepare the checkpoint before capture. Repeat it afterward to bind
+that capture. Existing CLI codes apply. Final-check/resume integrity or role
+failures exit `1` and keep writes paused.
+
+## Coordinated backup and isolated restore
+
+`scripts/storage-backup.php` uses explicit process environment. Select
+`--database=ACTUAL_ID`, `--backend=ACTUAL_MIGRATION_BACKEND_ID` and a fresh canonical
+private `--snapshot=/private/recovery/POINT`. Configure application
+`STORAGE_DRIVER`/`S3_*`, `DB_*`, `FILE_WRITE_GATE_PATH`,
+`RECOVERY_PUBLIC_SESSION_PATH`, `RECOVERY_STAFF_SESSION_PATH` and optional
+`RECOVERY_STORAGE_PATH` (default `/opt/amea/storage`). Run under completed pause.
+
+```sh
+php scripts/storage-backup.php capture \
+  --database=ACTUAL_ID --backend=ACTUAL_BACKEND_ID \
+  --manifest=/private/evidence/final.jsonl --snapshot=/private/recovery/point-01
+```
+
+Capture stores application-table schema/data JSONL, the complete operation ledger,
+all selected object bytes, original lifecycle metadata, both session stores,
+persistent queue/state files, manifest/checkpoint and non-secret config/code
+identities. It hashes streams and fsyncs content/directories before success. Local
+sidecars are reconstructed from verified object metadata during restore. Cache
+and live lock files are excluded. Sessions must be idle/readable. Missing required
+references or intents owned by another backend fail capture.
+
+The exporter supports the repository MySQL/MariaDB and SQLite application schemas.
+Views, triggers, stored routines and events cause explicit refusal. Deployments
+with those objects need a separately qualified operator export. Quiesce every
+other DB writer. Capture start/end timestamps measure the recovery interval.
+Actual backup capacity and recurring cadence require operator confirmation.
+
+Restore requires a selected separate empty DB of the same engine, a separate
+empty object namespace, both isolated session stores and fresh persistent state.
+For containers with identical local pathnames, upload-volume inodes distinguish
+namespaces. Targets stay paused. Every captured digest and current reference is
+checked. Interrupted DDL/data/object restoration leaves a durable started marker.
+Retain the failed target for diagnosis and retry into fresh isolated resources.
+
+```sh
+php scripts/storage-backup.php restore \
+  --database=ISOLATED_DB_ID --isolated-database=ISOLATED_DB_ID \
+  --backend=ISOLATED_BACKEND_ID --snapshot=/private/recovery/point-01 \
+  --review-snapshot=SNAPSHOT_JSON_SHA256
+
+php scripts/storage-backup.php resume-restored \
+  --database=ISOLATED_DB_ID --isolated-database=ISOLATED_DB_ID \
+  --backend=ISOLATED_BACKEND_ID --snapshot=/private/recovery/point-01 \
+  --review-snapshot=SNAPSHOT_JSON_SHA256 --targets=/private/evidence/targets.json
+```
+
+`resume-restored` verifies fresh actual role reports, restored DB state, complete
+object hashes/ages, preserved sessions and ledger ownership. Reconcile restored
+mail-queue deliveries against SMTP evidence before enabling a real sender. The
+snapshot includes private session filenames/member references. Keep directories
+and archives private. Backup commands exit `0` for success, `2` for invalid target/
+usage selections and `1` for recovery failure.
+
+After reopening, rollback starts from a newly paused current DB/session state and
+a fresh reverse-copy manifest. Recover new submissions, replacements and pending
+previews before local reopening. Keep current DB/session state. Unavailable unique
+new bytes keep admission closed until the recovery point is resolved. Source
+files and backups stay retained until a separate removal decision. Restore's
+separate-empty-target checks prevent replacing an active DB with an old snapshot.
+
+## Repeatable qualification
+
+`bash tests/storage/run.sh` starts disposable S3 services and runs backend
+contracts, migration/gate checks and `tests/storage/rehearse.php`. The rehearsal
+covers changed-source reconciliation, online copy, cutover, new uploads,
+current-state rollback, outage/missing-byte refusal and post-cutover backup restore.
+It prints measured timings and retains its private source/backups. Its API role
+reports are synthetic.
+
+`AMEA_BROWSER_SCOPE=storage bash tests/apps/run.sh` enables focused real Chrome
+media and pre-pause/restored registration journeys. Recovery collects reports
+from three actual baked images, captures matching DB/objects/ledger/sessions and
+qualifies isolated reopening over HTTPS. `AMEA_SKIP_BROWSER=1` matches CI.
+Select unique project names/ports through existing options.
+`AMEA_RECOVERY_EVIDENCE_DIR` retains the private synthetic snapshot archive. The
+single CI workflow runs deterministic S3 checks.
+
+Actual R2 qualification requires a dedicated test bucket, scoped credentials and
+an operator-owned text file accepting exactly these seven fields.
+
+```dotenv
+R2_TEST_PURPOSE=amea-dedicated-storage-test
+R2_TEST_CONFIRM_DEDICATED_BUCKET=THE_DEDICATED_BUCKET
+R2_TEST_ENDPOINT=https://ACCOUNT.r2.cloudflarestorage.com
+R2_TEST_REGION=auto
+R2_TEST_BUCKET=THE_DEDICATED_BUCKET
+R2_TEST_ACCESS_KEY_ID=PRIVATE_VALUE
+R2_TEST_SECRET_ACCESS_KEY=PRIVATE_VALUE
+```
+
+Use a canonical private parent (`0700`) and file (`0600`), then run
+`php tests/storage/r2.php --config /private/r2-test.env`. The harness rejects app
+`.env` fields, imports only storage credentials, creates a random synthetic
+namespace and cleans only its exact keys. It tests fabricated PDF/PNG streams,
+write/read/copy/delete, pagination, original age, provider media headers,
+accepted-upload/local-acknowledgement restart and isolated application download/
+role-denial HTTP. Acknowledgement loss is simulated around real provider calls.
+Evidence prints revision, code/backend identities, bucket, synthetic prefix and
+fixed outcomes. Credentials and provider exception text are excluded. Failed
+cleanup requires retaining the emitted namespace for cleanup with the scoped
+credentials. Record actual R2 results separately from deterministic CI.

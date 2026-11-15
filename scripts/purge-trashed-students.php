@@ -38,6 +38,8 @@ function logLine(string $message): void
     fwrite(STDOUT, '[' . date('c') . '] ' . $message . PHP_EOL);
 }
 
+\Amea\Core\FileWriteGate::admitProcess();
+
 if (($_ENV['AMEA_TRASH_BACKUP_CONFIRMED'] ?? getenv('AMEA_TRASH_BACKUP_CONFIRMED')) !== '1') {
     logLine('Trash purge requires a verified backup and AMEA_TRASH_BACKUP_CONFIRMED=1.');
     exit(1);
