@@ -218,7 +218,19 @@ A fresh merger created signed merge `07c142c11aa96bdeb326659d0c1f271368275472`, 
 
 Actual R2 qualification remains unchecked. The user selected `amea-sandbox` and confirmed generating keys, but the prepared private config still has empty endpoint/access/secret fields at the last check. No actual R2 request has been made. The JPEG path initially supplied was not read because OS access was denied and no image was transmitted.
 
+The user clarified that production deploys from `main` through a pushed Git tag. Repository work continues on the integration branch and PR to `dev`; no release tag has been created or pushed. Exact integration head `6615b7890896687c75bcf71752b17a0c5fd643bb` passed all five jobs in [CI run 43761086439](https://github.com/ibrahima-isi/amea/actions/runs/43761086439), including deterministic S3/cutover/recovery. Global reviewers were interrupted by an account quota before writing results; fresh independent Standards/Spec reviews resumed on the same unchanged head on 2026-11-16.
+
 The implementer additionally flagged an unqualified recovery edge: snapshot reference validation may reconstruct inventory without the earlier reviewed missing-reference dispositions. The global Spec review must verify it against the approved recovery-or-disposition contract. Ticket 05 remains operationally incomplete until this review/fix and real R2 evidence are resolved. Ticket 06 has not executed; no authenticated production access or changes occurred.
+
+### Global review and corrective integration
+
+The independent Standards review found zero hard violations and one optional duplicated restored-object verification heuristic. Spec review confirmed one P2: reviewed historical missing-reference dispositions were not carried into coordinated snapshot reference validation. Its synthetic reproduction passed ordinary migration verification but failed snapshot capture.
+
+A fresh corrective implementer preserved and revalidated the original manifest/checkpoint, original selection and exact expected-old DB/session exceptions through capture, isolated restore and reopening. Only captured session owners are rebound. New, moved, changed or tampered references and newly missing required bytes remain rejected. Earlier version-one archive behavior remains strict. The exact affected suite passed 43 tests and 241 assertions, including dedicated MariaDB/MinIO and actual capture/restore/reopen CLI proof. Source/current-state reverse-copy rehearsal passed again. The detailed report is `/private/tmp/amea-storage-integration-artifacts/global-fix-report.md`.
+
+Both independent scoped re-reviews approved the corrective artifact with no new actionable finding. The indexed artifact and final signed commit diff match SHA-256 `2d71c7f4f708399565661cd2b15299905a84adac2c0f13da6451e4bf68932bbb`. The configured 1Password helper failed twice; after verifying the configured public key was already available through the SSH agent, a per-command standard OpenSSH signer created signed source `09ea38470c74a761d44fd65933b7614a261ed417` with the same key. Persistent configuration and signing requirements were unchanged. Verification passed.
+
+A fresh merger integrated it with signed merge `7c0fbe5a94c980eee66ca92111c5f60ce65b4359`, verifying source-tree equality, matching reviewed diff and preservation of the controller-owned tracker. Reports are `global-standards-review.md`, `global-spec-review.md`, their `*-fix-review.md` counterparts and `global-fix-merge-report.md` in the integration artifacts. Final latest-head hosted CI remains to be checked after publication. Actual R2 qualification remains open because the three required private values are still empty at the last check. Ticket 06 has not run.
 
 ## R2 and production
 
