@@ -19,6 +19,7 @@ final class Manifest
     public array $history = [];
     public array $corrections = [];
     private ?string $path = null;
+    private ?string $checkpointPath = null;
     private ?string $digest = null;
     private bool $locked = false;
     public readonly string $id;
@@ -81,6 +82,7 @@ final class Manifest
     {
         self::assertPrivatePath($path);
         $this->path = $path;
+        $this->checkpointPath = null;
         $this->withFileLock(function () use ($path) {
             if (file_exists($path)) {
                 throw new StorageException('An inventory cannot replace an existing manifest.');
@@ -91,15 +93,16 @@ final class Manifest
         });
     }
 
-    public static function load(string $path, array $identity): self
+    public static function load(string $path, array $identity, ?string $checkpointPath = null): self
     {
         self::assertPrivatePath($path);
         $content = self::privateRead($path);
         $manifest = self::decode($content);
         $manifest->assertIdentity($identity);
         $manifest->path = $path;
+        $manifest->checkpointPath = $checkpointPath;
         $manifest->digest = hash('sha256', $content);
-        $checkpoint = $path . '.checkpoint';
+        $checkpoint = $checkpointPath ?? $path . '.checkpoint';
         if (file_exists($checkpoint) || is_link($checkpoint)) {
             $saved = json_decode(self::privateRead($checkpoint), true, 512, JSON_THROW_ON_ERROR);
             if (($saved['manifest_sha256'] ?? null) !== $manifest->digest || !is_string($saved['state'] ?? null)
@@ -123,7 +126,7 @@ final class Manifest
             throw new StorageException('Migration requires a saved, reviewed inventory.');
         }
         return $this->withFileLock(function () use ($operation) {
-            $current = self::load($this->path, $this->identity);
+            $current = self::load($this->path, $this->identity, $this->checkpointPath);
             if ($current->reviewIdentity() !== $this->reviewIdentity()) {
                 throw new StorageException('Reviewed inventory changed.');
             }
@@ -138,7 +141,7 @@ final class Manifest
             throw new StorageException('Checkpoint updates require the manifest writer lock.');
         }
         $state = $this->encode();
-        self::atomicWrite($this->path . '.checkpoint', json_encode([
+        self::atomicWrite($this->checkpointPath ?? $this->path . '.checkpoint', json_encode([
             'manifest_sha256' => $this->digest, 'state_sha256' => hash('sha256', $state), 'state' => $state,
         ], JSON_THROW_ON_ERROR));
     }

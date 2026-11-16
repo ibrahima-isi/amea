@@ -40,7 +40,25 @@ final class RecoverySnapshot
             Manifest::assertPrivatePath($directory . '/snapshot.json');
             $started = microtime(true);
             $this->assertLedgerOwner($db, $applicationBackend);
-            $this->assertReferences($db, $backend, $sessions, $configuration['serializer'] ?? '');
+            Manifest::assertPrivatePath($manifestPath);
+            $header = json_decode(strtok(file_get_contents($manifestPath), "\n"), true, 512, JSON_THROW_ON_ERROR);
+            $reviewed = Manifest::load($manifestPath, $header['identity'] ?? []);
+            if ($reviewed->identity['database'] !== ReferenceAudit::databaseIdentity($db)
+                || !in_array(Manifest::backendIdentity($backend), [$reviewed->identity['source'], $reviewed->identity['destination']], true)
+                || $reviewed->identity['serializer'] !== ($configuration['serializer'] ?? '')
+                || $sessions !== ['public' => $reviewed->identity['sessions'] . '/public', 'staff' => $reviewed->identity['sessions'] . '/staff']) {
+                throw new StorageException('Recovery references require the reviewed database, backend and session identity.');
+            }
+            $reviewed->locked(function () use ($directory, $manifestPath) {
+                foreach (['manifest' => $manifestPath, 'checkpoint' => $manifestPath . '.checkpoint'] as $name => $path) {
+                    Manifest::assertPrivatePath($path);
+                    if (!copy($path, $directory . '/' . $name) || !chmod($directory . '/' . $name, 0600)) {
+                        throw new StorageException('Unable to preserve finalized migration evidence.');
+                    }
+                }
+            });
+            $reviewed = Manifest::load($directory . '/manifest', $reviewed->identity, $directory . '/checkpoint');
+            $this->assertReferences($db, $backend, $sessions, $configuration['serializer'], $reviewed);
             $database = $directory . '/database.jsonl';
             $this->dumpDatabase($db, $database);
             $objects = [];
@@ -77,17 +95,12 @@ final class RecoverySnapshot
                 $trees['sessions/' . $role] = $this->copyTree($path, $directory . '/sessions/' . $role);
             }
             $trees['storage'] = $this->copyTree($persistentStorage, $directory . '/storage', ['cache', 'write-gate', 'object-storage', '.shared-jobs.lock']);
-            foreach (['manifest' => $manifestPath, 'checkpoint' => $manifestPath . '.checkpoint'] as $name => $path) {
-                Manifest::assertPrivatePath($path);
-                if (!copy($path, $directory . '/' . $name) || !chmod($directory . '/' . $name, 0600)) {
-                    throw new StorageException('Unable to preserve finalized migration evidence.');
-                }
-            }
             $snapshot = ['version' => 1, 'started_at' => $started, 'completed_at' => microtime(true),
                 'database_identity' => ReferenceAudit::databaseIdentity($db), 'driver' => $db->getAttribute(PDO::ATTR_DRIVER_NAME),
                 'backend' => Manifest::backendIdentity($backend), 'application_backend' => $applicationBackend,
                 'namespace' => $this->namespaceIdentity($backend),
                 'configuration' => $configuration, 'pause' => $state, 'objects' => $objects, 'trees' => $trees,
+                'reference_identity' => $reviewed->identity, 'sessions' => $sessions,
                 'database_sha256' => hash_file('sha256', $database),
                 'manifest_sha256' => hash_file('sha256', $directory . '/manifest'),
                 'checkpoint_sha256' => hash_file('sha256', $directory . '/checkpoint')];
@@ -144,6 +157,7 @@ final class RecoverySnapshot
                     $this->assertDigest($directory . '/' . $prefix . '/' . $relative, $metadata['sha256']);
                 }
             }
+            $reviewed = $this->restoredReferences($directory, $snapshot, $sessions);
             // Durable target marker survives nontransactional DDL or interrupted transfers.
             $state['restore'] = ['snapshot' => $reviewedDigest, 'database' => $actual, 'state' => 'started', 'at' => microtime(true)];
             $this->gate->record($state);
@@ -182,7 +196,7 @@ final class RecoverySnapshot
                 $this->restoreTree($directory . '/sessions/' . $role, $path, $snapshot['trees']['sessions/' . $role]);
             }
             $this->restoreTree($directory . '/storage', $persistentStorage, $snapshot['trees']['storage']);
-            $this->assertReferences($db, $backend, $sessions, $snapshot['configuration']['serializer']);
+            $this->assertReferences($db, $backend, $sessions, $snapshot['configuration']['serializer'], $reviewed);
             foreach ($sessions as $path) {
                 $this->syncTree($path);
             }
@@ -210,7 +224,8 @@ final class RecoverySnapshot
             }
             Cutover::targetIdentity($targets, $state, Manifest::backendIdentity($backend), $database,
                 $snapshot['configuration']['serializer'], $this->gate, $sessions);
-            $this->assertReferences($db, $backend, $sessions, $snapshot['configuration']['serializer']);
+            $this->assertReferences($db, $backend, $sessions, $snapshot['configuration']['serializer'],
+                $this->restoredReferences($directory, $snapshot, $sessions));
             $this->assertLedgerOwner($db, $state['restore']['application_backend']);
             if (($state['restore']['database_sha256'] ?? '') !== $this->databaseFingerprint($db)) {
                 throw new StorageException('Restored database changed before reopening.');
@@ -239,7 +254,38 @@ final class RecoverySnapshot
         });
     }
 
-    private function assertReferences(PDO $db, Storage $backend, array $sessions, string $serializer): void
+    private function restoredReferences(string $directory, array $snapshot, array $sessions): ?Manifest
+    {
+        // Version-one snapshots created before disposition support retain strict reference checks.
+        if (!isset($snapshot['reference_identity'])) {
+            return null;
+        }
+        $this->assertDigest($directory . '/manifest', $snapshot['manifest_sha256']);
+        $this->assertDigest($directory . '/checkpoint', $snapshot['checkpoint_sha256']);
+        $reviewed = Manifest::load($directory . '/manifest', $snapshot['reference_identity'], $directory . '/checkpoint');
+        if ($reviewed->identity['database'] !== $snapshot['database_identity']
+            || !in_array($snapshot['backend'], [$reviewed->identity['source'], $reviewed->identity['destination']], true)
+            || $reviewed->identity['serializer'] !== $snapshot['configuration']['serializer']
+            || $snapshot['sessions'] !== ['public' => $reviewed->identity['sessions'] . '/public', 'staff' => $reviewed->identity['sessions'] . '/staff']) {
+            throw new StorageException('Snapshot reference approvals differ from their original migration identity.');
+        }
+        $owners = [];
+        foreach ($snapshot['sessions'] as $role => $path) {
+            foreach ($snapshot['trees']['sessions/' . $role] as $relative => $metadata) {
+                $this->assertRelative($relative);
+                $owners[hash('sha256', $path . '/' . $relative)] = hash('sha256', $sessions[$role] . '/' . $relative);
+            }
+        }
+        foreach ($reviewed->references as &$reference) {
+            if ($reference['owner_type'] === 'session' && isset($owners[$reference['record']])) {
+                $reference['record'] = $owners[$reference['record']];
+            }
+        }
+        unset($reference);
+        return $reviewed;
+    }
+
+    private function assertReferences(PDO $db, Storage $backend, array $sessions, string $serializer, ?Manifest $reviewed = null): void
     {
         if (array_keys($sessions) !== ['public', 'staff'] || $sessions['public'] === $sessions['staff']
             || str_starts_with($sessions['public'] . '/', $sessions['staff'] . '/')
@@ -251,6 +297,7 @@ final class RecoverySnapshot
                 'source' => Manifest::backendIdentity($backend), 'destination' => hash('sha256', 'separate backup namespace'),
                 'sessions' => $path, 'serializer' => $serializer];
             $manifest = (new Inventory($backend, $identity, $backend instanceof LocalStorage ? $backend->migrationRoot() : null))->scan();
+            $manifest->references = $reviewed?->references ?? [];
             if ((new ReferenceAudit($db, $backend, $identity, $path, $serializer))->audit($manifest) !== []) {
                 throw new StorageException('Current database or staged session references cannot be recovered completely.');
             }

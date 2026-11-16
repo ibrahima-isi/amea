@@ -428,6 +428,15 @@ sidecars are reconstructed from verified object metadata during restore. Cache
 and live lock files are excluded. Sessions must be idle/readable. Missing required
 references or intents owned by another backend fail capture.
 
+Capture validates the finalized manifest's database, selected source/destination
+backend, serializer and sibling `public`/`staff` session stores. It preserves the
+reviewed manifest and checkpoint together under their writer lock. Exact approved
+historical missing-reference dispositions remain bound to that original identity
+and checkpoint through isolated restore and reopening. Session-owner bindings
+follow the same captured files into their isolated stores. Changed values, new
+owners, newly missing required bytes and altered approval evidence fail recovery.
+Earlier version-one snapshots retain their complete-reference requirement.
+
 The exporter supports the repository MySQL/MariaDB and SQLite application schemas.
 Views, triggers, stored routines and events cause explicit refusal. Deployments
 with those objects need a separately qualified operator export. Quiesce every
