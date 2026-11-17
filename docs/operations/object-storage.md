@@ -18,11 +18,50 @@ Configure the same untracked environment for public, staff and jobs. Both canoni
 | `S3_SECRET_ACCESS_KEY` | Matching secret |
 | `S3_PATH_STYLE` | `true`/`1` or `false`/`0`, defaults to `false` |
 
-For R2, use `https://<account-id>.r2.cloudflarestorage.com`, region `auto`, the selected bucket and bucket-scoped credentials. Configure path-style addressing according to the provider. Local test endpoints use `true`. Environment loaded into `$_ENV` takes priority over process variables. Invalid selected S3 configuration raises `StorageException`.
+R2 deployments may use their existing environment names directly.
+
+| Variable | Value |
+| --- | --- |
+| `R2_ENDPOINT` | Explicit HTTP(S) S3-compatible endpoint, takes priority over account derivation |
+| `R2_ACCOUNT_ID` | A 32-character lowercase hexadecimal account ID, required only when `R2_ENDPOINT` is empty |
+| `R2_BUCKET_NAME` | Existing private bucket selected by configuration |
+| `R2_ACCESS_KEY_ID` | Bucket-scoped S3 access key |
+| `R2_SECRET_ACCESS_KEY` | Matching S3 secret |
+
+Set `STORAGE_DRIVER=s3` explicitly to activate remote storage after the approved migration. Providing credentials alone keeps the default local backend. For account derivation, the endpoint is `https://<account-id>.r2.cloudflarestorage.com`. The alias family uses region `auto`. `R2_ACCESS_TOKEN` is an API bearer token and is ignored by storage configuration. S3 authentication requires the access key and secret above.
+
+Configuration selection is deterministic. If any of `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID` or `S3_SECRET_ACCESS_KEY` is nonempty, the complete canonical S3 family is required and takes priority over all R2 aliases. An incomplete canonical family fails validation. Values from the two families are never combined. If all five canonical fields are empty, the R2 alias family is selected. `S3_PATH_STYLE` applies to either family and its default does not select a family. Configure addressing according to the provider. Local test endpoints use `true`.
+
+Environment loaded into `$_ENV` takes priority over process variables, including explicit empty values. Invalid selected S3 configuration raises `StorageException` with configuration field names and excludes supplied values. The application cleanup-ledger identity retains its existing endpoint/bucket hash format. An equivalent endpoint and bucket selected through either family has the same identity. Credential rotation preserves that identity.
+
+### Existing single-app deployments
+
+An existing deployment using the retained root `Dockerfile` can add the following keys to its current `app` service environment. Use its existing project name, service definitions, mounts and database. Supply these values through the existing protected deployment environment. The default below keeps local storage active during migration preparation.
+
+```yaml
+services:
+  app:
+    environment:
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_REGION: ${S3_REGION:-}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+      S3_PATH_STYLE: ${S3_PATH_STYLE:-false}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+      R2_ENDPOINT: ${R2_ENDPOINT:-}
+      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+```
+
+Merge these keys with the service's existing environment entries. For aliases, leave the five canonical provider fields empty. Change `STORAGE_DRIVER` only at the approved, verified cutover. The root image uses PHP 8.4. The independent public/staff/jobs targets use `docker/Dockerfile.apps`. This environment block supports the existing deployment topology.
+
 
 Grant object read/write/delete and bucket list/existence-check permissions. The factory disables optional automatic SDK request/response checksum extensions with `when_required`. The implementation computes content SHA-256 from a disk-spooled input stream and stores it in object metadata. R2's supported operations and checksum features are documented in its compatibility matrix. [Cloudflare S3 API compatibility](https://developers.cloudflare.com/r2/api/s3/api/)
 
-The locked client is `aws/aws-sdk-php` 3.403.5, used through `Aws\S3\S3Client`. The production image uses PHP 8.5.12. Run `composer check-platform-reqs --no-dev` in the intended runtime when changing dependency versions or PHP targets.
+The locked client is `aws/aws-sdk-php` 3.403.5, used through `Aws\S3\S3Client`. The canonical public/staff/jobs images use PHP 8.5.12. Run `composer check-platform-reqs --no-dev` in the intended runtime when changing dependency versions or PHP targets.
 
 ## Keys, streams and metadata
 
