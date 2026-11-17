@@ -16,9 +16,9 @@ Implement [plan Task 5](../plan.md#task-5--write-pause-backup-and-r2-qualificati
 - [x] Restored backups include matching DB/object contents, operation ledger, lifecycle timestamps and required session state.
 - [x] Rehearsals cover online copy, final reconciliation, pre-reopening recovery and reverse-copy after new uploads.
 - [x] Missing post-cutover bytes keep recovery paused with an explicit limitation.
-- [ ] A dedicated R2 test bucket proves the actual selected client/API operations and streaming verification.
+- [x] A dedicated R2 test bucket proves the actual selected client/API operations and streaming verification.
 - [x] Existing CI commands, deterministic S3 checks and actual browser journeys pass on the reviewed revision.
-- [ ] Exact code revision, R2 evidence, measured outage/recovery times, reviews and signed delivery are recorded separately.
+- [x] Exact code revision, R2 evidence, measured outage/recovery times, reviews and signed delivery are recorded separately.
 
 ## Comments
 
@@ -64,3 +64,5 @@ are supplied and the harness runs against the frozen signed revision. Independen
 integration reviews, remote final-head CI/merge and production transition evidence
 remain separately owned. This comment authorizes no production change or Ticket 06
 execution.
+
+2026-11-17 — Actual R2 qualification passed on frozen signed revision `ad80af6` against the user-selected `amea-sandbox` test bucket, with synthetic-only data and exact-key cleanup. Provider operations, content digests/age/pagination/retry and actual isolated application download/role checks passed. Global Standards/Spec reviews and scoped recovery-disposition correction reviews are approved. Exact provider receipt, hashes, revision, local measurements and remaining PR/production steps are recorded in [completion](../completion.md). No production tag or live migration occurred.

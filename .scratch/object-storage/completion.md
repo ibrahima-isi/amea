@@ -240,6 +240,16 @@ The repository implementation for Tickets 04/05 is integrated on the single bran
 
 Ticket 06's real production inventory, verified live backup, selected production bucket, maintenance approval, served deployment and transition evidence are not executed. Production deploys `main` through a pushed Git tag, as confirmed by the user. No tag or production change was made. The user declined browser production login, so operator execution remains a separate required step. Preparing code/procedures is not that execution, and no remaining operational ticket is marked complete merely from these code results.
 
+### Actual R2 qualification
+
+On 2026-11-17 the user pointed to the existing application `.env`. Its R2 fields matched the explicitly selected dedicated test bucket `amea-sandbox`. Only the required endpoint/access-key/secret and bucket fields were parsed as data and copied into the canonical seven-field private test configuration. No shell evaluation, DB/SMTP import, bearer-token use, secret output or source environment edit occurred.
+
+The actual R2 harness completed successfully on frozen signed integration revision `ad80af6d2f9a61ec12dad76fbeed3c054ac8a882`. Its code identity was `2b017b6a39762adf40bebd3dbdaab4954aa79c8fa3a85c5121732ab09ff75b8e`. Provider read/write, independent SHA-256 read-back, original age/size, Content-Type, copy, restart/retry, pagination and actual isolated application private-download headers/role denial all passed. Only a fabricated PDF, one-pixel PNG and PDF copy were created under a fresh random qualification prefix. All three exact keys were deleted and confirmed absent.
+
+The first successful redirected run's child stdout overwrote the beginning of the evidence log. The same frozen harness was repeated through a non-seekable pipe to capture the complete identity and result receipt. The authoritative sanitized log is `/private/tmp/amea-storage-integration-artifacts/r2-real-ad80af6-pipe.log`, SHA-256 `1e6c6393b46bdcbb647011f3f0fb11d7f821938221de039b17a86de70e10caa6`, started at `2026-11-17T00:28:17+00:00`, exit 0. The original shortened successful log remains retained separately. No human image or production data was uploaded.
+
+Ticket 05's actual-provider qualification is now verified. The subsequent change records this evidence only; application/harness bytes remain identical to the R2-qualified revision. The code implementation can now complete its PR/CI/merge prerequisite before operator-owned Ticket 06. A production tag and live storage transition remain separate explicit actions.
+
 ## R2 and production
 
 Actual bucket credentials, live file/reference inventory, backup restorability and measured maintenance duration require operational qualification. Production execution requires explicit approval of the selected resources and concrete transition. Source-copy deletion remains a separate decision after migration validation.
