@@ -37,3 +37,6 @@ STORAGE_TEST_ENDPOINT="http://127.0.0.1:$STORAGE_TEST_PORT" STORAGE_TEST_REGION=
     ./vendor/bin/phpunit --no-configuration --bootstrap tests/bootstrap.php tests/Integration/Storage/S3StorageTest.php --colors=never
 STORAGE_TEST_ENDPOINT="http://127.0.0.1:$STORAGE_TEST_SECONDARY_PORT" STORAGE_TEST_REGION=auto \
     ./vendor/bin/phpunit --no-configuration --bootstrap tests/bootstrap.php tests/Integration/Storage/S3StorageTest.php --colors=never
+STORAGE_TEST_ENDPOINT="http://127.0.0.1:$STORAGE_TEST_PORT" \
+    ./vendor/bin/phpunit --colors=never tests/Integration/Storage/MigrationTest.php tests/Integration/Storage/WriteGateTest.php tests/Integration/Storage/CutoverTest.php tests/Integration/Storage/RecoverySnapshotTest.php tests/Integration/Storage/SourceIntentDrainTest.php
+STORAGE_TEST_ENDPOINT="http://127.0.0.1:$STORAGE_TEST_PORT" php tests/storage/rehearse.php

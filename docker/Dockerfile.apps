@@ -13,10 +13,11 @@ COPY functions functions
 COPY templates templates
 COPY assets assets
 COPY migrations migrations
+COPY scripts/storage-target.php /opt/amea-apps/storage-target.php
 COPY *.php ./
 COPY docker/apps /opt/amea-apps
 RUN printf 'variables_order = "EGPCS"\ndisplay_errors = Off\nlog_errors = On\n' > /usr/local/etc/php/conf.d/zz-amea-env.ini \
-    && mkdir -p /var/www/amea /var/lib/amea/sessions /opt/amea/uploads /opt/amea/storage/mail-queue /opt/amea/storage/cache /opt/amea/logs \
+    && mkdir -p /var/www/amea /var/lib/amea/sessions /var/lib/amea/recovery /var/lib/amea/recovery-sessions/public /var/lib/amea/recovery-sessions/staff /opt/amea/uploads /opt/amea/storage/mail-queue /opt/amea/storage/cache /opt/amea/logs \
     && cp /opt/amea-apps/index.php /var/www/amea/index.php \
     && cp -r assets /var/www/amea/assets \
     && cp /opt/amea-apps/apache.conf /etc/apache2/sites-available/000-default.conf \

@@ -17,6 +17,17 @@ if (file_exists($_envFile)) {
 
 use Amea\Core\Router;
 
+// Stateful reads can expire sessions or update tokens. Admit before either occurs.
+if (PHP_SAPI !== 'cli') {
+    $gatePath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+    $statelessRead = ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET'
+        && (in_array($gatePath, ['/journal.php', '/journal-article.php', '/journal-cover.php'], true)
+            || (is_string($gatePath) && str_starts_with($gatePath, '/uploads/slider/')));
+    if (!$statelessRead) {
+        \Amea\Core\FileWriteGate::admitHttp();
+    }
+}
+
 $router = new Router();
 
 // Define routes
