@@ -46,7 +46,7 @@ final class RecoverySnapshot
             if ($reviewed->identity['database'] !== ReferenceAudit::databaseIdentity($db)
                 || !in_array(Manifest::backendIdentity($backend), [$reviewed->identity['source'], $reviewed->identity['destination']], true)
                 || $reviewed->identity['serializer'] !== ($configuration['serializer'] ?? '')
-                || $sessions !== ['public' => $reviewed->identity['sessions'] . '/public', 'staff' => $reviewed->identity['sessions'] . '/staff']) {
+                || $sessions !== Cutover::sessionStores($reviewed->identity)) {
                 throw new StorageException('Recovery references require the reviewed database, backend and session identity.');
             }
             $reviewed->locked(function () use ($directory, $manifestPath) {
@@ -106,11 +106,14 @@ final class RecoverySnapshot
                 'checkpoint_sha256' => hash_file('sha256', $directory . '/checkpoint')];
             $this->writePrivate($directory . '/snapshot.json', json_encode($snapshot, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES));
             $this->syncTree($directory);
+            $sessionDigests = [];
+            foreach ($sessions as $role => $path) {
+                $sessionDigests[$role] = hash('sha256', json_encode($trees['sessions/' . $role], JSON_THROW_ON_ERROR));
+            }
             $state['backup'] = ['sha256' => hash_file('sha256', $directory . '/snapshot.json'),
                 'manifest_sha256' => $snapshot['manifest_sha256'], 'checkpoint_sha256' => $snapshot['checkpoint_sha256'],
                 'database_sha256' => $snapshot['database_sha256'], 'completed_at' => $snapshot['completed_at'],
-                'sessions' => ['public' => hash('sha256', json_encode($trees['sessions/public'], JSON_THROW_ON_ERROR)),
-                    'staff' => hash('sha256', json_encode($trees['sessions/staff'], JSON_THROW_ON_ERROR))]];
+                'sessions' => $sessionDigests];
             $this->gate->record($state);
             return ['sha256' => $state['backup']['sha256'],
                 'started_at' => $started, 'completed_at' => $snapshot['completed_at'], 'objects' => count($objects)];
@@ -266,7 +269,7 @@ final class RecoverySnapshot
         if ($reviewed->identity['database'] !== $snapshot['database_identity']
             || !in_array($snapshot['backend'], [$reviewed->identity['source'], $reviewed->identity['destination']], true)
             || $reviewed->identity['serializer'] !== $snapshot['configuration']['serializer']
-            || $snapshot['sessions'] !== ['public' => $reviewed->identity['sessions'] . '/public', 'staff' => $reviewed->identity['sessions'] . '/staff']) {
+            || $snapshot['sessions'] !== Cutover::sessionStores($reviewed->identity)) {
             throw new StorageException('Snapshot reference approvals differ from their original migration identity.');
         }
         $owners = [];
@@ -287,10 +290,10 @@ final class RecoverySnapshot
 
     private function assertReferences(PDO $db, Storage $backend, array $sessions, string $serializer, ?Manifest $reviewed = null): void
     {
-        if (array_keys($sessions) !== ['public', 'staff'] || $sessions['public'] === $sessions['staff']
+        if (array_keys($sessions) !== ['app'] && (array_keys($sessions) !== ['public', 'staff'] || $sessions['public'] === $sessions['staff']
             || str_starts_with($sessions['public'] . '/', $sessions['staff'] . '/')
-            || str_starts_with($sessions['staff'] . '/', $sessions['public'] . '/')) {
-            throw new StorageException('Both public and staff session stores are required in order.');
+            || str_starts_with($sessions['staff'] . '/', $sessions['public'] . '/'))) {
+            throw new StorageException('Select the app session store or distinct public and staff session stores in order.');
         }
         foreach ($sessions as $path) {
             $identity = ['environment' => 'coordinated-recovery', 'database' => ReferenceAudit::databaseIdentity($db),
@@ -606,7 +609,7 @@ final class RecoverySnapshot
 
     private function assertRole(string $role): void
     {
-        if (!in_array($role, ['public', 'staff'], true)) {
+        if (!in_array($role, ['app', 'public', 'staff'], true)) {
             throw new StorageException('Unknown session store role.');
         }
     }

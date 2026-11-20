@@ -18,6 +18,8 @@ RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --opt
 COPY . .
 COPY docker/apache-security.conf /etc/apache2/conf-available/amea-security.conf
 RUN a2enconf amea-security \
+  && install -d /opt/amea-apps \
+  && printf 'app\n' > /opt/amea-apps/identity \
   && mkdir -p uploads storage/mail-queue storage/cache logs \
   && chown -R www-data:www-data uploads storage logs \
   && chmod -R o-rwx uploads storage logs
