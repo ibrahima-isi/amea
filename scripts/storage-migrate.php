@@ -41,6 +41,9 @@ function migrationBackend(string $role): Storage
         $_ENV['STORAGE_DRIVER'] = $driver;
         foreach (['S3_ENDPOINT', 'S3_REGION', 'S3_BUCKET', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY', 'S3_PATH_STYLE'] as $name) {
             $_ENV[$name] = migrationEnvironment($prefix . $name);
+            if ($driver === 's3' && $name !== 'S3_PATH_STYLE' && trim($_ENV[$name]) === '') {
+                throw new StorageException('The selected S3 migration backend requires ' . $prefix . $name . '.');
+            }
         }
         if ($_ENV['S3_PATH_STYLE'] === '') {
             $_ENV['S3_PATH_STYLE'] = 'false';
@@ -170,8 +173,9 @@ function storageMigrationMain(array $argv): int
             $environment = $_ENV;
             try {
                 $_ENV['STORAGE_DRIVER'] = migrationEnvironment('MIGRATION_SOURCE_DRIVER');
-                $_ENV['S3_ENDPOINT'] = migrationEnvironment('MIGRATION_SOURCE_S3_ENDPOINT');
-                $_ENV['S3_BUCKET'] = migrationEnvironment('MIGRATION_SOURCE_S3_BUCKET');
+                foreach (['S3_ENDPOINT', 'S3_REGION', 'S3_BUCKET', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY', 'S3_PATH_STYLE'] as $name) {
+                    $_ENV[$name] = migrationEnvironment('MIGRATION_SOURCE_' . $name);
+                }
                 $backend = StorageFactory::identity($source instanceof LocalStorage ? $source->migrationRoot() : dirname(__DIR__));
             } finally {
                 $_ENV = $environment;
