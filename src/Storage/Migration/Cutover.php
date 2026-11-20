@@ -50,7 +50,7 @@ final class Cutover
     public static function sessionStoreIdentity(string $path): string
     {
         if ($path === '' || realpath($path) !== $path || !is_dir($path) || is_link($path)) {
-            throw new StorageException('Select both canonical public/staff session volumes explicitly.');
+            throw new StorageException('Select a canonical session directory explicitly.');
         }
         $stat = stat($path);
         return hash('sha256', json_encode([$stat['dev'], $stat['ino']], JSON_THROW_ON_ERROR));
@@ -71,13 +71,24 @@ final class Cutover
         return hash('sha256', json_encode($files, JSON_THROW_ON_ERROR));
     }
 
+    public static function sessionStores(array $identity): array
+    {
+        $path = $identity['sessions'];
+        return match ($identity['topology'] ?? 'split') {
+            'single' => ['app' => $path],
+            'split' => ['public' => $path . '/public', 'staff' => $path . '/staff'],
+            default => throw new StorageException('Unknown migration topology.'),
+        };
+    }
+
     public static function targetIdentity(array $targets, array $state, string $backend, string $database,
         string $serializer, FileWriteGate $gate, array $sessionStores): string
     {
+        $roles = array_keys($sessionStores) === ['app'] ? ['app'] : ['jobs', 'public', 'staff'];
         $normalized = [];
         foreach ($targets as $target) {
             $role = $target['role'] ?? '';
-            if (!in_array($role, ['public', 'staff', 'jobs'], true) || isset($normalized[$role])
+            if (!in_array($role, $roles, true) || isset($normalized[$role])
                 || ($target['challenge'] ?? '') !== $state['challenge']
                 || !is_numeric($target['observed_at'] ?? null) || $target['observed_at'] < $state['paused_at']
                 || $target['observed_at'] > microtime(true) + 5 || $target['observed_at'] < microtime(true) - 300
@@ -86,18 +97,18 @@ final class Cutover
                 || ($target['gate'] ?? '') !== $gate->identity()
                 || ($target['serializer'] ?? '') !== $serializer
                 || ($target['code'] ?? '') !== self::codeIdentity(dirname(__DIR__, 3))) {
-                throw new StorageException('Fresh public, staff and jobs reports must select the verified database, backend, gate and code.');
+                throw new StorageException('Fresh deployment reports must select the verified database, backend, gate and code.');
             }
             if ($role !== 'jobs' && ($target['session_store'] ?? '') !== self::sessionStoreIdentity($sessionStores[$role] ?? '')) {
-                throw new StorageException('Actual public/staff session stores differ from the stores selected for audit.');
+                throw new StorageException('Actual session stores differ from the stores selected for audit.');
             }
             unset($target['observed_at'], $target['challenge']);
             ksort($target);
             $normalized[$role] = $target;
         }
         ksort($normalized);
-        if (array_keys($normalized) !== ['jobs', 'public', 'staff']) {
-            throw new StorageException('All public, staff and jobs target reports are required.');
+        if (array_keys($normalized) !== $roles) {
+            throw new StorageException('Reports for every selected deployment role are required.');
         }
         return hash('sha256', json_encode($normalized, JSON_THROW_ON_ERROR));
     }
@@ -110,7 +121,7 @@ final class Cutover
         }
         $targetIdentity = self::targetIdentity($targets, $state, $this->identity['destination'],
             $this->identity['database'], $this->identity['serializer'], $this->gate,
-            ['public' => $this->identity['sessions'] . '/public', 'staff' => $this->identity['sessions'] . '/staff']);
+            self::sessionStores($this->identity));
         $manifest = Manifest::load($this->manifestPath, $this->identity);
         $auditor = new ReferenceAudit($this->db, $this->destination, $this->identity,
             $this->identity['sessions'], $this->identity['serializer'], 'destination');
@@ -132,8 +143,7 @@ final class Cutover
         if ($backup !== null) {
             $snapshot = new RecoverySnapshot($this->gate);
             $snapshot->assertDatabaseState($this->db, $backup['database_sha256']);
-            $snapshot->assertSessionState(['public' => $this->identity['sessions'] . '/public',
-                'staff' => $this->identity['sessions'] . '/staff'], $backup['sessions']);
+            $snapshot->assertSessionState(self::sessionStores($this->identity), $backup['sessions']);
         }
         return ['manifest' => $manifest->reviewIdentity(), 'checkpoint' => $this->checkpointIdentity(),
             'targets' => $targetIdentity, 'backup' => $backup['sha256'] ?? null];

@@ -137,6 +137,11 @@ function storageMigrationMain(array $argv): int
     $identity = ['environment' => $options['environment'], 'database' => ReferenceAudit::databaseIdentity($db),
         'source' => Manifest::backendIdentity($source), 'destination' => Manifest::backendIdentity($destination),
         'sessions' => $sessionPath, 'serializer' => $serializer];
+    $topology = migrationEnvironment('MIGRATION_TOPOLOGY');
+    if ($topology !== '' && $topology !== 'split') {
+        $identity['topology'] = $topology;
+    }
+    \Amea\Storage\Migration\Cutover::sessionStores($identity);
     foreach (['database', 'source', 'destination'] as $name) {
         if (!hash_equals($identity[$name], $options[$name])) {
             throw new InvalidArgumentException('The selected target identity differs from the actual configuration.');

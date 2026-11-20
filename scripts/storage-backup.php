@@ -35,6 +35,13 @@ try {
         throw new InvalidArgumentException('Selected database or backend differs from the actual target.');
     }
     $sessions = ['public' => (string)getenv('RECOVERY_PUBLIC_SESSION_PATH'), 'staff' => (string)getenv('RECOVERY_STAFF_SESSION_PATH')];
+    $singleSessionPath = (string)getenv('RECOVERY_APP_SESSION_PATH');
+    if ($singleSessionPath !== '') {
+        if ($sessions['public'] !== '' || $sessions['staff'] !== '') {
+            throw new InvalidArgumentException('Choose either the app session store or the split session stores.');
+        }
+        $sessions = ['app' => $singleSessionPath];
+    }
     $persistent = getenv('RECOVERY_STORAGE_PATH') ?: $root . '/storage';
     $applicationIdentity = \Amea\Storage\StorageFactory::identity($root);
     $snapshot = new \Amea\Storage\Migration\RecoverySnapshot(\Amea\Core\FileWriteGate::application());
@@ -55,7 +62,7 @@ try {
                 $sessions, $persistent, $databaseIdentity);
         } else {
             if (empty($options['targets'])) {
-                throw new InvalidArgumentException('Reopening requires fresh reports from all three actual targets.');
+                throw new InvalidArgumentException('Reopening requires fresh reports from the selected deployment roles.');
             }
             \Amea\Storage\Migration\Manifest::assertPrivatePath($options['targets']);
             $targets = json_decode(file_get_contents($options['targets']), true, 64, JSON_THROW_ON_ERROR);

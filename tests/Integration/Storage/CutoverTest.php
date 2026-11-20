@@ -71,19 +71,35 @@ class CutoverTest extends TestCase
         self::assertFalse($gate->status()['paused']);
     }
 
+    public function testSingleAppCutoverPreservesThePendingSession(): void
+    {
+        $this->assertVerifiedCutover(true);
+    }
+
     public function testResumeRequiresCurrentVerificationAndEveryActualRoleSelection(): void
+    {
+        $this->assertVerifiedCutover(false);
+    }
+
+    private function assertVerifiedCutover(bool $single): void
     {
         $fixture = migrationFixture(sys_get_temp_dir() . '/amea-cutover-' . bin2hex(random_bytes(8)));
         unlink($fixture['source'] . '/uploads/unknown/link');
-        mkdir($fixture['sessions'] . '/public', 0700);
-        mkdir($fixture['sessions'] . '/staff', 0700);
-        rename($fixture['sessions'] . '/sess_synthetic-secret-token', $fixture['sessions'] . '/public/sess_synthetic-secret-token');
+        if (!$single) {
+            mkdir($fixture['sessions'] . '/public', 0700);
+            mkdir($fixture['sessions'] . '/staff', 0700);
+            rename($fixture['sessions'] . '/sess_synthetic-secret-token', $fixture['sessions'] . '/public/sess_synthetic-secret-token');
+        }
         $db = makeTestDb();
         $source = new LocalStorage($fixture['source']);
         $destination = new LocalStorage($fixture['destination']);
         $identity = ['environment' => 'synthetic', 'database' => ReferenceAudit::databaseIdentity($db),
             'source' => $source->migrationIdentity(), 'destination' => $destination->migrationIdentity(),
             'sessions' => $fixture['sessions'], 'serializer' => 'php'];
+        if ($single) {
+            $identity['topology'] = 'single';
+        }
+        $stores = Cutover::sessionStores($identity);
         $inventory = new Inventory($source, $identity, $fixture['source']);
         $manifest = $inventory->scan();
         $manifest->issues = [];
@@ -100,15 +116,15 @@ class CutoverTest extends TestCase
         $cutover = new Cutover($gate, $db, $source, $destination, $identity, $fixture['manifest']);
         $cutover->pause();
         $targets = [];
-        foreach (['public', 'staff', 'jobs'] as $role) {
+        foreach ($single ? ['app'] : ['public', 'staff', 'jobs'] as $role) {
             $targets[] = ['role' => $role, 'backend' => $identity['destination'], 'database' => $identity['database'],
                 'gate' => $gate->identity(), 'code' => Cutover::codeIdentity(dirname(__DIR__, 3)),
                 'serializer' => 'php', 'observed_at' => microtime(true), 'challenge' => $gate->status()['challenge'],
-                'session_store' => $role === 'jobs' ? null : Cutover::sessionStoreIdentity($fixture['sessions'] . '/' . $role)];
+                'session_store' => $role === 'jobs' ? null : Cutover::sessionStoreIdentity($stores[$role])];
         }
         try {
-            $cutover->finalCheck(array_slice($targets, 0, 2));
-            self::fail('Missing jobs selection must block.');
+            $cutover->finalCheck(array_slice($targets, 0, -1));
+            self::fail('An incomplete deployment report must block.');
         } catch (\RuntimeException $error) {
             self::assertTrue($gate->status()['paused']);
         }
@@ -123,7 +139,7 @@ class CutoverTest extends TestCase
         unlink($fixture['sessions'] . '/sess_late');
         $cutover->finalCheck($targets);
         (new \Amea\Storage\Migration\RecoverySnapshot($gate))->capture($fixture['root'] . '/backup', $db, $source, 'test-owner',
-            ['public' => $fixture['sessions'] . '/public', 'staff' => $fixture['sessions'] . '/staff'], $fixture['source'] . '/storage',
+            $stores, $fixture['source'] . '/storage',
             $fixture['manifest'], ['serializer' => 'php']);
         $cutover->finalCheck($targets);
         $db->exec("UPDATE users SET username='changed-after-backup' WHERE id=1");
@@ -136,6 +152,12 @@ class CutoverTest extends TestCase
         $db->exec("UPDATE users SET username='_superadmin' WHERE id=1");
         $cutover->resume($targets);
         self::assertFalse($gate->status()['paused']);
+        if ($single) {
+            self::assertSame(
+                file_get_contents($fixture['sessions'] . '/sess_synthetic-secret-token'),
+                file_get_contents($fixture['root'] . '/backup/sessions/app/sess_synthetic-secret-token')
+            );
+        }
         self::assertSame('retained attachment', file_get_contents($fixture['destination'] . '/uploads/unknown/unreferenced.bin'));
     }
 }

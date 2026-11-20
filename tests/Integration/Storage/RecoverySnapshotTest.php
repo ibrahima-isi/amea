@@ -129,9 +129,19 @@ class RecoverySnapshotTest extends TestCase
         return [['manifest'], ['checkpoint'], ['original-identity']];
     }
 
+    public function testSingleAppRestoresAndReopensWithReviewedSessionExceptions(): void
+    {
+        $this->assertIsolatedRestoreReopens(true);
+    }
+
     public function testIsolatedRestoreReopensWithTheExactReviewedDatabaseAndSessionExceptions(): void
     {
-        $fixture = $this->reviewedMissingFixture();
+        $this->assertIsolatedRestoreReopens(false);
+    }
+
+    private function assertIsolatedRestoreReopens(bool $single): void
+    {
+        $fixture = $this->reviewedMissingFixture($single);
         $proof = $fixture['snapshot']->capture($fixture['root'] . '/backup', $fixture['db'], $fixture['backend'],
             'source-owner', $fixture['sessions'], $fixture['root'] . '/storage', $fixture['manifest'], ['serializer' => 'php']);
         $root = $fixture['root'];
@@ -140,7 +150,8 @@ class RecoverySnapshotTest extends TestCase
         $gate = new FileWriteGate($root . '/restore-storage/write-gate');
         $gate->pause();
         $snapshot = new RecoverySnapshot($gate);
-        $sessions = ['public' => $root . '/restore-sessions/public', 'staff' => $root . '/restore-sessions/staff'];
+        $sessions = $single ? ['app' => $root . '/restore-sessions']
+            : ['public' => $root . '/restore-sessions/public', 'staff' => $root . '/restore-sessions/staff'];
         $snapshot->restore($root . '/backup', $proof['sha256'], $db, $backend, 'restore-owner',
             $sessions, $root . '/restore-storage', ReferenceAudit::databaseIdentity($db));
         self::assertTrue($gate->status()['paused']);
@@ -148,15 +159,16 @@ class RecoverySnapshotTest extends TestCase
             $this->targets($gate, $db, $backend, $sessions));
         self::assertFalse($gate->status()['paused']);
         self::assertSame('uploads/students/cvs/historical.pdf', $db->query('SELECT cv_path FROM students WHERE id=11')->fetchColumn());
-        self::assertSame(file_get_contents($fixture['sessions']['public'] . '/sess_historical'),
-            file_get_contents($sessions['public'] . '/sess_historical'));
+        $sessionRole = $single ? 'app' : 'public';
+        self::assertSame(file_get_contents($fixture['sessions'][$sessionRole] . '/sess_historical'),
+            file_get_contents($sessions[$sessionRole] . '/sess_historical'));
         self::assertSame(file_get_contents($fixture['manifest'] . '.checkpoint'), file_get_contents($root . '/backup/checkpoint'));
     }
 
     private function targets(FileWriteGate $gate, \PDO $db, LocalStorage $backend, array $sessions): array
     {
         $targets = [];
-        foreach (['public', 'staff', 'jobs'] as $role) {
+        foreach (isset($sessions['app']) ? ['app'] : ['public', 'staff', 'jobs'] as $role) {
             $targets[] = ['role' => $role, 'backend' => Manifest::backendIdentity($backend),
                 'database' => ReferenceAudit::databaseIdentity($db), 'gate' => $gate->identity(),
                 'code' => \Amea\Storage\Migration\Cutover::codeIdentity(dirname(__DIR__, 3)), 'serializer' => 'php',
@@ -166,7 +178,7 @@ class RecoverySnapshotTest extends TestCase
         return $targets;
     }
 
-    private function reviewedMissingFixture(): array
+    private function reviewedMissingFixture(bool $single = false): array
     {
         $root = sys_get_temp_dir() . '/amea-disposition-backup-' . bin2hex(random_bytes(8));
         mkdir($root, 0700);
@@ -175,10 +187,16 @@ class RecoverySnapshotTest extends TestCase
             'restore-sessions/public', 'restore-sessions/staff', 'storage', 'restore-storage', 'evidence'] as $directory) {
             mkdir($root . '/' . $directory, 0700);
         }
+        if ($single) {
+            foreach (['sessions/public', 'sessions/staff', 'restore-sessions/public', 'restore-sessions/staff'] as $directory) {
+                rmdir($root . '/' . $directory);
+            }
+        }
         makeTestDb()->exec("VACUUM INTO '" . $root . "/source.sqlite'");
         $db = new \PDO('sqlite:' . $root . '/source.sqlite', options: [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
         $db->exec("INSERT INTO students(id,cv_path,identity_document) VALUES(11,'uploads/students/cvs/historical.pdf','uploads/students/required.pdf')");
-        file_put_contents($root . '/sessions/public/sess_historical', 'pending_registration|' . serialize([
+        $sessionDir = $root . ($single ? '/sessions' : '/sessions/public');
+        file_put_contents($sessionDir . '/sess_historical', 'pending_registration|' . serialize([
             'db_data' => ['cv_path' => 'uploads/students/pending/historical.pdf']]));
         $backend = new LocalStorage($root . '/source');
         $stream = fopen('php://temp', 'w+b');
@@ -189,6 +207,9 @@ class RecoverySnapshotTest extends TestCase
         $identity = ['environment' => 'synthetic-global-fix', 'database' => ReferenceAudit::databaseIdentity($db),
             'source' => Manifest::backendIdentity($backend), 'destination' => Manifest::backendIdentity(new LocalStorage($root . '/target')),
             'sessions' => $root . '/sessions', 'serializer' => 'php'];
+        if ($single) {
+            $identity['topology'] = 'single';
+        }
         $manifest = (new Inventory($backend, $identity, $root . '/source'))->scan();
         (new ReferenceAudit($db, $backend, $identity, $root . '/sessions', 'php'))->audit($manifest);
         $path = $root . '/evidence/final.jsonl';
@@ -206,7 +227,7 @@ class RecoverySnapshotTest extends TestCase
         $gate->pause($identity);
         return ['root' => $root, 'db' => $db, 'backend' => $backend, 'manifest' => $path,
             'identity' => $identity, 'gate' => $gate, 'snapshot' => new RecoverySnapshot($gate),
-            'sessions' => ['public' => $root . '/sessions/public', 'staff' => $root . '/sessions/staff']];
+            'sessions' => \Amea\Storage\Migration\Cutover::sessionStores($identity)];
     }
 
     public function testCoordinatedRestorePreservesCurrentObjectsBothSessionsLedgerAndOriginalAge(): void

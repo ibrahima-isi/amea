@@ -431,6 +431,24 @@ Mount both actual session volumes into the operator as sibling `public` and
 Final-check compares these mounts with the role reports. Freeze deployment/config
 while collecting and using reports.
 
+For an existing deployment using the root Dockerfile, select
+`MIGRATION_TOPOLOGY=single` for every migration command, including inventory.
+Use a dedicated persistent file-session directory outside the application storage
+tree, such as `/var/lib/amea/sessions`. Configure `session.save_path` in a PHP
+INI file loaded by both Apache and CLI, and grant the application user access.
+Before replacing a container with sessions in its writable layer, drain writers
+and transfer the session files to the new volume with ownership, permissions
+and timestamps preserved. Verify the same session cookie name and serializer.
+Account for scheduled writers before the transition.
+
+Set `MIGRATION_SESSION_PATH` and `RECOVERY_APP_SESSION_PATH` to that directory.
+Leave the split recovery session variables empty. Run
+`php scripts/storage-target.php` inside the actual single-app image as the
+application user and put its one report in the private JSON array. Auditing,
+recovery and reopening bind that same session store and still require verified
+bytes, references, an empty intent ledger and a matching coordinated backup.
+For isolated recovery, use an empty session volume and the same PHP settings.
+
 The initial JSONL review identity remains immutable. Final-check separately binds
 the finalized checkpoint SHA-256, actual role digest and coordinated snapshot
 identity. Resume requires a capture matching the current DB, both session trees,
