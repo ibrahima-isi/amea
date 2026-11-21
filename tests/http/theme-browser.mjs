@@ -4,8 +4,8 @@ import {mkdtemp, rm, mkdir, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
-const [base, out] = process.argv.slice(2);
-assert(base?.startsWith('http://127.0.0.1:'), 'only isolated loopback server');
+const [base, out, staffBase] = process.argv.slice(2);
+assert([base, staffBase].every(origin=>origin?.startsWith('http://127.0.0.1:')), 'only isolated loopback servers');
 const directory = await mkdtemp(path.join(tmpdir(), 'amea-chrome-'));
 const chrome = process.env.CHROME_BIN || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const browser = spawn(chrome, ['--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check', '--remote-debugging-port=0', `--user-data-dir=${directory}`, 'about:blank'], {stdio:['ignore','ignore','pipe']});
@@ -30,8 +30,8 @@ try {
     const evaluate=async expression=>{const r=await cdp('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;};
     const wait=ms=>new Promise(r=>setTimeout(r,ms));
 
-    const navigate=async route=>{
-        const url=base+route;
+    const navigate=async(route, origin=base)=>{
+        const url=origin+route;
         await cdp('Page.navigate',{url});
         for(let i=0;i<150;i++) {
             await wait(100);
@@ -88,33 +88,41 @@ try {
         await rendered('light','SIMULATION '+name+' reverse switch');
         await cdp('Page.removeScriptToEvaluateOnNewDocument',{identifier});
     }
-    const verifySurface=async(name,route)=>{
+    const verifySurface=async(name,route,origin=base)=>{
+        await navigate(route,origin);
         await evaluate("localStorage.removeItem('theme')");
-        await navigate(route);
+        await navigate(route,origin);
         await rendered('light',name+' unsaved dark system');
         const colors={};
         for(const theme of ['light','dark']) {
             await evaluate(`localStorage.setItem('theme','${theme}')`);
-            await navigate(route);
+            await navigate(route,origin);
             colors[theme]=await rendered(theme,name+' saved '+theme);
             await screenshot(name+'-'+theme);
-            await navigate(route);
+            await navigate(route,origin);
             await rendered(theme,name+' reload '+theme);
         }
         assert.notEqual(colors.light.body,colors.dark.body,name+' renders different light/dark backgrounds');
     };
-    await verifySurface('authentication','/login.php');
+    // The staff origin starts without the saved public preference.
+    await navigate('/');
+    await evaluate("localStorage.setItem('theme','dark')");
+    await navigate('/login.php',staffBase);
+    await rendered('light','independent origin');
+    await check("localStorage.getItem('theme') === null",'preferences remain origin-scoped');
+    await verifySurface('authentication','/login.php',staffBase);
     // Authenticate through the real disposable staff form.
-    await navigate('/login.php');
+    await navigate('/login.php',staffBase);
     await evaluate("document.querySelector('[name=username]').value='fixture-admin';document.querySelector('[name=password]').value='fixture-password';document.querySelector('form').submit()");
     for(let i=0;i<100;i++){await wait(100);if(await evaluate("location.pathname === '/dashboard.php' && document.readyState === 'complete'"))break;}
     await check("location.pathname === '/dashboard.php'",'synthetic staff login succeeds');
-    for(const [name,route] of [['public','/'],['registration','/register.php'],['staff','/edit-student.php?id=1'],['member','/kyc-correction.php?token='+'a'.repeat(64)]]) await verifySurface(name,route);
+    for(const [name,route] of [['public','/'],['registration','/register.php'],['member','/kyc-correction.php?token='+'a'.repeat(64)]]) await verifySurface(name,route);
+    await verifySurface('staff','/edit-student.php?id=1',staffBase);
     // Reach the one-use preview through its normal authorized form for each render.
     const previewColors={};
     for(const theme of ['light','dark']) {
         await evaluate(`localStorage.setItem('theme','${theme}')`);
-        await navigate('/export.php');
+        await navigate('/export.php',staffBase);
         await evaluate("document.querySelector('[name=\"fields[]\"]').checked=true;document.querySelector('[name=export_format][value=pdf]').checked=true;document.querySelector('form').submit()");
         for(let i=0;i<100;i++){await wait(100);if(await evaluate("location.pathname === '/export-preview.php' && document.readyState === 'complete'"))break;}
         await check("location.pathname === '/export-preview.php'",'authorized one-use export preview');
@@ -136,14 +144,6 @@ try {
     await evaluate("document.querySelector('.theme-switcher').focus()");
     await key(' ','Space',32);
     await rendered('light','keyboard Space');
-    // The separate origin gets no preference despite a saved dark choice here.
-    await evaluate("localStorage.setItem('theme','dark')");
-    const otherBase=process.argv[4];
-    assert(otherBase?.startsWith('http://127.0.0.1:'),'second disposable origin required');
-    await cdp('Page.navigate',{url:otherBase+'/login.php'});
-    for(let i=0;i<150;i++){await wait(100);if(await evaluate(`location.origin === ${JSON.stringify(otherBase)} && document.readyState === 'complete' && !!document.querySelector('.theme-switcher')`))break;}
-    await rendered('light','independent origin');
-    await check("localStorage.getItem('theme') === null",'preferences remain origin-scoped');
     // With scripts disabled, the unchanged stylesheet defaults still render light.
     await cdp('Emulation.setScriptExecutionDisabled',{value:true});
     await navigate('/');

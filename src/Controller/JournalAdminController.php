@@ -17,7 +17,7 @@ final class JournalAdminController extends BaseController
     {
         parent::__construct();
         $this->requireAdmin();
-        if (!\hasPermission('journal')) {
+        if (!$this->auth->hasPermission('journal')) {
             $this->flash->set('error', 'Accès refusé : vous ne pouvez pas gérer le journal.');
             $this->redirect('dashboard.php');
         }
@@ -64,7 +64,7 @@ final class JournalAdminController extends BaseController
 
     public function save(): void
     {
-        if (!is_string($_POST['csrf_token'] ?? null) || !\verifyCsrfToken($_POST['csrf_token'])) {
+        if (!is_string($_POST['csrf_token'] ?? null) || !$this->csrf->verify($_POST['csrf_token'])) {
             http_response_code(403); exit('Session expirée.');
         }
         $id = isset($_POST['id']) && $_POST['id'] !== '' ? $this->id($_POST['id']) : null;

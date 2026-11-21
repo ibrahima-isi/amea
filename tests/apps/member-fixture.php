@@ -1,6 +1,7 @@
 <?php
 if (PHP_SAPI !== 'cli' || getenv('APP_ENV') !== 'test' || getenv('DB_NAME') !== 'amea_rehearsal') exit(1);
-require '/opt/amea/config/database.php';
+require '/opt/amea/vendor/autoload.php';
+$conn = \Amea\Core\Container::db();
 $conn->prepare('INSERT INTO users (username,password,last_name,first_name,email,role) VALUES (?,?,?,?,?,?)')->execute(['member-reader',password_hash('Fixture-password-123!', PASSWORD_DEFAULT),'Reader','Staff','reader@example.invalid','user']);
 $conn->exec("UPDATE users SET permissions='[\"students\"]' WHERE username='expired'");
 @mkdir('/opt/amea/uploads/students',0770,true);

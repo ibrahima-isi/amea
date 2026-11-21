@@ -32,132 +32,76 @@ Web platform for managing members of the **Amicale des Élèves, Étudiants et S
 | Frontend | Bootstrap 5, vanilla JavaScript, Tagify, **Dark Mode** |
 | Email | PHPMailer 6.x through Brevo SMTP |
 | Templating | Twig |
-| Dependencies | Composer (`phpmailer/phpmailer`, `twig/twig`) |
-| Server | Apache/LiteSpeed with `.htaccess` |
+| Dependencies | Composer (`phpmailer/phpmailer`, `twig/twig`, `doctrine/migrations`) |
+| Server | Apache in split Docker Compose targets |
 
 ---
 
 ## Prerequisites
 
-- PHP 8.0+ with the following extensions: `pdo_mysql`, `fileinfo`, `mbstring`, `gd`
-- MySQL 8.0+
-- Composer
-- Apache or LiteSpeed web server (mod_rewrite enabled)
-- **Brevo** account (formerly Sendinblue) for SMTP email delivery
-
----
+- Docker with the Compose plugin for local application development.
+- PHP 8.5 with `pdo_sqlite`, `fileinfo`, `mbstring`, `gd`, and `curl`, plus Composer, for host-side PHP tests.
 
 ## Local installation
 
-```bash
-# 1. Clone the repository
-git clone <repository-url> amea
-cd amea
+Create an untracked `.env` using the values below, then start both applications.
 
-# 2. Install PHP dependencies
-composer install
-
-# 3. Create the environment file
-touch .env # no .env.example file is provided
-# Edit .env with local credentials (see the section below)
-
-# 4. Create an empty database and initialize it with Doctrine
-mysql -u root -p -e "CREATE DATABASE amea_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-# Export DB_HOST, DB_PORT, DB_NAME, DB_USER and DB_PASS from your private configuration.
-php scripts/migrate.php migrate
-
-# 5. Create the first administrator account
-mysql -u root -p amea_db <<'SQL'
-INSERT INTO users (username, password, last_name, first_name, email, role, is_active)
-VALUES ('admin', '$2y$12$REPLACE_WITH_HASH', 'Admin', 'Système', 'admin@aeesgs.org', 'admin', 1);
-SQL
-# Generate a PHP hash: php -r "echo password_hash('YourPassword', PASSWORD_DEFAULT);"
-
-# 6. Create upload and log directories
-mkdir -p uploads/students/cvs uploads/slider logs
-chmod -R 755 uploads logs
-
-# 7. Start the development server
-php -S localhost:8000
+```sh
+docker compose up -d --build --remove-orphans
+docker compose logs migrate
 ```
 
-Local access:
-- Home: `http://localhost:8000`
-- Staff login: `http://localhost:8000/login.php`
+Open the public website at `https://public.localhost:8000` and staff login at `https://staff.localhost:8090/login.php`. Follow the [local Docker setup](docs/testing/README.md#local-docker-stack) to trust the local HTTPS certificate and handle existing databases.
 
----
+On a fresh database, generate a password hash with PHP's `password_hash()` and create the first staff administrator. Open the database client with `docker compose exec db mariadb -uamea -p amea_db` using the database user and name from your `.env`.
+
+```sql
+INSERT INTO users (username, password, last_name, first_name, email, role, is_active)
+VALUES ('admin', '$2y$12$REPLACE_WITH_HASH', 'Admin', 'Système', 'admin@aeesgs.org', 'admin', 1);
+```
 
 ## Environment variables
 
-The `.env` file lives at the project root:
+Create `.env` at the project root and substitute local credentials.
 
 ```dotenv
-# Database
-DB_HOST=127.0.0.1
 DB_NAME=amea_db
-DB_USER=root
-DB_PASS=secret
+DB_USER=amea
+DB_PASS=replace-with-local-password
+MARIADB_ROOT_PASSWORD=replace-with-local-root-password
 
-# SMTP email (Brevo)
-MAIL_USER=your_login@brevo.com
-MAIL_PASS=your_brevo_smtp_api_key
-
-# Base URL (used in email links)
-APP_URL=https://aeesgs.org
+PUBLIC_APP_URL=https://public.localhost:8000
+STAFF_APP_URL=https://staff.localhost:8090
+APP_ENV=local
 ```
 
-> **In production**: never commit `.env`. The file is listed in `.gitignore`.
-
----
+The local stack suppresses real mail with `APP_ENV=local`. Deployment environment settings are documented in the [rollout guide](docs/operations/public-staff-rollout.md).
 
 ## Project structure
 
-```
+```text
 amea/
-├── .env                        # Environment variables (untracked)
-├── .htaccess                   # Apache security: HTTPS, VCS blocking, headers
-├── schema.sql                  # Complete database schema
-├── composer.json
-│
-├── src/                        # Application core (OOP, PSR-4)
-│   ├── Core/                   # Twig View, Router, Session
-│   ├── Controller/             # Controllers (Auth, Registration, KYC)
-│   ├── Model/                  # Entities (User, Student)
-│   ├── Repository/             # Data access
-│   └── Service/                # Business logic (AuthService, StudentService)
-│
-├── config/
-│   ├── database.php            # PDO connection (loads .env, UTF-8)
-│   └── session.php             # Session setup: 30-minute lifetime, secure cookies
-│
-├── functions/
-│   ├── utility-functions.php   # env(), CSRF, flash messages, upload, export, versioning
-│   ├── email-service.php       # sendMail() + renderEmailTemplate() through Brevo SMTP
-│   └── document-reconcile.php  # File-path reconciliation helpers
-│
-├── migrations/                 # Historical scripts retained for reference
-│
-├── templates/                  # Twig views and HTML email templates
-│   ├── layouts/                # Public and administration layouts
-│   ├── admin/pages/            # Administration views
-│   └── emails/                 # Email templates
-│
-├── assets/
-│   ├── css/                    # Bootstrap + custom CSS
-│   ├── js/                     # Frontend scripts (including theme.js for Dark Mode)
-│   ├── img/                    # Logos, icons
-│   └── json/                   # Static data (country list, etc.)
-│
-├── uploads/
-│   ├── slider/                 # Homepage carousel images
-│   └── students/               # Student photos and CVs
-│       └── cvs/                # CVs (PDF/PNG)
-│
-├── tests/                      # Unit and integration tests
-└── logs/                       # Error logs
+├── composer.json                    # Shared dependencies and PSR-4 mapping
+├── apps/web/public/index.php        # Public website entry point
+├── apps/backoffice/public/index.php # Administration entry point
+├── src/
+│   ├── Core/                        # Routing, sessions and Twig
+│   ├── Config/                      # Environment and PDO setup
+│   ├── Controller/                  # HTTP request handling
+│   ├── Service/                     # Business behavior
+│   ├── Model/                       # Domain objects
+│   ├── Repository/                  # PDO queries
+│   ├── Command/                     # Job and migration commands
+│   └── Migration/                   # Doctrine migration runtime and versions
+├── scripts/                         # Thin CLI entry scripts
+├── config/database.php              # Historical migration adapter
+├── migrations/                      # Historical migration sources
+├── templates/                       # Twig views and HTML email templates
+├── assets/                          # Shared public static files
+└── tests/                           # Regression suites and disposable rehearsals
 ```
 
----
+Member uploads, storage, and logs are mounted outside both document roots.
 
 ## Database
 
@@ -229,7 +173,7 @@ New versions belong in `src/Migration/Version/`; keep `schema.sql` aligned. Hist
 
 ## Public pages and anonymous entry points
 
-The table includes anonymous authentication entry points in the local root layout. In the separate deployed applications, staff login/recovery and private downloads belong to the staff application; requesting staff paths on the public host returns a local 404. See the [independent entry decision](docs/adr/0001-independent-public-and-staff-entry.md) and [rollout guide](docs/operations/public-staff-rollout.md).
+Staff login, account recovery and private downloads belong to administration. The public website returns a local 404 for staff paths. See the [independent entry decision](docs/adr/0001-independent-public-and-staff-entry.md) and [rollout guide](docs/operations/public-staff-rollout.md).
 
 | Page | Description |
 |---|---|

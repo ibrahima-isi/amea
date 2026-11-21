@@ -2,15 +2,23 @@
 
 namespace Amea\Controller;
 
-use Amea\Core\View;
-use Amea\Core\Session;
+use Amea\Core\Container;
+use Amea\Core\CsrfGuard;
 use Amea\Core\Flash;
+use Amea\Core\Session;
+use Amea\Core\StaffNavigation;
+use Amea\Core\View;
+use Amea\Repository\SettingRepository;
+use Amea\Repository\UserRepository;
+use Amea\Service\AuthService;
 
 abstract class BaseController
 {
     protected View $view;
     protected Session $session;
     protected Flash $flash;
+    protected CsrfGuard $csrf;
+    protected AuthService $auth;
 
     public function __construct(bool $startSession = true)
     {
@@ -21,6 +29,8 @@ abstract class BaseController
             $this->session->start();
         }
         $this->flash = new Flash($this->session);
+        $this->csrf = new CsrfGuard($this->session);
+        $this->auth = new AuthService(new UserRepository(Container::db()), $this->session, $this->flash);
 
         $this->injectGlobalVariables($startSession);
     }
@@ -35,10 +45,10 @@ abstract class BaseController
         $twig = $this->view->getTwig();
         
         // Settings
-        $settingRepo = new \Amea\Repository\SettingRepository(\Amea\Core\Container::db());
+        $settingRepo = new SettingRepository(Container::db());
         
         $twig->addGlobal('public_logo_available', @getimagesize(__DIR__ . '/../../assets/img/logo.png') !== false);
-        $publicOrigin = defined('AMEA_APP') && AMEA_APP === 'staff' ? \Amea\Core\StaffNavigation::publicOrigin() : null;
+        $publicOrigin = defined('AMEA_APP') && AMEA_APP === 'staff' ? StaffNavigation::publicOrigin() : null;
         $twig->addGlobal('public_home_url', $publicOrigin !== null ? $publicOrigin . '/' : '/');
         $twig->addGlobal('public_register_url', $publicOrigin !== null ? $publicOrigin . '/register.php' : 'register.php');
         $sessionData = $includeSession ? ($_SESSION ?? []) : [];
@@ -47,20 +57,20 @@ abstract class BaseController
         $twig->addGlobal('staff_navigation', [
             'dashboard' => $authenticated,
             'students' => $authenticated,
-            'trash' => $admin && \hasPermission('students'),
-            'export' => $authenticated && \hasPermission('export'),
+            'trash' => $admin && $this->auth->hasPermission('students'),
+            'export' => $authenticated && $this->auth->hasPermission('export'),
             'kyc' => $admin,
-            'users' => $admin && \hasPermission('users'),
-            'journal' => $admin && \hasPermission('journal'),
-            'slider' => $admin && \hasPermission('slider'),
-            'upgrade' => $admin && \hasPermission('upgrade'),
-            'communications' => $admin && \hasPermission('communications'),
-            'settings' => $admin && \hasPermission('settings'),
+            'users' => $admin && $this->auth->hasPermission('users'),
+            'journal' => $admin && $this->auth->hasPermission('journal'),
+            'slider' => $admin && $this->auth->hasPermission('slider'),
+            'upgrade' => $admin && $this->auth->hasPermission('upgrade'),
+            'communications' => $admin && $this->auth->hasPermission('communications'),
+            'settings' => $admin && $this->auth->hasPermission('settings'),
         ]);
         $twig->addGlobal('staff_route', basename(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: ''));
         $twig->addGlobal('session', $sessionData);
         $twig->addGlobal('flash', $includeSession ? $this->flash->get() : null);
-        $twig->addGlobal('csrf_token', $includeSession ? \generateCsrfToken() : '');
+        $twig->addGlobal('csrf_token', $includeSession ? $this->csrf->getToken() : '');
         $twig->addGlobal('settings', [
             'contact_email' => $settingRepo->getValue('contact_email'),
             'contact_phone' => $settingRepo->getValue('contact_phone'),
@@ -78,7 +88,7 @@ abstract class BaseController
     protected function requireAuth(): void
     {
         if (!$this->session->get('user_id')) {
-            $target = \Amea\Core\StaffNavigation::requestedTarget();
+            $target = StaffNavigation::requestedTarget();
             if ($target !== null) {
                 $this->session->set('staff_return_to', $target);
             }

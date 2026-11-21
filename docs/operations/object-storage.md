@@ -36,7 +36,7 @@ Environment loaded into `$_ENV` takes priority over process variables, including
 
 ### Existing single-app deployments
 
-An existing deployment using the retained root `Dockerfile` can add the following keys to its current `app` service environment. Use its existing project name, service definitions, mounts and database. Supply these values through the existing protected deployment environment. The default below keeps local storage active during migration preparation.
+An existing combined deployment built from a revision with the root `Dockerfile` can add the following keys to its current `app` service environment. Use its existing project name, service definitions, mounts and database. Supply these values through the existing protected deployment environment. The default below keeps local storage active during migration preparation.
 
 ```yaml
 services:
@@ -56,7 +56,7 @@ services:
       R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
 ```
 
-Merge these keys with the service's existing environment entries. For aliases, leave the five canonical provider fields empty. Change `STORAGE_DRIVER` only at the approved, verified cutover. The root image uses PHP 8.4. The independent public/staff/jobs targets use `docker/Dockerfile.apps`. This environment block supports the existing deployment topology.
+Merge these keys with the service's existing environment entries. For aliases, leave the five canonical provider fields empty. Change `STORAGE_DRIVER` only at the approved, verified cutover. The combined image uses PHP 8.4. The independent public/staff/jobs targets use `docker/Dockerfile.apps`.
 
 
 Grant object read/write/delete and bucket list/existence-check permissions. The factory disables optional automatic SDK request/response checksum extensions with `when_required`. The implementation computes content SHA-256 from a disk-spooled input stream and stores it in object metadata. R2's supported operations and checksum features are documented in its compatibility matrix. [Cloudflare S3 API compatibility](https://developers.cloudflare.com/r2/api/s3/api/)
@@ -431,7 +431,7 @@ Mount both actual session volumes into the operator as sibling `public` and
 Final-check compares these mounts with the role reports. Freeze deployment/config
 while collecting and using reports.
 
-For an existing deployment using the root Dockerfile, select
+For a combined deployment built from a revision with the root Dockerfile, select
 `MIGRATION_TOPOLOGY=single` for every migration command, including inventory.
 Use a dedicated persistent file-session directory outside the application storage
 tree, such as `/var/lib/amea/sessions`. Configure `session.save_path` in a PHP

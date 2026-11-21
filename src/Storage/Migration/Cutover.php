@@ -59,7 +59,7 @@ final class Cutover
     public static function codeIdentity(string $root): string
     {
         $files = [];
-        foreach (['src', 'config', 'functions'] as $directory) {
+        foreach (['src', 'config'] as $directory) {
             $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root . '/' . $directory, \FilesystemIterator::SKIP_DOTS));
             foreach ($iterator as $file) {
                 if ($file->isFile() && $file->getExtension() === 'php') {

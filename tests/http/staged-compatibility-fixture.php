@@ -14,7 +14,7 @@ if (getenv('STORAGE_DRIVER') === 's3') {
 }
 $db = new PDO('sqlite:' . $root . '/fixture.sqlite');
 $db->exec("INSERT INTO countries VALUES (2, 'Sénégal')");
-session_save_path($root . '/sessions');
+session_save_path($root . '/sessions/public');
 session_id('amea-previous-registration');
 session_start();
 $_SESSION['pending_registration'] = [

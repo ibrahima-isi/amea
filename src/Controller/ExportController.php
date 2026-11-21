@@ -36,7 +36,7 @@ class ExportController extends BaseController
     {
         parent::__construct();
         $this->requireAuth();
-        if (!\hasPermission('export')) {
+        if (!$this->auth->hasPermission('export')) {
             $this->flash->set('error', 'Accès refusé : vous n\'avez pas la permission d\'exporter des données.');
             $this->redirect('dashboard.php');
             return;
@@ -84,7 +84,7 @@ class ExportController extends BaseController
 
     public function download(): void
     {
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->set('error', 'La session a expiré. Veuillez réessayer.');
             $this->redirect('export.php');
             return;

@@ -24,7 +24,7 @@ class UserController extends BaseController
     public function index(): void
     {
         $this->requireAdmin();
-        if (!\hasPermission('users')) {
+        if (!$this->auth->hasPermission('users')) {
             $this->flash->set('error', 'Accès refusé : vous n\'avez pas la permission de gérer les utilisateurs.');
             $this->redirect('dashboard.php');
             return;
@@ -42,7 +42,7 @@ class UserController extends BaseController
     public function create(): void
     {
         $this->requireAdmin();
-        if (!\hasPermission('users')) {
+        if (!$this->auth->hasPermission('users')) {
             $this->flash->set('error', 'Accès refusé : vous n\'avez pas la permission de gérer les utilisateurs.');
             $this->redirect('dashboard.php');
             return;
@@ -60,13 +60,13 @@ class UserController extends BaseController
     public function store(): void
     {
         $this->requireAdmin();
-        if (!\hasPermission('users')) {
+        if (!$this->auth->hasPermission('users')) {
             $this->flash->set('error', 'Accès refusé : vous n\'avez pas la permission de gérer les utilisateurs.');
             $this->redirect('dashboard.php');
             return;
         }
 
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->set('error', 'La session a expiré. Veuillez réessayer.');
             $this->redirect('add-user.php');
             return;
@@ -106,7 +106,7 @@ class UserController extends BaseController
     public function edit(): void
     {
         $this->requireAdmin();
-        if (!\hasPermission('users')) {
+        if (!$this->auth->hasPermission('users')) {
             $this->flash->set('error', 'Accès refusé : vous n\'avez pas la permission de gérer les utilisateurs.');
             $this->redirect('dashboard.php');
             return;
@@ -145,7 +145,7 @@ class UserController extends BaseController
     public function update(): void
     {
         $this->requireAdmin();
-        if (!\hasPermission('users')) {
+        if (!$this->auth->hasPermission('users')) {
             $this->flash->set('error', 'Accès refusé : vous n\'avez pas la permission de gérer les utilisateurs.');
             $this->redirect('dashboard.php');
             return;
@@ -153,7 +153,7 @@ class UserController extends BaseController
 
         $id = (int)($_GET['id'] ?? 0);
 
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->set('error', 'La session a expiré. Veuillez réessayer.');
             $this->redirect('edit-user.php?id=' . $id);
             return;
@@ -215,13 +215,13 @@ class UserController extends BaseController
     public function delete(): void
     {
         $this->requireAdmin();
-        if (!\hasPermission('users')) {
+        if (!$this->auth->hasPermission('users')) {
             $this->flash->set('error', 'Accès refusé : vous n\'avez pas la permission de gérer les utilisateurs.');
             $this->redirect('dashboard.php');
             return;
         }
 
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->set('warning', 'La session a expiré. Veuillez réessayer.');
             $this->redirect('users.php');
             return;

@@ -63,7 +63,7 @@ class RegistrationController extends BaseController
             return;
         }
 
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->add('error', 'La session a expiré. Veuillez réessayer.');
             $this->redirect('register.php');
             return;
@@ -184,7 +184,7 @@ class RegistrationController extends BaseController
             return;
         }
 
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->add('error', 'La session a expiré.');
             $this->redirect('registration-details.php');
             return;

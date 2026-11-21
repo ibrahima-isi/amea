@@ -7,11 +7,11 @@ import sqlite3
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / 'http'))
-from harness import check, client, disposable_app
+from harness import check, client, disposable_apps
 
 storage = {key: os.environ[key] for key in ['STORAGE_DRIVER', 'S3_PATH_STYLE', 'S3_ENDPOINT', 'S3_REGION', 'S3_BUCKET', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY']}
-with disposable_app(storage_env=storage) as fixture:
-    db = sqlite3.connect(fixture.app / 'fixture.sqlite')
+with disposable_apps('staff', storage_env=storage) as (fixture,):
+    db = sqlite3.connect(fixture.root / 'fixture.sqlite')
     db.execute('INSERT INTO students(id, first_name, last_name, identity_document) VALUES(1,?,?,?)', ('Synthetic', 'R2', os.environ['R2_TEST_MEDIA_KEY']))
     db.commit()
     db.close()

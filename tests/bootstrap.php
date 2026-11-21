@@ -1,7 +1,6 @@
 <?php
 
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../functions/utility-functions.php';
 
 $_ENV['APP_ENV'] = 'test';
 $_ENV['APP_URL'] = 'http://localhost';

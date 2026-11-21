@@ -3,7 +3,8 @@
 if (PHP_SAPI !== 'cli' || getenv('APP_ENV') !== 'test' || getenv('DB_NAME') !== 'amea_rehearsal') {
     exit(1);
 }
-require '/opt/amea/config/database.php';
+require '/opt/amea/vendor/autoload.php';
+$conn = \Amea\Core\Container::db();
 // This legacy MySQL fixture initializes the member tables from the exact new
 // version sources. Canonical MariaDB runner/backup/recovery is qualified by
 // doctrine-compose.sh; this file only provisions synthetic test fixtures.

@@ -9,8 +9,7 @@ if (PHP_SAPI !== 'cli-server' || !str_starts_with(basename(dirname(__DIR__, 2)),
 $path = rawurldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '');
 $root = realpath(__DIR__ . '/../..');
 $file = realpath($root . $path);
-$publicAsset = str_starts_with($path, '/assets/');
-if ($publicAsset && $file && str_starts_with($file, $root . '/') && is_file($file)) {
+if (str_starts_with($path, '/assets/') && $file && str_starts_with($file, $root . '/assets/') && is_file($file)) {
     $types = ['json' => 'application/json', 'css' => 'text/css', 'js' => 'application/javascript', 'png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'webp' => 'image/webp'];
     $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
     if (isset($types[$ext])) {
@@ -19,8 +18,17 @@ if ($publicAsset && $file && str_starts_with($file, $root . '/') && is_file($fil
         exit;
     }
 }
-require __DIR__ . '/../../vendor/autoload.php';
-require __DIR__ . '/../../functions/utility-functions.php';
+$entryPoint = match (getenv('AMEA_HTTP_TEST_APPLICATION')) {
+    'public' => '/apps/web/public/index.php',
+    'staff' => '/apps/backoffice/public/index.php',
+    default => null,
+};
+if ($entryPoint === null) {
+    http_response_code(404);
+    exit;
+}
+
+require $root . '/vendor/autoload.php';
 $_ENV['APP_ENV'] = 'test';
 $_ENV['MAIL_USER'] = '';
 $_ENV['MAIL_PASS'] = '';
@@ -42,17 +50,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_file($faultFile)) {
 }
 \Amea\Core\Container::setStorage($storage);
 
-// Loopback HTTP cannot send Secure cookies. Start a test session first;
-// production Session still applies expiry/authentication, never changed here.
-if (!in_array($path, ['/journal.php', '/journal-article.php', '/journal-cover.php'], true)
-    && !str_starts_with($path, '/uploads/slider/')) {
-    \Amea\Core\FileWriteGate::admitHttp();
-}
-ini_set('session.cookie_httponly', '1');
-ini_set('session.cookie_samesite', 'Strict');
-if (!in_array($path, ['/journal.php', '/journal-article.php', '/journal-cover.php'], true)
-    && !str_starts_with($path, '/uploads/slider/')) {
-    session_start(\Amea\Core\Session::isReadOnly() ? ['read_and_close' => true] : []);
-}
-$router = require __DIR__ . '/../../src/bootstrap.php';
-$router->dispatch();
+require $root . $entryPoint;

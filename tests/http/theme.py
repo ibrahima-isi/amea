@@ -2,10 +2,9 @@
 """Rendered theme checks on disposable loopback apps with synthetic data only."""
 import os
 import subprocess
-from harness import ROOT, disposable_app
+from harness import ROOT, disposable_apps
 
-with disposable_app(extra_fixtures=('token-fixture.php', 'theme-fixture.php')) as public:
-    with disposable_app() as other_origin:
-        subprocess.run(['node', str(ROOT / 'tests/http/theme-browser.mjs'), public.base,
-                        os.environ.get('AMEA_THEME_SCREENSHOTS', str(ROOT / 'docs/testing/screenshots/theme')),
-                        other_origin.base], check=True, timeout=240)
+with disposable_apps('public', 'staff', extra_fixtures=('token-fixture.php', 'theme-fixture.php')) as (public, staff):
+    subprocess.run(['node', str(ROOT / 'tests/http/theme-browser.mjs'), public.base,
+                    os.environ.get('AMEA_THEME_SCREENSHOTS', str(ROOT / 'docs/testing/screenshots/theme')),
+                    staff.base], check=True, timeout=240)
