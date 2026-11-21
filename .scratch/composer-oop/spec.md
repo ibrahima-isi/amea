@@ -54,3 +54,5 @@ Framework adoption, separate dependency sets, schema or data migration, changes 
 ## Further Notes
 
 The dedicated document roots adopt the physical entry-point split while retaining the app boundary and shared data described in [ADR 0001](../../docs/adr/0001-independent-public-and-staff-entry.md). [ADR 0003](../../docs/adr/0003-use-separate-composer-web-entry-points.md) records the Composer and runtime decision.
+
+The user subsequently approved a return to Namecheap Stellar with two web roots and automatic publication from tested main revisions using GitHub Actions Secrets. The [Stellar reconciliation plan](plan.md) applies that hosting direction to the merged OOP and object-storage code. Native packaging, private runtime selection, attestation, staging qualification and the actual production transition are follow-up work. Existing Compose files remain supported.
