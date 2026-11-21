@@ -43,16 +43,17 @@ The approved product requirement is a light first visit regardless of the operat
 
 Use PHPUnit 11 with `*Test.php` files under `tests/Unit/` or `tests/Integration/`; standalone checks use `test_*.php`. Existing tests use SQLite fixtures. Add regression coverage for changed behavior. No numeric coverage threshold is configured. Run relevant suites and the CI command set before requesting review. SQLite-backed tests do not require MySQL. Keep all GitHub Actions CI and other workflows in the single file `.github/workflows/ci.yml`; consult that file for actual triggers. This is the required convention; existing workflows must be consolidated when workflow changes are in scope.
 
-## Commit & Pull Request Guidelines
+## GitHub Flow
 
-Use existing prefixes such as `feat:`, `fix:`, `security:`, `infra:`, `ci:`, and `docs:`. Push feature branches and open PRs into `dev`; `dev` and `main` are protected long-lived branches. Describe behavior, link relevant issues, report validation, and include screenshots for UI changes. Omit Co-Authored-By and Claude attribution trailers.
+`main` is the only long-lived branch locally and on GitHub. Every change to `main` goes through a GitHub pull request. Never commit directly to `main`, push directly to it, force-push it, or merge a development branch into it locally. Never bypass branch protection.
 
-- Create every commit with a cryptographic signature, including local merge commits. If signing fails or a created commit is unsigned, abort the operation and resolve signing before proceeding. Never disable signing or retry with an unsigned commit.
-- Perform all edits, commits, and tests in an isolated Git worktree based on the task's selected starting branch. Keep the original checkout untouched; read-only inspection is allowed.
-- Temporary working branches are allowed locally in isolated worktrees and on the remote for PRs. Target every PR at `dev`.
-- Enable auto-merge into `dev` only when all required checks pass on the latest PR commit and all repository protections are satisfied. Earlier green checks are insufficient.
-- After the PR has actually merged into remote `dev`, integrate its merged result into local `main` from an isolated worktree. A PR being ready to merge is insufficient. Do not push remote `main` as part of this operation.
-- After integration, remove the task's temporary worktree and branches when their work is safely preserved. The steady state is only `main` locally and `dev` plus `main` on the remote. Preserve unrelated work and branches; defer their cleanup until safe and authorized.
+1. Check Git status and fetch `origin`. Create a short-lived branch from the latest `origin/main` in an isolated worktree. Use `feature/<description>`, `fix/<description>`, `refactor/<description>`, `chore/<description>`, or `docs/<description>`. Include the Jira key when available. Keep the original checkout untouched.
+2. Implement and validate in the worktree. Use concise Conventional Commits such as `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`, and `ci:`. Existing `security:` and `infra:` prefixes are also valid. Cryptographically sign every commit, including merges. Stop if signing fails or a commit is unsigned. Omit Co-Authored-By and Claude attribution trailers.
+3. Push the task branch when appropriate. Report its name, changes, validation results, and PR readiness. A request to implement work never authorizes opening a PR. Open one only when the user explicitly requests a PR or explicitly invokes the `pr` skill. Never invoke that skill automatically.
+4. Target `main` for every PR. Describe the change, link relevant issues, report validation, and include screenshots for UI changes. Prefer squash merging through GitHub after the required checks pass on the latest PR revision and all branch protections are satisfied. A PR creation request does not authorize a merge. Merge only with explicit user authorization and never enable auto-merge.
+5. After verifying the PR actually merged into remote `main`, synchronize local `main` by fast-forward only in an isolated worktree. If it diverged, preserve its commits and report the divergence. Verify the merged PR covers the task branch tip before removing the task worktree and deleting the task branch locally and remotely. Obtain explicit approval before deleting any pre-existing branch. Preserve unmerged work and published history.
+
+Keep GitHub's default branch set to `main`. Its ruleset must require PRs and the CI checks defined in `.github/workflows/ci.yml`, enforce signed commits, and block force pushes and deletion without bypass actors. Keep squash merging available, auto-merge and automatic branch deletion disabled, and the minimum approving-review count at zero for the sole maintainer.
 
 ## Security & Collaboration
 
