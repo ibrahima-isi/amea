@@ -22,9 +22,11 @@ loopback PHP processes before deleting the temporary application/session files.
 
 Journal manual browser fixture (ticket04): run `python3 tests/http/journal-browser.py`
 and keep the process alive during native browser interaction. It prints JSON with
-the ephemeral public and staff URLs, synthetic staff accounts/password, and the existing repository
-JPEG path for the cover file picker. The journal starts empty; the runner verifies
-the public empty state and homepage omission before any optional seed. Add `--seed`
+the ephemeral public and staff URLs, synthetic staff account names, and the repository
+JPEG path for the cover file picker. Use the `PASSWORD` constant in
+[the runner source](journal-browser.py) to sign in to the fixture accounts.
+The runner verifies the empty journal and its omission from the homepage before
+any optional seed. Add `--seed`
 for published future, ended and ongoing activities, a report and an announcement;
 add `--archive-count 12` for a second archive page. All seeded publications use the
 real authorized staff HTTP forms and CSRF; the five examples upload the repository
