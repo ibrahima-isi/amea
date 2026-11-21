@@ -27,3 +27,15 @@ The [pull request](https://github.com/ibrahima-isi/amea/pull/39) targets `dev` f
 - Merged PRs #44 and #45 from `dev` at `d767113`. The dedicated entry points now serve carousel objects through the configured backend. Stateful routes and jobs use the storage write gate. Manual and scheduled purges use durable deletion, and scheduled retries require backup confirmation.
 - PHP lint, standalone PHP checks, JavaScript theme tests, the six HTTP suites and PHPUnit passed locally. PHPUnit retained 10 deprecations and skipped 41 cases requiring extra integration configuration.
 - The disposable S3, canonical MariaDB Compose and split-app HTTPS rehearsals passed, including rollback and verified session, database and file restore. Browser automation was disabled for the Docker rehearsal.
+
+## Merged delivery and Stellar reconciliation on November 21, 2026
+
+PR #39 merged into remote dev as 1534565ba3d81bf3778b93f4172f5653d0d0deda at 01:12:08 UTC, after incorporation of PR #45 at d767113. Local dev points to the same merge and contains the OOP migration. The five post-merge CI jobs passed at that exact revision. [Merged PR](https://github.com/ibrahima-isi/amea/pull/39), [post-merge CI](https://github.com/ibrahima-isi/amea/actions/runs/44848728283)
+
+The [Stellar reconciliation plan](plan.md) updates the earlier hosting plan at local signed commit 5a36916, based on pre-OOP d767113. Source comparison confirms the two native front controllers and class-owned Router are delivered. Native LiteSpeed rules, durable private runtime paths, effective web/CLI configuration, native role attestation and cross-topology session transfer remain implementation and account-qualification work.
+
+Compared with d767113, storage methods, provider configuration, migration/backup command paths and snapshot formats are preserved by PR #39. Cutover::codeIdentity() drops the removed functions tree from its hash inputs. Existing migration evidence stays bound to its recorded code and target identities. The merged branch removes the combined root Dockerfile, so source-side single-app rehearsal requires its retained pre-OOP revision/image.
+
+This reconciliation preserves the tracked Compose files and records dependencies for two web roots, isolated sessions, shared private code/database/R2 and automatic main publication. R2 qualification on amea-sandbox is synthetic-provider evidence. Production R2 migration, full hosting transfer with pending-registration recovery and the actual Stellar account remain to be qualified.
+
+Validation for this update covers the d767113..1534565 source comparison, the approved 5a36916 plan/preflight, local Markdown targets and git diff --check. Changes are confined to the OOP spec, plan and completion record.
