@@ -98,7 +98,6 @@ def main():
             'editor': staff.base + '/edit-journal.php',
             'cover_file': str(ROOT / 'assets/img/presidents.jpg'),
             'accounts': {'journal-admin': 'admin + journal', 'journal-denied': 'admin without journal', 'journal-reader': 'ordinary user + journal'},
-            'synthetic_password': PASSWORD,
             'before_seed': {'public_empty_state': empty, 'homepage_journal_omitted': omitted},
             'seeded': publications,
             'limits': ['Separate loopback HTTP origins share disposable SQLite data.',
