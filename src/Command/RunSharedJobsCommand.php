@@ -9,6 +9,7 @@ final class RunSharedJobsCommand
 {
     public function run(string $projectRoot, string $job): int
     {
+        // Only the backup-acknowledged trash worker retries permanent purges.
         $scripts = [
             'mail' => 'process-mail-queue.php',
             'pending' => 'purge-pending-uploads.php',

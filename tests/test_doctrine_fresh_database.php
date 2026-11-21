@@ -88,7 +88,7 @@ foreach ([
 }
 
 [$exit, $output] = runMigrationCommand('migrate');
-check($exit === 0 && str_contains($output, '2 migrations executed'), "Fresh migration applies two versions\n{$output}");
+check($exit === 0 && str_contains($output, '4 migrations executed'), "Fresh migration applies all four versions\n{$output}");
 check(
     $fresh->query('SELECT setting_key, setting_value, setting_group FROM settings ORDER BY setting_key')
         ->fetchAll(PDO::FETCH_NUM) === [
@@ -99,6 +99,8 @@ check(
     'Fresh initialization installs the three legacy settings'
 );
 
+check($fresh->query('SELECT id FROM member_file_lock')->fetchAll(PDO::FETCH_COLUMN) === [1], 'Transactional member lock initialization runs once');
+
 $import = $baseline->query(file_get_contents(__DIR__ . '/../schema.sql'));
 while ($import->nextRowset()) {
     // Consume every result to surface errors in the schema import.
@@ -107,7 +109,7 @@ check(readTableDefinitions($fresh) === readTableDefinitions($baseline), 'Fresh s
 
 $ledgerQuery = 'SELECT version, executed_at, execution_time FROM doctrine_migration_versions ORDER BY version';
 $ledger = $fresh->query($ledgerQuery)->fetchAll(PDO::FETCH_ASSOC);
-$versions = ['Amea\\Migration\\Version\\Version20261106000000', 'Amea\\Migration\\Version\\Version20261106000001'];
+$versions = [...MigrationRuntime::BASELINE_VERSIONS, ...MigrationRuntime::MEMBER_FILE_VERSIONS];
 check(array_column($ledger, 'version') === $versions, 'Record the schema and data versions separately');
 check(
     $fresh->query("SHOW TABLE STATUS WHERE Name = 'doctrine_migration_versions'")->fetch(PDO::FETCH_ASSOC)['Engine'] === 'InnoDB',
@@ -116,8 +118,8 @@ check(
 
 [$exit, $output] = runMigrationCommand('status');
 check(
-    $exit === 0 && str_contains($output, $versions[0]) && str_contains($output, $versions[1]),
-    "Doctrine reports both recorded versions\n{$output}"
+    $exit === 0 && str_contains($output, $versions[count($versions) - 2]) && str_contains($output, $versions[count($versions) - 1]),
+    "Doctrine reports recorded schema and data versions\n{$output}"
 );
 
 $fresh->exec("UPDATE settings SET setting_value = 'custom@aeesgs.invalid' WHERE setting_key = 'contact_email'");

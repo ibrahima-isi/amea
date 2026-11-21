@@ -6,6 +6,38 @@ use Amea\Repository\UserRepository;
 class Session
 {
     private const LIFETIME = 1800; // 30 minutes
+    private static bool $readOnly = false;
+
+    public static function isReadOnly(): bool
+    {
+        return self::$readOnly;
+    }
+
+    /** Existing files-only sessions can authorize private smoke reads during pause. */
+    public static function allowPausedRead(): bool
+    {
+        $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET'
+            || !in_array($path, ['/download.php', '/registration-preview.php', '/registration-details.php',
+                '/journal-preview.php', '/journal-preview-cover.php'], true)
+            || ini_get('session.save_handler') !== 'files') {
+            return false;
+        }
+        new self();
+        $id = $_COOKIE[session_name()] ?? '';
+        $directory = session_save_path();
+        if (!is_string($id) || !preg_match('/^[A-Za-z0-9,-]{1,256}$/D', $id)
+            || $directory === '' || str_contains($directory, ';')
+            || is_link($directory . '/sess_' . $id) || !is_file($directory . '/sess_' . $id)) {
+            return false;
+        }
+        // Files handler GC can delete other sessions even during read_and_close.
+        ini_set('session.gc_probability', '0');
+        ini_set('session.use_cookies', '0');
+        session_id($id);
+        self::$readOnly = true;
+        return true;
+    }
 
     public function __construct()
     {
@@ -32,8 +64,13 @@ class Session
 
     public function start(): void
     {
+        if (PHP_SAPI !== 'cli') {
+            FileWriteGate::admitHttp();
+        }
         if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+            if (!session_start(self::$readOnly ? ['read_and_close' => true] : [])) {
+                throw new \RuntimeException('Unable to read the selected session.');
+            }
         }
         $this->checkExpiry();
     }
@@ -50,6 +87,12 @@ class Session
             $users = new UserRepository(Container::db());
             if ($users->isSessionVersionCurrent($this->userId(), (int)$this->get('session_version', 0))) {
                 return;
+            }
+
+            if (self::$readOnly) {
+                http_response_code(503);
+                header('Retry-After: 60');
+                exit('Maintenance en cours. Veuillez réessayer plus tard.');
             }
 
             $returnTarget = StaffNavigation::requestedTarget();
@@ -71,6 +114,11 @@ class Session
     private function checkExpiry(): void
     {
         if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > self::LIFETIME) {
+            if (self::$readOnly) {
+                http_response_code(503);
+                header('Retry-After: 60');
+                exit('Maintenance en cours. Veuillez réessayer plus tard.');
+            }
             $returnTarget = StaffNavigation::requestedTarget();
             $this->destroy();
             $login = defined('AMEA_APP') && AMEA_APP === 'public' ? 'register.php' : 'login.php';
@@ -80,7 +128,9 @@ class Session
             header('Location: ' . $login);
             exit();
         }
-        $_SESSION['last_activity'] = time();
+        if (!self::$readOnly) {
+            $_SESSION['last_activity'] = time();
+        }
     }
 
     public function regenerate(): void

@@ -17,7 +17,9 @@ final class JournalMediaServiceTest extends TestCase
         copy($outside, $covers . '/' . $name);
         $media = new JournalMediaService($root);
         try {
-            self::assertNotNull($media->resolve('uploads/journal/covers/' . $name));
+            $file = $media->resolve('uploads/journal/covers/' . $name);
+            self::assertNotNull($file);
+            fclose($file['stream']);
             self::assertNull($media->resolve('uploads/journal/covers/../' . $name));
             unlink($covers . '/' . $name);
             symlink($outside, $covers . '/' . $name);
@@ -32,6 +34,11 @@ final class JournalMediaServiceTest extends TestCase
             unlink($outside);
             rmdir($root . '/uploads/journal');
             rmdir($root . '/uploads');
+            if (is_dir($root . '/storage')) {
+                $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root . '/storage', \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
+                foreach ($files as $file) { $file->isDir() ? rmdir($file->getPathname()) : unlink($file->getPathname()); }
+                rmdir($root . '/storage');
+            }
             rmdir($root);
         }
     }

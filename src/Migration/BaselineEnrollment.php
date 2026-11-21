@@ -11,6 +11,9 @@ final class BaselineEnrollment
 {
     private const SQL_BASELINE_SHA256 = '6b90bcf1c63c4751f64d8458624348b8aa2f8fd29723a099305563185bbead0d';
 
+    private const MEMBER_SQL_BASELINE_SHA256 = 'e4392a1502489d941bc928cc7b14ad64ecc2736be63a881d7cd70c63e13cb375';
+    private array $versions = MigrationRuntime::BASELINE_VERSIONS;
+
     public function __construct(private readonly MigrationRuntime $runtime)
     {
     }
@@ -26,10 +29,10 @@ final class BaselineEnrollment
         $this->verifyData($connection);
 
         $recorded = $this->runtime->recordedVersions();
-        if (array_diff($recorded, MigrationRuntime::BASELINE_VERSIONS) !== []) {
+        if (array_diff($recorded, $this->versions) !== []) {
             throw new RuntimeException('Unknown recorded versions. Review the migration ledger before enrollment.');
         }
-        if ($recorded !== [] && array_diff(MigrationRuntime::BASELINE_VERSIONS, $recorded) !== []) {
+        if ($recorded !== [] && array_diff($this->versions, $recorded) !== []) {
             throw new RuntimeException('Partial migration baseline. Reconcile the schema and ledger before enrollment.');
         }
         if ($recorded !== []) {
@@ -40,8 +43,9 @@ final class BaselineEnrollment
         // Provisioning is DDL and must finish before the atomic enrollment transaction.
         $this->runtime->doctrine->getMetadataStorage()->ensureInitialized();
         $this->assertTransactionalLedger($connection);
-        $connection->transactional(static function (Connection $connection): void {
-            foreach (MigrationRuntime::BASELINE_VERSIONS as $version) {
+        $versions = $this->versions;
+        $connection->transactional(static function (Connection $connection) use ($versions): void {
+            foreach ($versions as $version) {
                 $connection->insert(MigrationRuntime::LEDGER_TABLE, [
                     'version' => $version,
                     'executed_at' => date('Y-m-d H:i:s'),
@@ -88,7 +92,7 @@ final class BaselineEnrollment
             return;
         }
         if ($source === 'schema-sql' && ($evidence['imported_into_empty_database'] ?? null) === true
-            && ($evidence['schema_sha256'] ?? null) === self::SQL_BASELINE_SHA256) {
+            && in_array($evidence['schema_sha256'] ?? null, [self::SQL_BASELINE_SHA256, self::MEMBER_SQL_BASELINE_SHA256], true)) {
             return;
         }
         throw new RuntimeException('Provide evidence of the successful legacy KYC backfill or of the adoption schema.sql imported into an empty database.');
@@ -105,6 +109,11 @@ final class BaselineEnrollment
             }
         }
         $snapshot = file_get_contents(__DIR__ . '/enrollment-schema.sql');
+        $tablesPresent = $connection->fetchFirstColumn('SHOW FULL TABLES');
+        if (array_intersect(['member_file_lock', 'file_operations'], $tablesPresent) !== []) {
+            $snapshot .= file_get_contents(__DIR__ . '/member-file-enrollment-schema.sql');
+            $this->versions = [...MigrationRuntime::BASELINE_VERSIONS, ...MigrationRuntime::MEMBER_FILE_VERSIONS];
+        }
         preg_match_all('/CREATE TABLE `([^`]+)` \(.*?\) ENGINE=.*?;/s', $snapshot, $matches, PREG_SET_ORDER);
         $definitions = [];
         foreach ($matches as $match) {
@@ -196,6 +205,11 @@ final class BaselineEnrollment
 
     private function verifyData(Connection $connection): void
     {
+        if (array_intersect($this->versions, MigrationRuntime::MEMBER_FILE_VERSIONS) !== []) {
+            if ($connection->fetchFirstColumn('SELECT id FROM member_file_lock ORDER BY id') !== [1]) {
+                throw new RuntimeException('The member file lock initialization is incomplete. Review the schema and data before enrollment.');
+            }
+        }
         $requiredKeys = ['contact_email', 'contact_phone', 'organization_name'];
         $keys = $connection->fetchFirstColumn('SELECT setting_key FROM settings WHERE setting_key IN (?, ?, ?)', $requiredKeys);
         $missingKeys = array_diff($requiredKeys, $keys);

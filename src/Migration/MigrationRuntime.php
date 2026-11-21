@@ -28,6 +28,11 @@ final class MigrationRuntime
         Version20261106000001::class,
     ];
 
+    public const MEMBER_FILE_VERSIONS = [
+        \Amea\Migration\Version\Version20261113000000::class,
+        \Amea\Migration\Version\Version20261113000001::class,
+    ];
+
     private function __construct(
         private readonly Connection $connection,
         public readonly DependencyFactory $doctrine

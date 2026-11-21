@@ -20,6 +20,7 @@ use Amea\Controller\ProfileController;
 use Amea\Controller\RegistrationController;
 use Amea\Controller\SettingsController;
 use Amea\Controller\SliderController;
+use Amea\Controller\SliderMediaController;
 use Amea\Controller\StudentController;
 use Amea\Controller\TrashController;
 use Amea\Controller\UpgradeController;
@@ -79,6 +80,10 @@ class Router
 
     private static function route(string $application, string $path): ?array
     {
+        if (str_starts_with($path, '/uploads/slider/')) {
+            return ['controller' => SliderMediaController::class, 'methods' => ['GET' => 'serve'], 'session' => false];
+        }
+
         return match ($application) {
             'public' => self::PUBLIC_ROUTES[$path] ?? null,
             'staff' => self::STAFF_ROUTES[$path] ?? null,

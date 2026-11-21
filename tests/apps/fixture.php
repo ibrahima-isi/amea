@@ -5,6 +5,25 @@ if (PHP_SAPI !== 'cli' || getenv('APP_ENV') !== 'test' || getenv('DB_NAME') !== 
 }
 require '/opt/amea/vendor/autoload.php';
 $conn = \Amea\Core\Container::db();
+// This legacy MySQL fixture initializes the member tables from the exact new
+// version sources. Canonical MariaDB runner/backup/recovery is qualified by
+// doctrine-compose.sh; this file only provisions synthetic test fixtures.
+if ($conn->query("SHOW TABLES LIKE 'member_file_lock'")->fetchColumn() === false) {
+    $connection = \Doctrine\DBAL\DriverManager::getConnection([
+        'driver' => 'pdo_mysql', 'host' => getenv('DB_HOST'), 'dbname' => getenv('DB_NAME'),
+        'user' => getenv('DB_USER'), 'password' => getenv('DB_PASS'), 'charset' => 'utf8mb4',
+    ]);
+    foreach ([\Amea\Migration\Version\Version20261113000000::class,
+        \Amea\Migration\Version\Version20261113000001::class] as $version) {
+        $migration = new $version($connection, new \Psr\Log\NullLogger());
+        $migration->up(new \Doctrine\DBAL\Schema\Schema());
+        if ($migration->isTransactional()) { $connection->beginTransaction(); }
+        foreach ($migration->getSql() as $query) {
+            $connection->executeStatement($query->getStatement(), $query->getParameters(), $query->getTypes());
+        }
+        if ($migration->isTransactional()) { $connection->commit(); }
+    }
+}
 $conn->exec('DELETE FROM password_resets; DELETE FROM users; DELETE FROM students');
 $conn->exec("INSERT IGNORE INTO countries (code_iso,name_fr,name_en) VALUES ('GN','Guinée','Guinea')");
 $insert = $conn->prepare('INSERT INTO users (username,password,last_name,first_name,email,role) VALUES (?,?,?,?,?,?)');
@@ -30,6 +49,11 @@ foreach (['syntheticexpiredstafflink' => [time() - 1801, 1], 'syntheticrevokedst
 }
 echo "Synthetic fixture ready\n";
 @mkdir('/opt/amea/uploads/slider', 0770, true);
-copy('/opt/amea/assets/img/presidents.jpg', '/opt/amea/uploads/slider/synthetic-public.jpg');
+$source = fopen('/opt/amea/assets/img/presidents.jpg', 'rb');
+\Amea\Core\Container::storage()->write('uploads/slider/synthetic-public.jpg', $source, 'image/jpeg', time());
+fclose($source);
+$conn->exec("DELETE FROM slider_images WHERE image_path = 'uploads/slider/synthetic-public.jpg'");
+$conn->exec("INSERT INTO slider_images (image_path, caption, display_order) VALUES ('uploads/slider/synthetic-public.jpg', 'Synthetic', 0)");
+copy('/opt/amea/assets/img/presidents.jpg', '/opt/amea/uploads/slider/synthetic-unregistered.jpg');
 file_put_contents('/opt/amea/uploads/slider/synthetic-private', 'Synthetic non-image must stay private');
 file_put_contents('/opt/amea/uploads/slider/synthetic.php.jpg', '<?php echo "must-not-execute";');

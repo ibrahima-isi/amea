@@ -58,7 +58,11 @@ if __name__ == '__main__':
         check(status == 405 and headers.get('Allow') == allow and 'Set-Cookie' not in headers,
               app + ' sends Allow for unsupported ' + method + ' before starting a session at ' + path)
     check(request('public', '/assets/img/WhatsApp%20Image%202025-04-28%20at%2022.07.41_c84e18a5.jpg')[0] == 200, 'approved image filenames with spaces remain available')
-    check(request('public', '/uploads/slider/synthetic-public.jpg')[0] == 200, 'approved shared carousel image is public')
+    for app in ['public', 'staff']:
+        status, headers, image = request(app, '/uploads/slider/synthetic-public.jpg')
+        check(status == 200 and headers.get('Content-Type') == 'image/jpeg' and headers.get('X-Content-Type-Options') == 'nosniff' and image.startswith(b'\xff\xd8'), app + ' old slider URL serves verified active image')
+        check(request(app, '/uploads/slider/synthetic-unregistered.jpg')[0] == 404, app + ' unregistered local slider file is unavailable')
+        check(request(app, '/uploads/slider/synthetic-public.jpg', method='POST')[0] == 405, app + ' slider URL is read only')
     check(request('public', '/uploads/slider/synthetic.php.jpg')[0] in [403, 404], 'uploaded PHP filenames cannot execute')
 
     check(request('public', '/uploads/slider/synthetic-private')[0] in [403, 404], 'extensionless slider files are unavailable')

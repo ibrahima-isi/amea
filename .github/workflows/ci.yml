@@ -20,6 +20,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  storage-tests:
+    name: "Storage: deterministic S3, guarded cutover & recovery"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup PHP
+        uses: shivammathur/setup-php@8358ee0e2e8afe63c2fb8253d1d52085811ab1e5 # v2
+        with:
+          php-version: '8.5'
+          extensions: pdo, pdo_sqlite, fileinfo, mbstring, gd
+      - name: Install locked dependencies
+        run: composer install --prefer-dist --no-progress
+      - name: Rehearse disposable S3 and current-state recovery
+        run: bash tests/storage/run.sh
+
   system-tests:
     name: "System tests: Docker & recovery"
     runs-on: ubuntu-latest
@@ -85,6 +101,7 @@ jobs:
           python3 tests/http/tokens.py
           python3 tests/http/internals.py
           python3 tests/http/permissions.py
+          python3 tests/http/write-gate.py
 
   static-checks:
     name: "Static checks: Syntax & access"

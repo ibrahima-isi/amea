@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Amea\Command;
 
 use Amea\Config\Environment;
+use Amea\Core\FileWriteGate;
 use Amea\Service\EmailService;
 
 final class ProcessMailQueueCommand
@@ -12,6 +13,7 @@ final class ProcessMailQueueCommand
     public function run(string $projectRoot): int
     {
         Environment::load($projectRoot);
+        FileWriteGate::admitProcess();
 
         $batchSize  = max(1, (int)self::mailEnv('MAIL_BATCH_SIZE', '50'));
         $dailyLimit = max(1, (int)self::mailEnv('MAIL_DAILY_LIMIT', '300'));

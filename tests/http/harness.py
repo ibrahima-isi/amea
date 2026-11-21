@@ -48,9 +48,12 @@ class HttpFixture:
             for key, value in data.items():
                 parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{key}"\r\n\r\n{value}\r\n'.encode())
             filename, field, mime, content = ('fixture.jpg', 'slider_image', 'image/jpeg', (ROOT / 'assets/img/presidents.jpg').read_bytes()) if image else ('fixture.pdf', 'photo', 'application/pdf', b'%PDF-1.4\nSafe synthetic document\n%%EOF\n')
-            if upload is not None:
+            if upload is not None and not isinstance(upload, list):
                 filename, field, mime, content = upload
-            parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{field}"; filename="{filename}"\r\nContent-Type: {mime}\r\n\r\n'.encode() + content + f'\r\n--{boundary}--\r\n'.encode())
+            uploads = upload if isinstance(upload, list) else [(filename, field, mime, content)]
+            for filename, field, mime, content in uploads:
+                parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{field}"; filename="{filename}"\r\nContent-Type: {mime}\r\n\r\n'.encode() + content + b'\r\n')
+            parts.append(f'--{boundary}--\r\n'.encode())
             payload = b''.join(parts)
             headers['Content-Type'] = f'multipart/form-data; boundary={boundary}'
         else:
@@ -69,7 +72,7 @@ class HttpFixture:
         return token.group(1).decode()
 
 @contextlib.contextmanager
-def serve(app, application):
+def serve(app, application, fixture_env, php_options):
     session_dir = app / 'sessions' / application
     with socket.socket() as listener:
         listener.bind(('127.0.0.1', 0))
@@ -78,10 +81,10 @@ def serve(app, application):
     entry_root = 'web' if application == 'public' else 'backoffice'
     with open(app / f'{application}.log', 'w+') as log:
         server = subprocess.Popen([
-            'php', '-d', f'session.save_path={session_dir}', '-S', address,
+            'php', *php_options, '-d', f'session.save_path={session_dir}', '-S', address,
             '-t', f'apps/{entry_root}/public', 'tests/http/router.php',
         ], cwd=app, stdout=log, stderr=log,
-            env={**SAFE_ENV, 'AMEA_HTTP_TEST_APPLICATION': application})
+            env={**fixture_env, 'AMEA_HTTP_TEST_APPLICATION': application})
         fixture = HttpFixture(f'http://{address}', app)
         try:
             for attempt in range(50):
@@ -104,7 +107,7 @@ def serve(app, application):
 
 
 @contextlib.contextmanager
-def disposable_apps(*applications, extra_fixtures=()):
+def disposable_apps(*applications, extra_fixtures=(), storage_env=None, php_options=()):
     # PHP fixture/router also require this basename prefix and isolated DB file.
     with tempfile.TemporaryDirectory(prefix='amea-http-') as directory, contextlib.ExitStack() as servers:
         app = pathlib.Path(directory)
@@ -112,6 +115,7 @@ def disposable_apps(*applications, extra_fixtures=()):
             shutil.copytree(ROOT / name, app / name, ignore=shutil.ignore_patterns('__pycache__'))
         for application in ['public', 'staff']:
             (app / 'sessions' / application).mkdir(parents=True)
+        fixture_env = {**SAFE_ENV, **(storage_env or {})}
         for fixture in ('fixture.php', *extra_fixtures):
-            subprocess.run(['php', str(app / 'tests/http' / fixture)], cwd=app, check=True, env=SAFE_ENV)
-        yield tuple(servers.enter_context(serve(app, application)) for application in applications)
+            subprocess.run(['php', str(app / 'tests/http' / fixture)], cwd=app, check=True, env=fixture_env)
+        yield tuple(servers.enter_context(serve(app, application, fixture_env, php_options)) for application in applications)

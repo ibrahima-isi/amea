@@ -34,7 +34,7 @@ final class EnrollMigrationsCommand
                 $runtime->assertNoInterruptedSchemaMigration();
                 return (new BaselineEnrollment($runtime))->enroll($database, $evidence);
             });
-            fwrite(STDOUT, $enrolled ? "Recorded 2 baseline versions without replaying historical migrations.\n" : "Baseline already enrolled; no versions changed.\n");
+            fwrite(STDOUT, $enrolled ? "Recorded " . count($runtime->recordedVersions()) . " baseline versions without replaying historical migrations.\n" : "Baseline already enrolled; no versions changed.\n");
         } catch (Throwable $error) {
             fwrite(STDERR, 'Enrollment failed: ' . $error->getMessage() . "\n");
             return 1;

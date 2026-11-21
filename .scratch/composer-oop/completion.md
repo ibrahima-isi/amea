@@ -21,3 +21,9 @@
 ## Delivery
 
 The [pull request](https://github.com/ibrahima-isi/amea/pull/39) targets `dev` from `refactor/composer-oop`. Work took place in one isolated Git worktree. The first draft head at `fdc5dcd` passed all four [GitHub Actions jobs](https://github.com/ibrahima-isi/amea/actions/runs/42893288530). The [PR checks](https://github.com/ibrahima-isi/amea/pull/39/checks) record the hosted result for the reviewed revision.
+
+## Reconciliation with dev
+
+- Merged PRs #44 and #45 from `dev` at `d767113`. The dedicated entry points now serve carousel objects through the configured backend. Stateful routes and jobs use the storage write gate. Manual and scheduled purges use durable deletion, and scheduled retries require backup confirmation.
+- PHP lint, standalone PHP checks, JavaScript theme tests, the six HTTP suites and PHPUnit passed locally. PHPUnit retained 10 deprecations and skipped 41 cases requiring extra integration configuration.
+- The disposable S3, canonical MariaDB Compose and split-app HTTPS rehearsals passed, including rollback and verified session, database and file restore. Browser automation was disabled for the Docker rehearsal.

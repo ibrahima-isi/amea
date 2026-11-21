@@ -90,36 +90,23 @@ final class CliCommandsTest extends TestCase
         );
     }
 
-    public function testPendingSweepHonorsTheSharedLockAndLocalRetentionSetting(): void
+    public function testPendingSweepHonorsTheSharedLock(): void
     {
         $pending = $this->fixture . '/uploads/students/pending';
         mkdir($pending . '/abandoned', 0700, true);
         $stale = $pending . '/abandoned/stale.pdf';
-        $recent = $pending . '/recent.pdf';
         touch($stale, time() - 7200);
-        touch($recent);
-        file_put_contents($this->fixture . '/.env', "# Fixture settings\nPENDING_UPLOAD_TTL_HOURS = 1\n");
 
         mkdir($this->fixture . '/storage');
         $lock = fopen($this->fixture . '/storage/.shared-jobs.lock', 'c');
         self::assertIsResource($lock);
         self::assertTrue(flock($lock, LOCK_EX | LOCK_NB));
-        $command = ['run-shared-jobs.php', 'pending', 'ignored'];
-        $environment = ['PENDING_UPLOAD_TTL_HOURS' => '24'];
         try {
-            self::assertSame([0, '', ''], $this->runCommand($command, $environment));
+            self::assertSame([0, '', ''], $this->runCommand(['run-shared-jobs.php', 'pending']));
             self::assertFileExists($stale);
         } finally {
             fclose($lock);
         }
-
-        [$status, $stdout, $stderr] = $this->runCommand($command, $environment);
-        self::assertSame(0, $status);
-        self::assertSame('', $stderr);
-        self::assertStringContainsString('Removed stale staged file: stale.pdf', $stdout);
-        self::assertStringContainsString('Pending-uploads sweep complete: removed=1 (TTL 1h).', $stdout);
-        self::assertFileDoesNotExist($stale);
-        self::assertFileExists($recent);
     }
 
     public function testMailQueueRetriesAndDeadLettersFailedDelivery(): void

@@ -3,14 +3,11 @@
 namespace Amea\Controller;
 
 use Amea\Core\Container;
-use Amea\Core\FileUploader;
 use Amea\Repository\StudentRepository;
-use Amea\Service\StudentService;
 
 class TrashController extends BaseController
 {
     private StudentRepository $studentRepo;
-    private StudentService $studentService;
     private int $retentionDays;
 
     public function __construct()
@@ -21,8 +18,7 @@ class TrashController extends BaseController
             $this->flash->set('error', "Accès refusé : vous n'avez pas la permission de gérer les étudiants.");
             $this->redirect('dashboard.php');
         }
-        $this->studentRepo = new StudentRepository(Container::db());
-        $this->studentService = new StudentService($this->studentRepo, new FileUploader(__DIR__ . '/../../'));
+        $this->studentRepo   = new StudentRepository(Container::db());
         $this->retentionDays = max(1, (int)($_ENV['TRASH_RETENTION_DAYS'] ?? 30));
     }
 
@@ -78,7 +74,7 @@ class TrashController extends BaseController
 
     private function restore(int $id): void
     {
-        if ($this->studentRepo->restore($id)) {
+        if (Container::fileLifecycle()->restoreMember($id)) {
             $this->flash->set('success', 'Étudiant restauré avec succès.');
         } else {
             $this->flash->set('error', 'Restauration impossible : étudiant introuvable dans la corbeille.');
@@ -93,7 +89,10 @@ class TrashController extends BaseController
             return;
         }
 
-        $this->studentService->purgeTrashedStudent($student);
+        if (!Container::fileLifecycle()->purgeMember($id)) {
+            $this->flash->set('error', 'Suppression incomplète. Veuillez réessayer.');
+            return;
+        }
         $this->flash->set('success', 'Étudiant définitivement supprimé.');
     }
 }

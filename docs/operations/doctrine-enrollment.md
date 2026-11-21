@@ -1,7 +1,8 @@
 # Enroll a verified existing database
 
-Enrollment records the two adoption baseline versions without running historical
-PHP scripts or Doctrine baseline migrations. It never rewrites application rows.
+Enrollment records the versions represented by the verified snapshot. The adoption
+snapshot records two versions. The member-document snapshot records four versions,
+including its exact operation tables and initialized lock. Application rows are preserved.
 This procedure applies to an isolated restored database first; production changes
 require separate approval. Use MariaDB 10.11, the version used by Compose.
 
@@ -33,9 +34,12 @@ require separate approval. Use MariaDB 10.11, the version used by Compose.
    references correspond to the restored uploads. Do not infer or repair review
    status by replaying old scripts.
 
-The command accepts the canonical adoption schema stored as readable MariaDB
+The command verifies the canonical adoption schema stored as readable MariaDB
 `SHOW CREATE TABLE` definitions in
-`src/Migration/enrollment-schema.sql`. It also accepts historical `settings`
+`src/Migration/enrollment-schema.sql`. When either member-operation table exists,
+it also requires every definition in `src/Migration/member-file-enrollment-schema.sql`
+and exactly the initialized lock row with ID `1`. A partially created member
+schema remains a recovery concern. It also accepts historical `settings`
 with `setting_key` as its primary key, no `id`/`setting_group`, Unicode collation,
 and the historical nullable timestamp. Migration `06` member enums may retain
 any order of the same known values, valid defaults, comments and
@@ -49,13 +53,20 @@ variants require investigation; do not suppress diagnostics to force enrollment.
 ## SQL baseline imports
 
 For a database created by importing maintained `schema.sql`, verify the import
-went into an **empty** database and matches this adoption checksum:
+went into an **empty** database. The original adoption checksum remains supported.
 
 ```text
 6b90bcf1c63c4751f64d8458624348b8aa2f8fd29723a099305563185bbead0d
 ```
 
-`schema.sql` defines structure, not the initial settings. Before enrollment of
+The maintained member-document snapshot has the following checksum.
+
+```text
+e4392a1502489d941bc928cc7b14ad64ecc2736be63a881d7cd70c63e13cb375
+```
+
+`schema.sql` also initializes the member-file lock. Initial association settings
+require separate verification. Before enrollment of
 that new import, verify all three settings exist. If absent, provision the
 following initial rows as part of that import, then record and review the result:
 
@@ -99,13 +110,15 @@ php scripts/migrate.php migrate
 
 Before resuming writers, compare private before/after snapshots of settings,
 member review states and document references, journal rows and cover references.
-The ledger must contain both adoption versions. A second enrollment adds no rows
-and preserves their timestamps. Ordinary migration then reports no pending
-versions. Keep only counts and comparisons in shared evidence.
+The ledger must contain the exact versions represented by the snapshot. A second
+enrollment preserves their timestamps. An adoption-only database still requires
+the pending member schema and lock-data migrations. Apply the verified-backup
+procedure in `migration-recovery.md` before that upgrade. A current snapshot
+reports no pending versions. Keep only counts and comparisons in shared evidence.
 
 Verification failures exit non-zero and name the failed check. No version is
-written until verification succeeds. Ledger provisioning is separate DDL; both
-version inserts then run in one InnoDB transaction. An insert failure leaves zero
+written until verification succeeds. Ledger provisioning completes first. Every represented version then records in
+one InnoDB transaction. An insert failure leaves zero
 baseline rows, so a verified retry is safe. Partial or unknown ledgers are refused
 for operator reconciliation. Do not delete versions or edit business data to
 bypass a refusal. Enrollment and migration hold the same database advisory lock

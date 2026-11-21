@@ -5,11 +5,13 @@ namespace Amea\Controller;
 use Amea\Core\Container;
 use Amea\Core\FileUploader;
 use Amea\Repository\SliderRepository;
+use Amea\Service\SliderService;
 
 class SliderController extends BaseController
 {
     private SliderRepository $sliderRepo;
     private FileUploader $uploader;
+    private SliderService $slider;
 
     public function __construct()
     {
@@ -21,7 +23,8 @@ class SliderController extends BaseController
             return;
         }
         $this->sliderRepo = new SliderRepository(Container::db());
-        $this->uploader   = new FileUploader(__DIR__ . '/../../');
+        $this->uploader   = new FileUploader(__DIR__ . '/../../', Container::storage());
+        $this->slider = new SliderService(Container::db(), Container::storage(), Container::fileLifecycle());
     }
 
     // ─── index ─────────────────────────────────────────────────────────────────
@@ -68,11 +71,14 @@ class SliderController extends BaseController
             return;
         }
 
-        $this->sliderRepo->save([
-            'image_path'    => $result['filepath'],
-            'caption'       => trim($_POST['caption'] ?? ''),
-            'display_order' => (int)($_POST['display_order'] ?? 0),
-        ]);
+        try {
+            $this->slider->publish($result['filepath'], trim($_POST['caption'] ?? ''), (int)($_POST['display_order'] ?? 0));
+        } catch (\Amea\Storage\StorageException|\OutOfBoundsException|\UnexpectedValueException $error) {
+            error_log('[SliderController] ' . $error->getMessage());
+            $this->flash->set('error', 'Échec du téléchargement. Veuillez réessayer.');
+            $this->redirect('manage-slider.php');
+            return;
+        }
 
         $this->flash->set('success', 'L\'image a été ajoutée avec succès.');
         $this->redirect('manage-slider.php');
@@ -89,10 +95,7 @@ class SliderController extends BaseController
         }
 
         $id  = (int)($_POST['id'] ?? 0);
-        $img = $this->sliderRepo->findById($id);
-        if ($img) {
-            $this->uploader->safeDelete($img['image_path']);
-            $this->sliderRepo->delete($id);
+        if ($this->slider->remove($id)) {
             $this->flash->set('success', 'L\'image a été supprimée.');
         }
 
