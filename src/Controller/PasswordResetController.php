@@ -38,7 +38,7 @@ class PasswordResetController extends BaseController
 
     public function forgotSubmit(): void
     {
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->set('error', 'La session a expiré. Veuillez réessayer.');
             $this->redirect('forgot-password.php');
             return;
@@ -82,7 +82,7 @@ class PasswordResetController extends BaseController
     {
         $token = trim($_POST['token'] ?? '');
 
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->set('error', 'La session a expiré. Veuillez réessayer.');
             $this->redirect('forgot-password.php');
             return;

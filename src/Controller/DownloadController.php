@@ -43,32 +43,21 @@ class DownloadController extends BaseController
             exit('Aucun document disponible.');
         }
 
-        $absolutePath = __DIR__ . '/../../' . ltrim($filePath, '/');
-
-        if (!is_file($absolutePath)) {
+        try {
+            $reader = new \Amea\Service\MemberDocumentService(Container::storage());
+            $document = $reader->open($filePath, ['image/jpeg', 'image/png', 'image/gif', 'application/pdf']);
+        } catch (\OutOfBoundsException) {
             http_response_code(404);
             exit('Fichier introuvable.');
-        }
-
-        $uploadsDir = realpath(__DIR__ . '/../../uploads');
-        $realFile   = realpath($absolutePath);
-
-        if ($uploadsDir === false || $realFile === false || !str_starts_with($realFile, $uploadsDir . DIRECTORY_SEPARATOR)) {
-            http_response_code(403);
-            exit('Accès interdit.');
-        }
-
-        $finfo    = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $realFile);
-        finfo_close($finfo);
-
-        $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
-        if (!in_array($mimeType, $allowedMimes, true)) {
+        } catch (\UnexpectedValueException) {
             http_response_code(415);
             exit('Type de fichier non supporté.');
+        } catch (\Amea\Storage\StorageException) {
+            http_response_code(503);
+            exit('Document temporairement indisponible.');
         }
-
-        $ext       = pathinfo($realFile, PATHINFO_EXTENSION);
+        $mimeType = $document['mime'];
+        $ext = pathinfo($filePath, PATHINFO_EXTENSION);
         $label     = $type === 'identite' ? 'identite' : 'cv';
         $cleanName = preg_replace('/[^a-z0-9_\-]/i', '_',
             $student->getFirstName() . '_' . $student->getLastName() . '_' . $label) . '.' . $ext;
@@ -80,11 +69,12 @@ class DownloadController extends BaseController
         header('Content-Type: ' . $mimeType);
         $disposition = (($_GET['inline'] ?? '') === '1') ? 'inline' : 'attachment';
         header('Content-Disposition: ' . $disposition . '; filename="' . $cleanName . '"');
-        header('Content-Length: ' . filesize($realFile));
+        header('Content-Length: ' . $document['size']);
         header('Cache-Control: private, no-store');
         header('X-Content-Type-Options: nosniff');
 
-        readfile($realFile);
+        fpassthru($document['stream']);
+        fclose($document['stream']);
         exit();
     }
 }

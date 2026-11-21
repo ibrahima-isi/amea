@@ -1,0 +1,27 @@
+# Run with an explicit, task-owned project name. No persistent host volumes.
+services:
+  minio:
+    image: bitnamilegacy/minio:2025.5.24
+    environment:
+      MINIO_ROOT_USER: storage-test
+      MINIO_ROOT_PASSWORD: disposable-storage-secret
+      MINIO_DEFAULT_BUCKETS: amea-storage-tests
+    ports:
+      - "127.0.0.1:${STORAGE_TEST_PORT:-62941}:9000"
+    tmpfs:
+      - /bitnami/minio/data:uid=1001,gid=1001
+    healthcheck:
+      test: ["CMD-SHELL", "test \"$$(cat /proc/1/comm)\" = minio && mc ready local"]
+      interval: 1s
+      timeout: 3s
+      retries: 60
+  seaweedfs:
+    profiles: [secondary]
+    image: chrislusf/seaweedfs:4.53
+    command: ["server", "-s3", "-s3.config=/etc/seaweedfs/s3.json", "-dir=/data", "-volume.max=20", "-master.volumeSizeLimitMB=128", "-ip=127.0.0.1", "-ip.bind=0.0.0.0"]
+    volumes:
+      - ./seaweedfs.json:/etc/seaweedfs/s3.json:ro
+    ports:
+      - "127.0.0.1:${STORAGE_TEST_SECONDARY_PORT:-62942}:8333"
+    tmpfs:
+      - /data

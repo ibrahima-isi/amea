@@ -11,7 +11,7 @@ import threading
 from urllib.parse import urljoin
 from zoneinfo import ZoneInfo
 
-from harness import ROOT, client, disposable_app
+from harness import ROOT, client, disposable_apps
 
 PASSWORD = 'Fixture-password-123!'
 
@@ -28,7 +28,7 @@ def csrf(fixture, browser, path):
     return token.group(1).decode()
 
 
-def seed_publications(fixture, archive_count):
+def seed_publications(fixture, public_base, archive_count):
     browser = client()
     token = csrf(fixture, browser, '/login.php')
     status, _, _ = fixture.request(browser, '/login.php', {
@@ -69,7 +69,7 @@ def seed_publications(fixture, archive_count):
         article = re.search(rb'href="([^"]*journal-article\.php\?slug=[^"]+)"', body)
         require(status == 200 and article is not None, 'Saved editor must expose the stable article URL')
         result.append({'title': title, 'type': kind, 'editor': fixture.base + '/' + location,
-                       'article': urljoin(fixture.base + '/', html.unescape(article.group(1).decode()))})
+                       'article': urljoin(public_base + '/', html.unescape(article.group(1).decode()))})
     return result
 
 
@@ -84,30 +84,30 @@ def main():
     stop = threading.Event()
     for signum in (signal.SIGINT, signal.SIGTERM):
         signal.signal(signum, lambda *_: stop.set())
-    with disposable_app(extra_fixtures=('journal-fixture.php',)) as fixture:
+    with disposable_apps('public', 'staff', extra_fixtures=('journal-fixture.php',)) as (public, staff):
         browser = client()
-        status, _, listing = fixture.request(browser, '/journal.php')
+        status, _, listing = public.request(browser, '/journal.php')
         empty = status == 200 and b'Aucune publication dans cette rubrique pour le moment.' in listing
-        status, _, home = fixture.request(browser, '/')
+        status, _, home = public.request(browser, '/')
         omitted = status == 200 and b'journal-home' not in home
         require(empty and omitted, 'Fresh public journal must be empty and omitted from the homepage')
-        publications = seed_publications(fixture, args.archive_count) if args.seed else []
+        publications = seed_publications(staff, public.base, args.archive_count) if args.seed else []
         print(json.dumps({
-            'state': 'ready', 'pid': os.getpid(), 'base': fixture.base,
-            'journal': fixture.base + '/journal.php', 'login': fixture.base + '/login.php',
-            'editor': fixture.base + '/edit-journal.php',
+            'state': 'ready', 'pid': os.getpid(), 'base': public.base,
+            'journal': public.base + '/journal.php', 'login': staff.base + '/login.php',
+            'editor': staff.base + '/edit-journal.php',
             'cover_file': str(ROOT / 'assets/img/presidents.jpg'),
             'accounts': {'journal-admin': 'admin + journal', 'journal-denied': 'admin without journal', 'journal-reader': 'ordinary user + journal'},
             'synthetic_password': PASSWORD,
             'before_seed': {'public_empty_state': empty, 'homepage_journal_omitted': omitted},
             'seeded': publications,
-            'limits': ['Single-origin loopback HTTP with SQLite; no split-host routing proof.',
-                       'Test router starts the session; no Secure-cookie or TLS proof.',
+            'limits': ['Separate loopback HTTP origins share disposable SQLite data.',
+                       'The Docker rehearsal covers distinct hosts and TLS.',
                        'No mail worker or real account/data; all files and sessions are disposable.'],
             'stop': 'Send SIGINT (Ctrl+C) or SIGTERM to this runner; its context stops PHP and removes the disposable copy.',
         }, ensure_ascii=False, indent=2), flush=True)
         stop.wait()
-    print(json.dumps({'state': 'stopped', 'base': fixture.base, 'cleanup': 'Disposable PHP server and copy removed'}), flush=True)
+    print(json.dumps({'state': 'stopped', 'base': public.base, 'cleanup': 'Disposable PHP server and copy removed'}), flush=True)
 
 
 if __name__ == '__main__':

@@ -2,8 +2,11 @@
 
 namespace Amea\Service;
 
-use Amea\Repository\StudentRepository;
 use Amea\Core\FileUploader;
+use Amea\Model\Student;
+use Amea\Repository\StudentRepository;
+use DateTime;
+use Exception;
 
 class StudentService
 {
@@ -75,7 +78,7 @@ class StudentService
             $errors['phone'] = 'This phone number is already in use.';
         }
         // 4. Phone validation
-        if (!empty($input['phone']) && !\isValidPhone($input['phone'])) {
+        if (!empty($input['phone']) && strlen(preg_replace('/[^0-9]/', '', $input['phone'])) !== 9) {
             $errors['phone'] = 'Invalid phone number (9 digits expected).';
         }
         if (!empty($input['status']) && !in_array($input['status'], ['ELEVE', 'ETUDIANT', 'STAGIAIRE'], true)) {
@@ -112,17 +115,19 @@ class StudentService
 
         // 6. Age
         if (!empty($input['birth_date'])) {
-            $age = \calculateAge($input['birth_date']);
+            $age = $this->calculateAge($input['birth_date']);
             if ($age < 15) $errors['birth_date'] = 'Minimum age is 15 years old.';
         }
 
         // 7. Files
         $uploadBaseDir = rtrim($uploadBaseDir, '/');
+        $storageError = false;
         $identityDocumentPath = null;
         if (!empty($files['photo']['name'])) {
             $res = $this->fileUploader->handle($files['photo'], ['jpg','jpeg','png','pdf'], 2*1024*1024, $uploadBaseDir);
             if ($res['success']) $identityDocumentPath = $res['filepath'];
             else $errors['identity_document'] = $res['message'];
+            $storageError = $storageError || ($res['retryable'] ?? false);
         }
 
         $cvPath = null;
@@ -130,9 +135,11 @@ class StudentService
             $res = $this->fileUploader->handle($files['cv_file'], ['pdf','png'], 5*1024*1024, $uploadBaseDir . '/cvs');
             if ($res['success']) $cvPath = $res['filepath'];
             else $errors['cv'] = $res['message'];
+            $storageError = $storageError || ($res['retryable'] ?? false);
         }
 
         return [
+            'storage_error' => $storageError,
             'input' => $input,
             'errors' => $errors,
             'valid_pays_ids' => $validIds,
@@ -158,5 +165,14 @@ class StudentService
                 'consent_privacy' => $input['consent_privacy']
             ]
         ];
+    }
+
+    private function calculateAge(string $birthDate): int
+    {
+        try {
+            return (int)(new DateTime($birthDate))->diff(new DateTime())->y;
+        } catch (Exception) {
+            return 0;
+        }
     }
 }

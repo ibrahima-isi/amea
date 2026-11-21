@@ -2,22 +2,10 @@
 
 namespace Amea\Controller;
 
-use Amea\Core\Container;
 use Amea\Core\StaffNavigation;
-use Amea\Service\AuthService;
-use Amea\Repository\UserRepository;
 
 class AuthController extends BaseController
 {
-    private AuthService $auth;
-
-    public function __construct()
-    {
-        parent::__construct();
-        $userRepo = new UserRepository(Container::db());
-        $this->auth = new AuthService($userRepo, $this->session, $this->flash);
-    }
-
     public function login(): void
     {
         $staffApplication = defined('AMEA_APP') && AMEA_APP === 'staff';
@@ -34,7 +22,7 @@ class AuthController extends BaseController
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+            if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
                 $this->flash->set('error', 'La session a expiré. Veuillez réessayer.');
                 $this->redirect('login.php');
                 return;

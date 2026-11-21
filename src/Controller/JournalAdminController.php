@@ -17,13 +17,13 @@ final class JournalAdminController extends BaseController
     {
         parent::__construct();
         $this->requireAdmin();
-        if (!\hasPermission('journal')) {
+        if (!$this->auth->hasPermission('journal')) {
             $this->flash->set('error', 'Accès refusé : vous ne pouvez pas gérer le journal.');
             $this->redirect('dashboard.php');
         }
         $this->posts = new JournalRepository(Container::db());
         $this->journal = new JournalService($this->posts);
-        $this->media = new JournalMediaService(__DIR__ . '/../..');
+        $this->media = new JournalMediaService(__DIR__ . '/../..', Container::storage());
     }
 
     private function id($value): ?int
@@ -64,7 +64,7 @@ final class JournalAdminController extends BaseController
 
     public function save(): void
     {
-        if (!is_string($_POST['csrf_token'] ?? null) || !\verifyCsrfToken($_POST['csrf_token'])) {
+        if (!is_string($_POST['csrf_token'] ?? null) || !$this->csrf->verify($_POST['csrf_token'])) {
             http_response_code(403); exit('Session expirée.');
         }
         $id = isset($_POST['id']) && $_POST['id'] !== '' ? $this->id($_POST['id']) : null;
@@ -118,12 +118,19 @@ final class JournalAdminController extends BaseController
     public function cover(): void
     {
         $post = $this->post();
-        $file = $post['cover_path'] ? $this->media->resolve($post['cover_path']) : null;
+        try {
+            $file = $post['cover_path'] ? $this->media->open($post['cover_path']) : null;
+        } catch (\OutOfBoundsException|\UnexpectedValueException) {
+            http_response_code(404); exit;
+        } catch (\Amea\Storage\StorageException) {
+            http_response_code(503); exit;
+        }
         if (!$file || $file['mime'] !== $post['cover_mime']) { http_response_code(404); exit; }
         header('Content-Type: ' . $file['mime']);
-        header('Content-Length: ' . $file['length']);
+        header('Content-Length: ' . $file['size']);
         header('X-Content-Type-Options: nosniff');
         header('Cache-Control: private, no-store');
-        readfile($file['path']);
+        fpassthru($file['stream']);
+        fclose($file['stream']);
     }
 }

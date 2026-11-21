@@ -164,3 +164,25 @@ CREATE TABLE IF NOT EXISTS journal_posts (
     INDEX journal_publication (status,published_at,id),
     INDEX journal_activity (status,type,activity_end_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE member_file_lock (
+    id TINYINT NOT NULL PRIMARY KEY
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE file_operations (
+    operation_id VARCHAR(100) NOT NULL PRIMARY KEY,
+    backend VARCHAR(64) NOT NULL,
+    reason VARCHAR(50) NOT NULL,
+    keys_json TEXT NOT NULL,
+    student_id INT NULL,
+    expected_identity VARCHAR(255) NULL,
+    expected_cv VARCHAR(255) NULL,
+    expected_deleted_at DATETIME NULL,
+    started TINYINT NOT NULL DEFAULT 0,
+    attempts INT NOT NULL DEFAULT 0,
+    last_error TEXT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX file_operations_backend (backend, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO member_file_lock (id) VALUES (1);

@@ -26,3 +26,7 @@ The failing ones have rotted unnoticed because nothing runs them. Whether the th
 ## Blocked by
 
 The earlier CI-on-pull-requests prerequisite was completed; this triage remains unresolved.
+
+## Comments
+
+2026-11-11 — The [Composer migration](../../composer-oop/completion.md) retires the JavaScript string literal test with its unused helper and moves the standalone staff permissions scenarios to a disposable split-app fixture. The baseline table records the original results.

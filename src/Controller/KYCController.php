@@ -60,7 +60,7 @@ class KYCController extends BaseController
             return;
         }
 
-        if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
             $this->flash->add('error', 'Session expirée.');
             $this->redirect('kyc-detail.php?id=' . $id);
             return;

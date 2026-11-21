@@ -1,21 +1,20 @@
 <?php
 /**
- * Integration tests for the permissions system and the privilege-escalation fix.
- *
- * Requires a running local server: php -S localhost:8000
- * Run from project root: php tests/test_permissions_integration.php
- *
- * Strategy:
- *   1. Connect to the real DB and create an isolated test user.
- *   2. Log in via HTTP to obtain a real session cookie.
- *   3. Exercise the protected endpoints with that cookie.
- *   4. Tear down the test user unconditionally.
+ * Staff permissions integration tests. Run python3 tests/http/permissions.py
+ * to exercise these cases against the disposable staff application.
  */
 
-require_once __DIR__ . '/../functions/utility-functions.php';
-require_once __DIR__ . '/../config/database.php'; // sets $conn
+$root = dirname(__DIR__);
+$base = $argv[1] ?? '';
+if (PHP_SAPI !== 'cli' || !str_starts_with(basename($root), 'amea-http-')
+    || !is_file($root . '/fixture.sqlite') || !preg_match('~^http://127\.0\.0\.1:[0-9]{1,5}$~D', $base)) {
+    fwrite(STDERR, "Run python3 tests/http/permissions.py to create a disposable staff fixture.\n");
+    exit(1);
+}
 
-define('BASE_URL', 'http://localhost:8000');
+define('BASE_URL', $base);
+$conn = new PDO('sqlite:' . $root . '/fixture.sqlite');
+$conn->exec('CREATE TABLE password_resets (email TEXT NOT NULL, token TEXT NOT NULL, expires_at TEXT NOT NULL)');
 
 // ─── Minimal test runner ──────────────────────────────────────────────────────
 $passed = 0;
@@ -48,6 +47,8 @@ function expect(string $name, bool $result): void {
 function http(string $method, string $path, array $postFields = [], string $cookieFile = ''): array {
     $ch = curl_init(BASE_URL . $path);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_PROXY, '');
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false); // capture redirects, don't follow
     curl_setopt($ch, CURLOPT_HEADER, true);
 
@@ -110,18 +111,13 @@ $testHash         = password_hash($testPassword, PASSWORD_DEFAULT);
 $allPermsJson     = json_encode(['students','export','users','slider','upgrade','documents','communications','settings']);
 $limitedPermsJson = json_encode(['documents']); // only documents, NOT users
 
-// Clean up any leftover fixtures from a previous failed run
-$conn->exec("DELETE FROM password_resets WHERE email LIKE '_test_%@test.local'");
-$conn->exec("DELETE FROM users WHERE username IN ('_test_fulladmin','_test_restricted')");
-$conn->exec("DELETE FROM students WHERE email = '_test_student_details@test.local'");
-
 $conn->prepare("INSERT INTO users (username, email, last_name, first_name, password, role, permissions, is_active, created_at)
-                VALUES ('_test_fulladmin', '_test_fulladmin@test.local', 'Test', 'FullAdmin', ?, 'admin', ?, 1, NOW())")
+                VALUES ('_test_fulladmin', '_test_fulladmin@test.local', 'Test', 'FullAdmin', ?, 'admin', ?, 1, CURRENT_TIMESTAMP)")
      ->execute([$testHash, $allPermsJson]);
 $fullAdminId = (int)$conn->lastInsertId();
 
 $conn->prepare("INSERT INTO users (username, email, last_name, first_name, password, role, permissions, is_active, created_at)
-                VALUES ('_test_restricted', '_test_restricted@test.local', 'Test', 'Restricted', ?, 'admin', ?, 1, NOW())")
+                VALUES ('_test_restricted', '_test_restricted@test.local', 'Test', 'Restricted', ?, 'admin', ?, 1, CURRENT_TIMESTAMP)")
      ->execute([$testHash, $limitedPermsJson]);
 $restrictedId = (int)$conn->lastInsertId();
 
@@ -129,12 +125,12 @@ $conn->prepare("INSERT INTO students (
                     last_name, first_name, gender, birth_date, residence, institution,
                     status, study_field, study_level, phone, email,
                     arrival_year, housing_type, post_training_project,
-                    consent_privacy, is_locked, registration_date
+                    consent_privacy, is_locked
                 ) VALUES (
                     'StudentDetails', 'Fixture', 'Masculin', '2000-01-02', 'Dakar', 'UCAD',
                     'ETUDIANT', 'Informatique', 'Licence', '_test_770000001',
                     '_test_student_details@test.local', 2022, 'Location',
-                    'Projet de test', 1, 1, NULL
+                    'Projet de test', 1, 1
                 )")->execute();
 $studentDetailsId = (int)$conn->lastInsertId();
 
@@ -221,6 +217,7 @@ if ($sessionsOk) {
     $check = $conn->prepare("SELECT permissions FROM users WHERE id = ?");
     $check->execute([$restrictedId]);
     $permsInDb = json_decode($check->fetchColumn(), true);
+    $check->closeCursor();
     expect('DB permissions unchanged after blocked POST',
         $permsInDb === ['documents']
     );
@@ -256,6 +253,7 @@ if ($sessionsOk) {
         $check = $conn->prepare("SELECT permissions FROM users WHERE id = ?");
         $check->execute([$fullAdminId]);
         $permsInDb = json_decode($check->fetchColumn(), true);
+        $check->closeCursor();
         expect('injected_module NOT present after self-edit',
             !in_array('injected_module', $permsInDb ?? [])
         );
@@ -288,7 +286,7 @@ echo "\nFull-admin access to manage-slider.php\n";
 if ($sessionsOk) {
     [$code, , $body] = http('GET', '/manage-slider.php', [], $fullAdminJar);
     expect('Full-admin GET manage-slider.php → 200', $code === 200);
-    expect('manage-slider.php renders add/edit modal', str_contains($body, 'id="sliderImageModal"'));
+    expect('manage-slider.php renders the add-image modal', str_contains($body, 'id="addImageModal"'));
     expect('manage-slider.php resolves CSRF placeholder', !str_contains($body, '{{csrf_token}}'));
     expect('manage-slider.php shows empty slider message once', substr_count($body, 'Aucune image dans le carrousel') === 1);
 }
@@ -358,6 +356,7 @@ if ($sessionsOk) {
         $check = $conn->prepare("SELECT permissions FROM users WHERE id = ?");
         $check->execute([$restrictedId]);
         $stored = json_decode($check->fetchColumn(), true) ?? [];
+        $check->closeCursor();
         expect('injected_module not stored in DB',      !in_array('injected_module', $stored));
         expect('../../etc/passwd not stored in DB',     !in_array('../../etc/passwd', $stored));
         expect('legitimate "documents" is preserved',   in_array('documents', $stored));
@@ -396,6 +395,7 @@ if ($sessionsOk) {
         $check = $conn->prepare("SELECT last_name, first_name FROM users WHERE id = ?");
         $check->execute([$restrictedId]);
         $row = $check->fetch(PDO::FETCH_ASSOC);
+        $check->closeCursor();
         expect('Full-admin edit updates last_name in DB', $row['last_name'] === 'EditedNom');
         expect('Full-admin edit updates first_name in DB', $row['first_name'] === 'EditedFirstName');
     } else {
@@ -405,11 +405,11 @@ if ($sessionsOk) {
     }
 }
 
-// 13. Admin password reset creates an emailed reset-token hash, not a raw password
-echo "\nAdmin user password reset security\n";
+// 13. Staff account recovery creates a reset-token hash
+echo "\nStaff account recovery security\n";
 
 if ($sessionsOk) {
-    [, , $body] = http('GET', '/users.php', [], $fullAdminJar);
+    [, , $body] = http('GET', '/forgot-password.php', [], $fullAdminJar);
     $csrf = '';
     if (preg_match('/name="csrf_token"\s+value="([^"]+)"/', $body, $m)) {
         $csrf = $m[1];
@@ -418,33 +418,33 @@ if ($sessionsOk) {
     $beforeHash = (string)$conn->query("SELECT password FROM users WHERE id = {$restrictedId}")->fetchColumn();
 
     if ($csrf !== '') {
-        [$postCode, $postLocation] = http('POST', '/users.php', [
+        [$postCode, $postLocation] = http('POST', '/forgot-password.php', [
             'csrf_token' => $csrf,
-            'action'     => 'reset_password',
-            'id'         => (string)$restrictedId,
+            'email'      => '_test_restricted@test.local',
         ], $fullAdminJar);
 
-        expect('Admin reset POST → 302 redirect to users.php', $postCode === 302 && str_contains($postLocation, 'users.php'));
+        expect('Account recovery POST → 302 redirect to login.php', $postCode === 302 && $postLocation === 'login.php');
 
         $afterHash = (string)$conn->query("SELECT password FROM users WHERE id = {$restrictedId}")->fetchColumn();
-        expect('Admin reset does not directly change password', $afterHash === $beforeHash);
+        expect('Account recovery does not directly change password', $afterHash === $beforeHash);
 
         $resetStmt = $conn->prepare("SELECT token, expires_at FROM password_resets WHERE email = ? ORDER BY expires_at DESC LIMIT 1");
         $resetStmt->execute(['_test_restricted@test.local']);
         $resetRow = $resetStmt->fetch(PDO::FETCH_ASSOC);
+        $resetStmt->closeCursor();
 
-        expect('Admin reset stores a hashed token', $resetRow && strlen($resetRow['token']) === 64 && ctype_xdigit($resetRow['token']));
+        expect('Account recovery stores a hashed token', $resetRow && strlen($resetRow['token']) === 64 && ctype_xdigit($resetRow['token']));
         $ttl = $resetRow ? (strtotime($resetRow['expires_at']) - time()) : 0;
-        expect('Admin reset token expires in 5 minutes max', $ttl > 0 && $ttl <= 300);
+        expect('Account recovery token expires in 5 minutes max', $ttl > 0 && $ttl <= 300);
 
         [, , $usersBody] = http('GET', '/users.php', [], $fullAdminJar);
         expect('Admin UI does not expose generated passwords', !str_contains($usersBody, 'nouveau mot de passe') && !str_contains($usersBody, '<code>'));
     } else {
-        expect('SKIP: could not extract CSRF for admin reset security test', false);
-        expect('SKIP: could not extract CSRF for admin reset security test', false);
-        expect('SKIP: could not extract CSRF for admin reset security test', false);
-        expect('SKIP: could not extract CSRF for admin reset security test', false);
-        expect('SKIP: could not extract CSRF for admin reset security test', false);
+        expect('SKIP: could not extract CSRF for account recovery test', false);
+        expect('SKIP: could not extract CSRF for account recovery test', false);
+        expect('SKIP: could not extract CSRF for account recovery test', false);
+        expect('SKIP: could not extract CSRF for account recovery test', false);
+        expect('SKIP: could not extract CSRF for account recovery test', false);
     }
 }
 
@@ -497,6 +497,7 @@ if ($sessionsOk) {
         $check = $conn->prepare("SELECT role, permissions FROM users WHERE id = ?");
         $check->execute([$restrictedId]);
         $row = $check->fetch(PDO::FETCH_ASSOC);
+        $check->closeCursor();
         expect('Role changed to "user" in DB',             $row['role'] === 'user');
         expect('Permissions cleared (NULL) after demotion', $row['permissions'] === null);
 
@@ -509,9 +510,6 @@ if ($sessionsOk) {
 }
 
 // ─── Teardown ─────────────────────────────────────────────────────────────────
-$conn->exec("DELETE FROM password_resets WHERE email LIKE '_test_%@test.local'");
-$conn->exec("DELETE FROM students WHERE email = '_test_student_details@test.local'");
-$conn->exec("DELETE FROM users WHERE username IN ('_test_fulladmin','_test_restricted')");
 @unlink($fullAdminJar);
 @unlink($restrictedJar);
 

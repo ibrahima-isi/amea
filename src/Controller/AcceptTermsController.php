@@ -40,7 +40,7 @@ class AcceptTermsController extends BaseController
         $state = $student->hasConsentPrivacy() ? 'update' : 'pending';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!\verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+            if (!$this->csrf->verify($_POST['csrf_token'] ?? '')) {
                 $this->render('accept-cgu.html.twig', ['state' => 'invalid', 'token' => $token, 'student' => null]);
                 return;
             }

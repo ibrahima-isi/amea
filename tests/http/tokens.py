@@ -4,12 +4,12 @@ import json
 import os
 import re
 import subprocess
-from harness import ROOT, check, client, disposable_app
+from harness import ROOT, check, client, disposable_apps
 
-with disposable_app(extra_fixtures=('token-fixture.php',)) as fixture:
-    base = fixture.base
-    request, csrf = fixture.request, fixture.csrf
-    member, stranger, staff = client(), client(), client()
+with disposable_apps('public', 'staff', extra_fixtures=('token-fixture.php',)) as (public, admin):
+    base = public.base
+    request, csrf = public.request, public.csrf
+    member, stranger = client(), client()
     correction = '/kyc-correction.php?token=' + 'a' * 64
     consent = '/accept-cgu.php?token=' + 'a' * 64
     status, _, body = request(member, correction)
@@ -40,7 +40,7 @@ with disposable_app(extra_fixtures=('token-fixture.php',)) as fixture:
     check(b'Consentement enregistr' in body, 'consent acceptance is saved')
     status, _, body = request(member, consent)
     check('Mise à jour des CGU'.encode() in body, 'accepted member sees consent update state')
-    status, headers, _ = request(stranger, '/download.php?id=1&type=identite')
+    status, headers, _ = admin.request(member, '/download.php?id=1&type=identite')
     check(status == 302 and headers.get('Location') == 'login.php', 'token possession does not authorize private downloads')
     if os.environ.get('AMEA_BROWSER_CHECK') == '1':
         subprocess.run(['node', str(ROOT / 'tests/http/tokens-browser.mjs'), base, str(ROOT / 'docs/testing/screenshots')], check=True, timeout=120)
