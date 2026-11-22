@@ -34,7 +34,7 @@ foreach (['valid', 'expired', 'revoked'] as $name) {
         date('Y-m-d H:i:s', time() + ($name === 'expired' ? -60 : 300)),
     ]);
 }
-$conn->exec("INSERT INTO students (last_name,first_name,gender,status,housing_type) VALUES ('Legacy','Synthetic','Male','PUPIL','With family')");
+$conn->exec("INSERT INTO students (last_name,first_name,gender,status,housing_type,kyc_status) VALUES ('Legacy','Synthetic','Male','PUPIL','With family','APPROVED')");
 ini_set('session.save_path', '/var/lib/amea/sessions');
 session_name('AMEA_STAFF');
 session_id('syntheticexpiredstaffsession');
