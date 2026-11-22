@@ -13,3 +13,9 @@ The existing Twig staff routes now use the supplied login and dashboard prototyp
 ## Delivery
 
 Local branch `feature/aeesgs-backoffice-redesign` from `origin/main` at `86e672f`. Publication, PR, merge and production deployment await separate authorization.
+
+## Staff landing page follow-up
+
+The supplied landing reference now drives the staff entry page. It uses the existing AEESGS logo, the original public-home and registration destinations, the real login form and the shared theme preference. The laptop illustration uses existing labels. The recovery views continue to use their shared layout.
+
+Chrome checks cover both themes at 390, 768, 1024 and 1440 px, the original menu and footer destinations, and keyboard focus on the username field from the header shortcut. The disposable split-app HTTPS suite and the PHP 8.4 regression suite passed. Full landing screenshots are in `/private/tmp/amea-landing-screenshots`.

@@ -381,36 +381,6 @@ body.staff-auth .staff-auth-controls .theme-switcher:not(:hover) {
     border-color:var(--admin-muted)
 }
 
-body.staff-auth .staff-login {
-    width:min(100%,500px);
-    margin-inline:auto
-}
-
-body.staff-auth .staff-login .form-control,
-body.staff-auth .staff-auth-controls .theme-switcher,
-body.staff-auth .staff-login .btn {
-    min-height:44px
-}
-
-body.staff-auth .staff-login-links {
-    display:grid;
-    justify-items:center;
-    gap:5px;
-    margin-top:6px;
-    text-align:center
-}
-
-body.staff-auth .staff-login-links a {
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    min-height:44px
-}
-
-body.staff-auth .staff-login-links a:not(:first-child):not(:hover) {
-    text-decoration:none
-}
-
 body.admin-app :focus-visible,body.staff-auth :focus-visible {
     outline:3px solid #819cc3;
     outline-offset:3px
@@ -538,9 +508,6 @@ body.admin-app :focus-visible,body.staff-auth :focus-visible {
         margin-bottom:16px
     }
 
-    body.staff-auth .staff-login .card-body {
-        padding:20px!important
-    }
 }
 
 @media print {

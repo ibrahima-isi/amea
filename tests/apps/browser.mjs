@@ -32,8 +32,14 @@ try {
     const wait=ms=>new Promise(r=>setTimeout(r,ms));
     const navigate=async url=>{await cdp('Page.navigate',{url});for(let i=0;i<100;i++){await wait(100);if(await evaluate("document.readyState === 'complete' && location.href === " + JSON.stringify(url)))return;}throw Error('page load timeout '+url);};
     const check=async (expression,label)=>{assert(await evaluate(expression),label);console.log('PASS browser:',label);};
-    const screenshot = async name => {
-        const {data} = await cdp('Page.captureScreenshot', {format: 'png'});
+    const screenshot = async (name, fullPage = false) => {
+        const options = {format: 'png'};
+        if (fullPage) {
+            const {cssContentSize} = await cdp('Page.getLayoutMetrics');
+            options.captureBeyondViewport = true;
+            options.clip = {x: 0, y: 0, width: cssContentSize.width, height: cssContentSize.height, scale: 1};
+        }
+        const {data} = await cdp('Page.captureScreenshot', options);
         await writeFile(path.join(out, name + '.png'), Buffer.from(data, 'base64'));
     };
     const key = async (type, key, code, windowsVirtualKeyCode) => {
@@ -60,7 +66,7 @@ try {
                     await check(`document.querySelector('#sidebar-wrapper').getBoundingClientRect().width === ${width < 768 ? 288 : 256}
                         && document.querySelector('.staff-topbar').getBoundingClientRect().height === 73`, 'staff navigation dimensions at ' + width);
                 }
-                if (width === 390 || width === 1440) await screenshot(name + '-' + width + '-' + theme);
+                if (width === 390 || width === 1440) await screenshot(name + '-' + width + '-' + theme, name === 'staff-login');
             }
         }
         await evaluate("if (document.documentElement.dataset.bsTheme === 'dark') document.querySelector('.theme-switcher').click()");
@@ -75,6 +81,17 @@ try {
     await navigate(staff+'/login.php');
     await check("!!document.querySelector('[name=username]')", 'staff HTTPS login renders');
     await qualifyLayout('staff-login');
+    await check(`(() => {
+        const menu = [...document.querySelectorAll('.landing-header nav a')].map(a => a.href);
+        const footer = [...document.querySelectorAll('.landing-links a')].map(a => a.href);
+        return JSON.stringify(menu) === JSON.stringify([${JSON.stringify(base + '/')}])
+            && JSON.stringify(footer) === JSON.stringify([${JSON.stringify(base + '/register.php')}, ${JSON.stringify(base + '/')}]);
+    })()`, 'login keeps the existing menu and footer destinations');
+    await evaluate("document.querySelector('.landing-header-login').focus()");
+    await key('keyDown', 'Enter', 'Enter', 13);
+    await key('keyUp', 'Enter', 'Enter', 13);
+    await check("document.activeElement.id === 'username'", 'sign-in shortcut focuses the real username input');
+    await evaluate("document.activeElement.blur(); history.replaceState(null, '', '/login.php'); window.scrollTo(0, 0)");
     await check("document.querySelector('#username').autocomplete === 'username' && document.querySelector('#password').autocomplete === 'current-password'", 'login exposes password manager metadata');
     const {cookies}=await cdp('Network.getAllCookies');
     const publicCookie=cookies.find(c=>c.name==='AMEA_PUBLIC');
