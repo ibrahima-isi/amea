@@ -33,7 +33,7 @@ Check source ports 28443/29443 and restore ports 18448/19448 are free first. The
 
 ## Local Docker stack
 
-For the Doctrine cutover, run `bash tests/apps/doctrine-compose.sh`. It uses both shipped Compose files with disposable project volumes and no host ports or Dokploy network. It checks MariaDB 10.11 fresh initialization, zero-change retries, enrollment, shared enrollment/migration locking, transactional insert rollback, recovery, and failed-migration gates for `web`, `back-office` and `jobs`. It removes only its own projects. The existing MySQL rehearsal above retains historical migration and application coverage.
+For the Doctrine cutover, run `bash tests/apps/doctrine-compose.sh`. It uses both shipped Compose files with disposable project volumes and no host ports or Dokploy network. It checks MariaDB 10.11 fresh initialization, zero-change retries, enrollment, shared enrollment/migration locking, transactional insert rollback, recovery, and failed-migration gates for `web`, `backoffice` and `jobs`. It removes only its own projects. The existing MySQL rehearsal above retains historical migration and application coverage.
 
 `compose.yml` mirrors `compose.dokploy.yml` locally (PHP 8.5.12 targets, MariaDB 10.11, the `migrate` step) and adds Caddy for HTTPS, which the `Secure` session cookies and the `https`-only origin checks need:
 
@@ -42,7 +42,7 @@ docker compose up -d --build --remove-orphans
 docker compose logs migrate   # migration output
 ```
 
-Open `https://web.localhost:8000` for `web` and `https://back-office.localhost:8090` for `back-office`. Set `WEB_APP_URL` and `BACK_OFFICE_APP_URL` in your local `.env` to override these defaults. Existing `PUBLIC_APP_URL` and `STAFF_APP_URL` values are accepted as fallbacks, and Caddy also serves the former local hostnames. Caddy signs both with its own local CA. To trust that CA on macOS, run the following commands.
+Open `https://web.localhost:8000` for `web` and `https://backoffice.localhost:8090` for `backoffice`. Set `WEB_APP_URL` and `BACKOFFICE_APP_URL` in your local `.env` to override these defaults. Existing `PUBLIC_APP_URL` and `STAFF_APP_URL` values are accepted as fallbacks, and Caddy also serves the former local hostnames. Caddy signs both with its own local CA. To trust that CA on macOS, run the following commands.
 
 ```sh
 docker compose cp caddy:/data/caddy/pki/authorities/local/root.crt ./caddy-root.crt

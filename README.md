@@ -51,7 +51,7 @@ docker compose up -d --build --remove-orphans
 docker compose logs migrate
 ```
 
-Open the public website at `https://web.localhost:8000` and staff login at `https://back-office.localhost:8090/login.php`. Follow the [local Docker setup](docs/testing/README.md#local-docker-stack) to trust the local HTTPS certificate and handle existing databases.
+Open the public website at `https://web.localhost:8000` and staff login at `https://backoffice.localhost:8090/login.php`. Follow the [local Docker setup](docs/testing/README.md#local-docker-stack) to trust the local HTTPS certificate and handle existing databases.
 
 On a fresh database, generate a password hash with PHP's `password_hash()` and create the first staff administrator. Open the database client with `docker compose exec db mariadb -uamea -p amea_db` using the database user and name from your `.env`.
 
@@ -71,7 +71,7 @@ DB_PASS=replace-with-local-password
 MARIADB_ROOT_PASSWORD=replace-with-local-root-password
 
 WEB_APP_URL=https://web.localhost:8000
-BACK_OFFICE_APP_URL=https://back-office.localhost:8090
+BACKOFFICE_APP_URL=https://backoffice.localhost:8090
 APP_ENV=local
 ```
 

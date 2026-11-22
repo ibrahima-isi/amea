@@ -43,11 +43,11 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-  back-office:
+  backoffice:
     build:
       context: ../..
       dockerfile: docker/Dockerfile.apps
-      target: back-office
+      target: backoffice
     environment:
       <<: *environment
       APP_URL: https://staff.amea.test:${AMEA_STAFF_PORT:-19443}
@@ -86,7 +86,7 @@ services:
     ports: ["127.0.0.1:${AMEA_PUBLIC_PORT:-18443}:18443", "127.0.0.1:${AMEA_STAFF_PORT:-19443}:19443"]
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-    depends_on: [web, back-office]
+    depends_on: [web, backoffice]
 volumes:
   database:
   uploads:

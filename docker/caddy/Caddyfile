@@ -4,7 +4,7 @@ web.localhost:8000, public.localhost:8000 {
 	reverse_proxy web:80
 }
 
-back-office.localhost:8090, staff.localhost:8090 {
+backoffice.localhost:8090, staff.localhost:8090 {
 	tls internal
-	reverse_proxy back-office:80
+	reverse_proxy backoffice:80
 }

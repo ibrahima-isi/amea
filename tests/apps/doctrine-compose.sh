@@ -6,7 +6,7 @@ root="$PWD"
 scratch=$(mktemp -d)
 export DB_NAME=amea_doctrine_compose DB_USER=amea DB_PASS=synthetic-only
 export MARIADB_ROOT_PASSWORD=synthetic-root-only APP_ENV=test
-export WEB_APP_URL=https://public.amea.test BACK_OFFICE_APP_URL=https://staff.amea.test
+export WEB_APP_URL=https://public.amea.test BACKOFFICE_APP_URL=https://staff.amea.test
 export MAIL_USER=synthetic MAIL_PASS=synthetic
 compose=()
 cleanup() {
@@ -25,11 +25,11 @@ import json
 import sys
 
 services = json.load(sys.stdin)["services"]
-web, back_office = sys.argv[1:]
+web, backoffice = sys.argv[1:]
 assert services["web"]["environment"]["APP_URL"] == web
-assert services["back-office"]["environment"]["APP_URL"] == back_office
-assert services["back-office"]["environment"]["PUBLIC_APP_URL"] == web
-assert services["back-office"]["environment"]["STAFF_APP_URL"] == back_office
+assert services["backoffice"]["environment"]["APP_URL"] == backoffice
+assert services["backoffice"]["environment"]["PUBLIC_APP_URL"] == web
+assert services["backoffice"]["environment"]["STAFF_APP_URL"] == backoffice
 assert services["jobs"]["environment"]["APP_URL"] == web
 ' "$1" "$2"
 }
@@ -37,8 +37,8 @@ legacy_web=https://legacy-public.amea.test
 legacy_staff=https://legacy-staff.amea.test
 PUBLIC_APP_URL="$legacy_web" STAFF_APP_URL="$legacy_staff" \
     docker compose --env-file /dev/null -f compose.dokploy.yml --profile jobs config --format json |
-    assert_origins "$WEB_APP_URL" "$BACK_OFFICE_APP_URL"
-env -u WEB_APP_URL -u BACK_OFFICE_APP_URL PUBLIC_APP_URL="$legacy_web" STAFF_APP_URL="$legacy_staff" \
+    assert_origins "$WEB_APP_URL" "$BACKOFFICE_APP_URL"
+env -u WEB_APP_URL -u BACKOFFICE_APP_URL PUBLIC_APP_URL="$legacy_web" STAFF_APP_URL="$legacy_staff" \
     docker compose --env-file /dev/null -f compose.dokploy.yml --profile jobs config --format json |
     assert_origins "$legacy_web" "$legacy_staff"
 echo "PASS: Dokploy resolves current and legacy origins independently"
@@ -60,7 +60,7 @@ services:
       interval: 1s
   web:
     networks: !override [default]
-  back-office:
+  backoffice:
     networks: !override [default]
 networks:
   dokploy-network: !reset null
@@ -71,21 +71,21 @@ YAML
         actual=$(sql "$1")
         [[ "$actual" == "$2" ]] || { echo "Unexpected SQL result: $actual (expected $2)" >&2; exit 1; }
     }
-    stop_apps() { "${compose[@]}" --profile jobs rm -sf web back-office jobs migrate; }
+    stop_apps() { "${compose[@]}" --profile jobs rm -sf web backoffice jobs migrate; }
     blocked_start() {
         expected="$1"
-        if "${compose[@]}" --profile jobs up -d web back-office jobs > "$scratch/start.log" 2>&1; then
+        if "${compose[@]}" --profile jobs up -d web backoffice jobs > "$scratch/start.log" 2>&1; then
             cat "$scratch/start.log"; echo 'Failed migration allowed startup' >&2; exit 1
         fi
         "${compose[@]}" logs migrate > "$scratch/migrate.log"
         grep -Fq "$expected" "$scratch/migrate.log"
         id=$("${compose[@]}" ps -aq migrate)
         [[ "$(docker inspect --format '{{.State.ExitCode}}' "$id")" == 1 ]]
-        for service in web back-office jobs; do
+        for service in web backoffice jobs; do
             id=$("${compose[@]}" --profile jobs ps -aq "$service")
             [[ -n "$id" && "$(docker inspect --format '{{.State.Status}}' "$id")" == created ]]
         done
-        echo "PASS: $stack migration failure blocks web, back-office and jobs ($expected)"
+        echo "PASS: $stack migration failure blocks web, backoffice and jobs ($expected)"
     }
     probe() {
         "${compose[@]}" exec -T "$1" php -r '
@@ -96,12 +96,12 @@ YAML
             exit(1);
         ' "$2"
     }
-    "${compose[@]}" --profile jobs build web back-office jobs migrate
-    "${compose[@]}" --profile jobs up -d web back-office jobs
+    "${compose[@]}" --profile jobs build web backoffice jobs migrate
+    "${compose[@]}" --profile jobs up -d web backoffice jobs
     probe web http://localhost/legal-notice.php
-    probe back-office http://localhost/login.php
+    probe backoffice http://localhost/login.php
     "${compose[@]}" exec -T web test ! -e /opt/amea/scripts
-    "${compose[@]}" exec -T back-office test ! -e /opt/amea/scripts
+    "${compose[@]}" exec -T backoffice test ! -e /opt/amea/scripts
     id=$("${compose[@]}" --profile jobs ps -aq jobs)
     [[ "$(docker inspect --format '{{.State.Status}}' "$id")" == running ]]
     expect_sql 'SELECT COUNT(*) FROM doctrine_migration_versions' 4
@@ -122,11 +122,11 @@ YAML
 JSON
     "${compose[@]}" run --rm -T -v "$scratch/evidence.json:/run/enrollment.json:ro" migrate php scripts/enroll-migrations.php --database="$DB_NAME" --writers-stopped --evidence=/run/enrollment.json
     "${compose[@]}" rm -f migrate
-    "${compose[@]}" --profile jobs up -d web back-office jobs
+    "${compose[@]}" --profile jobs up -d web backoffice jobs
     "${compose[@]}" logs migrate > "$scratch/enrolled.log"
     grep -Fq 'Already at the latest version' "$scratch/enrolled.log"
     probe web http://localhost/legal-notice.php
-    probe back-office http://localhost/login.php
+    probe backoffice http://localhost/login.php
     expect_sql 'SELECT COUNT(*) FROM doctrine_migration_versions' 4
     expect_sql "SELECT setting_value FROM settings WHERE setting_key='organization_name'" 'Preserved setting'
     echo "PASS: $stack enrolled database starts with zero migrations"

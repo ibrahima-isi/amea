@@ -27,7 +27,7 @@ RUN cp -r assets apps/web/public/assets \
     && sed 's|AMEA_DOCUMENT_ROOT|/opt/amea/apps/web/public|g' /opt/amea-apps/apache.conf > /etc/apache2/sites-available/000-default.conf \
     && printf 'public' > /opt/amea-apps/identity
 
-FROM apache AS back-office
+FROM apache AS backoffice
 COPY apps/backoffice/public apps/backoffice/public
 RUN cp -r assets apps/backoffice/public/assets \
     && sed 's|AMEA_DOCUMENT_ROOT|/opt/amea/apps/backoffice/public|g' /opt/amea-apps/apache.conf > /etc/apache2/sites-available/000-default.conf \

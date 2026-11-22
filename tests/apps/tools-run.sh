@@ -11,8 +11,8 @@ compose=(docker compose -p "$project" -f tests/apps/compose.yaml)
 trap '"${compose[@]}" down -v --remove-orphans' EXIT
 "${compose[@]}" up -d --build
 for migration in migrations/0[0-6]*.php; do "${compose[@]}" exec -T web php "$migration"; done
-"${compose[@]}" exec -u www-data -T back-office php < tests/apps/fixture.php
-"${compose[@]}" exec -u www-data -T back-office php < tests/apps/tools-fixture.php
+"${compose[@]}" exec -u www-data -T backoffice php < tests/apps/fixture.php
+"${compose[@]}" exec -u www-data -T backoffice php < tests/apps/tools-fixture.php
 python3 tests/apps/tools.py
 if [[ "${AMEA_SKIP_BROWSER:-0}" != 1 ]]; then node tests/apps/tools-browser.mjs "${AMEA_SCREENSHOT_DIR:-/private/tmp/amea-tools-browser}"; fi
 "${compose[@]}" --profile jobs build jobs

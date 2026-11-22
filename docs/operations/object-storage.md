@@ -56,12 +56,12 @@ services:
       R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
 ```
 
-Merge these keys with the service's existing environment entries. For aliases, leave the five canonical provider fields empty. Change `STORAGE_DRIVER` only at the approved, verified cutover. The combined image uses PHP 8.4. The independent `web`, `back-office` and `jobs` targets use `docker/Dockerfile.apps`.
+Merge these keys with the service's existing environment entries. For aliases, leave the five canonical provider fields empty. Change `STORAGE_DRIVER` only at the approved, verified cutover. The combined image uses PHP 8.4. The independent `web`, `backoffice` and `jobs` targets use `docker/Dockerfile.apps`.
 
 
 Grant object read/write/delete and bucket list/existence-check permissions. The factory disables optional automatic SDK request/response checksum extensions with `when_required`. The implementation computes content SHA-256 from a disk-spooled input stream and stores it in object metadata. R2's supported operations and checksum features are documented in its compatibility matrix. [Cloudflare S3 API compatibility](https://developers.cloudflare.com/r2/api/s3/api/)
 
-The locked client is `aws/aws-sdk-php` 3.403.5, used through `Aws\S3\S3Client`. The canonical `web`, `back-office` and `jobs` images use PHP 8.5.12. Run `composer check-platform-reqs --no-dev` in the intended runtime when changing dependency versions or PHP targets.
+The locked client is `aws/aws-sdk-php` 3.403.5, used through `Aws\S3\S3Client`. The canonical `web`, `backoffice` and `jobs` images use PHP 8.5.12. Run `composer check-platform-reqs --no-dev` in the intended runtime when changing dependency versions or PHP targets.
 
 ## Keys, streams and metadata
 

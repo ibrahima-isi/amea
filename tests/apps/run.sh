@@ -7,7 +7,7 @@ project="${AMEA_REHEARSAL_PROJECT:-amea-ui-test-${RANDOM}-$$}"
 [[ -z "$(docker ps -aq --filter label=com.docker.compose.project="$project")" ]] || { echo "Project already exists" >&2; exit 1; }
 [[ -z "$(docker volume ls -q --filter label=com.docker.compose.project="$project")" ]] || { echo "Project volumes already exist" >&2; exit 1; }
 compose=(docker compose -p "$project" -f tests/apps/compose.yaml)
-cleanup() { result=$?; if [[ "$result" != 0 ]]; then "${compose[@]}" logs --tail 40 web back-office; fi; "${compose[@]}" --profile jobs down -v --remove-orphans; }
+cleanup() { result=$?; if [[ "$result" != 0 ]]; then "${compose[@]}" logs --tail 40 web backoffice; fi; "${compose[@]}" --profile jobs down -v --remove-orphans; }
 trap cleanup EXIT
 independent_probe() {
     "${compose[@]}" exec -T "$1" php -r '
@@ -24,7 +24,7 @@ independent_probe() {
 }
 # Build targets independently; no app requires its sibling to start.
 "${compose[@]}" build web
-"${compose[@]}" build back-office
+"${compose[@]}" build backoffice
 "${compose[@]}" --profile jobs build jobs
 "${compose[@]}" up -d mysql web
 for migration in 00_init_schema.php 01_migration_add_settings_table.php 02_migration_add_user_session_version.php 03_migration_fix_role_enum.php 04_migration_add_kyc_workflow.php 05_migration_add_soft_delete.php; do
@@ -32,8 +32,8 @@ for migration in 00_init_schema.php 01_migration_add_settings_table.php 02_migra
 done
 independent_probe web http://localhost/legal-notice.php
 "${compose[@]}" stop web
-"${compose[@]}" up -d back-office
-independent_probe back-office http://localhost/login.php
+"${compose[@]}" up -d backoffice
+independent_probe backoffice http://localhost/login.php
 "${compose[@]}" up -d web tls
 python3 - <<'PY'
 import sys, time
@@ -49,7 +49,7 @@ for attempt in range(60):
 else:
     raise SystemExit('Isolated HTTPS services did not become ready')
 PY
-"${compose[@]}" exec -u www-data -T back-office php < tests/apps/fixture.php
+"${compose[@]}" exec -u www-data -T backoffice php < tests/apps/fixture.php
 python3 tests/apps/visual-refresh.py --empty
 python3 tests/apps/cache.py "$project"
 "${compose[@]}" exec -T web php /dev/stdin before < tests/apps/migration-proof.php
@@ -58,25 +58,25 @@ python3 tests/apps/registration.py --legacy-enums
 "${compose[@]}" exec -T web php migrations/06_expand_member_enum_compatibility.php
 "${compose[@]}" exec -T web php /dev/stdin after < tests/apps/migration-proof.php
 "${compose[@]}" exec -T web php migrations/07_create_association_journal.php
-"${compose[@]}" exec -u www-data -T back-office php < tests/apps/fixture.php
+"${compose[@]}" exec -u www-data -T backoffice php < tests/apps/fixture.php
 python3 tests/apps/routes.py
 python3 tests/apps/links.py
 python3 tests/apps/journeys.py
 python3 tests/apps/registration.py
-"${compose[@]}" exec -u www-data -T back-office php < tests/apps/member-fixture.php
+"${compose[@]}" exec -u www-data -T backoffice php < tests/apps/member-fixture.php
 python3 tests/apps/visual-refresh.py --populated
 python3 tests/apps/members.py
 if [[ "${AMEA_SKIP_BROWSER:-0}" != "1" && "${AMEA_BROWSER_SCOPE:-all}" != "storage" ]]; then
     node tests/apps/browser.mjs "${AMEA_SCREENSHOT_DIR:-/private/tmp/amea-app-browser}"
 fi
 
-"${compose[@]}" exec -u www-data -T back-office php < tests/apps/tools-fixture.php
+"${compose[@]}" exec -u www-data -T backoffice php < tests/apps/tools-fixture.php
 python3 tests/apps/visual-refresh.py --tools
 python3 tests/apps/tools.py
-"${compose[@]}" exec -u www-data -T back-office php < tests/apps/journal-fixture.php
+"${compose[@]}" exec -u www-data -T backoffice php < tests/apps/journal-fixture.php
 "${compose[@]}" exec -u www-data -T web php < tests/apps/journal-session-fixture.php
 python3 tests/apps/journal.py
-"${compose[@]}" exec -u www-data -T back-office php < tests/apps/journal-retention.php
+"${compose[@]}" exec -u www-data -T backoffice php < tests/apps/journal-retention.php
 if [[ "${AMEA_SKIP_BROWSER:-0}" != "1" ]]; then
     node tests/apps/tools-browser.mjs "${AMEA_SCREENSHOT_DIR:-/private/tmp/amea-app-browser}"
 fi

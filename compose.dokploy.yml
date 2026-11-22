@@ -46,11 +46,11 @@ services:
       - default
       - dokploy-network
 
-  back-office:
+  backoffice:
     build:
       context: .
       dockerfile: docker/Dockerfile.apps
-      target: back-office
+      target: backoffice
     restart: unless-stopped
     depends_on:
       db:
@@ -59,8 +59,8 @@ services:
         condition: service_completed_successfully
     environment:
       <<: *shared_environment
-      APP_URL: &back_office_app_url ${BACK_OFFICE_APP_URL:-${STAFF_APP_URL:?set BACK_OFFICE_APP_URL or STAFF_APP_URL}}
-      STAFF_APP_URL: *back_office_app_url
+      APP_URL: &backoffice_app_url ${BACKOFFICE_APP_URL:-${STAFF_APP_URL:?set BACKOFFICE_APP_URL or STAFF_APP_URL}}
+      STAFF_APP_URL: *backoffice_app_url
     volumes:
       - amea_uploads:/opt/amea/uploads
       - amea_storage:/opt/amea/storage

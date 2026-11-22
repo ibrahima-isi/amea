@@ -7,5 +7,5 @@ https://public.amea.test:18443 {
 }
 https://staff.amea.test:19443 {
     tls internal
-    reverse_proxy back-office:80
+    reverse_proxy backoffice:80
 }

@@ -1,5 +1,5 @@
 # Local stack mirroring compose.dokploy.yml, fronted by Caddy for HTTPS.
-# Run: docker compose up -d --build  →  https://web.localhost:8000, https://back-office.localhost:8090
+# Run: docker compose up -d --build  →  https://web.localhost:8000, https://backoffice.localhost:8090
 services:
   web:
     build:
@@ -45,11 +45,11 @@ services:
     tmpfs:
       - /opt/amea/storage/cache:uid=33,gid=33,mode=0770
 
-  back-office:
+  backoffice:
     build:
       context: .
       dockerfile: docker/Dockerfile.apps
-      target: back-office
+      target: backoffice
     restart: unless-stopped
     depends_on:
       db:
@@ -58,8 +58,8 @@ services:
         condition: service_completed_successfully
     environment:
       <<: *shared_environment
-      APP_URL: &back_office_app_url ${BACK_OFFICE_APP_URL:-${STAFF_APP_URL:-https://back-office.localhost:8090}}
-      STAFF_APP_URL: *back_office_app_url
+      APP_URL: &backoffice_app_url ${BACKOFFICE_APP_URL:-${STAFF_APP_URL:-https://backoffice.localhost:8090}}
+      STAFF_APP_URL: *backoffice_app_url
     volumes:
       - amea_uploads:/opt/amea/uploads
       - amea_storage:/opt/amea/storage
@@ -129,7 +129,7 @@ services:
     restart: unless-stopped
     depends_on:
       - web
-      - back-office
+      - backoffice
     ports:
       - "8000:8000"
       - "8090:8090"
