@@ -43,9 +43,15 @@ if sys.argv[1] == '--empty':
 elif sys.argv[1] == '--populated':
     check(b'export.php' not in links(dashboard) and b'students.php' in links(dashboard),
           'admin without export permission only sees the permitted shortcut')
+    status, _, queue = admin.go('/kyc-list.php')
+    row = next((row for row in re.findall(rb'<tr>.*?</tr>', queue, re.S)
+                if b'shared@example.invalid' in row), b'')
+    match = re.search(rb'kyc-detail\.php\?id=(\d+)', row)
+    check(status == 200 and match is not None, 'synthetic pending dossier exists in the KYC queue')
+    member_id = match.group(1)
     status, _, listing = admin.go('/students.php?search=SharedMember')
-    check(status == 200 and b'SharedMember' in listing, 'synthetic pending member exists')
-    member_id = re.search(rb'student-details.php\?id=(\d+)', listing).group(1)
+    check(status == 200 and b'student-details.php?id=' + member_id not in links(listing),
+          'pending dossier is absent from the member list')
     detail = b'kyc-detail.php?id=' + member_id
     check(all(('data-dashboard-chart="' + key + '"').encode() in dashboard
               for key in ['schools', 'status', 'gender']), 'populated dashboard exposes all three chart series')
