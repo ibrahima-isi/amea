@@ -38,9 +38,15 @@ if sys.argv[1] == '--empty':
     check(not re.search(rb'href="kyc-detail.php\?id=\d+', dashboard),
           'empty queue exposes no dossier action')
 elif sys.argv[1] == '--populated':
+    status, _, queue = admin.go('/kyc-list.php')
+    row = next((row for row in re.findall(rb'<tr>.*?</tr>', queue, re.S)
+                if b'shared@example.invalid' in row), b'')
+    match = re.search(rb'kyc-detail\.php\?id=(\d+)', row)
+    check(status == 200 and match is not None, 'synthetic pending dossier exists in the KYC queue')
+    member_id = match.group(1)
     status, _, listing = admin.go('/students.php?search=SharedMember')
-    check(status == 200 and b'SharedMember' in listing, 'synthetic pending member exists')
-    member_id = re.search(rb'student-details.php\?id=(\d+)', listing).group(1)
+    check(status == 200 and b'student-details.php?id=' + member_id not in links(listing),
+          'pending dossier is absent from the member list')
     detail = b'kyc-detail.php?id=' + member_id
     check(b'SharedMember' in dashboard and detail in links(dashboard),
           'admin queue names pending member and links directly to private KYC dossier')

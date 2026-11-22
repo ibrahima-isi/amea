@@ -21,9 +21,12 @@ check(status == 302 and headers.get('Location') == 'dashboard.php', 'staff login
 status, _, body = admin.get('/dashboard.php')
 check(status == 200 and b'Tableau' in body, 'authenticated staff dashboard available')
 
-status, _, body = admin.get('/students.php?search=SharedMember')
-check(status == 200 and b'SharedMember' in body, 'staff sees shared member')
-member_id = re.search(rb'student-details.php\?id=(\d+)',body).group(1).decode()
+status, _, body = admin.get('/kyc-list.php')
+row = next((row for row in re.findall(rb'<tr>.*?</tr>', body, re.S)
+            if b'shared@example.invalid' in row), b'')
+match = re.search(rb'kyc-detail\.php\?id=(\d+)', row)
+check(status == 200 and match is not None, 'admin sees shared dossier in the KYC queue')
+member_id = match.group(1).decode()
 for route in ['student-details.php','edit-student.php','kyc-detail.php']:
     response=admin.get('/'+route+'?id='+member_id)
     if response[0] != 200: print(response[0],response[2].decode())
@@ -64,3 +67,6 @@ check(b'Shared synthetic identity' in admin.get(document)[2], 'restored member r
 token=admin.csrf('/kyc-detail.php?id='+member_id)
 admin.get('/kyc-detail.php?id='+member_id,dict(csrf_token=token,action='approve'))
 check(b'SharedMember' not in admin.get('/kyc-list.php')[2], 'admin approval removes member from pending review')
+status, _, body = admin.get('/students.php?search=SharedMember')
+check(status == 200 and f'student-details.php?id={member_id}"'.encode() in body,
+      'approved dossier appears in the member list')
