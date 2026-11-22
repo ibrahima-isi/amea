@@ -74,7 +74,7 @@ def verify(expected, label):
     http.check(True, label)
 
 def storage_hash(name, env=None):
-    return capture(name, 'exec', '-u', 'www-data', '-T', 'public', 'php', '-r', "echo hash_file('sha256','storage/release-marker.txt');", env=env).decode().strip()
+    return capture(name, 'exec', '-u', 'www-data', '-T', 'web', 'php', '-r', "echo hash_file('sha256','storage/release-marker.txt');", env=env).decode().strip()
 
 for kind in ['container', 'volume']:
     args = ['docker', 'ps', '-aq', '--filter', 'label=com.docker.compose.project=' + restore_project] if kind == 'container' else ['docker', 'volume', 'ls', '-q', '--filter', 'label=com.docker.compose.project=' + restore_project]
@@ -83,7 +83,7 @@ for kind in ['container', 'volume']:
 
 with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
     directory = pathlib.Path(temporary)
-    images = {service: capture(project, 'images', '-q', service).decode().strip() for service in ['public', 'staff']}
+    images = {service: capture(project, 'images', '-q', service).decode().strip() for service in ['web', 'back-office']}
     images['jobs'] = subprocess.check_output(['docker', 'image', 'inspect', project + '-jobs', '--format', '{{.Id}}']).decode().strip()
     assert all(images.values())
     forward = directory / 'forward.json'
@@ -91,12 +91,12 @@ with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
     expected = observe()
     journal = observe_journal()
     for _ in range(2):
-        command(project, 'exec', '-T', 'public', 'php', 'migrations/07_create_association_journal.php')
+        command(project, 'exec', '-T', 'web', 'php', 'migrations/07_create_association_journal.php')
         assert observe_journal() == journal
     http.check(True, 'migration07 reruns preserve published journal and controlled cover bytes over HTTPS')
-    command(project, 'exec', '-u', 'www-data', '-T', 'public', 'php', '-r', "file_put_contents('storage/release-marker.txt','Synthetic storage continuity');")
+    command(project, 'exec', '-u', 'www-data', '-T', 'web', 'php', '-r', "file_put_contents('storage/release-marker.txt','Synthetic storage continuity');")
     storage = storage_hash(project)
-    for service in ['public', 'staff', 'mysql']:
+    for service in ['web', 'back-office', 'mysql']:
         command(project, 'up', '-d', '--no-deps', '--force-recreate', service)
         if service == 'mysql':
             for _ in range(120):
@@ -125,14 +125,15 @@ with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
         subprocess.run(['tar','-x','-C',str(context)], stdin=archive.stdout, check=True)
         archive.stdout.close()
         assert archive.wait() == 0
+        # The archived Dockerfile predates the web target name.
         subprocess.run(['docker','build','-f',str(context/'docker/Dockerfile.apps'),'--target','public','-t',prior,str(context)], check=True, env=source_env)
     rollback = directory / 'rollback.json'
-    rollback.write_text(json.dumps({'services': {'public': {'image': prior}}}))
-    command(project, 'up', '-d', '--no-deps', '--no-build', '--force-recreate', 'public', override=rollback)
+    rollback.write_text(json.dumps({'services': {'web': {'image': prior}}}))
+    command(project, 'up', '-d', '--no-deps', '--no-build', '--force-recreate', 'web', override=rollback)
     wait_ready(source_ports)
     http.check(http.request('public','/login.php')[0] == 404, 'retained prior image preserves public staff-route denial')
     verify(expected, 'real prior image rollback preserves candidate database and file bytes')
-    command(project, 'up', '-d', '--no-deps', '--no-build', '--force-recreate', 'public', override=forward)
+    command(project, 'up', '-d', '--no-deps', '--no-build', '--force-recreate', 'web', override=forward)
     wait_ready(source_ports)
     status, headers, _ = http.request('public','/login.php')
     http.check(status == 404 and 'Location' not in headers, 'forward deployment preserves public isolation from staff')
@@ -173,15 +174,15 @@ with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
         recovery(project, 'create-restore-bucket', restore_bucket)
         restore_env['S3_BUCKET'] = restore_bucket
     try:
-        command(restore_project, 'create', '--no-build', 'public', env=restore_env, override=forward)
-        command(restore_project, 'create', '--no-build', 'staff', env=restore_env, override=forward)
+        command(restore_project, 'create', '--no-build', 'web', env=restore_env, override=forward)
+        command(restore_project, 'create', '--no-build', 'back-office', env=restore_env, override=forward)
         command(restore_project, 'up', '-d', '--wait', '--wait-timeout', '90', '--no-build', 'mysql', env=restore_env, override=forward)
         with backup.open('rb') as source:
             command(restore_project, '--profile', 'jobs', 'run', '--rm', '-T', '--no-deps', 'jobs',
                     'tar', '-C', '/var/lib/amea/recovery', '-xf', '-', env=restore_env, override=forward, stdin=source)
         restored = json.loads(recovery(restore_project, 'restore', env=restore_env).decode().strip())
         http.check(restored['state'] == 'verified', 'separate restore verifies DB, ledger, bytes, lifecycle ages and both session stores before reopening')
-        command(restore_project, 'up', '-d', '--no-build', 'public', 'staff', 'tls', env=restore_env, override=forward)
+        command(restore_project, 'up', '-d', '--no-build', 'web', 'back-office', 'tls', env=restore_env, override=forward)
         http.PUBLIC_PORT, http.STAFF_PORT = (18448, 19448)
         for _ in range(60):
             try:
@@ -196,8 +197,8 @@ with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
         http.check(status == 200 and paused_preview == pending_bytes and 'Set-Cookie' not in headers,
                    'fresh paused images preserve private read-only preview and block new mutations')
         reports = []
-        for role in ['public', 'staff']:
-            reports.append(json.loads(capture(restore_project, 'exec', '-u', 'www-data', '-T', role, 'php',
+        for service in ['web', 'back-office']:
+            reports.append(json.loads(capture(restore_project, 'exec', '-u', 'www-data', '-T', service, 'php',
                                                '/opt/amea-apps/storage-target.php', env=restore_env, override=forward)))
         reports.append(json.loads(capture(restore_project, '--profile', 'jobs', 'run', '--rm', '-T', '--no-deps', 'jobs',
                                            'php', '/opt/amea-apps/storage-target.php', env=restore_env, override=forward)))
@@ -221,7 +222,7 @@ with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
         print('RECOVERY', json.dumps({'source_snapshot': proof, 'restore': restored}))
     finally:
         if sys.exc_info()[0] is not None:
-            command(restore_project, 'logs', '--tail', '60', 'public', 'staff', env=restore_env, override=forward)
+            command(restore_project, 'logs', '--tail', '60', 'web', 'back-office', env=restore_env, override=forward)
         command(restore_project, '--profile', 'jobs', 'down', '-v', '--remove-orphans', env=restore_env, override=forward)
         if restore_bucket:
             recovery(project, 'cleanup-restore-bucket', restore_bucket)

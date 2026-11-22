@@ -29,7 +29,7 @@ Place new classes in `src/` following PSR-4. Use `Amea\Core\Container` for the s
 - `./vendor/bin/phpunit`: run Unit and Integration suites from `phpunit.xml`.
 - `php tests/test_oop_unit.php`: run a standalone regression script; CI also runs `test_oop_integration.php`, `test_permissions_unit.php`, and `test_password_reset_security.php`.
 - `php -l path/to/file.php`: check changed PHP syntax.
-- `docker compose -f compose.dokploy.yml build public staff`: build the separate PHP 8.5 Apache application targets with the required deployment environment configured. Building is distinct from deployment approval.
+- `docker compose -f compose.dokploy.yml build web back-office`: build the separate PHP 8.5 Apache application targets with the required deployment environment configured. Building is distinct from deployment approval.
 
 ## Coding Style & Naming Conventions
 

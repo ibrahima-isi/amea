@@ -13,11 +13,11 @@ services:
       test: [CMD, mysql, --protocol=TCP, -h, 127.0.0.1, -uamea, -psynthetic-only, amea_rehearsal, -e, SELECT 1]
       interval: 2s
       retries: 60
-  public:
+  web:
     build:
       context: ../..
       dockerfile: docker/Dockerfile.apps
-      target: public
+      target: web
     environment: &environment
       DB_HOST: mysql
       DB_NAME: amea_rehearsal
@@ -43,11 +43,11 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-  staff:
+  back-office:
     build:
       context: ../..
       dockerfile: docker/Dockerfile.apps
-      target: staff
+      target: back-office
     environment:
       <<: *environment
       APP_URL: https://staff.amea.test:${AMEA_STAFF_PORT:-19443}
@@ -86,7 +86,7 @@ services:
     ports: ["127.0.0.1:${AMEA_PUBLIC_PORT:-18443}:18443", "127.0.0.1:${AMEA_STAFF_PORT:-19443}:19443"]
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-    depends_on: [public, staff]
+    depends_on: [web, back-office]
 volumes:
   database:
   uploads:

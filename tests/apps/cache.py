@@ -22,15 +22,15 @@ def render(service):
 try:
     # Same absolute path and Twig key, different source in two independent images.
     # Dates deliberately make the shared compiled candidate newer than old source.
-    php('public', 'file_put_contents("templates/".$argv[1], "Synthetic old image"); touch("templates/".$argv[1], time()-120);', template, user='root')
-    php('staff', 'file_put_contents("templates/".$argv[1], "Synthetic new image"); touch("templates/".$argv[1], time()+2);', template, user='root')
-    if render('public') != 'Synthetic old image':
+    php('web', 'file_put_contents("templates/".$argv[1], "Synthetic old image"); touch("templates/".$argv[1], time()-120);', template, user='root')
+    php('back-office', 'file_put_contents("templates/".$argv[1], "Synthetic new image"); touch("templates/".$argv[1], time()+2);', template, user='root')
+    if render('web') != 'Synthetic old image':
         raise AssertionError('Old image must initially render its own template')
-    if render('staff') != 'Synthetic new image':
+    if render('back-office') != 'Synthetic new image':
         raise AssertionError('New image must render its own template')
-    if render('public') != 'Synthetic old image':
+    if render('web') != 'Synthetic old image':
         raise AssertionError('Rollback image reused a template compiled by the newer image')
     print('PASS: independent and rollback images render their own compiled templates')
 finally:
-    for service in ['public', 'staff']:
+    for service in ['web', 'back-office']:
         php(service, '@unlink("templates/".$argv[1]);', template, user='root')
