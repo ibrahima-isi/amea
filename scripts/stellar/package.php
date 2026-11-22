@@ -171,8 +171,10 @@ try {
         throw new RuntimeException("Unable to create output directory {$outputDir}");
     }
 
+    // BSD tar on macOS includes provenance attributes that GNU tar warns about on Stellar.
+    $archiveFlags = PHP_OS_FAMILY === 'Darwin' ? ['--no-xattrs', '--no-mac-metadata'] : [];
     $process = proc_open(
-        ['tar', '-C', $stage, '-czf', $outputPath, '.'],
+        ['tar', ...$archiveFlags, '-C', $stage, '-czf', $outputPath, '.'],
         [0 => ['file', '/dev/null', 'r'], 1 => STDERR, 2 => STDERR],
         $pipes
     );
