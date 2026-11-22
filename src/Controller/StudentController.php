@@ -39,7 +39,7 @@ class StudentController extends BaseController
     {
         $page    = max(1, (int)($_GET['page'] ?? 1));
         $perPage = min(100, max(10, (int)($_GET['perPage'] ?? 25)));
-        $filters = [];
+        $filters = ['kyc_status' => 'APPROVED'];
 
         foreach (['search', 'gender', 'status', 'institution', 'study_level'] as $key) {
             $val = trim($_GET[$key] ?? '');

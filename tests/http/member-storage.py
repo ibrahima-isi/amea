@@ -144,6 +144,49 @@ with member_app() as (public, backoffice, bucket, storage_env):
         subprocess.run(['node', str(ROOT / 'tests/http/registration-browser.mjs'), public.base,
             os.environ['AMEA_BROWSER_OUTPUT']], check=True, timeout=120)
 
+with disposable_apps('public', 'staff') as (public, backoffice):
+    staff = client()
+    token = backoffice.csrf(staff, '/login.php')
+    backoffice.request(staff, '/login.php', dict(
+        csrf_token=token, username='fixture-admin', password='fixture-password'))
+
+    dossiers = {}
+    with sqlite3.connect(public.root / 'fixture.sqlite') as db:
+        for index, decision in enumerate(('approve', 'reject')):
+            applicant = client()
+            token = public.csrf(applicant, '/register.php')
+            email = f'kyc-{decision}@example.invalid'
+            status, headers, _ = public.request(applicant, '/register.php', dict(
+                csrf_token=token, last_name='KycFixture', first_name=decision,
+                gender='Féminin', status='ETUDIANT', phone=f'77000000{index}', email=email,
+                consent_privacy='1'))
+            check(status == 302 and headers.get('Location') == 'registration-details.php',
+                  f'{decision} application reaches registration review')
+            token = public.csrf(applicant, '/registration-details.php')
+            status, headers, _ = public.request(applicant, '/registration-details.php', dict(csrf_token=token))
+            check(status == 302 and headers.get('Location') == '/', f'{decision} application is submitted for KYC')
+            dossiers[decision] = db.execute('SELECT id FROM students WHERE email = ?', (email,)).fetchone()[0]
+
+    for decision, dossier in dossiers.items():
+        status, _, body = backoffice.request(staff, '/kyc-list.php')
+        check(status == 200 and f'kyc-detail.php?id={dossier}"'.encode() in body,
+              f'{decision} application is in the KYC queue before a decision')
+        status, _, body = backoffice.request(staff, '/students.php?search=KycFixture')
+        check(status == 200 and f'student-details.php?id={dossier}"'.encode() not in body,
+              f'{decision} application is absent from the member list before a decision')
+
+        detail = f'/kyc-detail.php?id={dossier}'
+        token = backoffice.csrf(staff, detail)
+        status, headers, _ = backoffice.request(staff, detail, dict(
+            csrf_token=token, action=decision, kyc_notes='Synthetic KYC decision'))
+        check(status == 302 and headers.get('Location') == 'kyc-list.php', f'KYC {decision} action succeeds')
+
+    status, _, body = backoffice.request(staff, '/students.php?search=KycFixture')
+    check(status == 200 and f'student-details.php?id={dossiers["approve"]}"'.encode() in body,
+          'approved application appears in the member list')
+    check(f'student-details.php?id={dossiers["reject"]}"'.encode() not in body,
+          'rejected application stays out of the member list')
+
 with member_app(('staged-compatibility-fixture.php',)) as (public, backoffice, bucket, storage_env):
     previous, stranger = client(), client()
     previous.addheaders = [('Cookie', 'AMEA_PUBLIC=amea-previous-registration')]
