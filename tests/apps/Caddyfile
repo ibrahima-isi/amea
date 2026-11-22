@@ -3,9 +3,9 @@
 }
 https://public.amea.test:18443 {
     tls internal
-    reverse_proxy public:80
+    reverse_proxy web:80
 }
 https://staff.amea.test:19443 {
     tls internal
-    reverse_proxy staff:80
+    reverse_proxy backoffice:80
 }

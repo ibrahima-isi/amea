@@ -1,10 +1,10 @@
 # Canonical Dokploy stack; keep the existing project name to preserve its volumes.
 services:
-  public:
+  web:
     build:
       context: .
       dockerfile: docker/Dockerfile.apps
-      target: public
+      target: web
     restart: unless-stopped
     depends_on:
       db:
@@ -16,8 +16,8 @@ services:
       DB_NAME: ${DB_NAME:?set DB_NAME}
       DB_USER: ${DB_USER:?set DB_USER}
       DB_PASS: ${DB_PASS:?set DB_PASS}
-      APP_URL: ${PUBLIC_APP_URL:?set PUBLIC_APP_URL}
-      PUBLIC_APP_URL: ${PUBLIC_APP_URL:?set PUBLIC_APP_URL}
+      APP_URL: &web_app_url ${WEB_APP_URL:-${PUBLIC_APP_URL:?set WEB_APP_URL or PUBLIC_APP_URL}}
+      PUBLIC_APP_URL: *web_app_url
       APP_ENV: ${APP_ENV:-production}
       MAIL_USER: ${MAIL_USER:?set MAIL_USER}
       MAIL_PASS: ${MAIL_PASS:?set MAIL_PASS}
@@ -46,11 +46,11 @@ services:
       - default
       - dokploy-network
 
-  staff:
+  backoffice:
     build:
       context: .
       dockerfile: docker/Dockerfile.apps
-      target: staff
+      target: backoffice
     restart: unless-stopped
     depends_on:
       db:
@@ -59,8 +59,8 @@ services:
         condition: service_completed_successfully
     environment:
       <<: *shared_environment
-      APP_URL: ${STAFF_APP_URL:?set STAFF_APP_URL}
-      STAFF_APP_URL: ${STAFF_APP_URL:?set STAFF_APP_URL}
+      APP_URL: &backoffice_app_url ${BACKOFFICE_APP_URL:-${STAFF_APP_URL:?set BACKOFFICE_APP_URL or STAFF_APP_URL}}
+      STAFF_APP_URL: *backoffice_app_url
     volumes:
       - amea_uploads:/opt/amea/uploads
       - amea_storage:/opt/amea/storage

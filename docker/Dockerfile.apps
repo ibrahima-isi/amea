@@ -17,16 +17,17 @@ RUN printf 'variables_order = "EGPCS"\ndisplay_errors = Off\nlog_errors = On\n' 
     && mkdir -p /var/lib/amea/sessions /var/lib/amea/recovery /var/lib/amea/recovery-sessions/public /var/lib/amea/recovery-sessions/staff /opt/amea/uploads /opt/amea/storage/mail-queue /opt/amea/storage/cache /opt/amea/logs \
     && chown -R www-data:www-data /var/lib/amea /opt/amea/uploads /opt/amea/storage /opt/amea/logs
 
-FROM shared AS web
+FROM shared AS apache
 COPY docker/apps/apache.conf /opt/amea-apps/apache.conf
 
-FROM web AS public
+# Storage recovery attests the established public and staff roles.
+FROM apache AS web
 COPY apps/web/public apps/web/public
 RUN cp -r assets apps/web/public/assets \
     && sed 's|AMEA_DOCUMENT_ROOT|/opt/amea/apps/web/public|g' /opt/amea-apps/apache.conf > /etc/apache2/sites-available/000-default.conf \
     && printf 'public' > /opt/amea-apps/identity
 
-FROM web AS staff
+FROM apache AS backoffice
 COPY apps/backoffice/public apps/backoffice/public
 RUN cp -r assets apps/backoffice/public/assets \
     && sed 's|AMEA_DOCUMENT_ROOT|/opt/amea/apps/backoffice/public|g' /opt/amea-apps/apache.conf > /etc/apache2/sites-available/000-default.conf \
