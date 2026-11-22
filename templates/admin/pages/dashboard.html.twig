@@ -3,245 +3,141 @@
 {% block title %}AEESGS — Tableau de bord{% endblock %}
 
 {% block body %}
-<!-- Page header -->
-<div class="dash-header">
-  <div>
-    <h1 class="mb-1">Tableau de bord</h1>
-    <p class="dash-subtitle">Bienvenue, <strong>{{ user_fullname|e }}</strong> &middot; {{ role_label }}</p>
-  </div>
-  <div class="d-flex gap-2 flex-wrap">
-    {% if can_see_students %}
-      <a href="students.php" class="btn btn-outline-secondary btn-sm"><i class="fas fa-user-graduate me-1"></i> Adhérents</a>
+<div class="staff-dashboard">
+    <section class="dashboard-welcome" aria-labelledby="welcome-heading">
+        <div>
+            <h2 id="welcome-heading">Bienvenue{% if user_fullname %}, {{ user_fullname }}{% endif %}</h2>
+            <p>{{ role_label }}</p>
+        </div>
+        {% if staff_navigation.students or staff_navigation.export %}
+            <div class="dashboard-actions">
+                {% if staff_navigation.students %}
+                    <a href="students.php" class="btn btn-outline-light"><i class="fas fa-user-graduate me-1" aria-hidden="true"></i> Adhérents</a>
+                {% endif %}
+                {% if staff_navigation.export %}
+                    <a href="export.php" class="btn btn-light"><i class="fas fa-file-export me-1" aria-hidden="true"></i> Exporter</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </section>
+
+    {% set men = stats.men ?? 0 %}
+    {% set women = stats.women ?? 0 %}
+    {% set students = stats.students ?? 0 %}
+    {% set pupils = stats.pupils ?? 0 %}
+    {% set interns = stats.interns ?? 0 %}
+    {% set graduates = stats.graduates ?? 0 %}
+    {% set metrics = [
+        {label: 'Total inscrits', value: stats.total|number_format(0, ',', ' '), detail: recent_week ~ ' cette semaine', icon: 'fa-users', color: 'orange'},
+        {label: 'Nouveaux (30 jours)', value: recent_month, icon: 'fa-clock', color: 'green'},
+        {label: 'Hommes / Femmes', value: men ~ ' / ' ~ women, icon: 'fa-venus-mars', color: 'blue'},
+        {label: 'Étudiants', value: students, detail: pupils ~ ' élèves · ' ~ interns ~ ' stagiaires', icon: 'fa-graduation-cap', color: 'red'}
+    ] %}
+    <section class="dashboard-metrics" aria-label="Indicateurs d’adhésion">
+        {% for metric in metrics %}
+            <article class="dashboard-card dashboard-metric">
+                <div class="dashboard-metric-heading">
+                    <h2>{{ metric.label }}</h2>
+                    <span class="dashboard-metric-icon dashboard-color-{{ metric.color }}"><i class="fas {{ metric.icon }}" aria-hidden="true"></i></span>
+                </div>
+                <strong>{{ metric.value }}</strong>
+                {% if metric.detail is defined %}<p>{{ metric.detail }}</p>{% endif %}
+            </article>
+        {% endfor %}
+    </section>
+
+    <div class="dashboard-charts">
+        <section class="dashboard-card dashboard-chart" aria-labelledby="school-heading">
+            <h2 id="school-heading">Top 5 des établissements</h2>
+            {% if school_values is not empty %}
+                <div class="dashboard-plot" hidden>
+                    <canvas aria-hidden="true" data-dashboard-chart="schools"
+                        data-labels="{{ school_labels|json_encode }}" data-values="{{ school_values|json_encode }}"></canvas>
+                </div>
+                <details class="dashboard-school-details">
+                    <summary>Données par établissement</summary>
+                    <ul>
+                        {% for label in school_labels %}
+                            <li>{{ label }} · {{ school_values[loop.index0] }}</li>
+                        {% endfor %}
+                    </ul>
+                </details>
+            {% else %}
+                <p class="dashboard-empty">Aucun établissement à afficher.</p>
+            {% endif %}
+        </section>
+
+        <section class="dashboard-card dashboard-chart" aria-labelledby="status-heading">
+            <h2 id="status-heading">Répartition par statut</h2>
+            {% set status_labels = ['Étudiants', 'Élèves', 'Stagiaires', 'Diplômés'] %}
+            {% set status_values = [students, pupils, interns, graduates] %}
+            {% set status_colors = ['green', 'orange', 'red', 'blue'] %}
+            {% set status_total = students + pupils + interns + graduates %}
+            {% if status_total > 0 %}
+                <div class="dashboard-plot dashboard-pie" hidden>
+                    <canvas aria-hidden="true" data-dashboard-chart="status"
+                        data-labels="{{ status_labels|json_encode }}" data-values="{{ status_values|json_encode }}"
+                        data-colors="{{ status_colors|json_encode }}"></canvas>
+                </div>
+                <ul class="dashboard-legend">
+                    {% for label in status_labels %}
+                        {% set count = status_values[loop.index0] %}
+                        <li><span class="dashboard-dot dashboard-color-{{ status_colors[loop.index0] }}" aria-hidden="true"></span>{{ label }} <strong>{{ (100 * count / status_total)|number_format(0, ',', ' ') }} %</strong><span class="visually-hidden"> ({{ count }})</span></li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="dashboard-empty">Aucun statut à afficher.</p>
+            {% endif %}
+        </section>
+    </div>
+
+    {% if can_review %}
+        <section class="dashboard-card dashboard-queue" aria-labelledby="review-heading">
+            <header>
+                <h2 id="review-heading">Dossiers à traiter <span class="dashboard-badge">{{ review_count }}</span></h2>
+                <a href="kyc-list.php" class="btn btn-outline-primary btn-sm">Tous les dossiers</a>
+            </header>
+            <p>Les dossiers les plus anciens sont présentés en premier.</p>
+            {% if review_queue is not empty %}
+                <ul class="dashboard-review-list">
+                    {% for student in review_queue %}
+                        <li>
+                            <div class="dashboard-review-person">
+                                <h3><span class="dashboard-dot dashboard-color-orange" aria-hidden="true"></span>{{ student.firstName }} {{ student.lastName }}</h3>
+                                <span>{{ student.status }} · {{ student.registrationDate|date('d/m/Y H:i') }}</span>
+                            </div>
+                            <span class="dashboard-badge">Sous révision</span>
+                            <a href="kyc-detail.php?id={{ student.id }}" class="btn btn-primary btn-sm" aria-label="Examiner le dossier de {{ student.firstName }} {{ student.lastName }}">Examiner</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="dashboard-empty">Aucun dossier à examiner pour le moment. Les nouvelles demandes apparaîtront ici.</p>
+            {% endif %}
+            <p class="dashboard-review-waiting"><i class="fas fa-clock me-2" aria-hidden="true"></i>{{ clarification_count }} dossier(s) en attente de réponse de l’adhérent après demande de complément.</p>
+        </section>
     {% endif %}
-    {% if can_export %}
-      <a href="export.php" class="btn btn-primary btn-sm"><i class="fas fa-file-export me-1"></i> Exporter</a>
-    {% endif %}
-  </div>
-</div>
 
-{% if can_review %}
-<section class="review-work mb-4" aria-labelledby="review-heading">
-  <div class="review-work-heading">
-    <div><h2 id="review-heading">Dossiers à traiter <span class="badge bg-primary">{{ review_count }}</span></h2>
-    <p class="text-muted mb-0">Les dossiers les plus anciens sont présentés en premier.</p></div>
-    <a href="kyc-list.php" class="btn btn-outline-primary">Tous les dossiers</a>
-  </div>
-  <div class="review-queue">
-    {% for student in review_queue %}
-    <article class="review-item">
-      <div><h3>{{ student.firstName }} {{ student.lastName }}</h3><span class="text-muted">{{ student.status }} · {{ student.registrationDate|date('d/m/Y H:i') }}</span></div>
-      <span class="badge bg-info">Sous révision</span>
-      <a href="kyc-detail.php?id={{ student.id }}" class="btn btn-primary btn-sm" aria-label="Examiner le dossier de {{ student.firstName }} {{ student.lastName }}">Examiner</a>
-    </article>
-    {% else %}
-    <p class="review-empty">Aucun dossier à examiner pour le moment. Les nouvelles demandes apparaîtront ici.</p>
-    {% endfor %}
-  </div>
-  <p class="review-waiting mb-0"><i class="fas fa-clock me-2" aria-hidden="true"></i>{{ clarification_count }} dossier(s) en attente de réponse de l’adhérent après demande de complément.</p>
-</section>
-{% endif %}
-<h2 class="h5 mb-3">Vue d’ensemble des adhérents</h2>
-
-<!-- Stat cards -->
-<div class="row g-3 mb-4">
-
-  <div class="col-xl-3 col-md-6 col-sm-6">
-    <a href="students.php" class="stat-card">
-      <div class="stat-icon stat-icon-green">
-        <i class="fas fa-users"></i>
-      </div>
-      <div class="stat-body">
-        <div class="stat-value">{{ stats.total|number_format(0, ',', " ") }}</div>
-        <div class="stat-label">Total inscrits</div>
-        <div class="stat-sub"><i class="fas fa-arrow-up fa-xs"></i> {{ recent_week }} cette semaine</div>
-      </div>
-    </a>
-  </div>
-
-  <div class="col-xl-3 col-md-6 col-sm-6">
-    <a href="students.php" class="stat-card">
-      <div class="stat-icon stat-icon-yellow">
-        <i class="fas fa-calendar-plus"></i>
-      </div>
-      <div class="stat-body">
-        <div class="stat-value">{{ recent_month }}</div>
-        <div class="stat-label">Nouveaux (30 jours)</div>
-        <div class="stat-sub"><i class="fas fa-clock fa-xs"></i> Derniers 30 jours</div>
-      </div>
-    </a>
-  </div>
-
-  <div class="col-xl-3 col-md-6 col-sm-6">
-    <a href="students.php" class="stat-card">
-      <div class="stat-icon stat-icon-dark">
-        <i class="fas fa-venus-mars"></i>
-      </div>
-      <div class="stat-body">
-        <div class="stat-value">{{ stats.men }}&thinsp;/&thinsp;{{ stats.women }}</div>
-        <div class="stat-label">Hommes / Femmes</div>
-        <div class="stat-sub"><i class="fas fa-mars fa-xs"></i> {{ stats.men }} &nbsp;<i class="fas fa-venus fa-xs"></i> {{ stats.women }}</div>
-      </div>
-    </a>
-  </div>
-
-  <div class="col-xl-3 col-md-6 col-sm-6">
-    <a href="students.php" class="stat-card">
-      <div class="stat-icon stat-icon-red">
-        <i class="fas fa-layer-group"></i>
-      </div>
-      <div class="stat-body">
-        <div class="stat-value">{{ stats.students }}</div>
-        <div class="stat-label">Étudiants</div>
-        <div class="stat-sub">Él.&thinsp;{{ stats.pupils }} &middot; St.&thinsp;{{ stats.interns }}</div>
-      </div>
-    </a>
-  </div>
-
-</div>
-
-<!-- Charts row 1 -->
-<div class="row g-3 mb-3">
-  <div class="col-xl-6">
-    <div class="card shadow-sm h-100">
-      <div class="card-header">
-        <span class="chart-card-header">
-          <i class="fas fa-chart-pie"></i> Répartition par sexe
-        </span>
-      </div>
-      <div class="card-body">
-        <div class="chart-container">
-          <canvas id="genderChart"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-xl-6">
-    <div class="card shadow-sm h-100">
-      <div class="card-header">
-        <span class="chart-card-header">
-          <i class="fas fa-chart-donut"></i> Répartition par statut
-        </span>
-      </div>
-      <div class="card-body">
-        <div class="chart-container">
-          <canvas id="statusChart"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Charts row 2 -->
-<div class="row g-3 mb-4">
-  <div class="col-12">
-    <div class="card shadow-sm">
-      <div class="card-header">
-        <span class="chart-card-header">
-          <i class="fas fa-building-columns"></i> Top 5 des établissements
-        </span>
-      </div>
-      <div class="card-body">
-        <div class="chart-container">
-          <canvas id="schoolChart"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
+    <section class="dashboard-card dashboard-chart" aria-labelledby="gender-heading">
+        <h2 id="gender-heading">Répartition par sexe</h2>
+        {% if men + women > 0 %}
+            <div class="dashboard-plot dashboard-gender" hidden>
+                <canvas aria-hidden="true" data-dashboard-chart="gender"
+                    data-labels="{{ ['Masculin', 'Féminin']|json_encode }}" data-values="{{ [men, women]|json_encode }}"
+                    data-colors="{{ ['blue', 'orange']|json_encode }}"></canvas>
+            </div>
+            <ul class="dashboard-legend">
+                <li><span class="dashboard-dot dashboard-color-blue" aria-hidden="true"></span>Masculin <strong>{{ men }}</strong></li>
+                <li><span class="dashboard-dot dashboard-color-orange" aria-hidden="true"></span>Féminin <strong>{{ women }}</strong></li>
+            </ul>
+        {% else %}
+            <p class="dashboard-empty">Aucune répartition à afficher.</p>
+        {% endif %}
+    </section>
 </div>
 {% endblock %}
 
 {% block javascripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-<script>
-  (function() {
-    var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-    var brandGreen  = '#526f9a';
-    var brandDark   = '#17263C';
-    var brandYellow = '#c5a04b';
-    var brandRed    = '#ad5960';
-    var textColor   = isDark ? '#e9ecef' : '#1a1a1a';
-    var gridColor   = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
-    var borderColor = isDark ? '#1a1d20' : '#fff';
-
-    Chart.defaults.color = textColor;
-    Chart.defaults.animation = false;
-
-    var charts = [];
-    // Gender — donut
-    charts.push(new Chart(document.getElementById('genderChart').getContext('2d'), {
-      type: 'doughnut',
-      data: {
-        labels: ['Masculin', 'Féminin'],
-        datasets: [{
-          data: [{{ stats.men }}, {{ stats.women }}],
-          backgroundColor: [brandGreen, brandYellow],
-          hoverBackgroundColor: [brandDark, '#b8940a'],
-          borderWidth: 2, borderColor: borderColor
-        }]
-      },
-      options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } } }
-    }));
-
-    // Status — donut
-    charts.push(new Chart(document.getElementById('statusChart').getContext('2d'), {
-      type: 'doughnut',
-      data: {
-        labels: ['Étudiants', 'Élèves', 'Stagiaires'],
-        datasets: [{
-          data: [{{ stats.students }}, {{ stats.pupils }}, {{ stats.interns }}],
-          backgroundColor: [brandGreen, brandYellow, brandRed],
-          hoverBackgroundColor: [brandDark, '#b8940a', '#a00d1f'],
-          borderWidth: 2, borderColor: borderColor
-        }]
-      },
-      options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } } }
-    }));
-
-    // Schools — bar
-    charts.push(new Chart(document.getElementById('schoolChart').getContext('2d'), {
-      type: 'bar',
-      data: {
-        labels: [{{ school_labels|raw }}],
-        datasets: [{
-          label: "Inscrits",
-          data: [{{ school_values|raw }}],
-          backgroundColor: brandGreen,
-          hoverBackgroundColor: brandDark,
-          borderRadius: 6,
-          borderSkipped: false
-        }]
-      },
-      options: {
-        maintainAspectRatio: false, responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { precision: 0, color: textColor },
-            grid: { color: gridColor }
-          },
-          x: {
-            ticks: { color: textColor },
-            grid: { display: false }
-          }
-        },
-        plugins: { legend: { display: false } }
-      }
-    }));
-    new MutationObserver(function() {
-      var dark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-      var text = dark ? '#e9ecef' : '#293447';
-      Chart.defaults.color = text;
-      charts.forEach(function(chart) {
-        chart.options.plugins.legend.labels = { color: text };
-        chart.data.datasets.forEach(function(dataset) { dataset.borderColor = dark ? '#202b3b' : '#fff'; });
-        if (chart.options.scales.y) {
-          chart.options.scales.y.ticks.color = text;
-          chart.options.scales.x.ticks.color = text;
-          chart.options.scales.y.grid.color = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
-        }
-        chart.update('none');
-      });
-    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
-  })();
-</script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <script defer src="{{ asset('assets/js/staff-dashboard.js') }}"></script>
 {% endblock %}

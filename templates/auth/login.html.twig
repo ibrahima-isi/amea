@@ -1,58 +1,42 @@
 {% extends 'layouts/staff-auth.html.twig' %}
 
-{% block title %}AEESGS - Administration{% endblock %}
+{% block title %}Connexion Administration · AEESGS{% endblock %}
 
 {% block body %}
-    <div class="py-5 bg-page">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-6 col-lg-5">
-                    <div class="card shadow">
-                        <div class="card-header text-white text-center">
-                            <h2 class="h4 mb-0">Connexion Administration</h2>
-                        </div>
-                        <div class="card-body p-4">
-                            <p class="text-muted mb-4 text-center">Veuillez vous connecter pour accéder au tableau de bord administratif.</p>
+    <section class="card staff-login" aria-labelledby="login-heading">
+        <header class="card-header text-center">
+            <h1 id="login-heading" class="h4 mb-0">Connexion Administration</h1>
+        </header>
+        <div class="card-body">
+            <p class="text-muted mb-4 text-center">Veuillez vous connecter pour accéder au tableau de bord administratif.</p>
+            <form method="POST" action="login.php">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
-                            <form method="POST" action="login.php">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                                
-                                <div class="mb-3">
-                                    <label for="username" class="form-label">Nom d'utilisateur</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                        <input type="text" class="form-control" id="username" name="username" placeholder="Entrez votre nom d'utilisateur" required>
-                                    </div>
-                                </div>
-
-                                <div class="mb-4">
-                                    <label for="password" class="form-label">Mot de passe</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                        <input type="password" class="form-control" id="password" name="password" placeholder="Entrez votre mot de passe" required>
-                                    </div>
-                                </div>
-
-                                <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-sign-in-alt"></i> Se connecter</button>
-                                </div>
-                                <div class="text-center mt-3">
-                                    <a href="forgot-password.php">Mot de passe oublié?</a>
-                                </div>
-                            </form>
-
-                            <div class="text-center mt-4">
-                                <a href="{{ public_register_url }}" class="small text-decoration-none">S’enregistrer comme adhérent</a>
-                            </div>
-                            <div class="text-center mt-4">
-                                <a href="{{ public_home_url }}" class="text-decoration-none">
-                                    <i class="fas fa-arrow-left"></i> Retour à l'accueil
-                                </a>
-                            </div>
-                        </div>
+                <div class="mb-3">
+                    <label for="username" class="form-label">Nom d’utilisateur</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user" aria-hidden="true"></i></span>
+                        <input type="text" class="form-control" id="username" name="username" autocomplete="username" placeholder="Entrez votre nom d’utilisateur" required>
                     </div>
                 </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label">Mot de passe</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock" aria-hidden="true"></i></span>
+                        <input type="password" class="form-control" id="password" name="password" autocomplete="current-password" placeholder="Entrez votre mot de passe" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Se connecter
+                </button>
+            </form>
+            <div class="staff-login-links">
+                <a href="forgot-password.php">Mot de passe oublié ?</a>
+                <a href="{{ public_register_url }}" class="small">S’enregistrer comme adhérent</a>
+                <a href="{{ public_home_url }}"><i class="fas fa-arrow-left" aria-hidden="true"></i> Retour à l’accueil</a>
             </div>
         </div>
-    </div>
+    </section>
 {% endblock %}

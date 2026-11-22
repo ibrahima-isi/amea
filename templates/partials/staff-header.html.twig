@@ -20,7 +20,22 @@
     'profile.php': 'Mon profil'
 } %}
 <header class="staff-topbar">
-    <button id="staff-menu-toggle" class="btn btn-outline-secondary" type="button" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Ouvrir le menu"><i class="fas fa-bars" aria-hidden="true"></i></button>
-    <div class="staff-breadcrumb"><span>Administration</span><strong>{{ staff_page_labels[staff_route]|default('Espace administration') }}</strong></div>
-    <div class="staff-toolbar"><button class="btn btn-outline-secondary theme-switcher" type="button"><span class="theme-label">Mode sombre</span></button><a href="profile.php" class="staff-profile">{{ session.first_name|default('Mon') }} {{ session.last_name|default('profil') }}</a><a href="logout.php" class="btn btn-outline-danger" aria-label="Déconnexion"><i class="fas fa-sign-out-alt" aria-hidden="true"></i><span class="d-none d-md-inline"> Déconnexion</span></a></div>
+    <button id="staff-menu-toggle" class="btn staff-icon-button" type="button" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Ouvrir le menu">
+        <i class="fas fa-bars" aria-hidden="true"></i>
+    </button>
+    {% set page_label = staff_page_labels[staff_route]|default('Espace administration') %}
+    {% if staff_route == 'dashboard.php' %}
+        <h1 class="staff-page-title">{{ page_label }}</h1>
+    {% else %}
+        <span class="staff-page-title">{{ page_label }}</span>
+    {% endif %}
+    <div class="staff-toolbar">
+        <button class="btn staff-icon-button theme-switcher" type="button">
+            <i class="fas fa-moon staff-theme-moon" aria-hidden="true"></i>
+            <i class="fas fa-sun staff-theme-sun" aria-hidden="true"></i>
+            <span class="theme-label visually-hidden">Mode sombre</span>
+        </button>
+        <a href="profile.php" class="staff-profile">{{ session.first_name|default('Mon') }} {{ session.last_name|default('profil') }}</a>
+        <a href="logout.php" class="btn staff-icon-button" aria-label="Déconnexion" title="Déconnexion"><i class="fas fa-sign-out-alt" aria-hidden="true"></i></a>
+    </div>
 </header>

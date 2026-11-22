@@ -32,6 +32,41 @@ try {
     const wait=ms=>new Promise(r=>setTimeout(r,ms));
     const navigate=async url=>{await cdp('Page.navigate',{url});for(let i=0;i<100;i++){await wait(100);if(await evaluate("document.readyState === 'complete' && location.href === " + JSON.stringify(url)))return;}throw Error('page load timeout '+url);};
     const check=async (expression,label)=>{assert(await evaluate(expression),label);console.log('PASS browser:',label);};
+    const screenshot = async name => {
+        const {data} = await cdp('Page.captureScreenshot', {format: 'png'});
+        await writeFile(path.join(out, name + '.png'), Buffer.from(data, 'base64'));
+    };
+    const key = async (type, key, code, windowsVirtualKeyCode) => {
+        await cdp('Input.dispatchKeyEvent', {
+            type, key, code, windowsVirtualKeyCode,
+            ...(type === 'keyDown' && key === 'Enter' ? {text: '\r'} : {}),
+        });
+    };
+    const viewport = width => cdp('Emulation.setDeviceMetricsOverride', {
+        width, height: width < 768 ? 844 : 1050, deviceScaleFactor: 1, mobile: false,
+    });
+    const qualifyLayout = async (name, expectedColumns) => {
+        for (const [index, width] of [390, 768, 1024, 1440].entries()) {
+            await viewport(width);
+            for (const theme of ['light', 'dark']) {
+                await evaluate(`if (document.documentElement.dataset.bsTheme !== '${theme}') document.querySelector('.theme-switcher').click();`);
+                await wait(75);
+                await check(`document.documentElement.dataset.bsTheme === '${theme}'
+                    && document.documentElement.scrollWidth <= innerWidth
+                    && [...document.querySelectorAll('#page-content-wrapper, .staff-auth-main')].every(element => element.scrollWidth <= element.clientWidth)`, name + ' fits ' + width + ' in ' + theme);
+                if (expectedColumns) {
+                    await check(`getComputedStyle(document.querySelector('.dashboard-metrics')).gridTemplateColumns.split(' ').length === ${expectedColumns[index]}
+                        && getComputedStyle(document.querySelector('.dashboard-charts')).gridTemplateColumns.split(' ').length === ${width >= 1024 ? 2 : 1}`, 'dashboard grid at ' + width);
+                    await check(`document.querySelector('#sidebar-wrapper').getBoundingClientRect().width === ${width < 768 ? 288 : 256}
+                        && document.querySelector('.staff-topbar').getBoundingClientRect().height === 73`, 'staff navigation dimensions at ' + width);
+                }
+                if (width === 390 || width === 1440) await screenshot(name + '-' + width + '-' + theme);
+            }
+        }
+        await evaluate("if (document.documentElement.dataset.bsTheme === 'dark') document.querySelector('.theme-switcher').click()");
+    };
+
+    await mkdir(out,{recursive:true});
     await cdp('Page.enable');
     await cdp('Network.enable');
     await cdp('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
@@ -39,6 +74,8 @@ try {
     await check("!!document.querySelector('#registrationForm')", 'public HTTPS registration renders');
     await navigate(staff+'/login.php');
     await check("!!document.querySelector('[name=username]')", 'staff HTTPS login renders');
+    await qualifyLayout('staff-login');
+    await check("document.querySelector('#username').autocomplete === 'username' && document.querySelector('#password').autocomplete === 'current-password'", 'login exposes password manager metadata');
     const {cookies}=await cdp('Network.getAllCookies');
     const publicCookie=cookies.find(c=>c.name==='AMEA_PUBLIC');
     const staffCookie=cookies.find(c=>c.name==='AMEA_STAFF');
@@ -51,6 +88,33 @@ try {
     await evaluate("document.querySelector('[name=username]').value='expired';document.querySelector('[name=password]').value='Fixture-password-123!';document.querySelector('form').submit()");
     for(let i=0;i<100;i++){await wait(100);if(await evaluate("document.body?.innerText.includes('Tableau de bord')"))break;}
     await check("document.body?.innerText.includes('Tableau de bord')", 'real browser staff login succeeds');
+    await qualifyLayout('staff-dashboard', [1, 2, 4, 4]);
+    await check("[...document.querySelectorAll('[data-dashboard-chart]')].length === 3 && [...document.querySelectorAll('[data-dashboard-chart]')].every(canvas => Chart.getChart(canvas) && !canvas.parentElement.hidden)", 'all three charts render with synthetic database data');
+    const palette = "Chart.getChart(document.querySelector('[data-dashboard-chart=schools]')).data.datasets[0].backgroundColor[0]";
+    const lightColor = await evaluate(palette);
+    await evaluate("document.querySelector('.theme-switcher').click()");
+    await check(`${palette} !== ${JSON.stringify(lightColor)}`, 'live theme switch updates chart palette');
+    await evaluate("document.querySelector('.theme-switcher').click()");
+    await viewport(390);
+    await wait(75);
+    await evaluate("document.querySelector('#staff-menu-toggle').focus()");
+    await key('keyDown', 'Enter', 'Enter', 13);
+    await key('keyUp', 'Enter', 'Enter', 13);
+    await check("document.querySelector('#staff-menu-toggle').ariaExpanded === 'true' && document.querySelector('#page-content-wrapper').inert && document.activeElement.id === 'staff-menu-close' && document.activeElement.matches(':focus-visible')", 'keyboard opens mobile drawer and gives it visible focus');
+    await screenshot('staff-dashboard-390-menu');
+    await key('keyDown', 'Escape', 'Escape', 27);
+    await key('keyUp', 'Escape', 'Escape', 27);
+    await check("document.querySelector('#staff-menu-toggle').ariaExpanded === 'false' && !document.querySelector('#page-content-wrapper').inert && document.activeElement.id === 'staff-menu-toggle'", 'Escape closes mobile drawer and returns focus');
+    await check(`(() => {
+        const title = document.querySelector('#welcome-heading');
+        const initial = title.textContent;
+        title.textContent = 'Bienvenue, ' + 'NomTrèsLong'.repeat(16);
+        const page = document.querySelector('#page-content-wrapper');
+        const fits = page.scrollWidth <= page.clientWidth;
+        title.textContent = initial;
+        return fits;
+    })()`, 'long staff name wraps at 390');
+    await viewport(1440);
     await mkdir(out,{recursive:true});
     let shot=await cdp('Page.captureScreenshot',{format:'png'});await writeFile(path.join(out,'staff-dashboard.png'),Buffer.from(shot.data,'base64'));
     await navigate(staff+'/students.php?search=SharedMember');

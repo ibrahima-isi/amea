@@ -32,7 +32,7 @@ class DashboardController extends BaseController
         $schoolLabels = [];
         $schoolValues = [];
         foreach ($topInstitutions as $row) {
-            $schoolLabels[] = json_encode($row['institution'] ?? 'Non renseigné');
+            $schoolLabels[] = $row['institution'] ?? 'Non renseigné';
             $schoolValues[] = (int)($row['count'] ?? 0);
         }
 
@@ -46,10 +46,8 @@ class DashboardController extends BaseController
             'stats'           => $stats,
             'recent_week'     => $recentWeek,
             'recent_month'    => $recentMonth,
-            'school_labels'   => implode(', ', $schoolLabels),
-            'school_values'   => implode(', ', $schoolValues),
-            'can_see_students' => $this->auth->hasPermission('students'),
-            'can_export'      => $role === 'admin',
+            'school_labels'   => $schoolLabels,
+            'school_values'   => $schoolValues,
         ]);
     }
 }

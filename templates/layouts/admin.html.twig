@@ -22,16 +22,17 @@
 </head>
 <body class="admin-app">
     {% if flash %}
-        <script id="flash-data" type="application/json">{{ flash|json_encode|raw }}</script>
+        <script id="flash-data" type="application/json">{{ flash|json_encode(constant('JSON_HEX_TAG'))|raw }}</script>
     {% endif %}
 
     <div class="d-flex" id="wrapper">
         <button id="sidebar-overlay" type="button" tabindex="-1" aria-label="Fermer le menu" hidden></button>
         {% include 'partials/sidebar.html.twig' %}
         <div id="page-content-wrapper">
+            <a class="visually-hidden-focusable staff-skip" href="#staff-content">Aller au contenu principal</a>
             {% include 'partials/staff-header.html.twig' %}
 
-            <main class="container-fluid p-4">
+            <main class="container-fluid staff-main" id="staff-content" tabindex="-1">
                 {% block body %}{% endblock %}
             </main>
 
