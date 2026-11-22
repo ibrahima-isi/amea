@@ -17,7 +17,7 @@ class View
         $isDebug = ($_ENV['APP_ENV'] ?? 'production') === 'dev';
         
         $this->twig = new Environment($loader, [
-            'cache' => $projectRoot . '/storage/cache/twig',
+            'cache' => Runtime::twigCacheDir($projectRoot),
             'debug' => $isDebug,
             'auto_reload' => true,
         ]);

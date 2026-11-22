@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Amea\Command;
 
+use Amea\Core\Runtime;
 use Amea\Config\Environment;
 use Amea\Core\FileWriteGate;
 use Amea\Service\EmailService;
@@ -20,7 +21,7 @@ final class ProcessMailQueueCommand
         $maxAttempts = max(1, (int)self::mailEnv('MAIL_MAX_ATTEMPTS', '5'));
         $pauseMs    = max(0, (int)self::mailEnv('MAIL_SEND_PAUSE_MS', '250'));
 
-        $queueDir  = $projectRoot . '/storage/mail-queue';
+        $queueDir  = Runtime::mailQueueDir($projectRoot);
         $failedDir = $queueDir . '/failed';
 
         if (!is_dir($queueDir)) {
