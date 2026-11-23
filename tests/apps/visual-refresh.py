@@ -35,9 +35,14 @@ check(status == 200, 'admin dashboard renders')
 if sys.argv[1] == '--empty':
     check('Aucun dossier à examiner pour le moment.'.encode() in dashboard,
           'empty review queue explains that no dossier needs action')
+    check('Aucun statut à afficher.'.encode() in dashboard
+          and 'Aucune répartition à afficher.'.encode() in dashboard,
+          'legacy fixture with no categorized counts renders chart empty states')
     check(not re.search(rb'href="kyc-detail.php\?id=\d+', dashboard),
           'empty queue exposes no dossier action')
 elif sys.argv[1] == '--populated':
+    check(b'export.php' not in links(dashboard) and b'students.php' in links(dashboard),
+          'admin without export permission only sees the permitted shortcut')
     status, _, queue = admin.go('/kyc-list.php')
     row = next((row for row in re.findall(rb'<tr>.*?</tr>', queue, re.S)
                 if b'shared@example.invalid' in row), b'')
@@ -48,12 +53,15 @@ elif sys.argv[1] == '--populated':
     check(status == 200 and b'student-details.php?id=' + member_id not in links(listing),
           'pending dossier is absent from the member list')
     detail = b'kyc-detail.php?id=' + member_id
+    check(all(('data-dashboard-chart="' + key + '"').encode() in dashboard
+              for key in ['schools', 'status', 'gender']), 'populated dashboard exposes all three chart series')
     check(b'SharedMember' in dashboard and detail in links(dashboard),
           'admin queue names pending member and links directly to private KYC dossier')
     check(admin.go('/' + detail.decode())[0] == 200, 'queue KYC destination accessible to admin')
     reader = Client('member-reader')
     status, _, body = reader.go('/dashboard.php')
-    check(status == 200 and b'SharedMember' not in body and detail not in links(body),
+    check(status == 200 and b'SharedMember' not in body and detail not in links(body)
+          and b'id="review-heading"' not in body and b'id="status-heading"' in body,
           'ordinary dashboard does not expose pending dossier')
     denied = [b'kyc-list.php', b'trash.php', b'export.php', b'upgrade-levels.php',
               b'manage-slider.php', b'communications.php', b'users.php', b'settings.php']

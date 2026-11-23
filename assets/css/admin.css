@@ -1,6 +1,11 @@
 /* Staff-only identity. Loaded after module styles. */
 body.admin-app,body.staff-auth {
     --admin-bg:#F3F5F8;
+    --admin-sidebar:#f8fafc;
+    --admin-active:#e2e8f0;
+    --admin-accent:#1d54cb;
+    --admin-sidebar-width:256px;
+    --admin-topbar-height:73px;
     --admin-surface:#fff;
     --admin-ink:#293447;
     --admin-muted:#647084;
@@ -22,6 +27,9 @@ body.admin-app,body.staff-auth {
 
 [data-bs-theme="dark"] body.admin-app,[data-bs-theme="dark"] body.staff-auth {
     --admin-bg:#151b24;
+    --admin-sidebar:#18212e;
+    --admin-active:#314057;
+    --admin-accent:#a2bdff;
     --admin-surface:#202936;
     --admin-ink:#e5eaf2;
     --admin-muted:#adb8c8;
@@ -42,30 +50,25 @@ body.admin-app #wrapper {
 body.admin-app #sidebar-wrapper {
     position:fixed;
     inset:0 auto 0 0;
-    width:250px;
-    min-width:250px;
+    width:var(--admin-sidebar-width);
     margin:0;
-    background:#17263C;
-    color:#edf2fa;
-    border:0;
+    background:var(--admin-sidebar);
+    color:var(--admin-ink);
+    border-right:1px solid var(--admin-line);
     z-index:1040;
-    overflow-y:auto;
-    display:flex;
-    flex-direction:column;
     transform:none;
-    box-shadow:none
+    transition:none
 }
 
 body.admin-app .sidebar-brand {
-    display:flex;
-    align-items:center;
-    gap:12px;
-    padding:28px 22px;
-    color:#fff;
+    min-height:92px;
+    gap:9px;
+    padding:16px;
+    color:var(--admin-accent);
     text-decoration:none;
-    border-bottom:1px solid #ffffff20;
+    border-bottom:1px solid var(--admin-line);
     font-size:1.25rem;
-    font-weight:700
+    letter-spacing:0
 }
 
 body.admin-app .sidebar-brand img {
@@ -78,103 +81,131 @@ body.admin-app .sidebar-brand small {
     display:block;
     font-size:.75rem;
     font-weight:400;
-    color:#b8c6d9
+    color:var(--admin-muted)
 }
 
-body.admin-app .sidebar-nav {
-    padding:20px 12px;
-    flex:1
+body.admin-app .sidebar-nav,
+body.admin-app .sidebar-footer {
+    padding:8px
 }
 
 body.admin-app .sidebar-link {
-    display:flex;
-    align-items:center;
-    gap:12px;
-    padding:11px 14px;
+    gap:9px;
+    min-height:36px;
+    padding:6px 8px;
     margin:3px 0;
-    color:#ced9e8;
-    text-decoration:none;
-    border-radius:6px;
+    color:var(--admin-ink);
+    border-radius:8px;
     border:0;
-    font-size:.9rem;
-    background:transparent
+    font-size:.875rem;
+    background:transparent;
+    white-space:normal
 }
 
-body.admin-app .sidebar-link i {
-    width:20px;
-    text-align:center
-}
-
-body.admin-app .sidebar-link:hover,body.admin-app .sidebar-link.active {
-    background:#ffffff18;
-    color:#fff
-}
-
+body.admin-app .sidebar-link:hover,
 body.admin-app .sidebar-link.active {
-    box-shadow:inset 3px 0 #c2d2e9
+    background:var(--admin-active);
+    color:var(--admin-ink)
+}
+
+body.admin-app .sidebar-link:focus-visible {
+    outline-offset:-3px
 }
 
 body.admin-app .sidebar-footer {
-    padding:12px;
-    border-top:1px solid #ffffff20
+    border-top:1px solid var(--admin-line)
 }
 
 body.admin-app #page-content-wrapper {
-    margin-left:250px;
-    width:calc(100% - 250px);
+    margin-left:var(--admin-sidebar-width);
+    width:calc(100% - var(--admin-sidebar-width));
     min-width:0;
-    background:var(--admin-bg)
+    background:var(--admin-bg);
+    scroll-padding-top:calc(var(--admin-topbar-height) + 8px)
 }
 
 body.admin-app .staff-topbar {
-    min-height:84px;
-    padding:18px 30px;
+    min-height:var(--admin-topbar-height);
+    padding:12px 24px;
     display:flex;
     align-items:center;
     gap:16px;
+    position:sticky;
+    top:0;
+    z-index:1020;
     background:var(--admin-surface);
     border-bottom:1px solid var(--admin-line)
 }
 
-body.admin-app .staff-breadcrumb {
-    display:grid;
-    gap:2px
-}
-
-body.admin-app .staff-breadcrumb>span {
-    color:var(--admin-muted);
-    font-size:.75rem
-}
-
-body.admin-app .staff-breadcrumb strong {
-    font-size:.95rem
+body.admin-app .staff-page-title {
+    margin:0;
+    font-family:inherit;
+    font-size:1.25rem;
+    font-weight:650;
+    overflow-wrap:anywhere
 }
 
 body.admin-app .staff-toolbar {
     display:flex;
     align-items:center;
-    gap:16px;
-    margin-left:auto
+    gap:8px;
+    margin-left:auto;
+    flex-shrink:0
 }
 
 body.admin-app .staff-profile {
+    max-width:14rem;
+    padding:8px;
     color:var(--admin-ink);
-    text-decoration:none
+    text-decoration:none;
+    overflow-wrap:anywhere
 }
 
-body.admin-app #staff-menu-toggle {
+body.admin-app .staff-icon-button {
+    display:inline-grid;
+    place-items:center;
+    inline-size:44px;
+    block-size:44px;
+    flex:none;
+    color:var(--admin-ink)
+}
+
+body.admin-app .staff-icon-button:hover,
+body.admin-app .staff-profile:hover {
+    background:var(--admin-active);
+    border-radius:8px
+}
+
+body.admin-app #staff-menu-toggle,
+body.admin-app #staff-menu-close,
+body.admin-app .staff-theme-sun,
+[data-bs-theme="dark"] body.admin-app .staff-theme-moon {
     display:none
 }
 
+[data-bs-theme="dark"] body.admin-app .staff-theme-sun {
+    display:inline-block
+}
+
+body.admin-app .staff-skip:focus {
+    position:fixed;
+    z-index:1045;
+    top:8px;
+    left:calc(var(--admin-sidebar-width) + 8px);
+    padding:8px 12px;
+    background:var(--admin-surface)
+}
+
 body.admin-app .staff-footer {
-    padding:20px 30px;
+    padding:20px 24px;
     color:var(--admin-muted);
     font-size:.8rem;
     border-top:1px solid var(--admin-line)
 }
 
-body.admin-app main {
-    min-height:calc(100vh - 150px)
+body.admin-app .staff-main {
+    min-height:calc(100vh - 135px);
+    padding:24px
 }
 
 body.admin-app .card,body.staff-auth .card {
@@ -263,7 +294,7 @@ body.admin-app .page-item.active .page-link {
 
 body.staff-auth {
     display:grid;
-    grid-template-columns:minmax(300px,42%) 1fr;
+    grid-template-columns:42% minmax(0,1fr);
     min-height:100vh
 }
 
@@ -284,13 +315,13 @@ body.staff-auth .staff-auth-brand img {
     border-radius:50%
 }
 
-body.staff-auth .staff-auth-brand h1 {
+body.staff-auth .staff-auth-name {
     font-size:clamp(2rem,4vw,3.5rem);
     margin:0;
     font-weight:700
 }
 
-body.staff-auth .staff-auth-brand p {
+body.staff-auth .staff-auth-description {
     max-width:28rem;
     font-size:1.15rem;
     color:#d3deec
@@ -304,7 +335,7 @@ body.staff-auth .staff-auth-brand>span {
 }
 
 body.staff-auth .staff-auth-main {
-    padding:24px clamp(16px,4vw,64px);
+    padding:32px clamp(16px,4vw,64px);
     display:flex;
     flex-direction:column;
     justify-content:center
@@ -345,20 +376,26 @@ body.staff-auth .card-body {
     padding:28px!important
 }
 
+body.staff-auth .staff-auth-controls .theme-switcher:not(:hover) {
+    color:var(--admin-muted);
+    border-color:var(--admin-muted)
+}
+
 body.admin-app :focus-visible,body.staff-auth :focus-visible {
     outline:3px solid #819cc3;
     outline-offset:3px
 }
 
-@media(max-width:991.98px) {
+@media (max-width:767.98px) {
     body.admin-app #sidebar-wrapper {
+        width:min(288px,90vw);
         visibility:hidden;
         transform:translateX(-100%)
     }
 
     body.admin-app.staff-menu-open #sidebar-wrapper {
         visibility:visible;
-        transform:translateX(0)
+        transform:none
     }
 
     body.admin-app #page-content-wrapper {
@@ -366,20 +403,53 @@ body.admin-app :focus-visible,body.staff-auth :focus-visible {
         width:100%
     }
 
-    body.admin-app #staff-menu-toggle {
-        display:block
+    body.admin-app #staff-menu-toggle,
+    body.admin-app #staff-menu-close {
+        display:inline-grid
+    }
+
+    body.admin-app .sidebar-heading {
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        border-bottom:1px solid var(--admin-line)
+    }
+
+    body.admin-app .sidebar-heading .sidebar-brand {
+        border-bottom:0
+    }
+
+    body.admin-app #staff-menu-close {
+        margin-right:8px
+    }
+
+    body.admin-app .sidebar-link {
+        min-height:44px
     }
 
     body.admin-app .staff-topbar {
-        padding:16px
+        padding:8px 12px;
+        gap:4px
+    }
+
+    body.admin-app .staff-page-title {
+        font-size:1.0625rem
     }
 
     body.admin-app .staff-toolbar {
-        gap:10px
+        gap:0
     }
 
     body.admin-app .staff-profile {
         display:none
+    }
+
+    body.admin-app .staff-main {
+        padding:16px
+    }
+
+    body.admin-app .staff-skip:focus {
+        left:8px
     }
 
     body.admin-app #sidebar-overlay:not([hidden]) {
@@ -391,45 +461,51 @@ body.admin-app :focus-visible,body.staff-auth :focus-visible {
         z-index:1035
     }
 
-    body.admin-app .staff-breadcrumb {
-        display:none
-    }
-
-}
-
-@media(min-width:992px) {
-    body.admin-app #sidebar-overlay {
-        display:none!important
-    }
-
-}
-
-@media(max-width:767.98px) {
     body.staff-auth {
-        grid-template-columns:1fr
+        grid-template-columns:minmax(0,1fr);
+        grid-template-rows:auto 1fr
     }
 
     body.staff-auth .staff-auth-brand {
-        padding:28px;
-        gap:12px
+        display:grid;
+        grid-template-columns:auto minmax(0,1fr);
+        align-items:center;
+        justify-content:stretch;
+        gap:4px 12px;
+        padding:20px 16px
     }
 
     body.staff-auth .staff-auth-brand img {
         width:48px;
-        height:48px
+        height:48px;
+        grid-row:span 2
     }
 
-    body.staff-auth .staff-auth-brand p {
-        font-size:.95rem;
+    body.staff-auth .staff-auth-name,
+    body.staff-auth .staff-auth-description {
+        grid-column:-2 / -1
+    }
+
+    body.staff-auth .staff-auth-name {
+        font-size:1.5rem
+    }
+
+    body.staff-auth .staff-auth-description {
+        font-size:.875rem;
         margin:0
     }
 
     body.staff-auth .staff-auth-brand>span {
-        padding-top:12px
+        display:none
     }
 
     body.staff-auth .staff-auth-main {
-        padding:24px 16px 40px
+        justify-content:flex-start;
+        padding:16px 16px 40px
+    }
+
+    body.staff-auth .staff-auth-controls {
+        margin-bottom:16px
     }
 
 }
@@ -498,17 +574,7 @@ body.admin-app footer.staff-footer {
     border-top: 1px solid var(--admin-line);
 }
 
-/* Operational review work and dossiers. */
-body.admin-app .review-work { background:var(--admin-surface);border:1px solid var(--admin-line);border-radius:12px;overflow:hidden }
-body.admin-app .review-work-heading { padding:24px;display:flex;justify-content:space-between;gap:20px;align-items:center }
-body.admin-app .review-work-heading h2 { font-size:1.4rem;margin-bottom:8px }
-body.admin-app .review-eyebrow { text-transform:uppercase;letter-spacing:.1em;font-size:.7rem;font-weight:700;color:var(--admin-muted);margin-bottom:8px }
-body.admin-app .review-item { display:flex;align-items:center;gap:20px;padding:18px 24px;border-top:1px solid var(--admin-line) }
-body.admin-app .review-item>div { flex:1;min-width:0;overflow-wrap:anywhere }
-body.admin-app .review-item h3 { font-size:1rem;margin-bottom:5px }
-body.admin-app .review-item .text-muted { font-size:.85rem }
-body.admin-app .review-waiting { padding:16px 24px;background:var(--brand-subtle);color:var(--admin-muted);border-top:1px solid var(--admin-line) }
-body.admin-app .review-empty { padding:24px;margin:0;border-top:1px solid var(--admin-line) }
+/* Operational review dossiers. */
 body.admin-app .dossier-review .detail-group { margin-bottom:24px;overflow-wrap:anywhere }
 body.admin-app .dossier-review .detail-label { color:var(--admin-muted);font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px }
 body.admin-app .dossier-review .detail-value { color:var(--admin-ink);font-weight:500 }
@@ -518,11 +584,7 @@ body.admin-app .dossier-file-icon { display:inline-flex;align-items:center;justi
 body.admin-app .status-timeline { border-left:3px solid var(--admin-line);padding-left:20px }
 body.admin-app .dossier-member .card-body { overflow-wrap:anywhere }
 @media(max-width:767.98px) {
- body.admin-app .review-work-heading { align-items:flex-start;flex-direction:column;padding:18px }
- body.admin-app .review-item { flex-wrap:wrap;gap:12px;padding:18px }
- body.admin-app .review-item>div { flex-basis:100% }
- body.admin-app .review-waiting { padding:16px 18px }
  body.admin-app .dossier-pdf { height:360px }
 }
 
-body.admin-app .sidebar-group-label { margin:24px 16px 8px;color:#b2bfd0;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em }
+body.admin-app .sidebar-group-label { margin:16px 8px 6px;color:var(--admin-muted);font-size:.75rem;font-weight:600 }
