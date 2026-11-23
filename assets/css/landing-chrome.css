@@ -1,0 +1,82 @@
+:is(.staff-landing,.public-header) {
+    --landing-ink:#121a30;
+    --landing-muted:#515d70;
+    --landing-page:#f9f9fc;
+    --landing-surface:#fff;
+    --landing-line:#d9deeb;
+    --landing-accent:#343cff;
+    --landing-wash:#e9eaff;
+    --landing-pill:#ececf6;
+    --landing-action-bg:#121a30;
+    --landing-action-hover:#283653;
+    --landing-action-line:transparent;
+    --landing-action-radius:17px
+}
+
+[data-bs-theme="dark"] :is(.staff-landing,.public-header) {
+    --landing-ink:#f1f3ff;
+    --landing-muted:#b6bfd4;
+    --landing-page:#101423;
+    --landing-surface:#1b2133;
+    --landing-line:#39435b;
+    --landing-accent:#a8adff;
+    --landing-wash:#272b53;
+    --landing-pill:#282e44;
+    --landing-action-line:#526083
+}
+
+.landing-theme {
+    display:flex;
+    flex:none;
+    align-items:center;
+    gap:2px;
+    padding:3px;
+    border:1px solid var(--landing-line);
+    border-radius:100px;
+    background:var(--landing-pill);
+    color:var(--landing-ink)
+}
+
+.landing-theme > span[aria-hidden] {
+    display:grid;
+    place-items:center;
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    font-size:1.125rem
+}
+
+.landing-theme-sun,
+[data-bs-theme="dark"] .landing-theme-moon {
+    background:var(--landing-surface);
+    color:var(--landing-accent);
+    box-shadow:0 0 0 2px color-mix(in srgb,var(--landing-accent) 25%,transparent),0 2px 7px #343cff29
+}
+
+[data-bs-theme="dark"] .landing-theme-sun {
+    background:transparent;
+    color:inherit;
+    box-shadow:none
+}
+
+.landing-theme svg {
+    width:20px;
+    height:20px
+}
+
+@media (max-width:575.98px) {
+    .landing-theme > span[aria-hidden] {
+        width:37px;
+        height:37px
+    }
+}
+
+.landing-theme-label {
+    position:absolute;
+    width:1px;
+    height:1px;
+    margin:-1px;
+    overflow:hidden;
+    clip-path:inset(50%);
+    white-space:nowrap
+}

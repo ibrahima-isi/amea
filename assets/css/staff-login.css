@@ -1,12 +1,4 @@
 body.staff-landing {
-    --landing-ink:#121a30;
-    --landing-muted:#515d70;
-    --landing-page:#f9f9fc;
-    --landing-surface:#fff;
-    --landing-line:#d9deeb;
-    --landing-accent:#343cff;
-    --landing-wash:#e9eaff;
-    --landing-pill:#ececf6;
     --landing-shadow:0 20px 44px #17234322;
     display:flex;
     flex-direction:column;
@@ -21,14 +13,6 @@ body.staff-landing {
 }
 
 [data-bs-theme="dark"] body.staff-landing {
-    --landing-ink:#f1f3ff;
-    --landing-muted:#b6bfd4;
-    --landing-page:#101423;
-    --landing-surface:#1b2133;
-    --landing-line:#39435b;
-    --landing-accent:#a8adff;
-    --landing-wash:#272b53;
-    --landing-pill:#282e44;
     --landing-shadow:0 20px 44px #0006;
     background:
         radial-gradient(ellipse at 100% 35%, #212651, transparent 52%),
@@ -114,40 +98,6 @@ body.staff-landing {
     border-radius:13px
 }
 
-.landing-theme {
-    display:flex;
-    flex:none;
-    align-items:center;
-    gap:2px;
-    padding:3px;
-    border:1px solid var(--landing-line);
-    border-radius:100px;
-    background:var(--landing-pill);
-    color:var(--landing-ink)
-}
-
-.landing-theme > span[aria-hidden] {
-    display:grid;
-    place-items:center;
-    width:42px;
-    height:42px;
-    border-radius:50%;
-    font-size:1.125rem
-}
-
-.landing-theme-sun,
-[data-bs-theme="dark"] .landing-theme-moon {
-    background:var(--landing-surface);
-    color:var(--landing-accent);
-    box-shadow:0 0 0 2px color-mix(in srgb,var(--landing-accent) 25%,transparent),0 2px 7px #343cff29
-}
-
-[data-bs-theme="dark"] .landing-theme-sun {
-    background:transparent;
-    color:inherit;
-    box-shadow:none
-}
-
 .staff-landing .landing-button {
     display:inline-flex;
     align-items:center;
@@ -156,8 +106,8 @@ body.staff-landing {
     min-height:56px;
     padding:10px 23px;
     border:1px solid transparent;
-    border-radius:17px;
-    background:#121a30;
+    border-radius:var(--landing-action-radius);
+    background:var(--landing-action-bg);
     color:#fff;
     text-decoration:none;
     font-weight:800;
@@ -165,7 +115,7 @@ body.staff-landing {
 }
 
 .staff-landing .landing-button:hover {
-    background:#283653;
+    background:var(--landing-action-hover);
     color:#fff
 }
 
@@ -590,11 +540,6 @@ body.staff-landing {
 
     .staff-landing .landing-header nav a {
         padding:4px 12px
-    }
-
-    .landing-theme > span[aria-hidden] {
-        width:37px;
-        height:37px
     }
 
     .staff-landing .landing-header-login {
