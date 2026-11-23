@@ -49,11 +49,22 @@ Use PHPUnit 11 with `*Test.php` files under `tests/Unit/` or `tests/Integration/
 
 1. Check Git status and fetch `origin`. Create a short-lived branch from the latest `origin/main` in an isolated worktree. Use `feature/<description>`, `fix/<description>`, `refactor/<description>`, `chore/<description>`, or `docs/<description>`. Include the Jira key when available. Keep the original checkout untouched.
 2. Implement and validate in the worktree. Use concise Conventional Commits such as `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`, and `ci:`. Existing `security:` and `infra:` prefixes are also valid. Cryptographically sign every commit, including merges. Stop if signing fails or a commit is unsigned. Omit Co-Authored-By and Claude attribution trailers.
-3. Push the task branch when appropriate. Report its name, changes, validation results, and PR readiness. A request to implement work never authorizes opening a PR. Open one only when the user explicitly requests a PR or explicitly invokes the `pr` skill. Never invoke that skill automatically.
+3. Apply the push workflow below when the user says `push`. Otherwise, open a PR only when the user explicitly requests one or invokes the `pr` skill.
 4. Target `main` for every PR. Describe the change, link relevant issues, report validation, and include screenshots for UI changes. Prefer squash merging through GitHub after the required checks pass on the latest PR revision and all branch protections are satisfied. A PR creation request does not authorize a merge. Merge only with explicit user authorization and never enable auto-merge.
-5. After verifying the PR actually merged into remote `main`, synchronize local `main` by fast-forward only in an isolated worktree. If it diverged, preserve its commits and report the divergence. Verify the merged PR covers the task branch tip before removing the task worktree and deleting the task branch locally and remotely. Obtain explicit approval before deleting any pre-existing branch. Preserve unmerged work and published history.
+5. After verifying the PR actually merged into remote `main`, synchronize local `main` by fast-forward only in an isolated worktree. If it diverged, preserve its commits and report the divergence. If any task branch or worktree still needs cleanup, verify the merged PR covers the task branch tip first. Obtain explicit approval before deleting any pre-existing branch. Preserve unmerged work and published history.
 
 Keep GitHub's default branch set to `main`. Its ruleset must require PRs and the CI checks defined in `.github/workflows/ci.yml`, enforce signed commits, and block force pushes and deletion without bypass actors. Keep squash merging available, auto-merge and automatic branch deletion disabled, and the minimum approving-review count at zero for the sole maintainer.
+
+### Push workflow
+
+Treat a request to `push` as authorization for this sequence. Apply any explicit user exceptions to the affected steps.
+
+1. If the task has a spec, update its ticket completion record at `.scratch/<feature-slug>/completion.md` with the work and validation evidence available at publication.
+2. Commit the task changes with signed commits. Use the `pr` skill to prepare the PR, push the task branch to `origin`, and open a PR to `main`. If an open PR already tracks the branch, update it.
+3. Verify that the open PR points to the pushed tip and that removing the local checkout would lose no work. Remove the isolated worktree and local branch created for this task. Keep the remote branch available for the PR and preserve any pre-existing branches and worktrees.
+4. Report the PR link, changes, validation results, and any cleanup still pending. Archive the current Codex chat after reporting, unless the user asks to keep it open.
+
+Merging and production deployment require separate explicit authorization.
 
 ## Security & Collaboration
 
