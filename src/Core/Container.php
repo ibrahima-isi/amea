@@ -24,7 +24,7 @@ class Container
 
     public static function storage(): Storage
     {
-        return self::$storage ??= StorageFactory::fromEnvironment(dirname(__DIR__, 2));
+        return self::$storage ??= StorageFactory::fromEnvironment(Runtime::storageProjectRoot(dirname(__DIR__, 2)));
     }
 
     public static function fileLifecycle(): \Amea\Service\FileLifecycleService

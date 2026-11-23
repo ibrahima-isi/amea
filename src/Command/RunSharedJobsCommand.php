@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Amea\Command;
 
+use Amea\Config\Environment;
+use Amea\Core\Runtime;
+
 /** Coordinates the single designated split-app job owner. */
 final class RunSharedJobsCommand
 {
@@ -20,9 +23,9 @@ final class RunSharedJobsCommand
             return 1;
         }
 
-        // Web images do not contain scripts. Refuse accidental use under a web identity.
-        $identity = '/opt/amea-apps/identity';
-        if (is_file($identity) && trim((string) file_get_contents($identity)) !== 'jobs') {
+        // Web runtimes must never run the designated job owner's scripts.
+        $identity = Runtime::appIdentity();
+        if ($identity !== null && $identity !== 'jobs') {
             return 1;
         }
         if ($job === 'trash' && getenv('AMEA_TRASH_BACKUP_CONFIRMED') !== '1') {
@@ -30,7 +33,11 @@ final class RunSharedJobsCommand
             return 1;
         }
 
-        $lock = fopen($projectRoot . '/storage/.shared-jobs.lock', 'c');
+        if (Runtime::configFilePath() !== null) {
+            Environment::load($projectRoot);
+        }
+
+        $lock = fopen(Runtime::jobsLockPath($projectRoot), 'c');
         if ($lock === false) {
             return 1;
         }

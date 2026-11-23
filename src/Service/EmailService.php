@@ -1,6 +1,7 @@
 <?php
 namespace Amea\Service;
 
+use Amea\Core\Runtime;
 use Amea\Core\View;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as MailException;
@@ -153,7 +154,7 @@ class EmailService
 
     private function writeQueueFile(string $to, string $subject, string $body, ?string $replyTo = null): ?string
     {
-        $queueDir = $this->projectRoot . '/storage/mail-queue';
+        $queueDir = Runtime::mailQueueDir($this->projectRoot);
         if (!is_dir($queueDir) && !mkdir($queueDir, 0775, true) && !is_dir($queueDir)) {
             error_log('[EmailService] Failed to create mail queue directory: ' . $queueDir);
             return null;

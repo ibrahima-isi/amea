@@ -53,6 +53,10 @@ class Session
             session_name('AMEA_' . strtoupper(AMEA_APP));
             ini_set('session.cookie_domain', '');
             ini_set('session.cookie_path', '/');
+            $privatePath = Runtime::stateDir() === null ? null : Runtime::sessionSavePath(AMEA_APP);
+            if ($privatePath !== null) {
+                session_save_path($privatePath);
+            }
         }
         ini_set('session.cookie_lifetime', '0');
         ini_set('session.gc_maxlifetime',  (string)self::LIFETIME);

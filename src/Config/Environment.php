@@ -2,10 +2,17 @@
 
 namespace Amea\Config;
 
+use Amea\Core\Runtime;
+
 final class Environment
 {
     public static function load(string $projectRoot): void
     {
+        if (Runtime::configFilePath() !== null) {
+            Runtime::loadEnv($projectRoot);
+            return;
+        }
+
         $file = $projectRoot . '/.env';
         if (!is_file($file)) {
             return;
