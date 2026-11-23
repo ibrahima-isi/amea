@@ -44,8 +44,8 @@ try {
         await cdp('Input.dispatchKeyEvent',{type:'keyDown',key,code,windowsVirtualKeyCode:keyCode,...(key==='Enter'?{text:'\r'}:{})});
         await cdp('Input.dispatchKeyEvent',{type:'keyUp',key,code,windowsVirtualKeyCode:keyCode});
     };
-    const screenshot=async name=>{
-        const {data}=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});
+    const screenshot=async (name,clip)=>{
+        const {data}=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,...(clip ? {clip} : {})});
         await writeFile(path.join(out,name+'.png'),Buffer.from(data,'base64'));
     };
     const rendered=async(theme,label)=>{
@@ -144,6 +144,36 @@ try {
     await evaluate("document.querySelector('.theme-switcher').focus()");
     await key(' ','Space',32);
     await rendered('light','keyboard Space');
+    const navbar = {
+        light: {background: 'rgb(249, 249, 252)', selected: '.landing-theme-sun'},
+        dark: {background: 'rgb(16, 20, 35)', selected: '.landing-theme-moon'},
+    };
+    for (const width of [320, 390, 768, 1024, 1440]) {
+        await cdp('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
+        for (const [theme, appearance] of Object.entries(navbar)) {
+            await evaluate(`localStorage.setItem('theme', ${JSON.stringify(theme)})`);
+            await navigate('/');
+            await check(`(() => {
+                const header = document.querySelector('.public-header');
+                const items = [...header.querySelectorAll('.public-brand, nav a, .landing-theme')];
+                const navigation = [...header.querySelectorAll('nav a')];
+                const links = navigation.map(link => link.getAttribute('href'));
+                return getComputedStyle(header).backgroundColor === ${JSON.stringify(appearance.background)}
+                    && getComputedStyle(header.querySelector(${JSON.stringify(appearance.selected)})).boxShadow !== 'none'
+                    && links.join('|') === '/#association|journal.php|register.php|#contact'
+                    && !!document.querySelector('footer #contact')
+                    && (innerWidth !== 390 || navigation.every(link => link.offsetTop === navigation[0].offsetTop))
+                    && items.every(item => {
+                        const bounds = item.getBoundingClientRect();
+                        return bounds.height >= 44 && bounds.left >= 0 && bounds.right <= innerWidth;
+                    });
+            })()`, 'public navbar destinations, theme and fit at ' + width + ' ' + theme);
+            if (width === 390 || width === 1440) {
+                const height = await evaluate("Math.ceil(document.querySelector('.public-header').getBoundingClientRect().height)");
+                await screenshot('navbar-' + width + '-' + theme, {x:0,y:0,width,height,scale:1});
+            }
+        }
+    }
     // With scripts disabled, the unchanged stylesheet defaults still render light.
     await cdp('Emulation.setScriptExecutionDisabled',{value:true});
     await navigate('/');

@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=optional" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/css/landing-chrome.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/staff-login.css') }}">
 {% endblock %}
 
@@ -18,11 +19,7 @@
             <span>Association des élèves, étudiants<br> et stagiaires guinéens au Sénégal</span>
         </div>
         <nav aria-label="Navigation principale"><a href="{{ public_home_url }}">Accueil AEESGS</a></nav>
-        <button type="button" class="theme-switcher landing-theme">
-            <span class="landing-theme-sun" aria-hidden="true"><i class="fa-solid fa-sun"></i></span>
-            <span class="landing-theme-moon" aria-hidden="true"><i class="fa-solid fa-moon"></i></span>
-            <span class="theme-label visually-hidden">Mode sombre</span>
-        </button>
+        {% include 'partials/landing-theme-switcher.html.twig' %}
         <a href="#username" class="landing-button landing-header-login"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Se connecter</a>
     </header>
 
