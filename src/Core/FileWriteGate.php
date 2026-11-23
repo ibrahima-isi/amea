@@ -29,8 +29,7 @@ final class FileWriteGate
 
     public static function application(): self
     {
-        $directory = $_ENV['FILE_WRITE_GATE_PATH'] ?? getenv('FILE_WRITE_GATE_PATH');
-        return new self($directory ?: dirname(__DIR__, 2) . '/storage/write-gate');
+        return new self(Runtime::writeGateDir(dirname(__DIR__, 2)));
     }
 
     public function mutate(callable $operation): mixed
