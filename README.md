@@ -27,13 +27,14 @@ Web platform for managing members of the **Amicale des Élèves, Étudiants et S
 
 | Layer | Technology |
 |---|---|
-| Backend | PHP 8.x (OOP, PDO, fileinfo, GD) |
-| Database | MySQL 8.0 (utf8mb4 charset) |
-| Frontend | Bootstrap 5, vanilla JavaScript, Tagify, **Dark Mode** |
+| Backend | PHP 8.5 (OOP, PDO, fileinfo, GD, cURL, OpenSSL) |
+| Database | MariaDB 10.11 / 11.4 (MySQL-compatible, `utf8mb4` charset) |
+| Storage | Portable local or S3-compatible object storage (Cloudflare R2 via `aws/aws-sdk-php`) |
+| Frontend | Bootstrap 5, vanilla JavaScript, Tagify, **Dark Mode** (light default) |
 | Email | PHPMailer 6.x through Brevo SMTP |
 | Templating | Twig |
-| Dependencies | Composer (`phpmailer/phpmailer`, `twig/twig`, `doctrine/migrations`) |
-| Server | Apache in split Docker Compose targets |
+| Dependencies | Composer (`phpmailer/phpmailer`, `twig/twig`, `doctrine/migrations`, `aws/aws-sdk-php`) |
+| Server | Apache in split Docker Compose targets or native split LiteSpeed/Apache hosting |
 
 ---
 
@@ -92,8 +93,9 @@ amea/
 │   ├── Model/                       # Domain objects
 │   ├── Repository/                  # PDO queries
 │   ├── Command/                     # Job and migration commands
-│   └── Migration/                   # Doctrine migration runtime and versions
-├── scripts/                         # Thin CLI entry scripts
+│   ├── Migration/                   # Doctrine migration runtime and versions
+│   └── Storage/                     # Local and S3/R2 storage backends, migration & recovery
+├── scripts/                         # Thin CLI entry scripts and native Stellar release tooling (`scripts/stellar/`)
 ├── config/database.php              # Historical migration adapter
 ├── migrations/                      # Historical migration sources
 ├── templates/                       # Twig views and HTML email templates
@@ -143,10 +145,15 @@ Member uploads, storage, and logs are mounted outside both document roots.
 | `institutions` | Educational institutions |
 | `study_fields` | Available fields of study |
 | `study_levels` | Study levels |
+| `locations` | Locations and regions |
+| `countries` | Reference countries |
 | `slider_images` | Homepage carousel images |
+| `journal_posts` | Association journal activities and announcements |
 | `student_country` | Nationalities pivot table |
 | `settings` | System configuration (contact email, phone, etc.) |
 | `password_resets` | Password reset tokens |
+| `file_operations` | Durable object-storage deletion and reconciliation ledger |
+| `member_file_lock` | Serialization lock for member file mutations and cleanup |
 
 ### Migrations
 
@@ -177,31 +184,39 @@ Staff login, account recovery and private downloads belong to administration. Th
 
 | Page | Description |
 |---|---|
-| `index.php` | Homepage with a dynamic carousel |
+| `index.php` (`/`) | Homepage with dynamic carousel and recent journal items |
+| `journal.php` | Association journal listing (upcoming activities, reports, announcements) |
+| `journal-article.php` | Public association journal article view |
 | `register.php` | Registration form (**Dark Mode supported**) |
-| `login.php` | Staff login |
-| `forgot-password.php` | Password reset request |
-| `reset-password.php` | Token-based password reset |
+| `registration-details.php` | Member review and confirmation of a staged registration |
+| `registration-preview.php` | Session-owned preview of staged registration documents |
+| `kyc-correction.php` | Tokenized member document correction flow |
 | `legal-notice.php` | Legal notice and privacy policy (French “CGU”) |
-| `accept-cgu.php` | Accept/refuse the terms through a tokenized email link |
-| `registration-details.php` | Member confirmation of the registration record |
-| `download.php` | Secure download of a student's documents (requires staff authentication) |
+| `accept-cgu.php` | Accept/refuse terms through a tokenized email link |
 
 ---
 
 ## Administration pages
 
-All administration pages require a session with `user_id` set. Pages marked **(admin only)** require `role = 'admin'`.
+Staff authentication (`login.php`, `logout.php`, `forgot-password.php`, `reset-password.php`) lives exclusively on the administration host. Authenticated administration pages require a staff session with `user_id` set; pages marked **(admin)** require `role = 'admin'` and module permissions.
 
 | Page | Description |
 |---|---|
-| `dashboard.php` | Dashboard: KPIs and theme-aware charts |
-| `students.php` | Member list with search, filters and pagination |
+| `login.php` | Staff login |
+| `forgot-password.php` / `reset-password.php` | Staff password recovery |
+| `dashboard.php` | Dashboard: KPIs, review queue and theme-aware charts |
+| `students.php` | Approved member list with search, filters and pagination |
 | `student-details.php` | Detailed member record (read-only) |
 | `edit-student.php` | Editing aligned with the registration form |
-| `export.php` | CSV/JSON/PDF export with field selection and filters |
+| `kyc-list.php` / `kyc-detail.php` **(admin)** | KYC review queue and approval/rejection/clarification workflow |
+| `download.php` **(admin)** | Authorized private download of member identity and CV documents |
+| `trash.php` **(admin)** | Soft-deleted member restoration and backup-gated permanent purge |
+| `manage-slider.php` **(admin)** | Homepage carousel media management |
+| `manage-journal.php` / `edit-journal.php` **(admin)** | Association journal editorial management and draft preview |
+| `export.php` **(admin)** | CSV/JSON/PDF export with field selection and filters |
 | `upgrade-levels.php` **(admin)** | Annual study-level progression tool |
 | `communications.php` **(admin)** | Terms campaigns and group emails |
+| `users.php` **(admin)** | Staff user and permission management |
 | `settings.php` **(admin)** | System settings |
 | `profile.php` | Edit the current staff profile |
 
@@ -212,8 +227,9 @@ All administration pages require a session with `user_id` set. Pages marked **(a
 ### Dark mode
 
 The project includes full dark-mode support.
+- **Light first visit**: first visits render in light mode regardless of operating-system preference; an explicitly saved light/dark choice takes priority.
 - **Responsive toggle**: shows text on tablet/desktop and an icon on mobile.
-- **Persistence**: saves the choice locally.
+- **Persistence**: saves the choice locally per origin.
 - **Dynamic charts**: dashboard charts adjust their colors automatically.
 
 ### Aligned registration and editing
@@ -233,7 +249,7 @@ Commands and limitations are documented in the [testing guide](docs/testing/READ
 
 ## Deployment (production)
 
-GitHub Actions runs checks without deployment. Docker images and Dokploy configuration are documented in the [rollout guide](docs/operations/public-staff-rollout.md). This configuration does not prove a production release; jobs and SMTP require explicit authorization.
+GitHub Actions runs checks without deployment. Docker images and Dokploy configuration are documented in the [rollout guide](docs/operations/public-staff-rollout.md), and portable S3/R2 storage configuration and migration commands are documented in the [object storage guide](docs/operations/object-storage.md). This configuration does not prove a production release; jobs, storage cutover, and SMTP require explicit authorization.
 
 ---
 
