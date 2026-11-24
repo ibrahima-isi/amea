@@ -88,3 +88,12 @@ Completed on November 24, 2026 in isolated worktree `feature/stellar-transfer-re
     - Clean cutover segments: `copy_and_verify=4732.7 ms`, `capture=69.0 ms`, `clean_restore=5285 ms`, `clean_reopen=4052 ms`, `clean_cutover_pause=14138.7 ms` (total rehearsal including deliberate fault injection, recovery, and release packaging/deploy: `30481.1 ms`).
   - **Environment boundary note:** The Chrome cutover rehearsal used local PHP 8.5.13 + SQLite + packaged Stellar runtime + live Cloudflare R2 `amea-sandbox`; LiteSpeed/HTTPS/MariaDB 11.4.13 runtime behavior on `demo.aeesgs.org` and `bo.aeesgs.org` is separately evidenced in Tickets 01 and 02 (including disposable `mariadb-dump` restore compatibility and live R2 `amea-sandbox` HTTPS/CLI flows).
 - Full test suite validation passed: PHPUnit (`388 tests, 1040 assertions, 41 skipped`), all four standalone regression suites (`test_oop_unit.php`, `test_oop_integration.php`, `test_permissions_unit.php`, `test_password_reset_security.php`), `tests/http/stellar-split.py`, and `tests/http/stellar-transfer-rehearsal.py` (local and live `amea-sandbox` R2).
+
+## 04: Production transition approval proposal
+
+Completed on November 24, 2026 in isolated worktree `feature/stellar-transfer-rehearsal` with zero production mutations:
+
+- Authored [production-transition-proposal.md](production-transition-proposal.md) linked to [object-storage ticket 06](../object-storage/issues/06-production-transition.md), recording:
+  - Target production web domains (`https://aeesgs.org` and `https://admin.aeesgs.org`), qualified Stellar account/runtime layout, Brevo SMTP (`198.54.114.79` allowlisted), and prerequisites for creating the dedicated private production R2 bucket and production MariaDB 11.4.13 database.
+  - Restorable backup requirements (`RecoverySnapshot` + `mariadb-dump`), independent SHA-256/size/MIME/`createdAt` read-back checks, single-to-split session continuity proof (`LegacySessionTransition` + `PHPSESSID` → `AMEA_PUBLIC` handover), measured Ticket 03 cutover timings (`14.14 s` clean cutover baseline on live `amea-sandbox`), reopening criteria, and pre-/post-reopening rollback conditions.
+  - Explicit pre-approval gates remaining before Ticket 06 execution: approved read-only live Dokploy VPS inventory, production R2 bucket & credentials, `admin.aeesgs.org` docroot/TLS & production MariaDB provisioning, `deploy-stellar` workflow qualification (or explicit SSH `deploy.sh` sign-off), and post-cutover backup cadence/mail-mode confirmation.
