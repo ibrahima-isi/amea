@@ -9,7 +9,7 @@ This document prepares the concrete move of AMEA from its legacy Dokploy VPS dep
 ## 1. Source Inventory (Legacy Dokploy VPS)
 
 ### Known architecture from repository records
-- **Deployment files:** `compose.dokploy.yml`, [public-staff rollout guide](../../docs/operations/public-staff-rollout.md), [object-storage operations](../../docs/operations/object-storage.md), and [OOP Stellar reconciliation plan](../composer-oop/plan.md).
+- **Deployment files:** `compose.dokploy.yml`, [public-staff rollout guide](../../docs/operations/public-staff-rollout.md), [object-storage operations](../../docs/operations/object-storage.md), and [OOP Stellar reconciliation plan](https://github.com/ibrahima-isi/amea/blob/6861587753a4fc6fd2551d7f8b9c766ad3135ee6/.scratch/composer-oop/plan.md).
 - **Expected database engine:** MariaDB 10.11 (`db` service in Dokploy Compose).
 - **Expected file storage:** Local filesystem `uploads/` volume (`uploads/students/`, `uploads/students/cvs/`, `uploads/students/pending/`, `uploads/students/pending/cvs/`, `uploads/slider/`, `uploads/journal/`).
 - **Expected session topology:** Legacy single-app `PHPSESSID` file-session store (combined public registrations + staff logins) or split `AMEA_PUBLIC` / `AMEA_STAFF` if already upgraded on Dokploy.
@@ -69,7 +69,7 @@ All account capabilities below were verified on the assigned Stellar account in 
   2. Confirm `RecoverySnapshot::resumeRestored()` verifies exact restored `sessions/public` file digests and confirms `sessions/staff` is empty before clearing the write gate.
   3. Confirm separate-browser requests to `/registration-preview.php` return `404` and any legacy staff `PHPSESSID` is denied on both `aeesgs.org` (`404`) and `admin.aeesgs.org` (`302` to `login.php`).
   4. If an in-progress registration exists at cutover, confirm read-only paused preview (`allowPausedRead`) succeeds before reopening and normal confirmation succeeds once afterward (per [object-storage ticket 06](../object-storage/issues/06-production-transition.md)).
-- Rehearsed end-to-end in Ticket 03 ([completion.md](completion.md#03-legacy-to-stellar-transfer-and-registration-resume-rehearsal)) using real headless Chrome across the same public origin against live Cloudflare R2 `amea-sandbox` (43/43 checks passed).
+- Rehearsed end-to-end in [Ticket 03](issues/03-rehearse-transfer-and-registration-resume.md) using real headless Chrome across the same public origin against live Cloudflare R2 `amea-sandbox` (43/43 checks passed).
 
 ### 3.4 Maintenance window estimate
 - **Rehearsed baseline (Ticket 03, live R2 `amea-sandbox`, 3 synthetic PDFs, local PHP 8.5.13 + SQLite):**
@@ -112,7 +112,7 @@ All account capabilities below were verified on the assigned Stellar account in 
 
 ### 4.1 Publishing the tested `main` revision
 1. Merge the Ticket 03/04 changes into `main` with all CI checks passing on the exact merged commit SHA.
-2. Port and stage-qualify the serialized GitHub Actions `deploy-stellar` job in `.github/workflows/ci.yml` before using production resources (required by [spec.md](spec.md) and [OOP Stellar plan](../composer-oop/plan.md)): non-cancelling `main` concurrency, pinned SSH host key, GitHub Secrets for private `0600` runtime config, guarded Doctrine migration before docroot promotion, cutover pause interlock, rollback check, and live split route smoke checks.
+2. Port and stage-qualify the serialized GitHub Actions `deploy-stellar` job in `.github/workflows/ci.yml` before using production resources (required by [spec.md](spec.md) and [OOP Stellar plan](https://github.com/ibrahima-isi/amea/blob/6861587753a4fc6fd2551d7f8b9c766ad3135ee6/.scratch/composer-oop/plan.md)): non-cancelling `main` concurrency, pinned SSH host key, GitHub Secrets for private `0600` runtime config, guarded Doctrine migration before docroot promotion, cutover pause interlock, rollback check, and live split route smoke checks.
 3. Verify `APP_ENV=production` in production `runtime.env` so `scripts/stellar/verify-release.php` enforces the non-sandbox bucket guard.
 
 ### 4.2 Switching the two web domains (`aeesgs.org` and `admin.aeesgs.org`)

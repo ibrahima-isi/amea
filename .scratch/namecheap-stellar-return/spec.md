@@ -49,4 +49,4 @@ Production DNS changes, live database writes, production file copy, production b
 
 ## Further Notes
 
-The [merged OOP reconciliation plan](../composer-oop/plan.md) records the preflight's origin and the native hosting adaptations. The [object-storage specification](../object-storage/spec.md) defines the production migration safeguards. The previously tested R2 sandbox provides synthetic provider evidence. Stellar account qualification and the complete transfer with registration continuity need their own results.
+The [merged OOP reconciliation plan](https://github.com/ibrahima-isi/amea/blob/6861587753a4fc6fd2551d7f8b9c766ad3135ee6/.scratch/composer-oop/plan.md) records the preflight's origin and the native hosting adaptations. The [object-storage specification](../object-storage/spec.md) defines the production migration safeguards. The previously tested R2 sandbox provides synthetic provider evidence. Stellar account qualification and the complete transfer with registration continuity need their own results.

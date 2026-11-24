@@ -14,7 +14,10 @@ python3 tests/http/baseline.py
 python3 tests/http/tokens.py
 python3 tests/http/internals.py
 python3 tests/http/permissions.py
+python3 tests/http/stellar-split.py
 ```
+
+For disposable S3/R2 storage contract and migration rehearsals, see [object storage tests](../operations/object-storage.md#disposable-backend-tests).
 
 The staff permission suite uses PHP cURL. The HTTP fixtures use disposable synthetic data and loopback. See [HTTP harness](../../tests/http/README.md) for isolation and limits. Optional fresh-profile Chrome checks require Node 22+ and Chrome (`CHROME_BIN` can override its location):
 
