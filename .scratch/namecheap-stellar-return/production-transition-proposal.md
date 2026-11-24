@@ -40,7 +40,7 @@ All account capabilities below were verified on the assigned Stellar account in 
 | Administration web host | `https://admin.aeesgs.org` → separate cPanel subdomain document root (e.g. `~/admin.aeesgs.org`, outside `~/public_html`), fixed `AMEA_APP='staff'`, host-only `AMEA_STAFF` cookie, same PHP 8.5 LiteSpeed handler | **Pending** cPanel subdomain/docroot & Cloudflare Origin CA/DNS setup |
 | Private release & shared state | Outside both docroots (e.g. `~/amea-prod/`): immutable `releases/<id>`, atomic `current`/`previous` symlinks, `shared/config/runtime.env` (`0600`), `shared/state/{sessions/public,sessions/staff,cache/twig/public,cache/twig/staff,write-gate,mail-queue,logs,.shared-jobs.lock}` (`0700`), `bin/run-job.php` (`0700`) | Layout & `deploy.sh` verified on staging (`demo.aeesgs.org` / `bo.aeesgs.org`) |
 | Scheduled CLI runtime | `/opt/alt/php85/usr/bin/php` with `PHP_INI_SCAN_DIR=/opt/alt/php85/link/conf:/etc/cl.php.d/alt-php85` invoking `~/amea-prod/bin/run-job.php` via cPanel cron (minimum 5-minute interval, max 5 simultaneous jobs) | Verified via 5-minute cPanel cron & `bin/run-job.php` (Tickets 01–02) |
-| Production database | Dedicated MariaDB 11.4.13 database & scoped user on Stellar (isolated from staging `aeesjwmz_amea_staging`) | MariaDB 11.4.13 restore verified (Ticket 01); **production DB pending creation** |
+| Production database | Dedicated MariaDB 11.4.13 database & scoped user on Stellar (isolated from the staging MariaDB database) | MariaDB 11.4.13 restore verified (Ticket 01); **production DB pending creation** |
 | Production object storage | New dedicated private Cloudflare R2 bucket (distinct from `amea-sandbox`; `scripts/stellar/verify-release.php` refuses `amea-sandbox` when `APP_ENV=production`), `STORAGE_DRIVER=s3`, `S3_REGION=auto`, `S3_PATH_STYLE=false`, bucket-scoped S3 key/secret | Provider compatibility verified on `amea-sandbox` (Tickets 02–03); **production bucket & credentials pending creation** |
 | Transactional email | Brevo SMTP (`smtp-relay.brevo.com:587`, `STARTTLS`, sender `noreply@aeesgs.org`) with Stellar outbound IPv4 `198.54.114.79` allowlisted in Brevo Authorized IPs (no outbound IPv6) | Authenticated delivery to `contact@aeesgs.org` verified (Ticket 02) |
 
@@ -49,9 +49,8 @@ All account capabilities below were verified on the assigned Stellar account in 
 ## 3. Required Verification, Continuity & Backup Controls
 
 ### 3.1 Restorable backup evidence
-Before pausing or modifying live production resources:
-1. Capture a transaction-consistent `mariadb-dump` (following [migration-recovery.md](../../docs/operations/migration-recovery.md)) AND a coordinated `RecoverySnapshot` (`scripts/storage-backup.php capture`) under the paused write gate, capturing application tables, `file_operations`, all managed upload bytes with original `createdAt`/MIME/SHA-256, session trees, and the finalized migration manifest/checkpoint.
-2. Prove restorability in isolation (`scripts/storage-backup.php restore` into a separate empty database + separate empty object namespace + fresh session stores, plus MariaDB 11.4.13 import check confirming table count, foreign keys, and UTF-8 accented member rows).
+1. **Pre-pause baseline backup (before modifying production):** capture a transaction-consistent `mariadb-dump` (following [migration-recovery.md](../../docs/operations/migration-recovery.md)) and verify isolated MariaDB 11.4.13 import (confirming table count, foreign keys, and UTF-8 accented member rows).
+2. **Frozen cutover recovery point (under the paused write gate, after `drain-intents` and final `verify`):** capture a coordinated `RecoverySnapshot` (`scripts/storage-backup.php capture`) binding application tables, `file_operations`, all managed upload bytes with original `createdAt`/MIME/SHA-256, session trees, and the finalized migration manifest/checkpoint, and verify restorability via isolated `scripts/storage-backup.php restore` into a separate empty database, separate empty object namespace, and fresh session stores.
 3. Record non-secret `snapshot.json` SHA-256, `manifest` SHA-256, `checkpoint` SHA-256, and dump checksum in the Ticket 06 completion log.
 
 ### 3.2 File read-back and reference verification
@@ -65,6 +64,11 @@ Before pausing or modifying live production resources:
   - Migrates **only** sessions carrying an active `pending_registration` into `sessions/public`, whitelisting only `pending_registration`, `csrf_token`, `last_activity`, and `flash`.
   - Strips all legacy staff authentication fields and leaves `sessions/staff` empty (staff sign in fresh on `https://admin.aeesgs.org` with host-only `AMEA_STAFF`).
 - `Amea\Core\Session` on `AMEA_APP='public'` adopts a returning browser's `PHPSESSID` only when `AMEA_PUBLIC` is absent and a regular non-symlink `sess_<id>` exists in `sessions/public`, whitelists the same four public keys, immediately rotates to a fresh `AMEA_PUBLIC` session (`session_regenerate_id(true)`), and expires `PHPSESSID`. `AMEA_APP='staff'` ignores `PHPSESSID` unconditionally.
+- **Live-transition session continuity proof required during Ticket 06:**
+  1. Confirm matching `session.serialize_handler` (`php`) between source VPS and Stellar before restoring sessions.
+  2. Confirm `RecoverySnapshot::resumeRestored()` verifies exact restored `sessions/public` file digests and confirms `sessions/staff` is empty before clearing the write gate.
+  3. Confirm separate-browser requests to `/registration-preview.php` return `404` and any legacy staff `PHPSESSID` is denied on both `aeesgs.org` (`404`) and `admin.aeesgs.org` (`302` to `login.php`).
+  4. If an in-progress registration exists at cutover, confirm read-only paused preview (`allowPausedRead`) succeeds before reopening and normal confirmation succeeds once afterward (per [object-storage ticket 06](../object-storage/issues/06-production-transition.md)).
 - Rehearsed end-to-end in Ticket 03 ([completion.md](completion.md#03-legacy-to-stellar-transfer-and-registration-resume-rehearsal)) using real headless Chrome across the same public origin against live Cloudflare R2 `amea-sandbox` (43/43 checks passed).
 
 ### 3.4 Maintenance window estimate
@@ -83,8 +87,8 @@ Before pausing or modifying live production resources:
 4. Coordinated pre-cutover backup (`snapshot.json` + `mariadb-dump`) is captured, checksummed, and retained offline/outside both docroots.
 5. Production MariaDB 11.4.13 has all data imported and Doctrine migrations verified clean (`scripts/migrate.php migrate` at latest reviewed version, enrolled per [doctrine-enrollment.md](../../docs/operations/doctrine-enrollment.md) if migrating from a pre-Doctrine schema).
 6. Fresh (<5 minutes old) native `scripts/storage-target.php` attestation reports for `public` (`--docroot=~/public_html`), `staff` (`--docroot=~/admin.aeesgs.org`), and `jobs` (`--job-wrapper=~/amea-prod/bin/run-job.php`) pass `Cutover::targetIdentity()` / `resume`.
-7. Read-only paused HTTPS smoke checks pass on `https://aeesgs.org` and `https://admin.aeesgs.org`: public pages/journal `200`, staff paths on `aeesgs.org` return local `404` without redirects, published slider media serves from R2, private downloads enforce staff authentication + `nosniff`/`private, no-store`, and `PHP 8.5.13` with all 8 extensions is confirmed on both web hosts.
-8. Only after reopening the target write gate: arm the single Stellar cPanel cron scheduler (keeping VPS crons disabled) and verify mail delivery behavior (synchronous default vs queued cron vs 5-minute password-reset token lifetime).
+7. **Paused read-only HTTPS smoke checks (before reopening):** on `https://aeesgs.org` and `https://admin.aeesgs.org`, confirm public homepage/journal return `200`, staff paths on `aeesgs.org` return local `404` without redirects, published slider media serves from R2, unauthenticated `admin.aeesgs.org/download.php` is denied (`302`/`503` while paused; staff login stays `503` because `sessions/staff` is empty during pause), and PHP 8.5.13 with all 8 extensions is active on both web hosts.
+8. **Immediate post-reopening checks (after clearing the write gate):** sign in fresh on `https://admin.aeesgs.org/login.php` (`AMEA_STAFF`), verify authorized private downloads return `200` with `X-Content-Type-Options: nosniff` and `Cache-Control: private, no-store`, confirm separate-browser preview denial (`404`), arm the single Stellar cPanel cron scheduler (keeping VPS crons disabled), and verify mail delivery behavior (synchronous default vs queued cron vs 5-minute password-reset token lifetime).
 
 ### 3.6 Rollback conditions
 
@@ -107,10 +111,8 @@ Before pausing or modifying live production resources:
 ## 4. Publication & Domain Cutover Prerequisites
 
 ### 4.1 Publishing the tested `main` revision
-1. Merge the Ticket 03/04 branch (`feature/stellar-transfer-rehearsal`) to `main` with all CI checks passing on the exact merged commit SHA.
-2. Confirm release publication mechanism:
-   - **Approved target path ([spec.md](spec.md), [OOP Stellar plan](../composer-oop/plan.md)):** Port and stage-verify the serialized GitHub Actions `deploy-stellar` job in `.github/workflows/ci.yml` (non-cancelling `main` concurrency, pinned SSH host key, GitHub Secrets for private `0600` runtime config, guarded Doctrine migration before docroot promotion, cutover pause interlock, and live split smoke checks).
-   - **Alternative if operator approves staged rollout:** Execute cutover from a signed release archive built from the tested `main` SHA via `scripts/stellar/package.php` + `scripts/stellar/deploy.sh`, then enable `deploy-stellar` on `main` immediately afterward.
+1. Merge the Ticket 03/04 changes into `main` with all CI checks passing on the exact merged commit SHA.
+2. Port and stage-qualify the serialized GitHub Actions `deploy-stellar` job in `.github/workflows/ci.yml` before using production resources (required by [spec.md](spec.md) and [OOP Stellar plan](../composer-oop/plan.md)): non-cancelling `main` concurrency, pinned SSH host key, GitHub Secrets for private `0600` runtime config, guarded Doctrine migration before docroot promotion, cutover pause interlock, rollback check, and live split route smoke checks.
 3. Verify `APP_ENV=production` in production `runtime.env` so `scripts/stellar/verify-release.php` enforces the non-sandbox bucket guard.
 
 ### 4.2 Switching the two web domains (`aeesgs.org` and `admin.aeesgs.org`)
@@ -128,7 +130,7 @@ The following items remain open and **must be resolved before executing [object-
 1. **Live Dokploy VPS read-only inventory:** Actual deployed SHA/image, writers/crons, MariaDB version/size/Doctrine enrollment state, `uploads/` volume/count/dispositions, and active session store/serializer.
 2. **Production Cloudflare R2 bucket & credentials:** Create dedicated private production bucket (separate from `amea-sandbox`), configure bucket-scoped S3 credentials, and run synthetic write/read-back/delete verification before live copy.
 3. **Production Stellar resources:** Provision `admin.aeesgs.org` cPanel subdomain/docroot, verify TLS on `aeesgs.org` and `admin.aeesgs.org`, and create the dedicated production MariaDB 11.4.13 database & scoped user.
-4. **GitHub Actions `deploy-stellar` job:** Port `deploy-stellar` into `.github/workflows/ci.yml` and exercise it on staging (or explicitly approve signed-artifact SSH `deploy.sh` for initial cutover).
+4. **GitHub Actions `deploy-stellar` job:** Port `deploy-stellar` into `.github/workflows/ci.yml` and qualify it on staging before production publication.
 5. **Post-cutover backup cadence & mail timing:** Confirm recurring R2 + MariaDB backup capacity/cadence on Stellar, confirm whether `MAIL_ASYNC` stays synchronous (recommended so 5-minute password-reset tokens do not wait on a 5-minute cron interval), and confirm Brevo Authorized IPs policy for shared hosting outbound IPv4 `198.54.114.79`.
 6. **Optional MariaDB-backed Chrome transfer check:** Ticket 03 rehearsed the full Chrome cutover locally with SQLite + packaged Stellar runtime + live R2 `amea-sandbox` (while MariaDB 11.4.13 restore and LiteSpeed/HTTPS R2 flows were separately verified in Tickets 01–02); decide whether to run one final disposable MariaDB import + Chrome rehearsal before live cutover.
 
