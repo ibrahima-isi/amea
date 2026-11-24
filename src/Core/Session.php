@@ -28,10 +28,7 @@ class Session
         if ((!is_string($id) || $id === '') && ($legacy = self::legacyPublicSessionId()) !== null) {
             $id = $legacy;
         }
-        $directory = session_save_path();
-        if (!is_string($id) || !preg_match('/^[A-Za-z0-9,-]{1,256}$/D', $id)
-            || $directory === '' || str_contains($directory, ';')
-            || is_link($directory . '/sess_' . $id) || !is_file($directory . '/sess_' . $id)) {
+        if (!is_string($id) || !self::hasRegularSessionFile($id)) {
             return false;
         }
         // Files handler GC can delete other sessions even during read_and_close.
@@ -103,20 +100,29 @@ class Session
             return null;
         }
         $legacyId = $_COOKIE['PHPSESSID'] ?? '';
-        $directory = session_save_path();
-        if (!is_string($legacyId) || !preg_match('/^[A-Za-z0-9,-]{1,256}$/D', $legacyId)
-            || $directory === '' || str_contains($directory, ';')
-            || is_link($directory . '/sess_' . $legacyId) || !is_file($directory . '/sess_' . $legacyId)) {
+        if (!is_string($legacyId) || !self::hasRegularSessionFile($legacyId)) {
             return null;
         }
         return $legacyId;
     }
 
+    private static function hasRegularSessionFile(string $id): bool
+    {
+        $directory = session_save_path();
+        return preg_match('/^[A-Za-z0-9,-]{1,256}$/D', $id) === 1
+            && $directory !== '' && !str_contains($directory, ';')
+            && !is_link($directory . '/sess_' . $id) && is_file($directory . '/sess_' . $id);
+    }
+
     private function completeLegacyPublicHandover(): void
     {
-        unset($_SESSION['user_id'], $_SESSION['role'], $_SESSION['session_version'], $_SESSION['staff_return_to']);
         if (!isset($_SESSION['pending_registration']) || !is_array($_SESSION['pending_registration'])) {
             $_SESSION = [];
+        } else {
+            $_SESSION = array_intersect_key(
+                $_SESSION,
+                array_flip(['pending_registration', 'csrf_token', 'last_activity', 'flash'])
+            );
         }
         session_regenerate_id(true);
         if (PHP_SAPI !== 'cli' && !headers_sent()) {

@@ -42,6 +42,18 @@ def http_req(opener, base, path, data=None, method=None, headers=None):
         return err.code, err.headers, err.read()
 
 
+def staff_login(opener, base, label):
+    status, _, login_html = http_req(opener, base, '/login.php')
+    check(status == 200, f'{label} /login.php renders')
+    csrf = re.search(rb'name="csrf_token"\s+value="([^"]+)"', login_html).group(1).decode()
+    status, headers, _ = http_req(opener, base, '/login.php', {
+        'csrf_token': csrf,
+        'username': 'fixture-admin',
+        'password': 'fixture-password',
+    })
+    check(status == 302 and 'dashboard.php' in (headers.get('Location') or ''), f'{label} signs in')
+
+
 def wait_server(base, path):
     probe = client()
     for _ in range(60):
@@ -261,15 +273,7 @@ if (!isset($routes[$path])) {{
 
             # 1a. Legacy staff signs into combined single-app source (populates legacy PHPSESSID staff session)
             legacy_staff = client()
-            status, _, login_html = http_req(legacy_staff, pub_base, '/login.php')
-            check(status == 200, 'legacy single-app /login.php renders')
-            csrf = re.search(rb'name="csrf_token"\s+value="([^"]+)"', login_html).group(1).decode()
-            status, headers, _ = http_req(legacy_staff, pub_base, '/login.php', {
-                'csrf_token': csrf,
-                'username': 'fixture-admin',
-                'password': 'fixture-password',
-            })
-            check(status == 302 and 'dashboard.php' in (headers.get('Location') or ''), 'legacy staff signs into combined source')
+            staff_login(legacy_staff, pub_base, 'legacy single-app staff')
             status, _, _ = http_req(legacy_staff, pub_base, '/dashboard.php')
             check(status == 200, 'legacy staff accesses /dashboard.php on combined source')
 
@@ -323,7 +327,7 @@ if (!isset($routes[$path])) {{
             )
 
             # 2. Pause source writers & stop legacy server
-            pause_started = time.monotonic()
+            dest_storage_env = {'STORAGE_DRIVER': 's3', 'S3_PATH_STYLE': 'false', **r2_cfg} if use_r2 else {'STORAGE_DRIVER': 'local'}
             dest_env_for_migrate = {
                 'MIGRATION_ENVIRONMENT': 'ticket03-rehearsal',
                 'MIGRATION_DB_DSN': f'sqlite:{source_db}',
@@ -363,7 +367,7 @@ if (!isset($routes[$path])) {{
                 ], JSON_THROW_ON_ERROR);
                 """,
                 args=(str(ROOT), str(source_db), str(source_root), str(copy_dest_local)),
-                env=({'STORAGE_DRIVER': 's3', 'S3_PATH_STYLE': 'false', **r2_cfg} if use_r2 else {'STORAGE_DRIVER': 'local'}),
+                env=dest_storage_env,
             ))
 
             manifest_path = evidence_dir / 'transfer.jsonl'
@@ -385,8 +389,12 @@ if (!isset($routes[$path])) {{
                     text=True,
                 )
 
+            rehearsal_pause_started = time.monotonic()
             res = run_migrate('pause')
             check(res.returncode == 0, f'source write gate paused ({res.stderr.strip()})')
+
+            res = run_migrate('drain-intents')
+            check(res.returncode == 0, f'source pending file intents drained ({res.stderr.strip()})')
 
             # Confirm paused source rejects new public registrations (503) before shutting down legacy server
             check(http_req(client(), pub_base, '/register.php')[0] == 503, 'paused legacy source returns 503 on /register.php')
@@ -398,6 +406,10 @@ if (!isset($routes[$path])) {{
             res = run_migrate('inventory')
             check(res.returncode == 0, f'storage-migrate inventory passed ({res.stderr.strip()})')
             review_sha = re.search(r'Manifest SHA256 ([a-f0-9]{64})', res.stdout).group(1)
+
+            res = run_migrate('audit-references')
+            check(res.returncode == 0 and 'Reference differences 0' in res.stdout,
+                  f'storage-migrate audit-references confirmed 0 differences ({res.stdout.strip()})')
 
             res = run_migrate('copy', [f'--review-manifest={review_sha}'])
             check(res.returncode == 0, f'storage-migrate copy to {"R2 amea-sandbox" if use_r2 else "local"} passed ({res.stderr.strip()})')
@@ -430,7 +442,7 @@ if (!isset($routes[$path])) {{
                     'uploads/students/legacy-existing.pdf',
                     *staged_keys,
                 ])),
-                env=({'STORAGE_DRIVER': 's3', 'S3_PATH_STYLE': 'false', **r2_cfg} if use_r2 else {'STORAGE_DRIVER': 'local'}),
+                env=dest_storage_env,
             ))
             check(dest_check['uploads/students/legacy-existing.pdf']['createdAt'] == existing_created_at
                   and dest_check['uploads/students/legacy-existing.pdf']['mime'] == 'application/pdf',
@@ -447,7 +459,7 @@ if (!isset($routes[$path])) {{
                 Amea\\Storage\\StorageFactory::fromEnvironment($argv[2])->delete($argv[3]);
                 """,
                 args=(str(ROOT), str(copy_dest_local), dropped_key),
-                env=({'STORAGE_DRIVER': 's3', 'S3_PATH_STYLE': 'false', **r2_cfg} if use_r2 else {'STORAGE_DRIVER': 'local'}),
+                env=dest_storage_env,
             )
             res = run_migrate('verify')
             check(res.returncode == 3, 'interrupted transfer (missing destination object) fails verification (rc=3)')
@@ -575,13 +587,14 @@ if (!isset($routes[$path])) {{
                 $sessions = ['public' => $stateDir . '/sessions/public', 'staff' => $stateDir . '/sessions/staff'];
 
                 $snapshot = new Amea\\Storage\\Migration\\RecoverySnapshot($gate);
+                $tRestoreStart = microtime(true);
                 $restoreState = $snapshot->restore(
                     $snapshotDir, $snapshotSha, $db, $backend, $appBackend,
                     $sessions, $persistentDir, Amea\\Storage\\Migration\\ReferenceAudit::databaseIdentity($db)
                 );
+                $cleanRestoreMs = round((microtime(true) - $tRestoreStart) * 1000, 1);
 
-                // Collect actual native Stellar target reports for public, staff, jobs
-                $reports = [
+                $collectReports = static fn (): array => [
                     Amea\\Storage\\Migration\\TargetAttestation::report($stellarRoot, [
                         'role' => 'public', 'config' => $configFile, 'state_dir' => $stateDir, 'docroot' => $publicDocroot,
                     ], $db),
@@ -592,6 +605,8 @@ if (!isset($routes[$path])) {{
                         'role' => 'jobs', 'config' => $configFile, 'state_dir' => $stateDir, 'job_wrapper' => $jobWrapper,
                     ], $db),
                 ];
+
+                $reports = $collectReports();
 
                 // Interrupted/invalid reopening check A: missing role must block reopening
                 $blockedMissingRole = false;
@@ -612,21 +627,15 @@ if (!isset($routes[$path])) {{
                 $db->exec("UPDATE students SET first_name='Confirmed' WHERE id=99");
 
                 // Re-attest and cleanly reopen
-                $freshReports = [
-                    Amea\\Storage\\Migration\\TargetAttestation::report($stellarRoot, [
-                        'role' => 'public', 'config' => $configFile, 'state_dir' => $stateDir, 'docroot' => $publicDocroot,
-                    ], $db),
-                    Amea\\Storage\\Migration\\TargetAttestation::report($stellarRoot, [
-                        'role' => 'staff', 'config' => $configFile, 'state_dir' => $stateDir, 'docroot' => $staffDocroot,
-                    ], $db),
-                    Amea\\Storage\\Migration\\TargetAttestation::report($stellarRoot, [
-                        'role' => 'jobs', 'config' => $configFile, 'state_dir' => $stateDir, 'job_wrapper' => $jobWrapper,
-                    ], $db),
-                ];
+                $tReopenStart = microtime(true);
+                $freshReports = $collectReports();
                 $snapshot->resumeRestored($snapshotDir, $snapshotSha, $db, $backend, $sessions, $freshReports);
+                $cleanReopenMs = round((microtime(true) - $tReopenStart) * 1000, 1);
 
                 echo json_encode([
                     'state' => $restoreState['state'],
+                    'clean_restore_ms' => $cleanRestoreMs,
+                    'clean_reopen_ms' => $cleanReopenMs,
                     'blocked_missing_role' => $blockedMissingRole,
                     'blocked_db_drift' => $blockedDbDrift,
                     'reopened' => $gate->status()['paused'] === false,
@@ -643,8 +652,14 @@ if (!isset($routes[$path])) {{
                     str(stellar_base / 'bin/run-job.php'),
                 ),
             ))
-            timings['restore_and_verify_ms'] = round((time.monotonic() - restore_started) * 1000, 1)
-            timings['total_pause_ms'] = round((time.monotonic() - pause_started) * 1000, 1)
+            timings['clean_restore_ms'] = restore_info['clean_restore_ms']
+            timings['clean_reopen_ms'] = restore_info['clean_reopen_ms']
+            timings['clean_cutover_pause_ms'] = round(
+                timings['copy_and_verify_ms'] + timings['capture_ms']
+                + timings['clean_restore_ms'] + timings['clean_reopen_ms'],
+                1,
+            )
+            timings['total_rehearsal_with_faults_ms'] = round((time.monotonic() - rehearsal_pause_started) * 1000, 1)
 
             check(restore_info['state'] == 'verified', 'isolated single-to-split restore verified')
             check(restore_info['blocked_missing_role'] is True, 'missing role report blocked target reopening')
@@ -732,14 +747,7 @@ require '{docroot}/index.php';
 
             # Fresh staff login on split staff host downloads the confirmed member's private PDFs from destination
             fresh_staff = client()
-            status, _, login_html = http_req(fresh_staff, staff_base, '/login.php')
-            csrf = re.search(rb'name="csrf_token"\s+value="([^"]+)"', login_html).group(1).decode()
-            status, hdrs, _ = http_req(fresh_staff, staff_base, '/login.php', {
-                'csrf_token': csrf,
-                'username': 'fixture-admin',
-                'password': 'fixture-password',
-            })
-            check(status == 302 and 'dashboard.php' in (hdrs.get('Location') or ''), 'fresh staff signs into split staff host')
+            staff_login(fresh_staff, staff_base, 'split staff')
 
             code, hdrs, body = http_req(fresh_staff, staff_base, f'/download.php?id={new_student_id}&type=identite')
             check(code == 200 and body.decode() == identity_pdf and hdrs.get('X-Content-Type-Options') == 'nosniff',

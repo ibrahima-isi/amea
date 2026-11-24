@@ -150,18 +150,22 @@ try {
     assert(legacyCookie && legacyCookie.value, 'legacy source must issue PHPSESSID');
     assert(!splitCookieBefore, 'legacy source must not issue AMEA_PUBLIC');
 
-    const prePreview = await evaluate(`(async () => {
+    const fetchPreviews = () => evaluate(`(async () => {
         const idResp = await fetch('/registration-preview.php?type=identite');
         const cvResp = await fetch('/registration-preview.php?type=cv');
         return {
             idStatus: idResp.status,
             idType: idResp.headers.get('Content-Type'),
+            idNosniff: idResp.headers.get('X-Content-Type-Options'),
             idText: await idResp.text(),
             cvStatus: cvResp.status,
             cvType: cvResp.headers.get('Content-Type'),
+            cvNosniff: cvResp.headers.get('X-Content-Type-Options'),
             cvText: await cvResp.text(),
         };
     })()`);
+
+    const prePreview = await fetchPreviews();
     assert.equal(prePreview.idStatus, 200);
     assert.equal(prePreview.idType, 'application/pdf');
     assert.equal(prePreview.idText, identityText);
@@ -189,20 +193,7 @@ try {
         'split Stellar public host must rotate PHPSESSID to a fresh AMEA_PUBLIC cookie');
     assert(!leftoverLegacy, 'legacy PHPSESSID cookie must be expired after handover');
 
-    const postPreview = await evaluate(`(async () => {
-        const idResp = await fetch('/registration-preview.php?type=identite');
-        const cvResp = await fetch('/registration-preview.php?type=cv');
-        return {
-            idStatus: idResp.status,
-            idType: idResp.headers.get('Content-Type'),
-            idNosniff: idResp.headers.get('X-Content-Type-Options'),
-            idText: await idResp.text(),
-            cvStatus: cvResp.status,
-            cvType: cvResp.headers.get('Content-Type'),
-            cvNosniff: cvResp.headers.get('X-Content-Type-Options'),
-            cvText: await cvResp.text(),
-        };
-    })()`);
+    const postPreview = await fetchPreviews();
     assert.equal(postPreview.idStatus, 200);
     assert.equal(postPreview.idType, 'application/pdf');
     assert.equal(postPreview.idNosniff, 'nosniff');

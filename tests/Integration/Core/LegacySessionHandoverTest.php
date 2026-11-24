@@ -35,7 +35,7 @@ class LegacySessionHandoverTest extends TestCase
         @rmdir($this->tempDir);
     }
 
-    public function testPublicEntryAdoptsLegacyPhpSessIdRotatesToAmeaPublicAndExpiresLegacyCookie(): void
+    public function testPublicEntryAdoptsLegacyPhpSessIdRotatesToAmeaPublicAndStripsNonPublicKeys(): void
     {
         $legacyId = 'legacyreg' . bin2hex(random_bytes(6));
         $publicSessions = $this->tempDir . '/state/sessions/public';
@@ -47,6 +47,9 @@ class LegacySessionHandoverTest extends TestCase
             $publicSessions . '/sess_' . $legacyId,
             'last_activity|' . serialize(time())
             . 'csrf_token|' . serialize('kept-csrf')
+            . 'user_id|' . serialize(7)
+            . 'username|' . serialize('legacy-admin')
+            . 'role|' . serialize('admin')
             . 'pending_registration|' . serialize($payload)
         );
         chmod($publicSessions . '/sess_' . $legacyId, 0600);
@@ -57,6 +60,8 @@ class LegacySessionHandoverTest extends TestCase
         self::assertNotSame($legacyId, $result['session_id']);
         self::assertSame('Mariama', $result['pending_first_name']);
         self::assertSame('kept-csrf', $result['csrf_token']);
+        self::assertSame(0, $result['user_id']);
+        self::assertNull($result['username']);
         self::assertFileDoesNotExist($publicSessions . '/sess_' . $legacyId);
         self::assertFileExists($publicSessions . '/sess_' . $result['session_id']);
     }
@@ -150,6 +155,7 @@ $result = [
     'pending_first_name' => is_array($pending) ? ($pending['input']['first_name'] ?? null) : null,
     'csrf_token' => $session->get('csrf_token'),
     'user_id' => $session->userId(),
+    'username' => $session->get('username'),
 ];
 session_write_close();
 echo json_encode($result, JSON_THROW_ON_ERROR);

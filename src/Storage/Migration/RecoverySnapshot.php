@@ -144,7 +144,7 @@ final class RecoverySnapshot
                 static fn ($key) => substr($key, 9),
                 array_filter(array_keys($snapshot['trees']), static fn ($key) => str_starts_with($key, 'sessions/'))
             ));
-            $singleToSplit = $capturedRoles === ['app'] && array_keys($sessions) === ['public', 'staff'];
+            $singleToSplit = $this->isSingleToSplit($capturedRoles, $sessions);
             if (!$singleToSplit && array_keys($sessions) !== $capturedRoles) {
                 throw new StorageException('Restore must select every captured session role.');
             }
@@ -194,8 +194,10 @@ final class RecoverySnapshot
                 } finally {
                     fclose($stream);
                 }
+                $restoredMeta = $backend->stat($key);
                 if ($actualBytes['sha256'] !== $object['sha256'] || $actualBytes['size'] !== $object['size']
-                    || $backend->stat($key)['createdAt'] !== $object['created_at']) {
+                    || $restoredMeta === null || $restoredMeta['createdAt'] !== $object['created_at']
+                    || $restoredMeta['mime'] !== $object['mime']) {
                     throw new StorageException('Restored object verification failed. Target remains paused.');
                 }
             }
@@ -286,8 +288,10 @@ final class RecoverySnapshot
                 } finally {
                     fclose($stream);
                 }
+                $restoredMeta = $backend->stat($key);
                 if ($fingerprint['sha256'] !== $object['sha256'] || $fingerprint['size'] !== $object['size']
-                    || $backend->stat($key)['createdAt'] !== $object['created_at']) {
+                    || $restoredMeta === null || $restoredMeta['createdAt'] !== $object['created_at']
+                    || $restoredMeta['mime'] !== $object['mime']) {
                     throw new StorageException('Restored bytes changed before reopening.');
                 }
             }
@@ -310,7 +314,7 @@ final class RecoverySnapshot
             throw new StorageException('Snapshot reference approvals differ from their original migration identity.');
         }
         $owners = [];
-        $singleToSplit = array_keys($snapshot['sessions']) === ['app'] && array_keys($sessions) === ['public', 'staff'];
+        $singleToSplit = $this->isSingleToSplit(array_keys($snapshot['sessions']), $sessions);
         foreach ($snapshot['sessions'] as $role => $path) {
             $targetRole = $singleToSplit && $role === 'app' ? 'public' : $role;
             foreach ($snapshot['trees']['sessions/' . $role] as $relative => $metadata) {
@@ -644,6 +648,11 @@ final class RecoverySnapshot
             || array_intersect(explode('/', $path), ['', '.', '..']) !== []) {
             throw new StorageException('Unsafe backup member path.');
         }
+    }
+
+    private function isSingleToSplit(array $capturedRoles, array $sessions): bool
+    {
+        return $capturedRoles === ['app'] && array_keys($sessions) === ['public', 'staff'];
     }
 
     private function assertRole(string $role): void
