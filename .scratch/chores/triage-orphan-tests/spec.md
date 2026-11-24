@@ -29,4 +29,4 @@ The earlier CI-on-pull-requests prerequisite was completed; this triage remains 
 
 ## Comments
 
-2026-11-11 — The [Composer migration](../../composer-oop/completion.md) retires the JavaScript string literal test with its unused helper and moves the standalone staff permissions scenarios to a disposable split-app fixture. The baseline table records the original results.
+2026-11-11 — The [Composer migration](https://github.com/ibrahima-isi/amea/blob/6861587753a4fc6fd2551d7f8b9c766ad3135ee6/.scratch/composer-oop/completion.md) retires the JavaScript string literal test with its unused helper and moves the standalone staff permissions scenarios to a disposable split-app fixture. The baseline table records the original results.

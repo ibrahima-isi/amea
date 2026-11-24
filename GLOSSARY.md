@@ -18,7 +18,7 @@ The association’s visitor-facing space for introduction, community photography
 
 **Administration**:
 The staff-facing space for managing member records, reviewing documents, communicating, and maintaining association content.
-_Also called_: Back-office
+_Also called_: Backoffice
 
 **Association journal**:
 The AEESGS public information space covering upcoming activities, reports on past activities, and association announcements.

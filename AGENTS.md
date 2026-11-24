@@ -2,24 +2,24 @@
 
 ## Canonical Instructions and Language
 
-This file is the single source of durable project instructions. `CLAUDE.md` and `GEMINI.md` each contain only `read AGENTS.md`. Keep ordinary documentation, domain records and task evidence in their own documents; avoid duplicating agent rules there.
+This file is the single source of durable project instructions. `CLAUDE.md` and `GEMINI.md` each contain only `@AGENTS.md`. Keep ordinary documentation, domain records and task tracking in their own documents; avoid duplicating agent rules there.
 
-Use English for first-party technical documentation, code comments, internal identifiers, new commit messages and PR text. Preserve French application and email content, exact business values, existing URLs, form/JSON/session keys and other compatibility contracts. English prose may quote those literals and proper names. Preserve published Git history, human data, legal sources and third-party/generated content. The remaining documentation/identifier conversion is separate work, not a completed result of this instruction change.
+Use English for first-party technical documentation, code comments, internal identifiers, new commit messages and PR text. Preserve French application and email content, exact business values, existing URLs, form/JSON/session keys and other compatibility contracts. English prose may quote those literals and proper names. Preserve published Git history, human data, legal sources and third-party/generated content.
 
 Keep replies concise and use the conversation's language. Use interactive input tools for user-facing design, scope and clarification questions; wait for answers before dependent decisions or work. Execute only authorized scope: ticket readiness is not permission to start another ticket.
 
 ## Project Structure & Module Organization
 
-AMEA manages AEESGS membership for Guinean pupils, students, and interns in Senegal. The interface is French. The stack uses PHP 8, MySQL/MariaDB, Bootstrap 5, vanilla JavaScript, Tagify, Twig, and PHPMailer via Brevo SMTP. The public website and administration share one Composer package, business code, database, and files. They have independent document roots and route boundaries.
+AMEA manages AEESGS membership for Guinean pupils, students, and interns in Senegal. The interface is French. The stack uses PHP 8.5, MariaDB/MySQL, Bootstrap 5, vanilla JavaScript, Tagify, Twig, AWS S3 SDK (Cloudflare R2 / S3-compatible storage), Doctrine Migrations, and PHPMailer via Brevo SMTP. The public website and administration share one Composer package, business code, database, and files. They have independent document roots and route boundaries.
 
 - `apps/web/public/` and `apps/backoffice/public/`: thin HTTP entry points. `src/Core/Router.php` owns the route inventory and dispatch.
-- `src/`: PSR-4 classes under `Amea\`, including controllers for requests, services for business logic, and repositories for PDO queries.
-- `scripts/`: thin CLI entry points backed by classes in `src/Command/`.
+- `src/`: PSR-4 classes under `Amea\`, including `Controller/`, `Service/`, `Repository/`, `Model/`, `Command/`, `Migration/`, `Storage/`, `Config/`, and `Core/`.
+- `scripts/`: thin CLI entry points backed by classes in `src/Command/`, plus `scripts/stellar/` for native split hosting packaging, verification, and atomic release deployment.
 - `templates/`: Twig views and HTML email templates. `assets/` contains CSS, vanilla JavaScript and images.
-- `tests/`: PHPUnit suites and standalone regressions.
+- `tests/`: PHPUnit suites, standalone regressions, and HTTP/browser rehearsals.
 - `database/`, `migrations/`, and `schema.sql`: database definitions and history. `config/database.php` supports historical migration rehearsal.
 
-Place new classes in `src/` following PSR-4. Use `Amea\Core\Container` for the shared PDO connection and current Twig views for rendering.
+Place new classes in `src/` following PSR-4. Use `Amea\Core\Container` for the shared PDO connection and storage backend, and current Twig views for rendering.
 
 ## Build, Test, and Development Commands
 
@@ -37,19 +37,21 @@ Match adjacent code: four-space PHP indentation, PascalCase classes, camelCase m
 
 ## Theme Requirement
 
-The approved product requirement is a light first visit regardless of the operating-system theme, with a valid explicitly saved light/dark choice taking priority. Preserve manual switching, French action labels, pre-render initialization, keyboard accessibility and the existing light no-JavaScript fallback. Invalid or unavailable storage must allow a usable light fallback and page-local switching. This is an implementation requirement: editing these instructions does not implement or validate the separate theme ticket.
+First visit always renders in light mode regardless of the operating-system theme, with a valid explicitly saved light/dark choice taking priority. Preserve manual switching, French action labels, pre-render initialization, keyboard accessibility, and the light no-JavaScript fallback. Invalid or unavailable storage must allow a usable light fallback and page-local switching.
 
 ## Testing Guidelines
 
-Use PHPUnit 11 with `*Test.php` files under `tests/Unit/` or `tests/Integration/`; standalone checks use `test_*.php`. Existing tests use SQLite fixtures. Add regression coverage for changed behavior. No numeric coverage threshold is configured. Run relevant suites and the CI command set before requesting review. SQLite-backed tests do not require MySQL. Keep all GitHub Actions CI and other workflows in the single file `.github/workflows/ci.yml`; consult that file for actual triggers. This is the required convention; existing workflows must be consolidated when workflow changes are in scope.
+Use PHPUnit 11 with `*Test.php` files under `tests/Unit/` or `tests/Integration/`; standalone checks use `test_*.php`. Existing tests use SQLite fixtures. Add regression coverage for changed behavior. No numeric coverage threshold is configured. Run relevant suites and the CI command set before requesting review. SQLite-backed tests do not require MySQL. Keep all GitHub Actions workflows in `.github/workflows/ci.yml`; consult that file for actual triggers.
 
 ## GitHub Flow
 
 `main` is the only long-lived branch locally and on GitHub. Every change to `main` goes through a GitHub pull request. Never commit directly to `main`, push directly to it, force-push it, or merge a development branch into it locally. Never bypass branch protection.
 
+**Explicit commit and push authorization:** Commit only when the user explicitly says so. Push only when the user explicitly says so. Leave completed work uncommitted in the task worktree until the user asks to commit or push.
+
 1. Check Git status and fetch `origin`. Create a short-lived branch from the latest `origin/main` in an isolated worktree. Use `feature/<description>`, `fix/<description>`, `refactor/<description>`, `chore/<description>`, or `docs/<description>`. Include the Jira key when available. Keep the original checkout untouched.
-2. Implement and validate in the worktree. Use concise Conventional Commits such as `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`, and `ci:`. Existing `security:` and `infra:` prefixes are also valid. Cryptographically sign every commit, including merges. Stop if signing fails or a commit is unsigned. Omit Co-Authored-By and Claude attribution trailers.
-3. Apply the push workflow below when the user says `push`. Otherwise, open a PR only when the user explicitly requests one or invokes the `pr` skill.
+2. Implement and validate in the worktree. Wait for explicit user instruction before committing. When committing, use concise Conventional Commits (`feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`, `ci:`, `security:`, `infra:`), cryptographically sign every commit (stop if signing fails or a commit is unsigned), and omit Co-Authored-By and Claude attribution trailers.
+3. Push only when the user explicitly says `push` (applying the push workflow below) or explicitly asks to push. Open a PR only when the user explicitly requests one, invokes the `pr` skill, or says `push`.
 4. Target `main` for every PR. Describe the change, link relevant issues, report validation, and include screenshots for UI changes. Prefer squash merging through GitHub after the required checks pass on the latest PR revision and all branch protections are satisfied. A PR creation request does not authorize a merge. Merge only with explicit user authorization and never enable auto-merge.
 5. After verifying the PR actually merged into remote `main`, synchronize local `main` by fast-forward only in an isolated worktree. If it diverged, preserve its commits and report the divergence. If any task branch or worktree still needs cleanup, verify the merged PR covers the task branch tip first. Obtain explicit approval before deleting any pre-existing branch. Preserve unmerged work and published history.
 
@@ -59,16 +61,16 @@ Keep GitHub's default branch set to `main`. Its ruleset must require PRs and the
 
 Treat a request to `push` as authorization for this sequence. Apply any explicit user exceptions to the affected steps.
 
-1. If the task has a spec, update its ticket completion record at `.scratch/<feature-slug>/completion.md` with the work and validation evidence available at publication.
-2. Commit the task changes with signed commits. Use the `pr` skill to prepare the PR, push the task branch to `origin`, and open a PR to `main`. If an open PR already tracks the branch, update it.
+1. If the task has a spec, ensure completed acceptance-criteria checkboxes in each ticket (`issues/<NN>-<slug>.md`) and completed ticket checkboxes in `.scratch/<feature-slug>/completion.md` are checked off.
+2. If uncommitted task changes remain, commit them with signed commits. Use the `pr` skill to prepare the PR, push the task branch to `origin`, and open a PR to `main` (or update the existing open PR for the branch).
 3. Verify that the open PR points to the pushed tip and that removing the local checkout would lose no work. Remove the isolated worktree and local branch created for this task. Keep the remote branch available for the PR and preserve any pre-existing branches and worktrees.
-4. Report the PR link, changes, validation results, and any cleanup still pending. Archive the current Codex chat after reporting, unless the user asks to keep it open.
+4. Report the PR link, changes, validation results, and any cleanup still pending.
 
 Merging and production deployment require separate explicit authorization.
 
 ## Security & Collaboration
 
-Configure database credentials, Brevo SMTP credentials, and application origins in untracked `.env`; no `.env.example` currently exists. PHP needs `pdo_mysql`, `fileinfo`, `mbstring`, and `gd`; tests also need `pdo_sqlite`. Preserve CSRF checks, escaped output, prepared queries, and authenticated private-document access. Validate upload MIME types strictly. Student photos, CVs, and IDs use `uploads/students/`; serve private downloads through `download.php` and staged previews through authorized endpoints. Preserve session authentication, `admin`/`user` role checks, host-scoped public/staff session isolation, secure cookies, and the 30-minute session lifetime. Obtain explicit approval for production changes; repository validation is not production deployment or live-data qualification.
+Configure database credentials, Brevo SMTP credentials, storage credentials, and application origins in untracked `.env` (or private `0600` `AMEA_CONFIG_FILE` on native hosting); no `.env.example` currently exists. PHP needs `pdo_mysql`, `fileinfo`, `mbstring`, `gd`, `curl`, `iconv`, `openssl`, and `simplexml`; tests also need `pdo_sqlite`. Preserve CSRF checks, escaped output, prepared queries, and authenticated private-document access. Validate upload MIME types strictly. Student photos, CVs, and IDs use `uploads/students/`; serve private downloads through `download.php` and staged previews through authorized endpoints. Preserve session authentication, `admin`/`user` role checks, host-scoped public/staff session isolation, secure cookies, and the 30-minute session lifetime. Obtain explicit approval for production changes; repository validation is not production deployment or live-data qualification.
 
 ## Database Changes
 
@@ -83,8 +85,10 @@ Specs and work items use local Markdown, not remote issues or labels. For a skil
 - One feature directory: `.scratch/<feature-slug>/`; its spec is `spec.md`. Keep feature designs/plans alongside it; `docs/` contains maintained guides and ADRs.
 - One implementation ticket per `issues/<NN>-<slug>.md`, numbered from `01`, with blockers numbered before dependents; never combine all tickets in one issue file.
 - Record triage in a `Status:` line near the top. Append conversation under `## Comments` at the bottom.
-- Each implementation ticket declares blockers and acceptance criteria. Start only after every blocker is verified complete. `ready-for-agent` describes specification readiness, not execution permission or completion.
-- Record implementation, tests, reviews, CI, actual merge and release evidence separately in `.scratch/<feature-slug>/completion.md`. Keep per-feature execution evidence out of the canonical instructions and triage status.
+- Each implementation ticket declares blockers and acceptance criteria as Markdown checkboxes (`- [ ]`). Start only after every blocker is verified complete. `ready-for-agent` describes specification readiness, not execution permission or completion.
+- **Completion checklist (`completion.md`):** Right after creating `spec.md` and the ticket files, create `.scratch/<feature-slug>/completion.md`. Its content is strictly a Markdown checkbox list of the feature's tickets (for example, `- [ ] [01 — Ticket title](issues/01-slug.md)`). Omit completion proofs, test logs, and explanatory prose.
+- **Progress updates:** As each acceptance criterion in `issues/<NN>-<slug>.md` is completed, check its box (`- [x]`). When all acceptance criteria for a ticket are completed, check that ticket (`- [x]`) in `.scratch/<feature-slug>/completion.md`.
+- **Post-spec memory sync:** After all tickets in a spec are completed, read the project memory (`.scratch/README.md`, `AGENTS.md`, `README.md`, `GLOSSARY.md`, and relevant `docs/` guides and ADRs) and update it so documentation matches the real repository state. Remove completed feature directories from `.scratch/` once their tracking is closed and record them in `.scratch/README.md` with their pinned Git revision.
 
 ### Triage Roles
 
