@@ -8,13 +8,28 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      stellar_target:
+        description: "Optional Stellar publication target (none keeps CI validation-only)"
+        type: choice
+        default: none
+        options:
+          - none
+          - staging
+      stellar_action:
+        description: "Stellar staging action when stellar_target is staging"
+        type: choice
+        default: deploy
+        options:
+          - deploy
+          - rollback
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && inputs.stellar_target == 'staging' && 'stellar-staging' || 'ci' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && !(github.event_name == 'workflow_dispatch' && inputs.stellar_target == 'staging') }}
 
 jobs:
   storage-tests:
@@ -75,7 +90,7 @@ jobs:
         uses: shivammathur/setup-php@8358ee0e2e8afe63c2fb8253d1d52085811ab1e5 # v2
         with:
           php-version: '8.5'
-          extensions: pdo, pdo_sqlite, fileinfo, mbstring, gd, curl
+          extensions: pdo, pdo_sqlite, pdo_mysql, fileinfo, mbstring, gd, curl, iconv, openssl, simplexml
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
@@ -99,6 +114,7 @@ jobs:
           python3 tests/http/internals.py
           python3 tests/http/permissions.py
           python3 tests/http/write-gate.py
+          python3 tests/http/stellar-split.py
 
   static-checks:
     name: "Static checks: Syntax & access"
@@ -110,11 +126,235 @@ jobs:
         with:
           php-version: '8.5'
           coverage: none
-      - name: Validate PHP syntax
+      - name: Validate PHP and shell syntax
         run: |
           find src apps scripts tests config -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          bash -n scripts/stellar/deploy.sh
+          bash -n scripts/stellar/publish.sh
       - name: Verify split runtime access rules
         run: |
           grep -Fq 'DocumentRoot AMEA_DOCUMENT_ROOT' docker/apps/apache.conf
           grep -Fq 'AllowOverride None' docker/apps/apache.conf
+          grep -Fq 'X-Forwarded-Proto' scripts/stellar/htaccess.template
           grep -Fq 'requireAdmin()' src/Controller/DownloadController.php
+
+  # Isolated Namecheap Stellar staging publication/rollback via workflow_dispatch.
+  # Requires repository variable STELLAR_STAGING_DEPLOY_ENABLED=true and private
+  # staging secrets inside the GitHub Environment `stellar-staging`.
+  deploy-stellar-staging:
+    name: "Deploy: Namecheap Stellar (staging)"
+    if: github.event_name == 'workflow_dispatch' && inputs.stellar_target == 'staging' && vars.STELLAR_STAGING_DEPLOY_ENABLED == 'true'
+    needs:
+      - storage-tests
+      - system-tests
+      - doctrine-compose
+      - regression-tests
+      - static-checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: stellar-staging
+    concurrency:
+      group: deploy-stellar-staging
+      cancel-in-progress: false
+    steps:
+      - name: Checkout tested revision
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@8358ee0e2e8afe63c2fb8253d1d52085811ab1e5 # v2
+        with:
+          php-version: '8.5'
+          extensions: curl, fileinfo, gd, iconv, mbstring, openssl, pdo_mysql, simplexml
+          coverage: none
+
+      - name: Install locked production dependencies
+        if: inputs.stellar_action == 'deploy'
+        run: composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
+      - name: Package secret-free staging release archive
+        if: inputs.stellar_action == 'deploy'
+        id: package
+        run: |
+          RELEASE_ID="staging-$(date -u +%Y%m%d%H%M%S)-${GITHUB_SHA::8}"
+          ARCHIVE="${RUNNER_TEMP}/amea-release-${RELEASE_ID}.tar.gz"
+          php scripts/stellar/package.php --output="${ARCHIVE}" --release-id="${RELEASE_ID}"
+          echo "release_id=${RELEASE_ID}" >> "${GITHUB_OUTPUT}"
+          echo "archive=${ARCHIVE}" >> "${GITHUB_OUTPUT}"
+
+      - name: Render private staging runtime configuration
+        if: inputs.stellar_action == 'deploy'
+        id: runtime_env
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          PUBLIC_APP_URL: ${{ secrets.PUBLIC_APP_URL }}
+          STAFF_APP_URL: ${{ secrets.STAFF_APP_URL }}
+          MAIL_USER: ${{ secrets.MAIL_USER }}
+          MAIL_PASS: ${{ secrets.MAIL_PASS }}
+          MAIL_ASYNC: ${{ secrets.MAIL_ASYNC }}
+          STORAGE_DRIVER: ${{ secrets.STORAGE_DRIVER }}
+          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
+          S3_REGION: ${{ secrets.S3_REGION }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          S3_PATH_STYLE: ${{ secrets.S3_PATH_STYLE }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          ENV_STAGE="${RUNNER_TEMP}/runtime-${{ steps.package.outputs.release_id }}.env"
+          php scripts/stellar/render-runtime-env.php --output="${ENV_STAGE}" --app-env=staging
+          echo "config_source=${ENV_STAGE}" >> "${GITHUB_OUTPUT}"
+
+      - name: Publish or roll back Stellar staging over pinned SSH
+        env:
+          STELLAR_SSH_HOST: ${{ secrets.STELLAR_SSH_HOST }}
+          STELLAR_SSH_PORT: ${{ secrets.STELLAR_SSH_PORT }}
+          STELLAR_SSH_USER: ${{ secrets.STELLAR_SSH_USER }}
+          STELLAR_SSH_PRIVATE_KEY: ${{ secrets.STELLAR_SSH_PRIVATE_KEY }}
+          STELLAR_SSH_KNOWN_HOSTS: ${{ secrets.STELLAR_SSH_KNOWN_HOSTS }}
+          STELLAR_BASE_DIR: ${{ secrets.STELLAR_BASE_DIR }}
+          STELLAR_PUBLIC_DOCROOT: ${{ secrets.STELLAR_PUBLIC_DOCROOT }}
+          STELLAR_STAFF_DOCROOT: ${{ secrets.STELLAR_STAFF_DOCROOT }}
+          STELLAR_PHP_CLI: ${{ secrets.STELLAR_PHP_CLI }}
+          STELLAR_PHP_INI_SCAN_DIR: ${{ secrets.STELLAR_PHP_INI_SCAN_DIR }}
+          STELLAR_PHP_HANDLER: '1'
+          STELLAR_STAGING_AUTH_FILE: ${{ secrets.STELLAR_STAGING_AUTH_FILE }}
+        run: |
+          if [[ "${{ inputs.stellar_action }}" == "rollback" ]]; then
+            bash scripts/stellar/publish.sh --mode=rollback
+          else
+            bash scripts/stellar/publish.sh \
+              --mode=deploy \
+              --archive="${{ steps.package.outputs.archive }}" \
+              --config-source="${{ steps.runtime_env.outputs.config_source }}" \
+              --release-id="${{ steps.package.outputs.release_id }}"
+          fi
+
+      - name: Verify live staging split HTTP boundaries
+        env:
+          PUBLIC_APP_URL: ${{ secrets.PUBLIC_APP_URL }}
+          STAFF_APP_URL: ${{ secrets.STAFF_APP_URL }}
+          STELLAR_STAGING_BASIC_AUTH: ${{ secrets.STELLAR_STAGING_BASIC_AUTH }}
+        run: |
+          php scripts/stellar/verify-http.php \
+            --public-url="${PUBLIC_APP_URL}" \
+            --staff-url="${STAFF_APP_URL}" \
+            --basic-auth-env=STELLAR_STAGING_BASIC_AUTH
+
+      - name: Clean temporary staging artifacts
+        if: always()
+        run: |
+          rm -f "${{ steps.package.outputs.archive }}" "${{ steps.runtime_env.outputs.config_source }}"
+
+  # Serialized production deployment to Namecheap Stellar on tested pushes to main.
+  # Pull requests remain validation-only. Activated only after explicit cutover
+  # approval by configuring the `production` GitHub Environment secrets and
+  # setting repository variable STELLAR_DEPLOY_ENABLED=true.
+  deploy-stellar:
+    name: "Deploy: Namecheap Stellar (main)"
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.STELLAR_DEPLOY_ENABLED == 'true'
+    needs:
+      - storage-tests
+      - system-tests
+      - doctrine-compose
+      - regression-tests
+      - static-checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    concurrency:
+      group: deploy-stellar-production
+      cancel-in-progress: false
+    steps:
+      - name: Checkout tested commit
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@8358ee0e2e8afe63c2fb8253d1d52085811ab1e5 # v2
+        with:
+          php-version: '8.5'
+          extensions: curl, fileinfo, gd, iconv, mbstring, openssl, pdo_mysql, simplexml
+          coverage: none
+
+      - name: Install locked production dependencies
+        run: composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
+      - name: Package secret-free release archive
+        id: package
+        run: |
+          RELEASE_ID="$(date -u +%Y%m%d%H%M%S)-${GITHUB_SHA::8}"
+          ARCHIVE="${RUNNER_TEMP}/amea-release-${RELEASE_ID}.tar.gz"
+          php scripts/stellar/package.php --output="${ARCHIVE}" --release-id="${RELEASE_ID}"
+          echo "release_id=${RELEASE_ID}" >> "${GITHUB_OUTPUT}"
+          echo "archive=${ARCHIVE}" >> "${GITHUB_OUTPUT}"
+
+      - name: Render private production runtime configuration
+        id: runtime_env
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          PUBLIC_APP_URL: ${{ secrets.PUBLIC_APP_URL }}
+          STAFF_APP_URL: ${{ secrets.STAFF_APP_URL }}
+          MAIL_USER: ${{ secrets.MAIL_USER }}
+          MAIL_PASS: ${{ secrets.MAIL_PASS }}
+          MAIL_ASYNC: ${{ secrets.MAIL_ASYNC }}
+          STORAGE_DRIVER: ${{ secrets.STORAGE_DRIVER }}
+          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
+          S3_REGION: ${{ secrets.S3_REGION }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          S3_PATH_STYLE: ${{ secrets.S3_PATH_STYLE }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          ENV_STAGE="${RUNNER_TEMP}/runtime-${{ steps.package.outputs.release_id }}.env"
+          php scripts/stellar/render-runtime-env.php --output="${ENV_STAGE}" --app-env=production
+          echo "config_source=${ENV_STAGE}" >> "${GITHUB_OUTPUT}"
+
+      - name: Publish and promote atomically over pinned SSH
+        env:
+          STELLAR_SSH_HOST: ${{ secrets.STELLAR_SSH_HOST }}
+          STELLAR_SSH_PORT: ${{ secrets.STELLAR_SSH_PORT }}
+          STELLAR_SSH_USER: ${{ secrets.STELLAR_SSH_USER }}
+          STELLAR_SSH_PRIVATE_KEY: ${{ secrets.STELLAR_SSH_PRIVATE_KEY }}
+          STELLAR_SSH_KNOWN_HOSTS: ${{ secrets.STELLAR_SSH_KNOWN_HOSTS }}
+          STELLAR_BASE_DIR: ${{ secrets.STELLAR_BASE_DIR }}
+          STELLAR_PUBLIC_DOCROOT: ${{ secrets.STELLAR_PUBLIC_DOCROOT }}
+          STELLAR_STAFF_DOCROOT: ${{ secrets.STELLAR_STAFF_DOCROOT }}
+          STELLAR_PHP_CLI: ${{ secrets.STELLAR_PHP_CLI }}
+          STELLAR_PHP_INI_SCAN_DIR: ${{ secrets.STELLAR_PHP_INI_SCAN_DIR }}
+          STELLAR_PHP_HANDLER: '1'
+        run: |
+          bash scripts/stellar/publish.sh \
+            --mode=deploy \
+            --archive="${{ steps.package.outputs.archive }}" \
+            --config-source="${{ steps.runtime_env.outputs.config_source }}" \
+            --release-id="${{ steps.package.outputs.release_id }}"
+
+      - name: Verify live production split HTTP boundaries
+        env:
+          PUBLIC_APP_URL: ${{ secrets.PUBLIC_APP_URL }}
+          STAFF_APP_URL: ${{ secrets.STAFF_APP_URL }}
+        run: |
+          php scripts/stellar/verify-http.php \
+            --public-url="${PUBLIC_APP_URL}" \
+            --staff-url="${STAFF_APP_URL}"
+
+      - name: Clean temporary release artifacts
+        if: always()
+        run: |
+          rm -f "${{ steps.package.outputs.archive }}" "${{ steps.runtime_env.outputs.config_source }}"

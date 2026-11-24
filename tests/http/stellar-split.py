@@ -77,26 +77,31 @@ with tempfile.TemporaryDirectory(prefix='amea-stellar-e2e-') as tmp:
     os.chmod(auth_file, 0o600)
 
     runtime_cfg = work / 'staged-runtime.env'
-    runtime_cfg.write_text('\n'.join([
-        'APP_ENV=production',
-        'DB_HOST=127.0.0.1',
-        'DB_PORT=3306',
-        'DB_NAME=amea_synthetic',
-        'DB_USER=amea_user',
-        'DB_PASS=synthetic-pass',
-        'PUBLIC_APP_URL=https://aeesgs.example',
-        'STAFF_APP_URL=https://admin.aeesgs.example',
-        'MAIL_USER=synthetic@example.invalid',
-        'MAIL_PASS=synthetic-smtp-key',
-        'MAIL_ASYNC=1',
-        'STORAGE_DRIVER=s3',
-        'R2_ACCOUNT_ID=0123456789abcdef0123456789abcdef',
-        'R2_BUCKET_NAME=amea-prod-synthetic',
-        'R2_ACCESS_KEY_ID=synthetic-key',
-        'R2_SECRET_ACCESS_KEY=synthetic-secret',
-        '',
-    ]))
-    os.chmod(runtime_cfg, 0o600)
+    render_env = {
+        **SAFE_ENV,
+        'DB_HOST': '127.0.0.1',
+        'DB_PORT': '3306',
+        'DB_NAME': 'amea_synthetic',
+        'DB_USER': 'amea_user',
+        'DB_PASS': 'synthetic-pass',
+        'PUBLIC_APP_URL': 'https://aeesgs.example',
+        'STAFF_APP_URL': 'https://admin.aeesgs.example',
+        'MAIL_USER': 'synthetic@example.invalid',
+        'MAIL_PASS': 'synthetic-smtp-key',
+        'MAIL_ASYNC': '1',
+        'STORAGE_DRIVER': 's3',
+        'R2_ACCOUNT_ID': '0123456789abcdef0123456789abcdef',
+        'R2_BUCKET_NAME': 'amea-prod-synthetic',
+        'R2_ACCESS_KEY_ID': 'synthetic-key',
+        'R2_SECRET_ACCESS_KEY': 'synthetic-secret',
+    }
+    render_res = subprocess.run(
+        ['php', str(ROOT / 'scripts/stellar/render-runtime-env.php'), f'--output={runtime_cfg}', '--app-env=production'],
+        cwd=ROOT, env=render_env, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+    )
+    check('synthetic-pass' not in render_res.stdout and 'synthetic-secret' not in render_res.stdout,
+          'render-runtime-env.php never echoes secret values')
+    check((runtime_cfg.stat().st_mode & 0o077) == 0, 'render-runtime-env.php writes 0600 file')
 
     def run_deploy(*extra):
         return subprocess.run(
@@ -271,6 +276,25 @@ require '{docroot}/index.php';
         for pub_only in ('/register.php', '/journal.php'):
             code, _, _ = request(staff_base, pub_only)
             check(code == 404, f'staff packaged entry denies public-only {pub_only}')
+
+        # verify-http.php validates the packaged split HTTP boundaries and fails closed if Basic Auth is expected but absent.
+        verify_http = subprocess.run(
+            ['php', str(ROOT / 'scripts/stellar/verify-http.php'), f'--public-url={pub_base}', f'--staff-url={staff_base}'],
+            cwd=ROOT, env=SAFE_ENV, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+        )
+        check(verify_http.returncode == 0, f'verify-http.php passed on packaged split servers ({verify_http.stdout.strip()} {verify_http.stderr.strip()})')
+
+        verify_http_auth_fail = subprocess.run(
+            [
+                'php', str(ROOT / 'scripts/stellar/verify-http.php'),
+                f'--public-url={pub_base}', f'--staff-url={staff_base}',
+                '--basic-auth-env=STELLAR_STAGING_BASIC_AUTH',
+            ],
+            cwd=ROOT, env={**SAFE_ENV, 'STELLAR_STAGING_BASIC_AUTH': 'stage:secret-pass'},
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+        )
+        check(verify_http_auth_fail.returncode != 0 and 'secret-pass' not in verify_http_auth_fail.stdout,
+              'verify-http.php fails closed when expected Basic Auth 401 challenge is missing')
 
         pub_sessions = list((base_dir / 'shared/state/sessions/public').glob('sess_*'))
         staff_sessions = list((base_dir / 'shared/state/sessions/staff').glob('sess_*'))
