@@ -25,6 +25,9 @@ class Session
         }
         new self();
         $id = $_COOKIE[session_name()] ?? '';
+        if ((!is_string($id) || $id === '') && ($legacy = self::legacyPublicSessionId()) !== null) {
+            $id = $legacy;
+        }
         $directory = session_save_path();
         if (!is_string($id) || !preg_match('/^[A-Za-z0-9,-]{1,256}$/D', $id)
             || $directory === '' || str_contains($directory, ';')
@@ -71,12 +74,60 @@ class Session
         if (PHP_SAPI !== 'cli') {
             FileWriteGate::admitHttp();
         }
+        $adoptedLegacy = false;
         if (session_status() === PHP_SESSION_NONE) {
+            if (!self::$readOnly) {
+                $legacyId = self::legacyPublicSessionId();
+                if ($legacyId !== null) {
+                    session_id($legacyId);
+                    $adoptedLegacy = true;
+                }
+            }
             if (!session_start(self::$readOnly ? ['read_and_close' => true] : [])) {
                 throw new \RuntimeException('Unable to read the selected session.');
             }
+            if ($adoptedLegacy) {
+                $this->completeLegacyPublicHandover();
+            }
         }
         $this->checkExpiry();
+    }
+
+    private static function legacyPublicSessionId(): ?string
+    {
+        if (!defined('AMEA_APP') || AMEA_APP !== 'public') {
+            return null;
+        }
+        $current = $_COOKIE['AMEA_PUBLIC'] ?? '';
+        if (is_string($current) && $current !== '') {
+            return null;
+        }
+        $legacyId = $_COOKIE['PHPSESSID'] ?? '';
+        $directory = session_save_path();
+        if (!is_string($legacyId) || !preg_match('/^[A-Za-z0-9,-]{1,256}$/D', $legacyId)
+            || $directory === '' || str_contains($directory, ';')
+            || is_link($directory . '/sess_' . $legacyId) || !is_file($directory . '/sess_' . $legacyId)) {
+            return null;
+        }
+        return $legacyId;
+    }
+
+    private function completeLegacyPublicHandover(): void
+    {
+        unset($_SESSION['user_id'], $_SESSION['role'], $_SESSION['session_version'], $_SESSION['staff_return_to']);
+        if (!isset($_SESSION['pending_registration']) || !is_array($_SESSION['pending_registration'])) {
+            $_SESSION = [];
+        }
+        session_regenerate_id(true);
+        if (PHP_SAPI !== 'cli' && !headers_sent()) {
+            setcookie('PHPSESSID', '', [
+                'expires' => 1,
+                'path' => '/',
+                'secure' => true,
+                'httponly' => true,
+                'samesite' => 'Strict',
+            ]);
+        }
     }
 
     public function startRequest(): void

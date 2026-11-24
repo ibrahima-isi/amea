@@ -93,7 +93,7 @@ final class Inventory
             throw new StorageException('Source directory is inaccessible.');
         }
         $known = ['uploads', 'uploads/students', 'uploads/students/cvs', 'uploads/students/identity',
-            'uploads/students/pending', 'uploads/slider', 'uploads/journal'];
+            'uploads/students/pending', 'uploads/students/pending/cvs', 'uploads/slider', 'uploads/journal'];
         if (!in_array($key, $known, true)) {
             $manifest->issues[] = ['type' => 'unknown-directory', 'key' => mb_check_encoding($key, 'UTF-8') ? $key : base64_encode($key), 'key_encoding' => mb_check_encoding($key, 'UTF-8') ? 'utf8' : 'base64', 'disposition' => null];
         }

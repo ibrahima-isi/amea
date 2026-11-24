@@ -140,7 +140,12 @@ final class RecoverySnapshot
                 || $this->namespaceIdentity($backend) === $snapshot['namespace']) {
                 throw new StorageException('Restore requires a separate empty object namespace.');
             }
-            if (array_keys($sessions) !== array_map(static fn ($key) => substr($key, 9), array_filter(array_keys($snapshot['trees']), static fn ($key) => str_starts_with($key, 'sessions/')))) {
+            $capturedRoles = array_values(array_map(
+                static fn ($key) => substr($key, 9),
+                array_filter(array_keys($snapshot['trees']), static fn ($key) => str_starts_with($key, 'sessions/'))
+            ));
+            $singleToSplit = $capturedRoles === ['app'] && array_keys($sessions) === ['public', 'staff'];
+            if (!$singleToSplit && array_keys($sessions) !== $capturedRoles) {
                 throw new StorageException('Restore must select every captured session role.');
             }
             foreach ($sessions as $path) {
@@ -194,9 +199,20 @@ final class RecoverySnapshot
                     throw new StorageException('Restored object verification failed. Target remains paused.');
                 }
             }
-            foreach ($sessions as $role => $path) {
-                $this->assertRole($role);
-                $this->restoreTree($directory . '/sessions/' . $role, $path, $snapshot['trees']['sessions/' . $role]);
+            if ($singleToSplit) {
+                $restoredSessionTrees = LegacySessionTransition::restoreSingleToSplit(
+                    $directory . '/sessions/app',
+                    $sessions['public'],
+                    $snapshot['trees']['sessions/app'],
+                    $snapshot['configuration']['serializer']
+                );
+            } else {
+                $restoredSessionTrees = [];
+                foreach ($sessions as $role => $path) {
+                    $this->assertRole($role);
+                    $this->restoreTree($directory . '/sessions/' . $role, $path, $snapshot['trees']['sessions/' . $role]);
+                    $restoredSessionTrees[$role] = $snapshot['trees']['sessions/' . $role];
+                }
             }
             $this->restoreTree($directory . '/storage', $persistentStorage, $snapshot['trees']['storage']);
             $this->assertReferences($db, $backend, $sessions, $snapshot['configuration']['serializer'], $reviewed);
@@ -208,6 +224,7 @@ final class RecoverySnapshot
             $state['restore']['completed_at'] = microtime(true);
             $state['restore']['application_backend'] = $applicationBackend;
             $state['restore']['database_sha256'] = $this->databaseFingerprint($db);
+            $state['restore']['session_trees'] = $restoredSessionTrees;
             $this->gate->record($state);
             return $state['restore'];
         });
@@ -233,12 +250,32 @@ final class RecoverySnapshot
             if (($state['restore']['database_sha256'] ?? '') !== $this->databaseFingerprint($db)) {
                 throw new StorageException('Restored database changed before reopening.');
             }
+            $expectedSessionTrees = $state['restore']['session_trees'] ?? null;
             foreach ($sessions as $role => $path) {
-                foreach ($snapshot['trees']['sessions/' . $role] as $relative => $metadata) {
+                $expectedFiles = is_array($expectedSessionTrees) && array_key_exists($role, $expectedSessionTrees)
+                    ? $expectedSessionTrees[$role]
+                    : $snapshot['trees']['sessions/' . $role];
+                foreach ($expectedFiles as $relative => $metadata) {
                     $this->assertRelative($relative);
                     if (is_link($path . '/' . $relative) || !is_file($path . '/' . $relative)
                         || hash_file('sha256', $path . '/' . $relative) !== $metadata['sha256']) {
                         throw new StorageException('Restored session state changed before reopening.');
+                    }
+                }
+                if (is_array($expectedSessionTrees)) {
+                    $actualFiles = [];
+                    $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS));
+                    foreach ($iterator as $file) {
+                        if ($file->isLink() || !$file->isFile()) {
+                            throw new StorageException('Restored session store contains an unsafe entry.');
+                        }
+                        $actualFiles[] = substr($file->getPathname(), strlen($path) + 1);
+                    }
+                    sort($actualFiles);
+                    $expectedList = array_keys($expectedFiles);
+                    sort($expectedList);
+                    if ($actualFiles !== $expectedList) {
+                        throw new StorageException('Restored session store file set changed before reopening.');
                     }
                 }
             }
@@ -273,10 +310,12 @@ final class RecoverySnapshot
             throw new StorageException('Snapshot reference approvals differ from their original migration identity.');
         }
         $owners = [];
+        $singleToSplit = array_keys($snapshot['sessions']) === ['app'] && array_keys($sessions) === ['public', 'staff'];
         foreach ($snapshot['sessions'] as $role => $path) {
+            $targetRole = $singleToSplit && $role === 'app' ? 'public' : $role;
             foreach ($snapshot['trees']['sessions/' . $role] as $relative => $metadata) {
                 $this->assertRelative($relative);
-                $owners[hash('sha256', $path . '/' . $relative)] = hash('sha256', $sessions[$role] . '/' . $relative);
+                $owners[hash('sha256', $path . '/' . $relative)] = hash('sha256', $sessions[$targetRole] . '/' . $relative);
             }
         }
         foreach ($reviewed->references as &$reference) {
