@@ -25,10 +25,10 @@ class Session
         }
         new self();
         $id = $_COOKIE[session_name()] ?? '';
-        $directory = session_save_path();
-        if (!is_string($id) || !preg_match('/^[A-Za-z0-9,-]{1,256}$/D', $id)
-            || $directory === '' || str_contains($directory, ';')
-            || is_link($directory . '/sess_' . $id) || !is_file($directory . '/sess_' . $id)) {
+        if ((!is_string($id) || $id === '') && ($legacy = self::legacyPublicSessionId()) !== null) {
+            $id = $legacy;
+        }
+        if (!is_string($id) || !self::hasRegularSessionFile($id)) {
             return false;
         }
         // Files handler GC can delete other sessions even during read_and_close.
@@ -71,12 +71,69 @@ class Session
         if (PHP_SAPI !== 'cli') {
             FileWriteGate::admitHttp();
         }
+        $adoptedLegacy = false;
         if (session_status() === PHP_SESSION_NONE) {
+            if (!self::$readOnly) {
+                $legacyId = self::legacyPublicSessionId();
+                if ($legacyId !== null) {
+                    session_id($legacyId);
+                    $adoptedLegacy = true;
+                }
+            }
             if (!session_start(self::$readOnly ? ['read_and_close' => true] : [])) {
                 throw new \RuntimeException('Unable to read the selected session.');
             }
+            if ($adoptedLegacy) {
+                $this->completeLegacyPublicHandover();
+            }
         }
         $this->checkExpiry();
+    }
+
+    private static function legacyPublicSessionId(): ?string
+    {
+        if (!defined('AMEA_APP') || AMEA_APP !== 'public') {
+            return null;
+        }
+        $current = $_COOKIE['AMEA_PUBLIC'] ?? '';
+        if (is_string($current) && $current !== '') {
+            return null;
+        }
+        $legacyId = $_COOKIE['PHPSESSID'] ?? '';
+        if (!is_string($legacyId) || !self::hasRegularSessionFile($legacyId)) {
+            return null;
+        }
+        return $legacyId;
+    }
+
+    private static function hasRegularSessionFile(string $id): bool
+    {
+        $directory = session_save_path();
+        return preg_match('/^[A-Za-z0-9,-]{1,256}$/D', $id) === 1
+            && $directory !== '' && !str_contains($directory, ';')
+            && !is_link($directory . '/sess_' . $id) && is_file($directory . '/sess_' . $id);
+    }
+
+    private function completeLegacyPublicHandover(): void
+    {
+        if (!isset($_SESSION['pending_registration']) || !is_array($_SESSION['pending_registration'])) {
+            $_SESSION = [];
+        } else {
+            $_SESSION = array_intersect_key(
+                $_SESSION,
+                array_flip(['pending_registration', 'csrf_token', 'last_activity', 'flash'])
+            );
+        }
+        session_regenerate_id(true);
+        if (PHP_SAPI !== 'cli' && !headers_sent()) {
+            setcookie('PHPSESSID', '', [
+                'expires' => 1,
+                'path' => '/',
+                'secure' => true,
+                'httponly' => true,
+                'samesite' => 'Strict',
+            ]);
+        }
     }
 
     public function startRequest(): void

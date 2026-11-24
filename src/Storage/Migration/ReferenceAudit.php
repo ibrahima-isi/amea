@@ -337,7 +337,7 @@ final class ReferenceAudit
                 if ($bytes === false || strlen($bytes) > 16 * 1024 * 1024 || !feof($handle)) {
                     throw new StorageException('Private session record exceeds the safe audit limit.');
                 }
-                $data = $this->decodeSession($bytes);
+                $data = self::decodeSessionBytes($bytes, $this->serializer);
             } finally {
                 flock($handle, LOCK_UN);
                 fclose($handle);
@@ -356,11 +356,11 @@ final class ReferenceAudit
     }
 
     /** Decode supported PHP session formats without sessions, classes or object hooks. */
-    private function decodeSession(string $bytes): array
+    public static function decodeSessionBytes(string $bytes, string $serializer): array
     {
         $position = 0;
-        if ($this->serializer === 'php_serialize') {
-            $result = $this->serializedValue($bytes, $position);
+        if ($serializer === 'php_serialize') {
+            $result = self::serializedValue($bytes, $position);
             if (!is_array($result) || $position !== strlen($bytes)) {
                 throw new StorageException('Invalid private session serialization.');
             }
@@ -368,7 +368,7 @@ final class ReferenceAudit
         }
         $result = [];
         while ($position < strlen($bytes)) {
-            if ($this->serializer === 'php_binary') {
+            if ($serializer === 'php_binary') {
                 $length = ord($bytes[$position++]);
                 if ($length > 127 || $length === 0 || $position + $length > strlen($bytes)) {
                     throw new StorageException('Invalid binary session field.');
@@ -386,12 +386,12 @@ final class ReferenceAudit
             if (array_key_exists($key, $result)) {
                 throw new StorageException('Duplicate private session field.');
             }
-            $result[$key] = $this->serializedValue($bytes, $position);
+            $result[$key] = self::serializedValue($bytes, $position);
         }
         return $result;
     }
 
-    private function serializedValue(string $bytes, int &$position, int $depth = 0): mixed
+    private static function serializedValue(string $bytes, int &$position, int $depth = 0): mixed
     {
         if ($depth > 64 || $position >= strlen($bytes)) {
             throw new StorageException('Invalid or excessively nested private session value.');
@@ -426,11 +426,11 @@ final class ReferenceAudit
             $position += strlen($match[0]);
             $value = [];
             for ($index = 0; $index < $count; $index++) {
-                $key = $this->serializedValue($bytes, $position, $depth + 1);
+                $key = self::serializedValue($bytes, $position, $depth + 1);
                 if ((!is_string($key) && !is_int($key)) || array_key_exists($key, $value)) {
                     throw new StorageException('Invalid or duplicate serialized array key.');
                 }
-                $value[$key] = $this->serializedValue($bytes, $position, $depth + 1);
+                $value[$key] = self::serializedValue($bytes, $position, $depth + 1);
             }
             if (substr($bytes, $position, 1) !== '}') {
                 throw new StorageException('Invalid serialized array boundary.');
