@@ -1,11 +1,10 @@
 # Active work
 
-Current local tracker after memory cleanup on 24 November 2026 (baseline `main` at `6861587`). Only the four items below remain open; triage status is separate from execution authorization.
+Current local tracker as of 26 November 2026 (baseline `main` at `688a6b2`). Only the three items below remain open; triage status is separate from execution authorization.
 
 | Active effort | Completion checklist | Status / remaining work |
 | --- | --- | --- |
-| [Namecheap Stellar return](namecheap-stellar-return/spec.md) | [completion.md](namecheap-stellar-return/completion.md) | Ticket 01 complete; Ticket 02 staging checks complete except GitHub Actions `deploy-stellar` workflow job; Tickets 03–04 pending merge of PR #59. |
-| [Portable object storage](object-storage/spec.md) | [completion.md](object-storage/completion.md) | Tickets 01–05 complete; [Ticket 06](object-storage/issues/06-production-transition.md) (`ready-for-human`) awaits explicit approval of the live production transition. |
+| [Portable object storage](object-storage/spec.md) | [completion.md](object-storage/completion.md) | Tickets 01–05 complete; [Ticket 06](object-storage/issues/06-production-transition.md) (`ready-for-human`) awaits explicit approval of the live production transition using the [Stellar production transition proposal](../docs/operations/stellar-production-transition.md). |
 | [Association-journal browser acceptance](association-journal/issues/04-integrated-qualification.md) | [completion.md](association-journal/completion.md) | `ready-for-human` — user-deferred browser QA ([checklist](association-journal/browser-qa.md)). |
 | [Orphan-test triage](chores/triage-orphan-tests/spec.md) | — | `needs-triage` — classify remaining standalone scripts under `tests/`. |
 
@@ -15,6 +14,7 @@ Completed feature directories are removed from `.scratch/` once closed; full his
 
 | Completed effort | Verified delivery | Preserved record |
 | --- | --- | --- |
+| Namecheap Stellar return (tickets 01–04) | PRs #58, #59, #61, #62 merged; live GitHub Actions staging deploy `#45735874309` & rollback `#45736362407` passed; proposal promoted to [stellar-production-transition.md](../docs/operations/stellar-production-transition.md) | [Record at `688a6b2`](https://github.com/ibrahima-isi/amea/blob/688a6b2a7af7d814c0d30f0e4422f71944258231/.scratch/namecheap-stellar-return/completion.md) |
 | Public navbar design | PR #56 merged (`3e769d4`) | [Record at `6861587`](https://github.com/ibrahima-isi/amea/blob/6861587753a4fc6fd2551d7f8b9c766ad3135ee6/.scratch/public-navbar-design/completion.md) |
 | AEESGS backoffice redesign | PR #54 merged (`4949909`) | [Record at `6861587`](https://github.com/ibrahima-isi/amea/blob/6861587753a4fc6fd2551d7f8b9c766ad3135ee6/.scratch/aeesgs-backoffice-redesign/completion.md) |
 | Composer OOP split entry points & Stellar reconciliation | PRs #39, #47, #48 merged | [Record at `6861587`](https://github.com/ibrahima-isi/amea/blob/6861587753a4fc6fd2551d7f8b9c766ad3135ee6/.scratch/composer-oop/completion.md) |

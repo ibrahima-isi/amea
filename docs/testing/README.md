@@ -14,6 +14,7 @@ python3 tests/http/baseline.py
 python3 tests/http/tokens.py
 python3 tests/http/internals.py
 python3 tests/http/permissions.py
+python3 tests/http/write-gate.py
 python3 tests/http/stellar-split.py
 ```
 

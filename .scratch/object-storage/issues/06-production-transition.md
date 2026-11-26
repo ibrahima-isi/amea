@@ -22,3 +22,5 @@ Execute [plan Task 6](../plan.md#task-6--approved-production-transition) under t
 ## Comments
 
 2026-11-12 — Human-owned because selecting/approving the live resources and executing a production change require explicit operator involvement under AGENTS.md. Design approval and ticket readiness do not constitute that approval.
+
+2026-11-26 — The Stellar qualification, transfer rehearsal, and GitHub Actions staging publication path are complete; the operator approval package now lives at [stellar-production-transition.md](../../../docs/operations/stellar-production-transition.md).
