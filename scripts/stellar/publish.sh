@@ -13,6 +13,9 @@ MODE="deploy"
 ARCHIVE=""
 CONFIG_SOURCE=""
 RELEASE_ID=""
+PUBLIC_URL=""
+STAFF_URL=""
+BASIC_AUTH_ENV=""
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEPLOY_SCRIPT="${SCRIPT_DIR}/deploy.sh"
 
@@ -21,6 +24,7 @@ usage() {
 Usage:
   publish.sh --mode=deploy --archive=FILE --config-source=FILE --release-id=ID
   publish.sh --mode=rollback
+  publish.sh --mode=verify-http --public-url=URL --staff-url=URL [--basic-auth-env=VAR]
 EOF
     exit 2
 }
@@ -31,11 +35,14 @@ for arg in "$@"; do
         --archive=*) ARCHIVE="${arg#*=}" ;;
         --config-source=*) CONFIG_SOURCE="${arg#*=}" ;;
         --release-id=*) RELEASE_ID="${arg#*=}" ;;
+        --public-url=*) PUBLIC_URL="${arg#*=}" ;;
+        --staff-url=*) STAFF_URL="${arg#*=}" ;;
+        --basic-auth-env=*) BASIC_AUTH_ENV="${arg#*=}" ;;
         *) usage ;;
     esac
 done
 
-[[ "$MODE" == "deploy" || "$MODE" == "rollback" ]] || usage
+[[ "$MODE" == "deploy" || "$MODE" == "rollback" || "$MODE" == "verify-http" ]] || usage
 
 for required_var in STELLAR_SSH_HOST STELLAR_SSH_USER STELLAR_BASE_DIR STELLAR_PUBLIC_DOCROOT STELLAR_STAFF_DOCROOT; do
     if [[ -z "${!required_var:-}" ]]; then
@@ -64,6 +71,18 @@ if [[ "$MODE" == "deploy" ]]; then
     [[ -n "$ARCHIVE" && -f "$ARCHIVE" && -n "$CONFIG_SOURCE" && -f "$CONFIG_SOURCE" && -n "$RELEASE_ID" ]] || usage
     [[ "$RELEASE_ID" =~ ^[A-Za-z0-9._-]{1,64}$ ]] || { echo "Invalid --release-id format." >&2; exit 2; }
     [[ -f "$DEPLOY_SCRIPT" ]] || { echo "Missing deploy.sh alongside publish.sh." >&2; exit 1; }
+elif [[ "$MODE" == "verify-http" ]]; then
+    [[ -n "$PUBLIC_URL" && -n "$STAFF_URL" ]] || usage
+    if [[ -n "$BASIC_AUTH_ENV" ]]; then
+        [[ "$BASIC_AUTH_ENV" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || {
+            echo "Invalid --basic-auth-env variable name." >&2
+            exit 2
+        }
+        if [[ -z "${!BASIC_AUTH_ENV:-}" ]]; then
+            echo "Environment variable ${BASIC_AUTH_ENV} is required when --basic-auth-env is specified." >&2
+            exit 2
+        fi
+    fi
 fi
 
 TMP_SSH_DIR="$(mktemp -d "${TMPDIR:-/tmp}/amea-stellar-ssh.XXXXXX")"
@@ -115,6 +134,22 @@ q() {
 
 REMOTE="${STELLAR_SSH_USER}@${STELLAR_SSH_HOST}"
 REMOTE_STAGE=""
+
+if [[ "$MODE" == "verify-http" ]]; then
+    VERIFY_SCRIPT="${STELLAR_BASE_DIR}/current/scripts/stellar/verify-http.php"
+    REMOTE_PREFIX="set -euo pipefail; umask 077;"
+    if [[ -n "${PHP_INI_SCAN}" ]]; then
+        REMOTE_PREFIX="${REMOTE_PREFIX} export PHP_INI_SCAN_DIR=$(q "${PHP_INI_SCAN}");"
+    fi
+    if [[ -n "${BASIC_AUTH_ENV}" ]]; then
+        REMOTE_VERIFY="${REMOTE_PREFIX} IFS= read -r STELLAR_VERIFY_BASIC_AUTH; export STELLAR_VERIFY_BASIC_AUTH; $(q "${PHP_BIN}") $(q "${VERIFY_SCRIPT}") --public-url=$(q "${PUBLIC_URL}") --staff-url=$(q "${STAFF_URL}") --basic-auth-env=STELLAR_VERIFY_BASIC_AUTH"
+        printf '%s\n' "${!BASIC_AUTH_ENV}" | ssh "${SSH_OPTS[@]}" "${REMOTE}" "${REMOTE_VERIFY}"
+    else
+        REMOTE_VERIFY="${REMOTE_PREFIX} $(q "${PHP_BIN}") $(q "${VERIFY_SCRIPT}") --public-url=$(q "${PUBLIC_URL}") --staff-url=$(q "${STAFF_URL}")"
+        ssh "${SSH_OPTS[@]}" "${REMOTE}" "${REMOTE_VERIFY}" </dev/null
+    fi
+    exit 0
+fi
 
 if [[ "$MODE" == "deploy" ]]; then
     REMOTE_STAGE="${STELLAR_BASE_DIR}/tmp-deploy-${RELEASE_ID}"

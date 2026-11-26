@@ -200,20 +200,21 @@ final class PublicationScriptsTest extends TestCase
         $logFile = $this->tmpDir . '/ssh-calls.log';
 
         foreach (['ssh', 'scp'] as $tool) {
+            $stdinLog = $this->tmpDir . '/ssh-stdin.log';
             $script = "#!/usr/bin/env bash\n"
                 . "set -euo pipefail\n"
                 . "printf '%s:' '{$tool}' >> \"{$logFile}\"\n"
                 . "for a in \"\$@\"; do printf ' [%s]' \"\$a\" >> \"{$logFile}\"; done\n"
                 . "printf '\\n' >> \"{$logFile}\"\n"
                 . "if [[ '{$tool}' == 'ssh' ]]; then\n"
-                . "  cat >/dev/null || true\n"
+                . "  cat >> \"{$stdinLog}\" || true\n"
                 . "fi\n";
             $path = $binDir . '/' . $tool;
             file_put_contents($path, $script);
             chmod($path, 0700);
         }
 
-        return ['binDir' => $binDir, 'logFile' => $logFile];
+        return ['binDir' => $binDir, 'logFile' => $logFile, 'stdinLog' => $this->tmpDir . '/ssh-stdin.log'];
     }
 
     public function testPublishShDeployAndRollbackUsePinnedSshAndForwardStellarOptions(): void
@@ -302,6 +303,86 @@ final class PublicationScriptsTest extends TestCase
         $this->assertFileDoesNotExist($stubs['logFile']);
     }
 
+    public function testPublishShVerifyHttpRunsOverPinnedSshAndPassesBasicAuthViaStdinOnly(): void
+    {
+        $stubs = $this->createSshStubs();
+        $baseEnv = [
+            'PATH' => $stubs['binDir'] . ':' . (getenv('PATH') ?: '/usr/bin:/bin'),
+            'STELLAR_SSH_HOST' => 'stellar.example.invalid',
+            'STELLAR_SSH_PORT' => '21098',
+            'STELLAR_SSH_USER' => 'aeesjwmz',
+            'STELLAR_SSH_PRIVATE_KEY' => "-----BEGIN OPENSSH PRIVATE KEY-----\ns3cr3t-private-key-material\n-----END OPENSSH PRIVATE KEY-----",
+            'STELLAR_SSH_KNOWN_HOSTS' => '[stellar.example.invalid]:21098 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAITestKey',
+            'STELLAR_BASE_DIR' => '/home/aeesjwmz/amea-staging',
+            'STELLAR_PUBLIC_DOCROOT' => '/home/aeesjwmz/demo.aeesgs.org',
+            'STELLAR_STAFF_DOCROOT' => '/home/aeesjwmz/bo.aeesgs.org',
+            'STELLAR_PHP_CLI' => '/opt/alt/php85/usr/bin/php',
+            'STELLAR_PHP_INI_SCAN_DIR' => '/opt/alt/php85/link/conf:/etc/cl.php.d/alt-php85',
+            'STELLAR_STAGING_BASIC_AUTH' => 'stageuser:s3cr3t-basic-auth-token',
+        ];
+
+        $staging = $this->runCommand(
+            [
+                'bash',
+                $this->repoRoot . '/scripts/stellar/publish.sh',
+                '--mode=verify-http',
+                '--public-url=https://demo.aeesgs.org',
+                '--staff-url=https://bo.aeesgs.org',
+                '--basic-auth-env=STELLAR_STAGING_BASIC_AUTH',
+            ],
+            $baseEnv
+        );
+
+        $this->assertSame(0, $staging['code'], $staging['stderr']);
+        $calls = (string) file_get_contents($stubs['logFile']);
+        $stdin = (string) file_get_contents($stubs['stdinLog']);
+
+        $this->assertStringNotContainsString('scp:', $calls);
+        $this->assertStringContainsString('StrictHostKeyChecking=yes', $calls);
+        $this->assertStringContainsString('verify-http.php', $calls);
+        $this->assertStringContainsString('https://demo.aeesgs.org', $calls);
+        $this->assertStringContainsString('https://bo.aeesgs.org', $calls);
+        $this->assertStringContainsString('--basic-auth-env=STELLAR_VERIFY_BASIC_AUTH', $calls);
+        // Basic auth secret must NEVER appear in SSH argv or stdout/stderr; only on stdin.
+        $this->assertStringNotContainsString('s3cr3t-basic-auth-token', $calls);
+        $this->assertStringNotContainsString('s3cr3t-basic-auth-token', $staging['stdout'] . $staging['stderr']);
+        $this->assertStringContainsString('stageuser:s3cr3t-basic-auth-token', $stdin);
+
+        // Fails closed when --basic-auth-env is specified but unset.
+        unlink($stubs['logFile']);
+        $missingAuthEnv = $baseEnv;
+        unset($missingAuthEnv['STELLAR_STAGING_BASIC_AUTH']);
+        $missing = $this->runCommand(
+            [
+                'bash',
+                $this->repoRoot . '/scripts/stellar/publish.sh',
+                '--mode=verify-http',
+                '--public-url=https://demo.aeesgs.org',
+                '--staff-url=https://bo.aeesgs.org',
+                '--basic-auth-env=STELLAR_STAGING_BASIC_AUTH',
+            ],
+            $missingAuthEnv
+        );
+        $this->assertNotSame(0, $missing['code']);
+        $this->assertFileDoesNotExist($stubs['logFile']);
+
+        // Production mode (no --basic-auth-env) succeeds without passing basic auth flags.
+        $prod = $this->runCommand(
+            [
+                'bash',
+                $this->repoRoot . '/scripts/stellar/publish.sh',
+                '--mode=verify-http',
+                '--public-url=https://app.aeesgs.org',
+                '--staff-url=https://admin.aeesgs.org',
+            ],
+            $missingAuthEnv
+        );
+        $this->assertSame(0, $prod['code'], $prod['stderr']);
+        $prodCalls = (string) file_get_contents($stubs['logFile']);
+        $this->assertStringContainsString('verify-http.php', $prodCalls);
+        $this->assertStringNotContainsString('--basic-auth-env=', $prodCalls);
+    }
+
     public function testCiWorkflowPreservesRequiredChecksAndGatesStellarPublication(): void
     {
         $ciPath = $this->repoRoot . '/.github/workflows/ci.yml';
@@ -346,6 +427,6 @@ final class PublicationScriptsTest extends TestCase
 
         $this->assertStringContainsString('scripts/stellar/render-runtime-env.php', $workflow);
         $this->assertStringContainsString('scripts/stellar/publish.sh', $workflow);
-        $this->assertStringContainsString('scripts/stellar/verify-http.php', $workflow);
+        $this->assertStringContainsString('--mode=verify-http', $workflow);
     }
 }

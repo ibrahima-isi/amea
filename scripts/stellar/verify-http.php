@@ -83,6 +83,7 @@ $probe = static function (string $url, string $method, ?string $auth) use ($time
     }
     curl_setopt_array($ch, [
         CURLOPT_CUSTOMREQUEST => $method,
+        CURLOPT_USERAGENT => 'AMEA-Deploy-Verifier/1.0',
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_FOLLOWLOCATION => false,
         CURLOPT_CONNECTTIMEOUT => $timeout,
