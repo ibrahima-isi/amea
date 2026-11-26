@@ -249,7 +249,7 @@ Commands and limitations are documented in the [testing guide](docs/testing/READ
 
 ## Deployment (production)
 
-GitHub Actions runs checks without deployment. Docker images and Dokploy configuration are documented in the [rollout guide](docs/operations/public-staff-rollout.md), and portable S3/R2 storage configuration and migration commands are documented in the [object storage guide](docs/operations/object-storage.md). This configuration does not prove a production release; jobs, storage cutover, and SMTP require explicit authorization.
+GitHub Actions (`.github/workflows/ci.yml`) runs validation checks on every pull request and push to `main`, and provides gated Namecheap Stellar publication jobs (`deploy-stellar-staging` via `workflow_dispatch` with `STELLAR_STAGING_DEPLOY_ENABLED=true`, and `deploy-stellar` on `main` gated behind `STELLAR_DEPLOY_ENABLED=true` and the `production` GitHub Environment). Docker images and Dokploy configuration remain documented in the [rollout guide](docs/operations/public-staff-rollout.md), portable S3/R2 storage configuration and migration commands in the [object storage guide](docs/operations/object-storage.md), and the pending Stellar + R2 cutover approval package in the [Stellar production transition proposal](docs/operations/stellar-production-transition.md). Jobs, storage cutover, and production deployment require explicit authorization.
 
 ---
 
