@@ -4,7 +4,7 @@ Current local tracker as of 27 November 2026. The three items below remain open.
 
 | Active effort | Completion checklist | Status / remaining work |
 | --- | --- | --- |
-| [Portable object storage](object-storage/spec.md) | [completion.md](object-storage/completion.md) | Tickets 01–05 complete. [Ticket 06](object-storage/issues/06-production-transition.md) records the live [Stellar cutover](../docs/operations/stellar-production-transition.md) and pending scheduled backup and authenticated download verification. |
+| [Portable object storage](object-storage/spec.md) | [completion.md](object-storage/completion.md) | Tickets 01–05 complete. [Ticket 06](object-storage/issues/06-production-transition.md) records the live [Stellar cutover](../docs/operations/stellar-production-transition.md) and authenticated download verification; only the first scheduled 03:00 Dakar backup (`2026-11-28`) and purge ordering remain pending. |
 | [Association-journal browser acceptance](association-journal/issues/04-integrated-qualification.md) | [completion.md](association-journal/completion.md) | `ready-for-human` — user-deferred browser QA ([checklist](association-journal/browser-qa.md)). |
 | [Orphan-test triage](chores/triage-orphan-tests/spec.md) | — | `needs-triage` — classify remaining standalone scripts under `tests/`. |
 
