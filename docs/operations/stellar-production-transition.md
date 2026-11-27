@@ -1,8 +1,16 @@
-# Production Transition Approval Proposal: Dokploy VPS to Namecheap Stellar + Cloudflare R2
+# AMEA production transition from Dokploy to Stellar and Cloudflare R2
 
-Status: **Awaiting explicit operator approval and pre-approval live VPS inventory**
+Status: **Stellar is live. The legacy VPS remains frozen.**
 
-This document prepares the concrete move of AMEA from its legacy Dokploy VPS deployment to the split Namecheap Stellar installation (`aeesgs.org` and `admin.aeesgs.org`) backed by a private Cloudflare R2 production bucket. It executes **zero** production changes. Real production file copy, database migration, DNS cutover, and activation are tracked separately under [object-storage ticket 06](../../.scratch/object-storage/issues/06-production-transition.md) and require explicit operator authorization after all pre-approval gates below are closed.
+## Production record
+
+- On 2026-11-27, the successful cutover ran from 03:15:08 to 04:01:40 UTC. The public and administration domains now serve from separate Stellar document roots. The cutover deployed `prod-9211d99`, restored 207 objects to the private `amea-production` bucket, and verified the restored MariaDB schema, object contents, references and split session stores before reopening writes. No active registration qualified for session transfer. [Ticket 06](../../.scratch/object-storage/issues/06-production-transition.md)
+- The carousel fix in `572f9d875234eb0d503535f5144cf2dfe9a50b12` was deployed as `prod-572f9d8`. The live homepage served the versioned JavaScript from this release, and Chrome observed automatic rotation from `1 / 2` to `2 / 2`. The public and administration HTTPS checks passed. [PR #65](https://github.com/ibrahima-isi/amea/pull/65) · [Main CI](https://github.com/ibrahima-isi/amea/actions/runs/45946981209)
+- The recurring backup procedure passed a manual capture and isolated restoration at 04:29:50 UTC on 2026-11-27. Point `point-20261127T042936Z` verified 16 MariaDB tables, 207 R2 objects and 68 references, including the approved pre-existing exceptions. Stellar stores the points in the private `~/amea-prod/backups` directory. The approved schedule starts daily at 03:00 Dakar time and retains up to seven verified points. The first scheduled capture is due on 2026-11-28.
+- The single Stellar cPanel cron entry ran its first cycle at 04:35:09 UTC on 2026-11-27. The mail worker succeeded and runs every five minutes. The staged upload cleanup succeeded and runs hourly. The daily 30-day trash purge requires a restore-tested backup from that day with verified checksums. An isolated scheduler test verified this condition. Brevo authenticated from Stellar, and transactional mail uses synchronous delivery.
+- The legacy VPS application remains paused. Its source files and verified recovery copies are retained for rollback. Any future source reopening or retirement requires separate operator authorization.
+
+The sections below retain the qualification and recovery procedure used for the cutover, including the backup, verification and rollback requirements for future operations.
 
 ---
 
@@ -15,17 +23,18 @@ This document prepares the concrete move of AMEA from its legacy Dokploy VPS dep
 - **Expected session topology:** Legacy single-app `PHPSESSID` file-session store (combined public registrations + staff logins) or split `AMEA_PUBLIC` / `AMEA_STAFF` if already upgraded on Dokploy.
 - **Expected writers:** Web PHP application(s), scheduled mail/pending/trash cleanup jobs, and any host-level cron or manual maintenance scripts.
 
-### Pending pre-approval gate: Approved read-only live VPS inventory
-Per operator direction, live Dokploy VPS inspection is deferred to a dedicated read-only pre-approval step before Ticket 06 begins. Record the following non-secret facts from the live VPS (excluding all credentials, tokens, and member PII):
+### Read-only source inventory requirements
 
-| Inventory item | Required read-only evidence (non-secret) | Status |
-| --- | --- | --- |
-| Source code revision & container image | Deployed Git SHA / image digest, PHP version (`php -v`), extensions | **Pending** |
-| Active roles & all writers | Running Compose services (`docker compose ps`), host/container crons, any external DB/file writers | **Pending** |
-| Database state | MariaDB version, DB size, table list (verify zero views/triggers/routines/events), row counts (`students`, `users`, `slider_images`, `journal_posts`, `file_operations`), Doctrine enrollment/version status | **Pending** |
-| File storage inventory | `uploads/` total byte volume, regular file count, max single file size, symlinks/nonregular/unknown dirs, and `scripts/storage-migrate.php inventory` + `audit-references` counts | **Pending** |
-| Session topology | Active `session.save_handler`, `session.serialize_handler` (`php`/`php_serialize`/`php_binary`), `session.save_path`, cookie name (`PHPSESSID` vs `AMEA_PUBLIC`/`AMEA_STAFF`), and active session count | **Pending** |
-| Existing backup baseline | Current VPS backup mechanism, last verified restore date, available temporary spool/backup disk space | **Pending** |
+Before a cutover, gather the following evidence without collecting credentials, tokens, or member personal data.
+
+| Inventory item | Required read-only evidence |
+| --- | --- |
+| Source code revision & container image | Deployed Git SHA, image digest, PHP version and extensions |
+| Active roles & writers | Running Compose services, host and container crons, and external DB or file writers |
+| Database | MariaDB version and size, table and database object inventory, row counts and Doctrine enrollment |
+| File storage | Byte and file counts, largest file, special entries and reference differences |
+| Sessions | Save handler, serializer, save path, cookie name and active session count |
+| Backup baseline | Backup mechanism, date of the latest verified restore and spool capacity |
 
 ---
 
@@ -36,14 +45,14 @@ All account capabilities below were verified on the assigned Stellar account in 
 | Destination component | Selection | Verified status |
 | --- | --- | --- |
 | Hosting account | Namecheap Stellar cPanel account (`aeesgs.org` primary domain, SSH port `21098`, 20 GiB quota / 300,000 inodes, `upload_max_filesize=1024M`, `post_max_size=1024M`) | Qualified |
-| Public web host | `https://aeesgs.org` → document root `~/public_html`, fixed `AMEA_APP='public'`, host-only `AMEA_PUBLIC` cookie, LiteSpeed handler `application/x-httpd-alt-php85___lsphp` (PHP 8.5.13 + all 8 required extensions) | Root exists; production release wiring pending Ticket 06 |
-| Administration web host | `https://admin.aeesgs.org` → separate cPanel subdomain document root (e.g. `~/admin.aeesgs.org`, outside `~/public_html`), fixed `AMEA_APP='staff'`, host-only `AMEA_STAFF` cookie, same PHP 8.5 LiteSpeed handler | **Pending** cPanel subdomain/docroot & Cloudflare Origin CA/DNS setup |
-| Private release & shared state | Outside both docroots (e.g. `~/amea-prod/`): immutable `releases/<id>`, atomic `current`/`previous` symlinks, `shared/config/runtime.env` (`0600`), `shared/state/{sessions/public,sessions/staff,cache/twig/public,cache/twig/staff,write-gate,mail-queue,logs,.shared-jobs.lock}` (`0700`), `bin/run-job.php` (`0700`) | Layout, `deploy.sh`, and GitHub Actions `deploy-stellar-staging` deploy/rollback verified on staging (`demo.aeesgs.org` / `bo.aeesgs.org`) |
-| GitHub Actions publication | `.github/workflows/ci.yml` (`deploy-stellar` on `main`, `environment: production`, gated on `vars.STELLAR_DEPLOY_ENABLED == 'true'`, pinned SSH via `scripts/stellar/publish.sh`, remote HTTP verification via `--mode=verify-http` keeping Cloudflare Bot Fight Mode enabled) | Qualified on staging (runs `#45735874309` deploy & `#45736362407` rollback); `production` environment created with shared SSH/PHP secrets and `STELLAR_DEPLOY_ENABLED=false` |
-| Scheduled CLI runtime | `/opt/alt/php85/usr/bin/php` with `PHP_INI_SCAN_DIR=/opt/alt/php85/link/conf:/etc/cl.php.d/alt-php85` invoking `~/amea-prod/bin/run-job.php` via cPanel cron (minimum 5-minute interval, max 5 simultaneous jobs) | Verified via 5-minute cPanel cron & `bin/run-job.php` |
-| Production database | Dedicated MariaDB 11.4.13 database & scoped user on Stellar (isolated from the staging MariaDB database) | MariaDB 11.4.13 restore verified; **production DB pending creation** |
-| Production object storage | New dedicated private Cloudflare R2 bucket (distinct from `amea-sandbox`; `scripts/stellar/render-runtime-env.php` and `verify-release.php` refuse `amea-sandbox` when `APP_ENV=production`), `STORAGE_DRIVER=s3`, `S3_REGION=auto`, `S3_PATH_STYLE=false`, bucket-scoped S3 key/secret | Provider compatibility verified on `amea-sandbox`; **production bucket & credentials pending creation** |
-| Transactional email | Brevo SMTP (`smtp-relay.brevo.com:587`, `STARTTLS`, sender `noreply@aeesgs.org`) with Stellar outbound IPv4 `198.54.114.79` allowlisted in Brevo Authorized IPs (no outbound IPv6) | Authenticated delivery to `contact@aeesgs.org` verified |
+| Public web host | `https://aeesgs.org` → `~/public_html`, fixed `AMEA_APP='public'`, host-only `AMEA_PUBLIC` cookie and PHP 8.5.13 LiteSpeed handler | Live over HTTPS via Cloudflare |
+| Administration web host | `https://admin.aeesgs.org` → `~/admin.aeesgs.org`, fixed `AMEA_APP='staff'`, host-only `AMEA_STAFF` cookie and the same PHP handler | Live over HTTPS via Cloudflare with a separate document root |
+| Private release & shared state | `~/amea-prod` contains immutable `releases/<id>`, `current` and `previous` symlinks, private runtime configuration, split session directories, the shared write gate and the job wrapper | Verified on Stellar |
+| GitHub Actions publication | `.github/workflows/ci.yml` gates `deploy-stellar` on `main` through the `production` environment and `STELLAR_DEPLOY_ENABLED` | Workflow publication and rollback qualified on staging. Production uses the tested release package and pinned SSH with `STELLAR_DEPLOY_ENABLED=false`. |
+| Scheduled CLI runtime | `~/amea-prod/bin/backup-ops/schedule.sh tick` runs from the single cPanel cron entry every five minutes. It dispatches `~/amea-prod/bin/run-job.php` with `/opt/alt/php85/usr/bin/php` and `PHP_INI_SCAN_DIR=/opt/alt/php85/link/conf:/etc/cl.php.d/alt-php85`. | Live cron and successful mail and staged cleanup invocations recorded |
+| Production database | `aeesjwmz_amea_prod` on MariaDB 11.4.13, with a scoped user and an isolated restore-test database | Live and restore tested |
+| Production object storage | Private `amea-production` R2 bucket with bucket-scoped credentials, `STORAGE_DRIVER=s3`, R2 configuration aliases and `S3_PATH_STYLE=false` | Production access and read-back verified |
+| Transactional email | Brevo SMTP at `smtp-relay.brevo.com:587` with STARTTLS and sender `noreply@aeesgs.org` | Production authentication verified from Stellar |
 
 ---
 
@@ -52,7 +61,7 @@ All account capabilities below were verified on the assigned Stellar account in 
 ### 3.1 Restorable backup evidence
 1. **Pre-pause baseline backup (before modifying production):** capture a transaction-consistent `mariadb-dump` (following [migration-recovery.md](migration-recovery.md)) and verify isolated MariaDB 11.4.13 import (confirming table count, foreign keys, and UTF-8 accented member rows).
 2. **Frozen cutover recovery point (under the paused write gate, after `drain-intents` and final `verify`):** capture a coordinated `RecoverySnapshot` (`scripts/storage-backup.php capture`) binding application tables, `file_operations`, all managed upload bytes with original `createdAt`/MIME/SHA-256, session trees, and the finalized migration manifest/checkpoint, and verify restorability via isolated `scripts/storage-backup.php restore` into a separate empty database, separate empty object namespace, and fresh session stores.
-3. Record non-secret `snapshot.json` SHA-256, `manifest` SHA-256, `checkpoint` SHA-256, and dump checksum in the Ticket 06 completion log.
+3. Record non-secret `snapshot.json` SHA-256, `manifest` SHA-256, `checkpoint` SHA-256, and dump checksum in Ticket 06 evidence.
 
 ### 3.2 File read-back and reference verification
 - Run `scripts/storage-migrate.php inventory`, `audit-references`, `copy --review-manifest=<SHA256>`, and `verify`.
@@ -88,7 +97,7 @@ All account capabilities below were verified on the assigned Stellar account in 
 4. Coordinated pre-cutover backup (`snapshot.json` + `mariadb-dump`) is captured, checksummed, and retained offline/outside both docroots.
 5. Production MariaDB 11.4.13 has all data imported and Doctrine migrations verified clean (`scripts/migrate.php migrate` at latest reviewed version, enrolled per [doctrine-enrollment.md](doctrine-enrollment.md) if migrating from a pre-Doctrine schema).
 6. Fresh (<5 minutes old) native `scripts/storage-target.php` attestation reports for `public` (`--docroot=~/public_html`), `staff` (`--docroot=~/admin.aeesgs.org`), and `jobs` (`--job-wrapper=~/amea-prod/bin/run-job.php`) pass `Cutover::targetIdentity()` / `resume`.
-7. **Paused read-only HTTPS smoke checks (before reopening):** on `https://aeesgs.org` and `https://admin.aeesgs.org`, confirm public homepage/journal return `200`, staff paths on `aeesgs.org` return local `404` without redirects, published slider media serves from R2, unauthenticated `admin.aeesgs.org/download.php` is denied (`302`/`503` while paused; staff login stays `503` because `sessions/staff` is empty during pause), and PHP 8.5.13 with all 8 extensions is active on both web hosts.
+7. **Paused read-only HTTPS smoke checks (before reopening):** confirm public journal and static assets return `200`, staff paths on the public domain return local `404`, and the published carousel images load from R2. Confirm that session-dependent paths such as registration and staff sign-in show maintenance, that anonymous download is denied, and that PHP 8.5.13 with all eight required extensions is active on both hosts.
 8. **Immediate post-reopening checks (after clearing the write gate):** sign in fresh on `https://admin.aeesgs.org/login.php` (`AMEA_STAFF`), verify authorized private downloads return `200` with `X-Content-Type-Options: nosniff` and `Cache-Control: private, no-store`, confirm separate-browser preview denial (`404`), arm the single Stellar cPanel cron scheduler (keeping VPS crons disabled), and verify mail delivery behavior (synchronous default vs queued cron vs 5-minute password-reset token lifetime).
 
 ### 3.6 Rollback conditions
@@ -105,7 +114,7 @@ All account capabilities below were verified on the assigned Stellar account in 
   3. Run `scripts/storage-migrate.php reverse-copy` from production R2 back to local storage so every post-cutover registration, replacement, and corrected reference is preserved, then run `verify` (`0` differences).
   4. Restore current post-cutover DB/sessions on the fallback host and reopen only after complete read and reference verification passes.
   5. **Hard rule:** Never overwrite an active post-cutover database/storage state with the pre-cutover snapshot. If R2 is unavailable and unique post-cutover objects cannot be recovered from backup, keep affected writes paused until explicitly resolved by the operator.
-- **Retention:** Retain the stopped Dokploy VPS, local source `uploads/`, and pre-cutover coordinated backup intact until post-cutover validation is accepted and a separate explicit deletion/retirement approval is granted.
+- **Retention:** Keep the Dokploy VPS frozen. Retain the local source `uploads/` and the pre-cutover coordinated backup until post-cutover validation is accepted and the operator explicitly approves deletion or retirement.
 
 ---
 
@@ -124,18 +133,11 @@ All account capabilities below were verified on the assigned Stellar account in 
 
 ---
 
-## 5. Unresolved Evidence & Explicit Approval Gate
+## 5. Remaining verification and operator approval
 
-The following items remain open and **must be resolved before executing [object-storage ticket 06](../../.scratch/object-storage/issues/06-production-transition.md)**:
+- Observe the next scheduled 03:00 Dakar run and verify that its restore proof precedes the trash worker. The manual backup and isolated restore qualified the procedure. The first scheduled run and its production purge gate remain unobserved.
+- Complete the authenticated production download check recorded in [Ticket 06](../../.scratch/object-storage/issues/06-production-transition.md). The public and administration routes already passed anonymous access checks.
 
-1. **Live Dokploy VPS read-only inventory:** Actual deployed SHA/image, writers/crons, MariaDB version/size/Doctrine enrollment state, `uploads/` volume/count/dispositions, and active session store/serializer.
-2. **Production Cloudflare R2 bucket & credentials:** Create dedicated private production bucket (separate from `amea-sandbox`), configure bucket-scoped S3 credentials, and run synthetic write/read-back/delete verification before live copy.
-3. **Production Stellar resources & `production` GitHub Environment secrets:** Provision `admin.aeesgs.org` cPanel subdomain/docroot, verify TLS on `aeesgs.org` and `admin.aeesgs.org`, create the dedicated production MariaDB 11.4.13 database & scoped user, and populate the remaining production secrets in GitHub's `production` environment.
-4. **Post-cutover backup cadence & mail timing:** Confirm recurring R2 + MariaDB backup capacity/cadence on Stellar, confirm whether `MAIL_ASYNC` stays synchronous (recommended so 5-minute password-reset tokens do not wait on a 5-minute cron interval), and confirm Brevo Authorized IPs policy for shared hosting outbound IPv4 `198.54.114.79`.
-5. **Optional MariaDB-backed Chrome transfer check:** PR #59 rehearsed the full Chrome cutover locally with SQLite + packaged Stellar runtime + live R2 `amea-sandbox` (while MariaDB 11.4.13 restore and LiteSpeed/HTTPS R2 flows were separately verified); decide whether to run one final disposable MariaDB import + Chrome rehearsal before live cutover.
+For future production transitions, record operator approval before starting live file copy, database import, or DNS changes. Identify the source revision and inventory, the destination resources and release, the maintenance window, the backup cadence, and the rollback contact.
 
-### Operator approval required to start Ticket 06
-Approval of this proposal authorizes **only** resolving the pre-approval gates above. Starting live production file copy, database migration, and DNS cutover under [object-storage ticket 06](../../.scratch/object-storage/issues/06-production-transition.md) requires separate explicit operator sign-off naming:
-- Verified source VPS revision, database, upload inventory SHA-256, and reviewed dispositions (if any).
-- Exact production R2 bucket name, Stellar MariaDB database name, `aeesgs.org` / `admin.aeesgs.org` docroots, and target `main` commit SHA.
-- Approved maintenance window, post-cutover backup cadence, and rollback trigger contact.
+Keep the legacy VPS frozen until the operator authorizes a recovery or retirement action. For recovery after Stellar has accepted writes, follow the post-reopening rollback procedure above.
