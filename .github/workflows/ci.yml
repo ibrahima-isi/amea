@@ -95,8 +95,8 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
 
-      - name: Run shared theme regression
-        run: node --test tests/js/theme.test.mjs
+      - name: Run JavaScript regressions
+        run: node --test tests/js/*.test.mjs
 
       - name: Run unit tests
         run: |

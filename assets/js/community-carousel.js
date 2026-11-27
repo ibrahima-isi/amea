@@ -27,7 +27,12 @@ document.querySelectorAll('[data-community-carousel]').forEach(gallery => {
         schedule();
     };
     controls.hidden = false;
-    pause.addEventListener('click', () => { paused = !paused; updatePause(); });
+    pause.addEventListener('click', () => {
+        paused = !paused;
+        // An explicit resume overrides the current hover until the next entry.
+        if (!paused) hovered = false;
+        updatePause();
+    });
     gallery.querySelector('[data-carousel-prev]').addEventListener('click', () => { show(index - 1, true); schedule(); });
     gallery.querySelector('[data-carousel-next]').addEventListener('click', () => { show(index + 1, true); schedule(); });
     // Keyboard focus stops rotation until the visitor explicitly resumes it.
@@ -37,6 +42,16 @@ document.querySelectorAll('[data-community-carousel]').forEach(gallery => {
     gallery.addEventListener('mouseenter', () => { hovered = true; schedule(); });
     gallery.addEventListener('mouseleave', () => { hovered = false; schedule(); });
     document.addEventListener('visibilitychange', schedule);
-    motion.addEventListener('change', event => { if (event.matches) { paused = true; updatePause(); } });
+    const handleMotionChange = event => {
+        if (event.matches) {
+            paused = true;
+            updatePause();
+        }
+    };
+    if (typeof motion.addEventListener === 'function') {
+        motion.addEventListener('change', handleMotionChange);
+    } else if (typeof motion.addListener === 'function') {
+        motion.addListener(handleMotionChange);
+    }
     updatePause();
 });
