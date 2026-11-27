@@ -1,10 +1,10 @@
 # Active work
 
-Current local tracker as of 26 November 2026 (baseline `main` at `688a6b2`). Only the three items below remain open; triage status is separate from execution authorization.
+Current local tracker as of 27 November 2026. The three items below remain open. Triage status is separate from execution authorization.
 
 | Active effort | Completion checklist | Status / remaining work |
 | --- | --- | --- |
-| [Portable object storage](object-storage/spec.md) | [completion.md](object-storage/completion.md) | Tickets 01–05 complete; [Ticket 06](object-storage/issues/06-production-transition.md) (`ready-for-human`) awaits explicit approval of the live production transition using the [Stellar production transition proposal](../docs/operations/stellar-production-transition.md). |
+| [Portable object storage](object-storage/spec.md) | [completion.md](object-storage/completion.md) | Tickets 01–05 complete. [Ticket 06](object-storage/issues/06-production-transition.md) records the live [Stellar cutover](../docs/operations/stellar-production-transition.md) and pending scheduled backup and authenticated download verification. |
 | [Association-journal browser acceptance](association-journal/issues/04-integrated-qualification.md) | [completion.md](association-journal/completion.md) | `ready-for-human` — user-deferred browser QA ([checklist](association-journal/browser-qa.md)). |
 | [Orphan-test triage](chores/triage-orphan-tests/spec.md) | — | `needs-triage` — classify remaining standalone scripts under `tests/`. |
 
