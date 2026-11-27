@@ -88,7 +88,7 @@ foreach ([
 }
 
 [$exit, $output] = runMigrationCommand('migrate');
-check($exit === 0 && str_contains($output, '4 migrations executed'), "Fresh migration applies all four versions\n{$output}");
+check($exit === 0 && str_contains($output, '5 migrations executed'), "Fresh migration applies all five versions\n{$output}");
 check(
     $fresh->query('SELECT setting_key, setting_value, setting_group FROM settings ORDER BY setting_key')
         ->fetchAll(PDO::FETCH_NUM) === [
@@ -106,10 +106,18 @@ while ($import->nextRowset()) {
     // Consume every result to surface errors in the schema import.
 }
 check(readTableDefinitions($fresh) === readTableDefinitions($baseline), 'Fresh schema matches schema.sql');
+$details = str_repeat('é', 255);
+$student = $fresh->prepare("INSERT INTO students (first_name, last_name, gender, status, housing_details)
+    VALUES ('Legacy', 'Fixture', NULL, 'ETUDIANT', ?)");
+$student->execute([$details]);
+check(
+    $fresh->query('SELECT gender, housing_details FROM students')->fetch(PDO::FETCH_NUM) === [null, $details],
+    'The migrated schema preserves unspecified gender and 255 characters of housing details'
+);
 
 $ledgerQuery = 'SELECT version, executed_at, execution_time FROM doctrine_migration_versions ORDER BY version';
 $ledger = $fresh->query($ledgerQuery)->fetchAll(PDO::FETCH_ASSOC);
-$versions = [...MigrationRuntime::BASELINE_VERSIONS, ...MigrationRuntime::MEMBER_FILE_VERSIONS];
+$versions = [...MigrationRuntime::BASELINE_VERSIONS, ...MigrationRuntime::MEMBER_FILE_VERSIONS, MigrationRuntime::LEGACY_MEMBER_COMPATIBILITY_VERSION];
 check(array_column($ledger, 'version') === $versions, 'Record the schema and data versions separately');
 check(
     $fresh->query("SHOW TABLE STATUS WHERE Name = 'doctrine_migration_versions'")->fetch(PDO::FETCH_ASSOC)['Engine'] === 'InnoDB',

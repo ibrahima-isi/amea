@@ -12,6 +12,8 @@ final class BaselineEnrollment
     private const SQL_BASELINE_SHA256 = '6b90bcf1c63c4751f64d8458624348b8aa2f8fd29723a099305563185bbead0d';
 
     private const MEMBER_SQL_BASELINE_SHA256 = 'e4392a1502489d941bc928cc7b14ad64ecc2736be63a881d7cd70c63e13cb375';
+    private const LEGACY_MEMBER_SQL_BASELINE_SHA256 = '7e15684937a0bae3b136097a21eb847112da698524b9767241ab9c3b60b0e4f5';
+
     private array $versions = MigrationRuntime::BASELINE_VERSIONS;
 
     public function __construct(private readonly MigrationRuntime $runtime)
@@ -92,7 +94,11 @@ final class BaselineEnrollment
             return;
         }
         if ($source === 'schema-sql' && ($evidence['imported_into_empty_database'] ?? null) === true
-            && in_array($evidence['schema_sha256'] ?? null, [self::SQL_BASELINE_SHA256, self::MEMBER_SQL_BASELINE_SHA256], true)) {
+            && in_array($evidence['schema_sha256'] ?? null, [
+                self::SQL_BASELINE_SHA256,
+                self::MEMBER_SQL_BASELINE_SHA256,
+                self::LEGACY_MEMBER_SQL_BASELINE_SHA256,
+            ], true)) {
             return;
         }
         throw new RuntimeException('Provide evidence of the successful legacy KYC backfill or of the adoption schema.sql imported into an empty database.');
@@ -110,7 +116,8 @@ final class BaselineEnrollment
         }
         $snapshot = file_get_contents(__DIR__ . '/enrollment-schema.sql');
         $tablesPresent = $connection->fetchFirstColumn('SHOW FULL TABLES');
-        if (array_intersect(['member_file_lock', 'file_operations'], $tablesPresent) !== []) {
+        $hasMemberFileSchema = array_intersect(['member_file_lock', 'file_operations'], $tablesPresent) !== [];
+        if ($hasMemberFileSchema) {
             $snapshot .= file_get_contents(__DIR__ . '/member-file-enrollment-schema.sql');
             $this->versions = [...MigrationRuntime::BASELINE_VERSIONS, ...MigrationRuntime::MEMBER_FILE_VERSIONS];
         }
@@ -152,6 +159,12 @@ final class BaselineEnrollment
             $normalized = preg_replace('/(\n\) ENGINE=\w+) AUTO_INCREMENT=\d+(?= DEFAULT CHARSET=)/', '$1', $definition);
             if ($table === 'students') {
                 $normalized = $this->normalizeMemberEnums($normalized, $expectedDefinition);
+                $compatibleDefinition = preg_replace('/(^  `gender` enum\([^\n]+\)) NOT NULL,$/m', '$1 DEFAULT NULL,', $expectedDefinition);
+                $compatibleDefinition = str_replace('`housing_details` varchar(100)', '`housing_details` varchar(255)', $compatibleDefinition);
+                if ($hasMemberFileSchema && $normalized === $compatibleDefinition) {
+                    $expectedDefinition = $compatibleDefinition;
+                    $this->versions[] = MigrationRuntime::LEGACY_MEMBER_COMPATIBILITY_VERSION;
+                }
             }
             if ($table === 'settings' && !str_contains($normalized, '  `id` ')) {
                 $expectedDefinition = str_replace([

@@ -33,6 +33,8 @@ final class MigrationRuntime
         \Amea\Migration\Version\Version20261113000001::class,
     ];
 
+    public const LEGACY_MEMBER_COMPATIBILITY_VERSION = \Amea\Migration\Version\Version20261127000000::class;
+
     private function __construct(
         private readonly Connection $connection,
         public readonly DependencyFactory $doctrine
