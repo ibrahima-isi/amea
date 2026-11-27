@@ -1,14 +1,20 @@
 <?php
 namespace Amea\Repository;
 
+use Amea\Cache\AppCache;
+use Amea\Core\Container;
 use PDO;
 use InvalidArgumentException;
 
 class JournalRepository
 {
+    private const CACHE_TTL = 300;
     private const FIELDS = ['type','status','slug','title','summary','body','cover_path','cover_mime','cover_alt','activity_start_at','activity_end_at','activity_start_time_set','activity_end_time_set','location','published_at','created_by','updated_by','created_at','updated_at'];
 
-    public function __construct(private PDO $pdo) {}
+    public function __construct(
+        private PDO $pdo,
+        private ?AppCache $cache = null
+    ) {}
 
     public function findById(int $id): ?array
     {
@@ -72,7 +78,16 @@ class JournalRepository
 
     public function findRecentPublished(int $limit = 3): array
     {
-        return $this->page('status = ?', ['PUBLISHED'], 'published_at DESC, id DESC', 1, $limit)['items'];
+        $limit = max(1, min(50, $limit));
+        return $this->resolveCache()->remember(AppCache::NS_JOURNAL, 'recent_published_' . $limit, self::CACHE_TTL, function () use ($limit): array {
+            $statement = $this->pdo->prepare(
+                'SELECT * FROM journal_posts WHERE status = ? ORDER BY published_at DESC, id DESC LIMIT ?'
+            );
+            $statement->bindValue(1, 'PUBLISHED');
+            $statement->bindValue(2, $limit, PDO::PARAM_INT);
+            $statement->execute();
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
+        });
     }
 
     public function insert(array $values): int
@@ -81,7 +96,11 @@ class JournalRepository
         $fields = array_keys($values);
         $statement = $this->pdo->prepare('INSERT INTO journal_posts (' . implode(',', $fields) . ') VALUES (' . implode(',', array_fill(0, count($fields), '?')) . ')');
         $statement->execute(array_values($values));
-        return (int) $this->pdo->lastInsertId();
+        $id = (int) $this->pdo->lastInsertId();
+        if (!$this->pdo->inTransaction()) {
+            $this->resolveCache()->invalidateNamespace(AppCache::NS_JOURNAL);
+        }
+        return $id;
     }
 
     public function update(int $id, array $values, int $expectedRevision): bool
@@ -91,6 +110,15 @@ class JournalRepository
         $assignments = array_map(static fn(string $field): string => "$field = ?", array_keys($values));
         $statement = $this->pdo->prepare('UPDATE journal_posts SET ' . implode(',', $assignments) . ', revision = revision + 1 WHERE id = ? AND revision = ?');
         $statement->execute([...array_values($values), $id, $expectedRevision]);
-        return $statement->rowCount() === 1;
+        $updated = $statement->rowCount() === 1;
+        if ($updated && !$this->pdo->inTransaction()) {
+            $this->resolveCache()->invalidateNamespace(AppCache::NS_JOURNAL);
+        }
+        return $updated;
+    }
+
+    private function resolveCache(): AppCache
+    {
+        return $this->cache ?? Container::cacheForConnection($this->pdo);
     }
 }

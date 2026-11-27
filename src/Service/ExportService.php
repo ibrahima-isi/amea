@@ -1,6 +1,8 @@
 <?php
 namespace Amea\Service;
 
+use Amea\Cache\HttpCache;
+
 class ExportService
 {
     public function __construct(private \PDO $pdo) {}
@@ -36,6 +38,7 @@ class ExportService
 
         header('Content-Type: text/csv; charset=UTF-8');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
+        HttpCache::sendNoStore(true);
         header('Pragma: no-cache');
         header('Expires: 0');
 
@@ -78,7 +81,8 @@ class ExportService
 
     private function buildWhereClause(array $filters): array
     {
-        $conditions = [];
+        // Active members only — aligns with StudentRepository and uses deleted_at-leading indexes.
+        $conditions = ['deleted_at IS NULL'];
         $params     = [];
 
         if (!empty($filters['status'])) {

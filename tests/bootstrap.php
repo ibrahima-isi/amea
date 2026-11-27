@@ -83,6 +83,17 @@ function makeTestDb(): PDO
             display_order INTEGER DEFAULT 0,
             created_at TEXT DEFAULT (datetime('now'))
         );
+
+        CREATE INDEX idx_students_deleted_at ON students(deleted_at);
+        CREATE INDEX idx_students_active_kyc_reg ON students(deleted_at, kyc_status, registration_date, id);
+        CREATE INDEX idx_students_active_reg_stats ON students(deleted_at, registration_date, kyc_status, status, gender, consent_privacy);
+        CREATE INDEX idx_students_active_institution ON students(deleted_at, institution, status, kyc_status);
+        CREATE INDEX idx_students_active_status_level ON students(deleted_at, kyc_status, status, study_level);
+        CREATE INDEX idx_students_identity_document ON students(identity_document);
+        CREATE INDEX idx_students_cv_path ON students(cv_path);
+        CREATE INDEX idx_users_created_at ON users(created_at);
+        CREATE INDEX idx_slider_images_image_path ON slider_images(image_path);
+        CREATE INDEX idx_slider_images_display_order ON slider_images(display_order, id);
     ");
 
     $db->exec("INSERT INTO users (id, username, email, last_name, first_name, password, role, is_active)
@@ -110,7 +121,7 @@ function makeTestDb(): PDO
     updated_by INT NOT NULL,
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL
-    ); CREATE INDEX journal_publication ON journal_posts(status,published_at,id); CREATE INDEX journal_activity ON journal_posts(status,type,activity_end_at);");
+    ); CREATE INDEX journal_publication ON journal_posts(status,published_at,id); CREATE INDEX journal_activity ON journal_posts(status,type,activity_end_at); CREATE INDEX idx_journal_type_publication ON journal_posts(status,type,published_at,id); CREATE INDEX idx_journal_admin_updated ON journal_posts(updated_at,id); CREATE INDEX idx_journal_cover_path ON journal_posts(cover_path);");
 
     $db->exec("CREATE TABLE member_file_lock (id INTEGER PRIMARY KEY);
         INSERT INTO member_file_lock VALUES (1);

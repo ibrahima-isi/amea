@@ -114,6 +114,7 @@ jobs:
           python3 tests/http/internals.py
           python3 tests/http/permissions.py
           python3 tests/http/write-gate.py
+          python3 tests/http/caching.py
           python3 tests/http/stellar-split.py
 
   static-checks:
@@ -208,6 +209,9 @@ jobs:
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_CACHE_ENABLED: ${{ vars.CLOUDFLARE_CACHE_ENABLED }}
         run: |
           ENV_STAGE="${RUNNER_TEMP}/runtime-${{ steps.package.outputs.release_id }}.env"
           php scripts/stellar/render-runtime-env.php --output="${ENV_STAGE}" --app-env=staging
@@ -332,6 +336,9 @@ jobs:
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_CACHE_ENABLED: ${{ vars.CLOUDFLARE_CACHE_ENABLED }}
         run: |
           ENV_STAGE="${RUNNER_TEMP}/runtime-${{ steps.package.outputs.release_id }}.env"
           php scripts/stellar/render-runtime-env.php --output="${ENV_STAGE}" --app-env=production

@@ -9,10 +9,10 @@ class MemberDocumentService
 {
     public function __construct(private Storage $storage) {}
 
-    /** @return array{stream: resource, size: int, mime: string} */
-    public function open(string $key, array $allowedMimes): array
+    /** @return array{stream: resource, size: int, mime: string, createdAt: int, sha256: ?string} */
+    public function open(string $key, array $allowedMimes, ?array $prefetchedMetadata = null): array
     {
-        $metadata = $this->storage->stat($key);
+        $metadata = $prefetchedMetadata ?? $this->storage->stat($key);
         if ($metadata === null) {
             throw new \OutOfBoundsException('Fichier introuvable.');
         }
@@ -30,7 +30,8 @@ class MemberDocumentService
             rewind($spool);
             $hash = hash_init('sha256');
             hash_update_stream($hash, $spool);
-            if ($metadata['sha256'] !== null && hash_final($hash) !== $metadata['sha256']) {
+            $computedSha256 = hash_final($hash);
+            if ($metadata['sha256'] !== null && $computedSha256 !== $metadata['sha256']) {
                 throw new StorageException('Document checksum mismatch.');
             }
             $mime = (new \finfo(FILEINFO_MIME_TYPE))->file(stream_get_meta_data($spool)['uri']);
@@ -38,7 +39,13 @@ class MemberDocumentService
                 throw new \UnexpectedValueException('Type de fichier non supporté.');
             }
             rewind($spool);
-            return ['stream' => $spool, 'size' => $size, 'mime' => $mime];
+            return [
+                'stream' => $spool,
+                'size' => $size,
+                'mime' => $mime,
+                'createdAt' => (int) ($metadata['createdAt'] ?? 0),
+                'sha256' => $metadata['sha256'] ?? $computedSha256,
+            ];
         } catch (\Throwable $error) {
             fclose($spool);
             throw $error;

@@ -2,24 +2,38 @@
 
 namespace Amea\Core;
 
+use Amea\Cache\CacheInvalidator;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 use Twig\TwigFunction;
 
 class View
 {
+    /** @var array<string, int> */
+    private static array $assetVersions = [];
+
     private Environment $twig;
 
     public function __construct(string $projectRoot)
     {
         $loader = new FilesystemLoader($projectRoot . '/templates');
-        
-        $isDebug = ($_ENV['APP_ENV'] ?? 'production') === 'dev';
-        
+
+        $appEnv = strtolower(trim(Runtime::env('APP_ENV', 'production')));
+        $isDebug = $appEnv === 'dev';
+        $isProduction = in_array($appEnv, ['prod', 'production'], true);
+
+        $cacheDir = Runtime::twigCacheDir($projectRoot);
+        if ($isProduction) {
+            // Scope production compiled templates per release root so rollbacks
+            // never reuse stale compiled PHP when auto_reload is disabled.
+            $releaseFingerprint = substr(hash('sha256', (string) (realpath($projectRoot) ?: $projectRoot)), 0, 12);
+            $cacheDir .= '/' . $releaseFingerprint;
+        }
+
         $this->twig = new Environment($loader, [
-            'cache' => Runtime::twigCacheDir($projectRoot),
+            'cache' => $cacheDir,
             'debug' => $isDebug,
-            'auto_reload' => true,
+            'auto_reload' => !$isProduction,
         ]);
 
         $this->addAssetFunction($projectRoot);
@@ -50,8 +64,14 @@ class View
         $this->twig->addFunction(new TwigFunction('asset', function ($path) use ($projectRoot) {
             $path = ltrim($path, '/');
             $diskPath = $projectRoot . '/' . $path;
-            $version = is_file($diskPath) ? filemtime($diskPath) : time();
-            return '/' . $path . '?v=' . $version;
+            if (!array_key_exists($diskPath, self::$assetVersions)) {
+                self::$assetVersions[$diskPath] = is_file($diskPath) ? (int) filemtime($diskPath) : time();
+            }
+            return '/' . $path . '?v=' . self::$assetVersions[$diskPath];
+        }));
+
+        $this->twig->addFunction(new TwigFunction('journal_cover_version', static function (?string $coverPath): string {
+            return CacheInvalidator::coverVersionToken($coverPath) ?? '';
         }));
     }
 

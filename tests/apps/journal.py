@@ -90,7 +90,8 @@ check(admin.go('/edit-journal.php', fields)[0] == 302, 'publication succeeds')
 status, headers, public_body = request('public', article, cookie=admin.cookie)
 check(status == 200 and b'&lt;script&gt;' in public_body and b'<script>alert(1)</script>' not in public_body, 'published article escaped')
 status, headers, public_image = request('public', public_cover)
-check(status == 200 and hashlib.sha256(public_image).digest() == hashlib.sha256(image).digest() and 'no-store' in headers.get('Cache-Control', '') and headers.get('X-Content-Type-Options') == 'nosniff', 'published cover matches private image')
+cover_headers = {k.lower(): v for k, v in headers.items()}
+check(status == 200 and hashlib.sha256(public_image).digest() == hashlib.sha256(image).digest() and 'public' in cover_headers.get('cache-control', '') and 'cdn-cache-control' in cover_headers and 'etag' in cover_headers and cover_headers.get('x-content-type-options') == 'nosniff', 'published cover matches private image and emits public cache headers')
 for route in [article, public_cover]:
     status, headers, _ = request('public', route, cookie='AMEA_PUBLIC=syntheticexpiredjournal')
     check(status == 200 and 'Location' not in headers and 'Set-Cookie' not in headers,

@@ -30,6 +30,7 @@ Web platform for managing members of the **Amicale des Élèves, Étudiants et S
 | Backend | PHP 8.5 (OOP, PDO, fileinfo, GD, cURL, OpenSSL) |
 | Database | MariaDB 10.11 / 11.4 (MySQL-compatible, `utf8mb4` charset) |
 | Storage | Portable local or S3-compatible object storage (Cloudflare R2 via `aws/aws-sdk-php`) |
+| Caching & CDN | Cloudflare Edge Cache (`CDN-Cache-Control`, Cache Rules, Cache Purge API v4), strong `ETag`/`304` revalidation, atomic origin `AppCache` |
 | Frontend | Bootstrap 5, vanilla JavaScript, Tagify, **Dark Mode** (light default) |
 | Email | PHPMailer 6.x through Brevo SMTP |
 | Templating | Twig |
@@ -87,6 +88,7 @@ amea/
 ├── apps/backoffice/public/index.php # Administration entry point
 ├── src/
 │   ├── Core/                        # Routing, sessions and Twig
+│   ├── Cache/                       # Cloudflare HTTP/Purge caching and atomic origin AppCache
 │   ├── Config/                      # Environment and PDO setup
 │   ├── Controller/                  # HTTP request handling
 │   ├── Service/                     # Business behavior
@@ -249,7 +251,7 @@ Commands and limitations are documented in the [testing guide](docs/testing/READ
 
 ## Deployment (production)
 
-GitHub Actions (`.github/workflows/ci.yml`) runs validation checks on every pull request and push to `main`, and provides gated Namecheap Stellar publication jobs (`deploy-stellar-staging` via `workflow_dispatch` with `STELLAR_STAGING_DEPLOY_ENABLED=true`, and `deploy-stellar` on `main` gated behind `STELLAR_DEPLOY_ENABLED=true` and the `production` GitHub Environment). See the [Stellar production transition record](docs/operations/stellar-production-transition.md) for the current release, backups, scheduler, and rollback procedure. Docker and Dokploy are documented in the [rollout guide](docs/operations/public-staff-rollout.md), and portable S3/R2 configuration in the [object storage guide](docs/operations/object-storage.md). Jobs, storage cutover, and production deployment require explicit authorization.
+GitHub Actions (`.github/workflows/ci.yml`) runs validation checks on every pull request and push to `main`, and provides gated Namecheap Stellar publication jobs (`deploy-stellar-staging` via `workflow_dispatch` with `STELLAR_STAGING_DEPLOY_ENABLED=true`, and `deploy-stellar` on `main` gated behind `STELLAR_DEPLOY_ENABLED=true` and the `production` GitHub Environment). See the [Stellar production transition record](docs/operations/stellar-production-transition.md) for the current release, backups, scheduler, and rollback procedure. Docker and Dokploy are documented in the [rollout guide](docs/operations/public-staff-rollout.md), and portable S3/R2 configuration in the [object storage guide](docs/operations/object-storage.md). See the [Cloudflare caching guide](docs/operations/cloudflare-caching.md) for edge rules and the purge CLI. Jobs, storage cutover, and production deployment require explicit authorization.
 
 ---
 

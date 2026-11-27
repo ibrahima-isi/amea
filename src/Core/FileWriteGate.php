@@ -2,6 +2,7 @@
 
 namespace Amea\Core;
 
+use Amea\Cache\HttpCache;
 use RuntimeException;
 
 /** Shared persistent admission, always acquired before DB/member/backend locks. */
@@ -30,6 +31,17 @@ final class FileWriteGate
     public static function application(): self
     {
         return new self(Runtime::writeGateDir(dirname(__DIR__, 2)));
+    }
+
+    /** Read-only pause check that creates no directories and acquires no locks. */
+    public static function isPausedAt(string $directory): bool
+    {
+        if ($directory === '') {
+            return false;
+        }
+        $pauseFile = rtrim($directory, '/') . '/paused.json';
+        clearstatcache(true, $pauseFile);
+        return file_exists($pauseFile) || is_link($pauseFile);
     }
 
     public function mutate(callable $operation): mixed
@@ -81,7 +93,7 @@ final class FileWriteGate
             }
             http_response_code(503);
             header('Retry-After: 60');
-            header('Cache-Control: no-store');
+            HttpCache::sendNoStore(false);
             exit('Maintenance en cours. Veuillez réessayer plus tard.');
         }
     }

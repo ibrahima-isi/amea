@@ -2,6 +2,7 @@
 
 namespace Amea\Controller;
 
+use Amea\Cache\HttpCache;
 use Amea\Model\Student;
 use Amea\Repository\StudentRepository;
 use Amea\Service\EmailService;
@@ -165,7 +166,7 @@ class RegistrationController extends BaseController
         header('Content-Type: ' . $document['mime']);
         header('Content-Disposition: inline');
         header('Content-Length: ' . $document['size']);
-        header('Cache-Control: private, no-store');
+        HttpCache::sendNoStore(true);
         header('X-Content-Type-Options: nosniff');
         fpassthru($document['stream']);
         fclose($document['stream']);

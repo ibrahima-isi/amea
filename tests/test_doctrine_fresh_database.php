@@ -88,7 +88,7 @@ foreach ([
 }
 
 [$exit, $output] = runMigrationCommand('migrate');
-check($exit === 0 && str_contains($output, '5 migrations executed'), "Fresh migration applies all five versions\n{$output}");
+check($exit === 0 && str_contains($output, '6 migrations executed'), "Fresh migration applies all six versions\n{$output}");
 check(
     $fresh->query('SELECT setting_key, setting_value, setting_group FROM settings ORDER BY setting_key')
         ->fetchAll(PDO::FETCH_NUM) === [
@@ -117,8 +117,35 @@ check(
 
 $ledgerQuery = 'SELECT version, executed_at, execution_time FROM doctrine_migration_versions ORDER BY version';
 $ledger = $fresh->query($ledgerQuery)->fetchAll(PDO::FETCH_ASSOC);
-$versions = [...MigrationRuntime::BASELINE_VERSIONS, ...MigrationRuntime::MEMBER_FILE_VERSIONS, MigrationRuntime::LEGACY_MEMBER_COMPATIBILITY_VERSION];
+$versions = [
+    ...MigrationRuntime::BASELINE_VERSIONS,
+    ...MigrationRuntime::MEMBER_FILE_VERSIONS,
+    MigrationRuntime::LEGACY_MEMBER_COMPATIBILITY_VERSION,
+    MigrationRuntime::PERFORMANCE_INDEXES_VERSION,
+];
 check(array_column($ledger, 'version') === $versions, 'Record the schema and data versions separately');
+
+$explainReview = $fresh->query(
+    "EXPLAIN SELECT * FROM students WHERE deleted_at IS NULL AND kyc_status = 'UNDER_REVIEW' ORDER BY registration_date ASC, id ASC LIMIT 6"
+)->fetch(PDO::FETCH_ASSOC);
+check(
+    in_array('idx_students_active_kyc_reg', explode(',', (string) ($explainReview['possible_keys'] ?? '')), true),
+    'MariaDB optimizer considers idx_students_active_kyc_reg for review queue queries'
+);
+$explainSlider = $fresh->query(
+    "EXPLAIN SELECT * FROM slider_images WHERE image_path = 'uploads/slider/example.jpg' ORDER BY id LIMIT 1"
+)->fetch(PDO::FETCH_ASSOC);
+check(
+    in_array('idx_slider_images_image_path', explode(',', (string) ($explainSlider['possible_keys'] ?? '')), true),
+    'MariaDB optimizer considers idx_slider_images_image_path for carousel media lookups'
+);
+$explainJournal = $fresh->query(
+    "EXPLAIN SELECT * FROM journal_posts WHERE status = 'PUBLISHED' AND type = 'REPORT' ORDER BY published_at DESC, id DESC LIMIT 12"
+)->fetch(PDO::FETCH_ASSOC);
+check(
+    in_array('idx_journal_type_publication', explode(',', (string) ($explainJournal['possible_keys'] ?? '')), true),
+    'MariaDB optimizer considers idx_journal_type_publication for filtered journal listings'
+);
 check(
     $fresh->query("SHOW TABLE STATUS WHERE Name = 'doctrine_migration_versions'")->fetch(PDO::FETCH_ASSOC)['Engine'] === 'InnoDB',
     'The version ledger uses a transactional storage engine'

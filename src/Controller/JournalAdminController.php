@@ -1,6 +1,7 @@
 <?php
 namespace Amea\Controller;
 
+use Amea\Cache\HttpCache;
 use Amea\Core\Container;
 use Amea\Repository\JournalRepository;
 use Amea\Service\JournalService;
@@ -129,7 +130,7 @@ final class JournalAdminController extends BaseController
         header('Content-Type: ' . $file['mime']);
         header('Content-Length: ' . $file['size']);
         header('X-Content-Type-Options: nosniff');
-        header('Cache-Control: private, no-store');
+        HttpCache::sendNoStore(true);
         fpassthru($file['stream']);
         fclose($file['stream']);
     }

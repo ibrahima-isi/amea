@@ -84,6 +84,9 @@ final class PublicationScriptsTest extends TestCase
             'R2_BUCKET_NAME' => 'amea-sandbox',
             'R2_ACCESS_KEY_ID' => 'r2-access-key',
             'R2_SECRET_ACCESS_KEY' => 's3cr3t-r2-secret-value',
+            'CLOUDFLARE_ZONE_ID' => '0123456789abcdef0123456789abcdef',
+            'CLOUDFLARE_API_TOKEN' => 's3cr3t-cf-purge-token',
+            'CLOUDFLARE_CACHE_ENABLED' => '1',
             'UNRELATED_SECRET' => 'must-never-be-rendered',
         ];
     }
@@ -103,10 +106,12 @@ final class PublicationScriptsTest extends TestCase
         $content = (string) file_get_contents($out);
         $this->assertStringContainsString("APP_ENV=test\n", $content);
         $this->assertStringContainsString("R2_BUCKET_NAME=amea-sandbox\n", $content);
+        $this->assertStringContainsString("CLOUDFLARE_ZONE_ID=0123456789abcdef0123456789abcdef\n", $content);
+        $this->assertStringContainsString("CLOUDFLARE_CACHE_ENABLED=1\n", $content);
         $this->assertStringNotContainsString('UNRELATED_SECRET', $content);
         $this->assertStringNotContainsString('must-never-be-rendered', $content);
 
-        foreach (['s3cr3t-db-pass-value', 's3cr3t-smtp-key-value', 's3cr3t-r2-secret-value', 'must-never-be-rendered'] as $secret) {
+        foreach (['s3cr3t-db-pass-value', 's3cr3t-smtp-key-value', 's3cr3t-r2-secret-value', 's3cr3t-cf-purge-token', 'must-never-be-rendered'] as $secret) {
             $this->assertStringNotContainsString($secret, $res['stdout']);
             $this->assertStringNotContainsString($secret, $res['stderr']);
         }

@@ -1,6 +1,8 @@
 <?php
 namespace Amea\Service;
 
+use Amea\Cache\CacheInvalidator;
+use Amea\Core\Container;
 use Amea\Repository\FileOperationRepository;
 use Amea\Repository\SliderRepository;
 use Amea\Storage\Storage;
@@ -10,8 +12,12 @@ final class SliderService
 {
     private SliderRepository $images;
 
-    public function __construct(private \PDO $db, private Storage $storage, private FileLifecycleService $lifecycle)
-    {
+    public function __construct(
+        private \PDO $db,
+        private Storage $storage,
+        private FileLifecycleService $lifecycle,
+        private ?CacheInvalidator $invalidator = null
+    ) {
         $this->images = new SliderRepository($db);
     }
 
@@ -24,12 +30,13 @@ final class SliderService
             fclose($image['stream']);
             $id = $this->images->save(['image_path' => $key, 'caption' => $caption, 'display_order' => $displayOrder]);
             $this->db->commit();
-            return $id;
         } catch (\Throwable $error) {
             if ($this->db->inTransaction()) { $this->db->rollBack(); }
             // Unreferenced verified objects remain available for reconciliation.
             throw $error;
         }
+        ($this->invalidator ?? Container::cacheInvalidator())->onSliderChanged($key);
+        return $id;
     }
 
     public function remove(int $id): bool
@@ -49,6 +56,7 @@ final class SliderService
             if ($this->db->inTransaction()) { $this->db->rollBack(); }
             throw $error;
         }
+        ($this->invalidator ?? Container::cacheInvalidator())->onSliderChanged($image['image_path']);
         $this->lifecycle->retryDeletions(100);
         return true;
     }

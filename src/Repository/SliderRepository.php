@@ -2,11 +2,18 @@
 
 namespace Amea\Repository;
 
+use Amea\Cache\AppCache;
+use Amea\Core\Container;
 use PDO;
 
 class SliderRepository
 {
-    public function __construct(private PDO $conn) {}
+    private const CACHE_TTL = 300;
+
+    public function __construct(
+        private PDO $conn,
+        private ?AppCache $cache = null
+    ) {}
 
     public function findAll(): array
     {
@@ -38,6 +45,9 @@ class SliderRepository
             ':caption'       => $data['caption'] ?? null,
             ':display_order' => $data['display_order'] ?? 0,
         ]);
+        if (!$this->conn->inTransaction()) {
+            $this->resolveCache()->invalidateNamespace(AppCache::NS_SLIDER);
+        }
         return (int)$this->conn->lastInsertId();
     }
 
@@ -45,11 +55,21 @@ class SliderRepository
     {
         $stmt = $this->conn->prepare("DELETE FROM slider_images WHERE id = ?");
         $stmt->execute([$id]);
+        if (!$this->conn->inTransaction()) {
+            $this->resolveCache()->invalidateNamespace(AppCache::NS_SLIDER);
+        }
     }
 
     public function getActiveImages(): array
     {
-        $stmt = $this->conn->query("SELECT * FROM slider_images ORDER BY display_order ASC");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->resolveCache()->remember(AppCache::NS_SLIDER, 'active_images', self::CACHE_TTL, function (): array {
+            $stmt = $this->conn->query("SELECT * FROM slider_images ORDER BY display_order ASC, id ASC");
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        });
+    }
+
+    private function resolveCache(): AppCache
+    {
+        return $this->cache ?? Container::cacheForConnection($this->conn);
     }
 }

@@ -94,14 +94,19 @@ class FileOperationRepository
             $stmt->execute([$key]);
             if ($stmt->fetchColumn()) { return true; }
         }
-        $sql = 'SELECT 1 FROM students WHERE (identity_document = ? OR cv_path = ?)';
-        $args = [$key, $key];
-        if ($excludingStudent !== null) {
-            $sql .= ' AND id <> ?';
-            $args[] = $excludingStudent;
+        foreach (['identity_document', 'cv_path'] as $column) {
+            $sql = "SELECT 1 FROM students WHERE {$column} = ?";
+            $args = [$key];
+            if ($excludingStudent !== null) {
+                $sql .= ' AND id <> ?';
+                $args[] = $excludingStudent;
+            }
+            $stmt = $this->db->prepare($sql . ' LIMIT 1');
+            $stmt->execute($args);
+            if ($stmt->fetchColumn()) {
+                return true;
+            }
         }
-        $stmt = $this->db->prepare($sql . ' LIMIT 1');
-        $stmt->execute($args);
-        return (bool)$stmt->fetchColumn();
+        return false;
     }
 }

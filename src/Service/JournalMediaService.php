@@ -42,13 +42,33 @@ final class JournalMediaService
         return ['path' => 'uploads/journal/covers/' . $name, 'mime' => $mime];
     }
 
-    /** Verified temporary stream, independent of the storage backend. */
-    public function open(string $relativePath): array
+    /**
+     * Validate cover path/extension against the journal cover allowlist and inspect metadata.
+     *
+     * @return array{size: int, mime: string, createdAt: int, sha256: ?string}|null
+     */
+    public function inspect(string $relativePath): ?array
     {
         if (!preg_match('#^uploads/journal/covers/[a-f0-9]{32}\.(jpg|png|webp)$#D', $relativePath)) {
             throw new \OutOfBoundsException('Publication introuvable.');
         }
-        $file = (new MemberDocumentService($this->storage))->open($relativePath, array_keys(self::TYPES));
+        $metadata = $this->storage->stat($relativePath);
+        if ($metadata === null) {
+            return null;
+        }
+        if (!preg_match('/^[a-f0-9]{64}$/D', (string) ($metadata['sha256'] ?? ''))) {
+            $metadata['sha256'] = null;
+        }
+        return $metadata;
+    }
+
+    /** Verified temporary stream, independent of the storage backend. */
+    public function open(string $relativePath, ?array $prefetchedMetadata = null): array
+    {
+        if (!preg_match('#^uploads/journal/covers/[a-f0-9]{32}\.(jpg|png|webp)$#D', $relativePath)) {
+            throw new \OutOfBoundsException('Publication introuvable.');
+        }
+        $file = (new MemberDocumentService($this->storage))->open($relativePath, array_keys(self::TYPES), $prefetchedMetadata);
         $image = @getimagesize(stream_get_meta_data($file['stream'])['uri']);
         if (!$image || ($image['mime'] ?? null) !== $file['mime'] || pathinfo($relativePath, PATHINFO_EXTENSION) !== self::TYPES[$file['mime']]) {
             fclose($file['stream']);

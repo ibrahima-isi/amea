@@ -36,7 +36,7 @@ class CommunicationController extends BaseController
     {
         $this->render('admin/pages/communications.html.twig', [
             'institutions' => $this->studentRepo->getDistinctInstitutions(),
-            'stats' => $this->getStats(),
+            'stats' => $this->studentRepo->getConsentStats(),
         ]);
     }
 
@@ -49,8 +49,7 @@ class CommunicationController extends BaseController
             'status'      => $_GET['status'] ?? '',
             'institution' => $_GET['institution'] ?? '',
         ]);
-        $result = $this->studentRepo->findPaginated(1, PHP_INT_MAX, $filters);
-        echo json_encode(['count' => $result['total']]);
+        echo json_encode(['count' => $this->studentRepo->countAll($filters)]);
         exit();
     }
 
@@ -78,9 +77,9 @@ class CommunicationController extends BaseController
             'institution' => $_POST['institution'] ?? '',
         ]);
 
-        $result = $this->studentRepo->findPaginated(1, PHP_INT_MAX, $filters);
-        $sent   = 0;
-        foreach ($result['items'] as $student) {
+        $students = $this->studentRepo->findAll($filters);
+        $sent     = 0;
+        foreach ($students as $student) {
             if ($student->getEmail()) {
                 $this->emailService->send(
                     $student->getEmail(),
@@ -93,17 +92,5 @@ class CommunicationController extends BaseController
 
         $this->flash->set('success', $sent . ' email(s) envoyé(s) avec succès.');
         $this->redirect('communications.php');
-    }
-
-    // ─── helpers ───────────────────────────────────────────────────────────────
-
-    private function getStats(): array
-    {
-        $all = $this->studentRepo->findAll();
-        return [
-            'total'         => count($all),
-            'consented'     => count(array_filter($all, fn($s) => $s->hasConsentPrivacy())),
-            'not_consented' => count(array_filter($all, fn($s) => !$s->hasConsentPrivacy())),
-        ];
     }
 }

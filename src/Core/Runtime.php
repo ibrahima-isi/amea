@@ -164,6 +164,25 @@ final class Runtime
         return rtrim($projectRoot, '/') . '/storage/cache/twig';
     }
 
+    /**
+     * Returns the shared application cache directory across public, staff, and jobs
+     * so staff mutations immediately invalidate public origin caches.
+     */
+    public static function appCacheDir(string $projectRoot): string
+    {
+        $explicit = trim(self::constantOrEnv('AMEA_APP_CACHE_DIR'));
+        if ($explicit !== '') {
+            return rtrim($explicit, '/');
+        }
+
+        $stateDir = self::stateDir();
+        if ($stateDir !== null) {
+            return $stateDir . '/cache/app';
+        }
+
+        return rtrim($projectRoot, '/') . '/storage/app-cache';
+    }
+
     public static function writeGateDir(string $projectRoot): string
     {
         $explicit = trim(self::env('FILE_WRITE_GATE_PATH'));

@@ -1,6 +1,8 @@
 <?php
 namespace Amea\Service;
 
+use Amea\Cache\AppCache;
+use Amea\Core\Container;
 use Amea\Storage\Storage;
 use Amea\Repository\FileOperationRepository;
 use Amea\Repository\StudentRepository;
@@ -83,6 +85,9 @@ class FileLifecycleService
                 $operations->enqueue(bin2hex(random_bytes(16)), $this->backend, 'replacement', $keys, $current ?? ['id' => $id]);
             }
             $this->db->commit();
+            if (!empty($data['institution']) || !empty($data['study_field']) || !empty($data['study_level'])) {
+                Container::cache()->invalidateNamespace(AppCache::NS_LOOKUPS);
+            }
             return $id;
         } catch (\Throwable $error) {
             if ($this->db->inTransaction()) {
