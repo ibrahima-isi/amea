@@ -11,7 +11,7 @@ Execute [plan Task 6](../plan.md#task-6--approved-production-transition) under t
 ## Acceptance criteria
 
 - [ ] Merged code, latest-commit CI, actual deployed revision and Ticket 05 qualification are verified.
-- [ ] Actual production source/reference inventory is reconciled, and a coordinated backup restores successfully.
+- [x] Actual production source/reference inventory is reconciled, and a coordinated backup restores successfully.
 - [ ] Backup capacity/cadence, all writers, session persistence and the measured maintenance window are recorded.
 - [ ] Explicit approval identifies the live resources and final transition procedure.
 - [ ] Final frozen inventory, read-back hashes, guarded corrections and target configuration all agree before reopening.
@@ -24,3 +24,5 @@ Execute [plan Task 6](../plan.md#task-6--approved-production-transition) under t
 2026-11-12 — Human-owned because selecting/approving the live resources and executing a production change require explicit operator involvement under AGENTS.md. Design approval and ticket readiness do not constitute that approval.
 
 2026-11-26 — The Stellar qualification, transfer rehearsal, and GitHub Actions staging publication path are complete; the operator approval package now lives at [stellar-production-transition.md](../../../docs/operations/stellar-production-transition.md).
+
+2026-11-27 — The coordinated pre-pause production backup restored successfully. The isolated database and file rehearsal reconciled the captured source with the operator-approved missing references. See the [legacy import plan and rehearsal results](../legacy-production-import-plan.md). The frozen cutover inventory and recovery point remain pending.

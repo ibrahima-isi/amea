@@ -60,6 +60,11 @@ try {
     }
     echo "PASS: enrollment refuses a schema.sql import missing the initial settings.\n";
 
+    $connection->executeStatement('ALTER TABLE students MODIFY housing_details VARCHAR(100) DEFAULT NULL');
+    checkCommand($enroll, 1, 'Unsupported schema for students');
+    $connection->executeStatement('ALTER TABLE students MODIFY housing_details VARCHAR(255) DEFAULT NULL');
+    echo "PASS: enrollment refuses the partially applied compatibility schema.\n";
+
     $connection->executeStatement(
         "INSERT INTO settings (setting_key, setting_value) VALUES
             ('contact_email', 'custom@example.invalid'), ('contact_phone', '+221 XX XXX XX XX'), ('organization_name', 'AMEA Test')"
@@ -100,14 +105,14 @@ try {
         $output = stream_get_contents($pipe);
         fclose($pipe);
         $exit = proc_close($process);
-        if (($index === 0 && ($exit !== 0 || !str_contains($output, 'Recorded 4 baseline versions')))
+        if (($index === 0 && ($exit !== 0 || !str_contains($output, 'Recorded 5 baseline versions')))
             || ($index === 1 && !(($exit === 0 && str_contains($output, 'Already at the latest version'))
                 || ($exit === 1 && str_contains($output, 'without a recorded baseline'))))) {
             throw new RuntimeException('Mixed enrollment/migration attempt failed: ' . $output);
         }
     }
     checkCommand(['scripts/migrate.php', 'migrate'], 0, 'Already at the latest version');
-    if ($snapshot() !== $before || (int) $connection->fetchOne('SELECT COUNT(*) FROM doctrine_migration_versions') !== 4) {
+    if ($snapshot() !== $before || (int) $connection->fetchOne('SELECT COUNT(*) FROM doctrine_migration_versions') !== 5) {
         throw new RuntimeException('Mixed attempts must preserve application rows and record each baseline once.');
     }
     $connection->executeStatement('DROP TABLE doctrine_migration_versions');
@@ -123,7 +128,7 @@ try {
     $connection->executeStatement('ALTER TABLE amea_migration_recovery ADD COLUMN unexpected INT');
     checkCommand($enroll, 1, 'canonical empty migration recovery table');
     $connection->executeStatement('ALTER TABLE amea_migration_recovery DROP COLUMN unexpected');
-    checkCommand($enroll, 0, 'Recorded 4 baseline versions');
+    checkCommand($enroll, 0, 'Recorded 5 baseline versions');
     $ledgerSql = 'SELECT * FROM doctrine_migration_versions ORDER BY version';
     $ledger = $connection->fetchAllAssociative($ledgerSql);
     if (array_column($ledger, 'version') !== [
@@ -131,6 +136,7 @@ try {
         'Amea\\Migration\\Version\\Version20261106000001',
         'Amea\\Migration\\Version\\Version20261113000000',
         'Amea\\Migration\\Version\\Version20261113000001',
+        MigrationRuntime::LEGACY_MEMBER_COMPATIBILITY_VERSION,
     ] || $snapshot() !== $before) {
         throw new RuntimeException('Enrollment must record all snapshot versions and preserve all existing data.');
     }
@@ -145,7 +151,7 @@ try {
     $connection->executeStatement("ALTER TABLE settings DROP PRIMARY KEY, DROP COLUMN id, DROP COLUMN setting_group, DROP INDEX setting_key, ADD PRIMARY KEY (setting_key), CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $connection->executeStatement("ALTER TABLE students MODIFY housing_type ENUM('Other','With family','Shared housing','University residence','Autre','Colocation','Famille','Hébergement temporaire','Location','Résidence universitaire') COLLATE utf8mb4_unicode_ci NULL DEFAULT 'With family' COMMENT 'legacy fixture'");
     $connection->executeStatement("ALTER TABLE settings MODIFY updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
-    $connection->executeStatement("ALTER TABLE students MODIFY gender ENUM('Féminin','Masculin','Female','Male') NOT NULL, MODIFY status ENUM('Diplômé(e)','Diplômé','GRADUATE','STAGIAIRE','ETUDIANT','ELEVE','TRAINEE','STUDENT','PUPIL') NOT NULL");
+    $connection->executeStatement("ALTER TABLE students MODIFY gender ENUM('Féminin','Masculin','Female','Male') NOT NULL, MODIFY status ENUM('Diplômé(e)','Diplômé','GRADUATE','STAGIAIRE','ETUDIANT','ELEVE','TRAINEE','STUDENT','PUPIL') NOT NULL, MODIFY housing_details VARCHAR(100) DEFAULT NULL");
     $legacyBefore = $connection->fetchAllAssociative('SELECT * FROM settings ORDER BY setting_key');
     $memberBefore = $connection->fetchAllAssociative('SELECT * FROM students ORDER BY id');
     checkCommand($enroll, 0, 'Recorded 4 baseline versions');
@@ -205,6 +211,25 @@ try {
     checkCommand(['scripts/enroll-migrations.php', '--database=amea_doctrine_enrollment', '--evidence=' . $evidence], 2, '--writers-stopped');
     checkCommand(['scripts/enroll-migrations.php', '--database=amea_doctrine_enrollment', '--writers-stopped', '--evidence=/missing-enrollment-evidence.json'], 1, 'readable local enrollment evidence');
     echo "PASS: enrollment requires an explicit writer-stop acknowledgement and reviewed evidence file.\n";
+
+    checkCommand(['scripts/migrate.php', 'migrate'], 1, 'AMEA_SCHEMA_BACKUP_CONFIRMED=1');
+    $acknowledgement = getenv('AMEA_SCHEMA_BACKUP_CONFIRMED');
+    putenv('AMEA_SCHEMA_BACKUP_CONFIRMED=1');
+    try {
+        checkCommand(['scripts/migrate.php', 'migrate'], 0, MigrationRuntime::LEGACY_MEMBER_COMPATIBILITY_VERSION);
+    } finally {
+        putenv($acknowledgement === false ? 'AMEA_SCHEMA_BACKUP_CONFIRMED'
+            : 'AMEA_SCHEMA_BACKUP_CONFIRMED=' . $acknowledgement);
+    }
+    if ($connection->fetchFirstColumn('SELECT version FROM doctrine_migration_versions ORDER BY version') !== [
+        ...MigrationRuntime::BASELINE_VERSIONS,
+        ...MigrationRuntime::MEMBER_FILE_VERSIONS,
+        MigrationRuntime::LEGACY_MEMBER_COMPATIBILITY_VERSION,
+    ] || $connection->fetchAllAssociative('SELECT * FROM students ORDER BY id') !== $memberBefore) {
+        throw new RuntimeException('The compatibility upgrade must preserve legacy records and record only its new version.');
+    }
+    checkCommand(['scripts/migrate.php', 'migrate'], 0, 'Already at the latest version');
+    echo "PASS: a verified legacy baseline upgrades once while preserving existing member data.\n";
 
 
 
