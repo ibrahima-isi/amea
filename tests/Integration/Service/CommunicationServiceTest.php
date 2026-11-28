@@ -14,6 +14,7 @@ use Amea\Service\EmailService;
 use Amea\Service\MailBatchTransportInterface;
 use Amea\Service\MailQuotaService;
 use PDO;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class CommunicationServiceTest extends TestCase
@@ -574,7 +575,16 @@ final class CommunicationServiceTest extends TestCase
         self::assertSame([], $transport->sent);
     }
 
-    public function testQuotaReleaseDoesNotRequeueCancelledRecipients(): void
+    public static function quotaReleaseOrders(): array
+    {
+        return [
+            'cancel before releasing the claim' => [true],
+            'release the claim before cancellation' => [false],
+        ];
+    }
+
+    #[DataProvider('quotaReleaseOrders')]
+    public function testQuotaReleaseDoesNotRequeueCancelledRecipients(bool $cancelBeforeRelease): void
     {
         $transport = $this->makeRecordingTransport(['awa@example.invalid']);
         $service = $this->makeService($transport, dailyLimit: 1, maxAttempts: 1);
@@ -584,16 +594,29 @@ final class CommunicationServiceTest extends TestCase
         self::assertTrue($quota->tryReserveOneSlot());
         $claimedAt = gmdate('Y-m-d H:i:s');
         $claimed = $this->commRepo->claimDueRecipients($campaign['id'], 1, $claimedAt, '2000-01-01 00:00:00');
+        self::assertSame(['mamadou@example.invalid'], array_column($claimed, 'email'));
         self::assertFalse($quota->tryReserveOneSlot());
 
-        $service->cancelRemaining($campaign['id']);
+        if ($cancelBeforeRelease) {
+            $service->cancelRemaining($campaign['id']);
+        }
         $this->commRepo->releaseClaimedRecipients($claimed, $claimedAt, $claimedAt);
+        if (!$cancelBeforeRelease) {
+            $service->cancelRemaining($campaign['id']);
+        }
 
-        self::assertSame(1, $service->getCommunication($campaign['id'])['cancelled_count']);
+        $cancelled = $service->getCommunication($campaign['id']);
+        self::assertSame('CANCELLED', $cancelled['status']);
+        self::assertSame(0, $cancelled['pending_count']);
+        self::assertSame(0, $cancelled['sending_count']);
+        self::assertSame(1, $cancelled['cancelled_count']);
+        self::assertSame(1, $cancelled['failed_count']);
+        self::assertSame(1, $quota->getUsageForDate());
         self::assertSame(1, $service->retryFailed($campaign['id']));
         $quota->releaseOneSlot();
         $service->dispatchChunk($campaign['id']);
         self::assertSame(['awa@example.invalid', 'awa@example.invalid'], array_column($transport->sent, 'to'));
+        self::assertSame(0, $quota->getUsageForDate());
     }
 
     public function testRetryCannotReopenCancelledCampaignWithAbandonedClaims(): void

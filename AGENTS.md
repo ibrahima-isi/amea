@@ -41,7 +41,9 @@ First visit always renders in light mode regardless of the operating-system them
 
 ## Testing Guidelines
 
-Use PHPUnit 11 with `*Test.php` files under `tests/Unit/` or `tests/Integration/`; standalone checks use `test_*.php`. Existing tests use SQLite fixtures. Add regression coverage for changed behavior. No numeric coverage threshold is configured. Run relevant suites and the CI command set before requesting review. SQLite-backed tests do not require MySQL. Keep all GitHub Actions workflows in `.github/workflows/ci.yml`; consult that file for actual triggers.
+For migration qualification, focused browser checks, or stable inputs for both review axes, see [testing and rehearsal](docs/testing/README.md).
+
+Use PHPUnit 11 with `*Test.php` files under `tests/Unit/` or `tests/Integration/`; standalone checks use `test_*.php`. Existing tests use SQLite fixtures. Add regression coverage for changed behavior. No numeric coverage threshold is configured. Run relevant suites and the CI command set before requesting final review. SQLite-backed tests do not require MySQL. Keep all GitHub Actions workflows in `.github/workflows/ci.yml`; consult that file for actual triggers.
 
 ## GitHub Flow
 

@@ -36,6 +36,34 @@ AMEA_REHEARSAL_PROJECT=amea-ui-test-example AMEA_PUBLIC_PORT=28443 AMEA_STAFF_PO
 
 Check source ports 28443/29443 and restore ports 18448/19448 are free first. The rehearsal uses synthetic accounts, storage and mail; it does not qualify production, DNS or real SMTP. The [rollout guide](../operations/public-staff-rollout.md) describes deployment and rollback separately. Screenshots are generated artifacts and ignored.
 
+## Communications and consent
+
+During a fix or review cycle, start with the regression for the affected transition. The quota-release regression covers both orders of cancellation and claim release, followed by retry and dispatch.
+
+```sh
+./vendor/bin/phpunit --filter 'QuotaReleaseDoesNotRequeueCancelledRecipients|RetryCannotReopenCancelledCampaignWithAbandonedClaims'
+```
+
+Run the CI browser scope locally with `AMEA_BROWSER_SCOPE=tools bash tests/apps/run.sh`. This keeps the Docker and recovery checks and runs the staff tools Chrome journey, including Communications confirmation, keyboard access, mobile layout and contrast.
+
+## Migration qualification
+
+Before qualifying a change to Doctrine versions, fetch the current target and run the collision check from the task worktree.
+
+```sh
+git fetch origin main
+python3 tests/check-migration-versions.py origin/main
+bash tests/apps/doctrine-compose.sh
+```
+
+If the version check flags competing additions, integrate the target and renumber the unpublished migration before running the Compose rehearsal. CI compares the pull request's base and head commits. The rehearsal checks the combined schema and upgrade paths.
+
+## Review inputs
+
+Run `bash tests/review-snapshot.sh <base-ref>` once from the task worktree. Give the Standards and Spec reviewers the same merge base, snapshot tree, diff command and commit command. The snapshot includes the current contents of tracked and unignored untracked files through a temporary index. Reviewers can read the tree from any worktree sharing the Git object store.
+
+After fixes, capture a new snapshot. List each finding you addressed and the focused tests that verify it. Run the full applicable suite on the final snapshot, and repeat after integration changes the reviewed contents.
+
 ## Cache changes
 
 Before requesting review of cache changes, run these checks from the repository root. Use free source and restore ports as described above.
