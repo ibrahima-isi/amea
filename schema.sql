@@ -32,7 +32,13 @@ CREATE TABLE IF NOT EXISTS `students`
     `deleted_at`             datetime     DEFAULT NULL,
     `deleted_by`             int(11)      DEFAULT NULL,
     PRIMARY KEY (`id`),
-    KEY `idx_students_deleted_at` (`deleted_at`)
+    KEY `idx_students_deleted_at` (`deleted_at`),
+    KEY `idx_students_active_kyc_reg` (`deleted_at`, `kyc_status`, `registration_date`, `id`),
+    KEY `idx_students_active_reg_stats` (`deleted_at`, `registration_date`, `kyc_status`, `status`, `gender`, `consent_privacy`),
+    KEY `idx_students_active_institution` (`deleted_at`, `institution`, `status`, `kyc_status`),
+    KEY `idx_students_active_status_level` (`deleted_at`, `kyc_status`, `status`, `study_level`),
+    KEY `idx_students_identity_document` (`identity_document`),
+    KEY `idx_students_cv_path` (`cv_path`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_general_ci;
@@ -53,7 +59,8 @@ CREATE TABLE IF NOT EXISTS `users`
     `permissions`        text                                  DEFAULT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `username` (`username`),
-    UNIQUE KEY `email` (`email`)
+    UNIQUE KEY `email` (`email`),
+    KEY `idx_users_created_at` (`created_at`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_general_ci;
@@ -86,7 +93,8 @@ CREATE TABLE IF NOT EXISTS locations
     id     INT AUTO_INCREMENT PRIMARY KEY,
     name   VARCHAR(255) NOT NULL,
     region VARCHAR(100) NOT NULL,
-    UNIQUE (name)
+    UNIQUE (name),
+    KEY `idx_locations_region_name` (`region`, `name`)
 );
 
 CREATE TABLE IF NOT EXISTS `slider_images` (
@@ -100,6 +108,8 @@ CREATE TABLE IF NOT EXISTS `slider_images` (
   `created_at` datetime DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `uploaded_by` (`uploaded_by`),
+  KEY `idx_slider_images_image_path` (`image_path`),
+  KEY `idx_slider_images_display_order` (`display_order`, `id`),
   CONSTRAINT `slider_images_ibfk_1` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -117,7 +127,8 @@ CREATE TABLE IF NOT EXISTS `countries` (
   `name_fr` varchar(100) NOT NULL,
   `name_en` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `code_iso` (`code_iso`)
+  UNIQUE KEY `code_iso` (`code_iso`),
+  KEY `idx_countries_name_fr` (`name_fr`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `student_country` (
@@ -162,7 +173,10 @@ CREATE TABLE IF NOT EXISTS journal_posts (
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     INDEX journal_publication (status,published_at,id),
-    INDEX journal_activity (status,type,activity_end_at)
+    INDEX journal_activity (status,type,activity_end_at),
+    KEY `idx_journal_type_publication` (`status`, `type`, `published_at`, `id`),
+    KEY `idx_journal_admin_updated` (`updated_at`, `id`),
+    KEY `idx_journal_cover_path` (`cover_path`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE member_file_lock (

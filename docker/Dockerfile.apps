@@ -2,7 +2,7 @@ FROM php:8.5.12-apache-bookworm AS shared
 RUN apt-get update && apt-get install -y --no-install-recommends libpng-dev libjpeg62-turbo-dev libfreetype6-dev libonig-dev unzip git \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" pdo_mysql mbstring gd \
-    && a2enmod rewrite ssl headers && rm -rf /var/lib/apt/lists/*
+    && a2enmod rewrite ssl headers deflate expires && rm -rf /var/lib/apt/lists/*
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 WORKDIR /opt/amea
 COPY composer.json composer.lock ./
@@ -14,7 +14,7 @@ COPY assets assets
 COPY migrations migrations
 COPY scripts/storage-target.php /opt/amea-apps/storage-target.php
 RUN printf 'variables_order = "EGPCS"\ndisplay_errors = Off\nlog_errors = On\n' > /usr/local/etc/php/conf.d/zz-amea-env.ini \
-    && mkdir -p /var/lib/amea/sessions /var/lib/amea/recovery /var/lib/amea/recovery-sessions/public /var/lib/amea/recovery-sessions/staff /opt/amea/uploads /opt/amea/storage/mail-queue /opt/amea/storage/cache /opt/amea/logs \
+    && mkdir -p /var/lib/amea/sessions /var/lib/amea/recovery /var/lib/amea/recovery-sessions/public /var/lib/amea/recovery-sessions/staff /opt/amea/uploads /opt/amea/storage/mail-queue /opt/amea/storage/cache /opt/amea/storage/app-cache /opt/amea/logs \
     && chown -R www-data:www-data /var/lib/amea /opt/amea/uploads /opt/amea/storage /opt/amea/logs
 
 FROM shared AS apache

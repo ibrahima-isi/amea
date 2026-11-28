@@ -13,6 +13,37 @@ final class BaselineEnrollment
 
     private const MEMBER_SQL_BASELINE_SHA256 = 'e4392a1502489d941bc928cc7b14ad64ecc2736be63a881d7cd70c63e13cb375';
     private const LEGACY_MEMBER_SQL_BASELINE_SHA256 = '7e15684937a0bae3b136097a21eb847112da698524b9767241ab9c3b60b0e4f5';
+    private const PERFORMANCE_INDEXES_SQL_BASELINE_SHA256 = '9716a2e8d70c9504ddeabc1e0b2ae56f38c6b28fcf652a3d2425ef36202bdb8a';
+
+    /** @var array<string, list<string>> */
+    private const PERFORMANCE_INDEX_KEYS = [
+        'countries' => [
+            '  KEY `idx_countries_name_fr` (`name_fr`)',
+        ],
+        'journal_posts' => [
+            '  KEY `idx_journal_type_publication` (`status`,`type`,`published_at`,`id`)',
+            '  KEY `idx_journal_admin_updated` (`updated_at`,`id`)',
+            '  KEY `idx_journal_cover_path` (`cover_path`)',
+        ],
+        'locations' => [
+            '  KEY `idx_locations_region_name` (`region`,`name`)',
+        ],
+        'slider_images' => [
+            '  KEY `idx_slider_images_image_path` (`image_path`)',
+            '  KEY `idx_slider_images_display_order` (`display_order`,`id`)',
+        ],
+        'students' => [
+            '  KEY `idx_students_active_kyc_reg` (`deleted_at`,`kyc_status`,`registration_date`,`id`)',
+            '  KEY `idx_students_active_reg_stats` (`deleted_at`,`registration_date`,`kyc_status`,`status`,`gender`,`consent_privacy`)',
+            '  KEY `idx_students_active_institution` (`deleted_at`,`institution`,`status`,`kyc_status`)',
+            '  KEY `idx_students_active_status_level` (`deleted_at`,`kyc_status`,`status`,`study_level`)',
+            '  KEY `idx_students_identity_document` (`identity_document`)',
+            '  KEY `idx_students_cv_path` (`cv_path`)',
+        ],
+        'users' => [
+            '  KEY `idx_users_created_at` (`created_at`)',
+        ],
+    ];
 
     private array $versions = MigrationRuntime::BASELINE_VERSIONS;
 
@@ -98,6 +129,7 @@ final class BaselineEnrollment
                 self::SQL_BASELINE_SHA256,
                 self::MEMBER_SQL_BASELINE_SHA256,
                 self::LEGACY_MEMBER_SQL_BASELINE_SHA256,
+                self::PERFORMANCE_INDEXES_SQL_BASELINE_SHA256,
             ], true)) {
             return;
         }
@@ -150,6 +182,10 @@ final class BaselineEnrollment
             }
         }
 
+        $hasLegacyMemberCompat = false;
+        $indexedTables = [];
+        $unindexedTables = [];
+
         foreach ($definitions as $table => $expectedDefinition) {
             if ($tables[$table] !== 'BASE TABLE') {
                 throw new RuntimeException("Expected {$table} to be a base table. Review the database schema before enrollment.");
@@ -161,9 +197,25 @@ final class BaselineEnrollment
                 $normalized = $this->normalizeMemberEnums($normalized, $expectedDefinition);
                 $compatibleDefinition = preg_replace('/(^  `gender` enum\([^\n]+\)) NOT NULL,$/m', '$1 DEFAULT NULL,', $expectedDefinition);
                 $compatibleDefinition = str_replace('`housing_details` varchar(100)', '`housing_details` varchar(255)', $compatibleDefinition);
-                if ($hasMemberFileSchema && $normalized === $compatibleDefinition) {
+                $indexedDefinition = $this->withPerformanceIndexes($table, $compatibleDefinition);
+                if ($hasMemberFileSchema && $normalized === $indexedDefinition) {
+                    $expectedDefinition = $indexedDefinition;
+                    $hasLegacyMemberCompat = true;
+                    $indexedTables[] = $table;
+                } elseif ($hasMemberFileSchema && $normalized === $compatibleDefinition) {
                     $expectedDefinition = $compatibleDefinition;
-                    $this->versions[] = MigrationRuntime::LEGACY_MEMBER_COMPATIBILITY_VERSION;
+                    $hasLegacyMemberCompat = true;
+                    $unindexedTables[] = $table;
+                } else {
+                    $unindexedTables[] = $table;
+                }
+            } elseif (isset(self::PERFORMANCE_INDEX_KEYS[$table])) {
+                $indexedDefinition = $this->withPerformanceIndexes($table, $expectedDefinition);
+                if ($hasMemberFileSchema && $normalized === $indexedDefinition) {
+                    $expectedDefinition = $indexedDefinition;
+                    $indexedTables[] = $table;
+                } else {
+                    $unindexedTables[] = $table;
                 }
             }
             if ($table === 'settings' && !str_contains($normalized, '  `id` ')) {
@@ -180,6 +232,47 @@ final class BaselineEnrollment
                 throw new RuntimeException("Unsupported schema for {$table}. Compare SHOW CREATE TABLE with the documented baseline before enrollment.");
             }
         }
+
+        if ($hasLegacyMemberCompat) {
+            $this->versions[] = MigrationRuntime::LEGACY_MEMBER_COMPATIBILITY_VERSION;
+        }
+        if ($indexedTables !== []) {
+            if (!$hasLegacyMemberCompat || $unindexedTables !== []) {
+                throw new RuntimeException(
+                    'Unsupported partial performance index schema. Missing indexes on: [' . implode(', ', $unindexedTables)
+                    . ']. Compare SHOW CREATE TABLE with the documented baseline before enrollment.'
+                );
+            }
+            $this->versions[] = MigrationRuntime::PERFORMANCE_INDEXES_VERSION;
+        }
+    }
+
+    private function withPerformanceIndexes(string $table, string $definition): string
+    {
+        $keys = self::PERFORMANCE_INDEX_KEYS[$table] ?? [];
+        if ($keys === []) {
+            return $definition;
+        }
+        $lines = explode("\n", $definition);
+        $insertAt = null;
+        foreach ($lines as $idx => $line) {
+            if (str_starts_with($line, '  CONSTRAINT ') || str_starts_with($line, ') ENGINE=')) {
+                $insertAt = $idx;
+                break;
+            }
+        }
+        if ($insertAt === null || $insertAt === 0) {
+            return $definition;
+        }
+        $lines[$insertAt - 1] = rtrim($lines[$insertAt - 1], ',') . ',';
+        $hasTrailingConstraint = str_starts_with($lines[$insertAt], '  CONSTRAINT ');
+        $formatted = [];
+        $lastKeyIndex = count($keys) - 1;
+        foreach ($keys as $i => $keyLine) {
+            $formatted[] = ($i < $lastKeyIndex || $hasTrailingConstraint) ? ($keyLine . ',') : $keyLine;
+        }
+        array_splice($lines, $insertAt, 0, $formatted);
+        return implode("\n", $lines);
     }
 
     private function normalizeMemberEnums(string $definition, string $expected): string

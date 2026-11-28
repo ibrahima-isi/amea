@@ -2,6 +2,7 @@
 
 namespace Amea\Tests\Integration\Storage;
 
+use Amea\Cache\AppCache;
 use Amea\Core\FileWriteGate;
 use PHPUnit\Framework\TestCase;
 
@@ -60,6 +61,53 @@ class WriteGateTest extends TestCase
         self::assertFalse($gate->status()['drained']);
         $this->expectException(\RuntimeException::class);
         $gate->mutate(static fn () => null);
+    }
+
+    public function testCacheMutationsRespectAdmissionLockAndDrain(): void
+    {
+        $gateDir = $this->directory . '/gate';
+        $cacheDir = $this->directory . '/cache';
+        $gate = new FileWriteGate($gateDir);
+        $gate->identity();
+        $cache = new AppCache($cacheDir, writeGateDir: $gateDir);
+        $cache->set(AppCache::NS_SETTINGS, 'original', 'persisted', 60);
+
+        $lock = fopen($gateDir . '/admission.lock', 'r+b');
+        self::assertIsResource($lock);
+        $pause = null;
+        $pauseExit = null;
+        try {
+            // Hold exclusive admission before a pause marker exists.
+            self::assertTrue(flock($lock, LOCK_EX | LOCK_NB));
+            self::assertFalse($gate->status()['paused']);
+            $cache->set(AppCache::NS_SETTINGS, 'contended', 'memory only', 60);
+            self::assertNull((new AppCache($cacheDir))->get(AppCache::NS_SETTINGS, 'contended'));
+            $cache->invalidateNamespace(AppCache::NS_SETTINGS);
+            self::assertSame('persisted', (new AppCache($cacheDir))->get(AppCache::NS_SETTINGS, 'original'));
+
+            // A separate operator publishes the pause before it can acquire admission.
+            $pause = $this->start('pause');
+            self::assertIsResource($pause);
+            $this->waitFor($gateDir . '/paused.json');
+            self::assertFalse($gate->status()['drained']);
+
+            $value = $cache->remember(AppCache::NS_SETTINGS, 'during-drain', 60, static fn () => 'fresh');
+            self::assertSame('fresh', $value);
+            self::assertNull((new AppCache($cacheDir))->get(AppCache::NS_SETTINGS, 'during-drain'));
+        } finally {
+            // Release admission even if the pause worker inherited the descriptor.
+            flock($lock, LOCK_UN);
+            fclose($lock);
+            if (is_resource($pause)) {
+                $pauseExit = proc_close($pause);
+            }
+        }
+
+        self::assertSame(0, $pauseExit);
+        self::assertTrue($gate->status()['drained']);
+        $gate->resume(static fn () => null);
+        $cache->set(AppCache::NS_SETTINGS, 'after-resume', 'persisted again', 60);
+        self::assertSame('persisted again', (new AppCache($cacheDir))->get(AppCache::NS_SETTINGS, 'after-resume'));
     }
 
     public function testRedirectExitPersistsPendingSessionBeforeDrainCompletes(): void

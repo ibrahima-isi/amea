@@ -94,7 +94,7 @@ final class RecoverySnapshot
                 $this->assertRole($role);
                 $trees['sessions/' . $role] = $this->copyTree($path, $directory . '/sessions/' . $role);
             }
-            $trees['storage'] = $this->copyTree($persistentStorage, $directory . '/storage', ['cache', 'write-gate', 'object-storage', '.shared-jobs.lock']);
+            $trees['storage'] = $this->copyTree($persistentStorage, $directory . '/storage', ['cache', 'app-cache', 'write-gate', 'object-storage', '.shared-jobs.lock']);
             $snapshot = ['version' => 1, 'started_at' => $started, 'completed_at' => microtime(true),
                 'database_identity' => ReferenceAudit::databaseIdentity($db), 'driver' => $db->getAttribute(PDO::ATTR_DRIVER_NAME),
                 'backend' => Manifest::backendIdentity($backend), 'application_backend' => $applicationBackend,

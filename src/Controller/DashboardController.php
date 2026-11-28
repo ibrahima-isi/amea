@@ -18,10 +18,8 @@ class DashboardController extends BaseController
 
     public function index(): void
     {
-        $stats       = $this->students->getStats();
-        $recentWeek  = $this->students->getRecentCount(7);
-        $recentMonth = $this->students->getRecentCount(30);
-        $topInstitutions    = $this->students->getTopInstitutions(5);
+        $summary         = $this->students->getDashboardSummary();
+        $topInstitutions = $this->students->getTopInstitutions(5);
 
         $role      = $this->session->get('role');
         $canReview = $role === 'admin';
@@ -37,17 +35,17 @@ class DashboardController extends BaseController
         }
 
         $this->render('admin/pages/dashboard.html.twig', [
-            'user_fullname'   => trim($firstName . ' ' . $lastName),
-            'role_label'      => $role === 'admin' ? 'Administrateur' : 'Utilisateur',
-            'can_review' => $canReview,
-            'review_queue' => $canReview ? $this->students->findReviewQueue() : [],
-            'review_count' => $canReview ? $this->students->countAll(['kyc_status' => 'UNDER_REVIEW']) : 0,
-            'clarification_count' => $canReview ? $this->students->countAll(['kyc_status' => 'NEEDS_CLARIFICATION']) : 0,
-            'stats'           => $stats,
-            'recent_week'     => $recentWeek,
-            'recent_month'    => $recentMonth,
-            'school_labels'   => $schoolLabels,
-            'school_values'   => $schoolValues,
+            'user_fullname'       => trim($firstName . ' ' . $lastName),
+            'role_label'          => $role === 'admin' ? 'Administrateur' : 'Utilisateur',
+            'can_review'          => $canReview,
+            'review_queue'        => $canReview ? $this->students->findReviewQueue() : [],
+            'review_count'        => $canReview ? $summary['review_count'] : 0,
+            'clarification_count' => $canReview ? $summary['clarification_count'] : 0,
+            'stats'               => $summary['stats'],
+            'recent_week'         => $summary['recent_week'],
+            'recent_month'        => $summary['recent_month'],
+            'school_labels'       => $schoolLabels,
+            'school_values'       => $schoolValues,
         ]);
     }
 }

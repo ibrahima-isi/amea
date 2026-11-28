@@ -2,6 +2,7 @@
 
 namespace Amea\Controller;
 
+use Amea\Cache\HttpCache;
 use Amea\Core\Container;
 use Amea\Repository\StudentRepository;
 
@@ -70,7 +71,7 @@ class DownloadController extends BaseController
         $disposition = (($_GET['inline'] ?? '') === '1') ? 'inline' : 'attachment';
         header('Content-Disposition: ' . $disposition . '; filename="' . $cleanName . '"');
         header('Content-Length: ' . $document['size']);
-        header('Cache-Control: private, no-store');
+        HttpCache::sendNoStore(true);
         header('X-Content-Type-Options: nosniff');
 
         fpassthru($document['stream']);

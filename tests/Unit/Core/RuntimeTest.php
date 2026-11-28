@@ -133,6 +133,7 @@ class RuntimeTest extends TestCase
 
         self::assertSame($stateDir . '/cache/twig/public', Runtime::twigCacheDir($this->tempDir, 'public'));
         self::assertSame($stateDir . '/cache/twig/staff', Runtime::twigCacheDir($this->tempDir, 'staff'));
+        self::assertSame($stateDir . '/cache/app', Runtime::appCacheDir($this->tempDir));
 
         self::assertSame($stateDir . '/write-gate', Runtime::writeGateDir($this->tempDir));
         self::assertSame($stateDir . '/mail-queue', Runtime::mailQueueDir($this->tempDir));
@@ -147,6 +148,7 @@ class RuntimeTest extends TestCase
         self::assertSame('/var/lib/amea/sessions', Runtime::sessionSavePath('staff'));
         self::assertNull(Runtime::sessionSavePath('jobs'));
         self::assertSame($this->tempDir . '/storage/cache/twig', Runtime::twigCacheDir($this->tempDir, 'public'));
+        self::assertSame($this->tempDir . '/storage/app-cache', Runtime::appCacheDir($this->tempDir));
         self::assertSame($this->tempDir . '/storage/write-gate', Runtime::writeGateDir($this->tempDir));
         self::assertSame($this->tempDir . '/storage/mail-queue', Runtime::mailQueueDir($this->tempDir));
         self::assertSame($this->tempDir . '/storage/.shared-jobs.lock', Runtime::jobsLockPath($this->tempDir));

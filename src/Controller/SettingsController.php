@@ -44,10 +44,16 @@ class SettingsController extends BaseController
             return;
         }
 
+        $settings = [];
         foreach (['contact_email', 'contact_phone', 'association_name'] as $key) {
             if (isset($_POST[$key])) {
-                $this->settingRepo->upsert($key, trim($_POST[$key]));
+                $settings[$key] = trim($_POST[$key]);
             }
+        }
+
+        if ($settings) {
+            $this->settingRepo->saveAll($settings);
+            Container::cacheInvalidator()->onSettingsChanged();
         }
 
         $this->flash->set('success', 'Paramètres mis à jour avec succès.');

@@ -2,8 +2,10 @@
 
 Enrollment records the versions represented by the verified snapshot. The adoption
 snapshot records two versions. The member-document snapshot records four versions,
-including its operation tables and initialized lock. The current snapshot records
-a fifth version for nullable member gender and 255-character housing details.
+including its operation tables and initialized lock. The legacy-member snapshot
+records a fifth version for nullable member gender and 255-character housing details.
+The current snapshot records a sixth version adding the performance indexes across
+`students`, `users`, `locations`, `slider_images`, `countries`, and `journal_posts`.
 Application rows are preserved.
 This procedure applies to an isolated restored database first; production changes
 require separate approval. Use MariaDB 10.11, the version used by Compose.
@@ -67,10 +69,16 @@ The historical member-document snapshot has the following checksum.
 e4392a1502489d941bc928cc7b14ad64ecc2736be63a881d7cd70c63e13cb375
 ```
 
-The current snapshot, which also supports the legacy member fields, has the following checksum.
+The legacy-member compatibility snapshot has the following checksum.
 
 ```text
 7e15684937a0bae3b136097a21eb847112da698524b9767241ab9c3b60b0e4f5
+```
+
+The current snapshot, which also includes the performance indexes, has the following checksum.
+
+```text
+9716a2e8d70c9504ddeabc1e0b2ae56f38c6b28fcf652a3d2425ef36202bdb8a
 ```
 
 `schema.sql` also initializes the member-file lock. Initial association settings

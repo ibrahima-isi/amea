@@ -2,6 +2,8 @@
 
 namespace Amea\Controller;
 
+use Amea\Cache\CachePolicy;
+use Amea\Cache\HttpCache;
 use Amea\Core\Container;
 use Amea\Core\CsrfGuard;
 use Amea\Core\Flash;
@@ -14,40 +16,75 @@ use Amea\Service\AuthService;
 
 abstract class BaseController
 {
+    /** @var array<string, bool> */
+    private static array $logoCache = [];
+
     protected View $view;
     protected Session $session;
     protected Flash $flash;
     protected CsrfGuard $csrf;
     protected AuthService $auth;
+    private bool $viewInitialized = false;
+    private bool $includeSession;
+    private string $projectRoot;
 
-    public function __construct(bool $startSession = true)
+    public function __construct(bool $startSession = true, bool $deferView = false)
     {
-        $projectRoot = __DIR__ . '/../../';
-        $this->view = new View($projectRoot);
+        $this->projectRoot = __DIR__ . '/../../';
+        $this->includeSession = $startSession;
         $this->session = new Session();
         if ($startSession) {
             $this->session->start();
+            HttpCache::sendNoStore(true);
         }
         $this->flash = new Flash($this->session);
         $this->csrf = new CsrfGuard($this->session);
         $this->auth = new AuthService(new UserRepository(Container::db()), $this->session, $this->flash);
 
-        $this->injectGlobalVariables($startSession);
+        if (!$deferView) {
+            $this->ensureView();
+        }
+    }
+
+    protected function ensureView(): void
+    {
+        if ($this->viewInitialized) {
+            return;
+        }
+        $this->view = new View($this->projectRoot);
+        $this->injectGlobalVariables($this->includeSession);
+        $this->viewInitialized = true;
     }
 
     protected function render(string $template, array $data = []): void
     {
+        $this->ensureView();
         echo $this->view->render($template, $data);
+    }
+
+    protected function renderPublicCached(
+        string $template,
+        array $data,
+        CachePolicy $policy,
+        bool $cacheable = true
+    ): void {
+        $this->ensureView();
+        $html = $this->view->render($template, $data);
+        HttpCache::respondPublicHtml($html, $policy, cacheable: $cacheable);
     }
 
     private function injectGlobalVariables(bool $includeSession): void
     {
         $twig = $this->view->getTwig();
-        
-        // Settings
-        $settingRepo = new SettingRepository(Container::db());
-        
-        $twig->addGlobal('public_logo_available', @getimagesize(__DIR__ . '/../../assets/img/logo.png') !== false);
+
+        // Single cached query for all settings (0 queries on AppCache hit).
+        $settingsMap = (new SettingRepository(Container::db()))->getAllMap();
+
+        $logoPath = $this->projectRoot . 'assets/img/logo.png';
+        if (!array_key_exists($logoPath, self::$logoCache)) {
+            self::$logoCache[$logoPath] = is_file($logoPath) && @getimagesize($logoPath) !== false;
+        }
+        $twig->addGlobal('public_logo_available', self::$logoCache[$logoPath]);
         $publicOrigin = defined('AMEA_APP') && AMEA_APP === 'staff' ? StaffNavigation::publicOrigin() : null;
         $twig->addGlobal('public_home_url', $publicOrigin !== null ? $publicOrigin . '/' : '/');
         $twig->addGlobal('public_register_url', $publicOrigin !== null ? $publicOrigin . '/register.php' : 'register.php');
@@ -72,9 +109,9 @@ abstract class BaseController
         $twig->addGlobal('flash', $includeSession ? $this->flash->get() : null);
         $twig->addGlobal('csrf_token', $includeSession ? $this->csrf->getToken() : '');
         $twig->addGlobal('settings', [
-            'contact_email' => $settingRepo->getValue('contact_email'),
-            'contact_phone' => $settingRepo->getValue('contact_phone'),
-            'association_name' => $settingRepo->getValue('association_name', 'AEESGS'),
+            'contact_email' => $settingsMap['contact_email'] ?? '',
+            'contact_phone' => $settingsMap['contact_phone'] ?? '',
+            'association_name' => $settingsMap['association_name'] ?? 'AEESGS',
             'year' => date('Y')
         ]);
     }

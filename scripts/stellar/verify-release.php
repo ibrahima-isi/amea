@@ -130,6 +130,7 @@ echo json_encode([
     'staff_app_url' => \Amea\Core\Runtime::env('STAFF_APP_URL'),
     'session_path' => \Amea\Core\Runtime::sessionSavePath($role),
     'twig_cache' => \Amea\Core\Runtime::twigCacheDir($release, $role),
+    'app_cache' => \Amea\Core\Runtime::appCacheDir($release),
     'write_gate' => \Amea\Core\Runtime::writeGateDir($release),
     'mail_queue' => \Amea\Core\Runtime::mailQueueDir($release),
     'jobs_lock' => \Amea\Core\Runtime::jobsLockPath($release),
@@ -194,6 +195,11 @@ if (isset($reports['public'], $reports['staff'], $reports['jobs'])) {
     $check(
         $reports['public']['twig_cache'] !== $reports['staff']['twig_cache'],
         'public and staff use separate Twig cache directories'
+    );
+    $check(
+        $reports['public']['app_cache'] === $reports['staff']['app_cache']
+        && $reports['staff']['app_cache'] === $reports['jobs']['app_cache'],
+        'public, staff, and jobs share one origin application cache directory'
     );
     $check(
         $reports['public']['write_gate'] === $reports['staff']['write_gate']

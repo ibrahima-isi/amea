@@ -2,6 +2,7 @@
 
 namespace Amea\Core;
 
+use Amea\Cache\HttpCache;
 use Amea\Config\Environment;
 use Amea\Controller\AcceptTermsController;
 use Amea\Controller\AuthController;
@@ -28,17 +29,21 @@ use Amea\Controller\UserController;
 
 class Router
 {
+    private const SESSION_REQUIRED = 'required';
+    private const SESSION_NONE = 'none';
+    private const SESSION_IF_COOKIE = 'if_cookie';
+
     private const PUBLIC_ROUTES = [
-        '/' => ['controller' => HomeController::class, 'methods' => ['GET' => 'index']],
-        '/journal.php' => ['controller' => JournalPublicController::class, 'methods' => ['GET' => 'index'], 'session' => false],
-        '/journal-article.php' => ['controller' => JournalPublicController::class, 'methods' => ['GET' => 'show'], 'session' => false],
-        '/journal-cover.php' => ['controller' => JournalPublicController::class, 'methods' => ['GET' => 'cover'], 'session' => false],
+        '/' => ['controller' => HomeController::class, 'methods' => ['GET' => 'index'], 'session' => self::SESSION_IF_COOKIE],
+        '/journal.php' => ['controller' => JournalPublicController::class, 'methods' => ['GET' => 'index'], 'session' => self::SESSION_NONE],
+        '/journal-article.php' => ['controller' => JournalPublicController::class, 'methods' => ['GET' => 'show'], 'session' => self::SESSION_NONE],
+        '/journal-cover.php' => ['controller' => JournalPublicController::class, 'methods' => ['GET' => 'cover'], 'session' => self::SESSION_NONE],
         '/register.php' => ['controller' => RegistrationController::class, 'methods' => ['GET' => 'showForm', 'POST' => 'register']],
         '/registration-details.php' => ['controller' => RegistrationController::class, 'methods' => ['GET' => 'review', 'POST' => 'confirm']],
         '/registration-preview.php' => ['controller' => RegistrationController::class, 'methods' => ['GET' => 'preview']],
         '/kyc-correction.php' => ['controller' => CorrectionController::class, 'methods' => ['GET' => 'edit', 'POST' => 'update']],
         '/accept-cgu.php' => ['controller' => AcceptTermsController::class, 'methods' => ['GET' => 'accept', 'POST' => 'accept']],
-        '/legal-notice.php' => ['controller' => LegalController::class, 'methods' => ['GET' => 'index']],
+        '/legal-notice.php' => ['controller' => LegalController::class, 'methods' => ['GET' => 'index'], 'session' => self::SESSION_NONE],
     ];
 
     private const STAFF_ROUTES = [
@@ -81,7 +86,7 @@ class Router
     private static function route(string $application, string $path): ?array
     {
         if (str_starts_with($path, '/uploads/slider/')) {
-            return ['controller' => SliderMediaController::class, 'methods' => ['GET' => 'serve'], 'session' => false];
+            return ['controller' => SliderMediaController::class, 'methods' => ['GET' => 'serve'], 'session' => self::SESSION_NONE];
         }
 
         return match ($application) {
@@ -99,6 +104,7 @@ class Router
         $route = self::route($application, $path);
         if ($route === null) {
             http_response_code(404);
+            HttpCache::sendNoStore(false);
             echo 'Page introuvable.';
             return;
         }
@@ -106,12 +112,14 @@ class Router
         $action = $route['methods'][$method] ?? null;
         if ($action === null) {
             http_response_code(405);
+            HttpCache::sendNoStore(false);
             header('Allow: ' . implode(', ', array_keys($route['methods'])));
             echo 'Méthode non autorisée.';
             return;
         }
 
         if (isset($route['redirect'])) {
+            HttpCache::sendNoStore(false);
             header('Location: ' . $route['redirect']);
             return;
         }
@@ -119,7 +127,17 @@ class Router
         define('AMEA_APP', $application);
         Environment::load(dirname(__DIR__, 2));
 
-        if ($route['session'] ?? true) {
+        $sessionMode = $route['session'] ?? self::SESSION_REQUIRED;
+        $startSession = $sessionMode === self::SESSION_REQUIRED
+            || ($sessionMode === self::SESSION_IF_COOKIE && HttpCache::hasPublicSessionCookie());
+
+        // Fail closed before Session::startRequest() so staff routes, expiry redirects,
+        // and paused 503 responses always emit private, no-store + CDN no-store headers.
+        if ($application === 'staff' || $startSession) {
+            HttpCache::sendNoStore(true);
+        }
+
+        if ($startSession) {
             (new Session())->startRequest();
         }
 

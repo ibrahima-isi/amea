@@ -90,6 +90,7 @@ mkdir -p "$RELEASES_DIR" "$CONFIG_DIR" "$STATE_DIR" "$BIN_DIR" \
     "${STATE_DIR}/sessions/staff" \
     "${STATE_DIR}/cache/twig/public" \
     "${STATE_DIR}/cache/twig/staff" \
+    "${STATE_DIR}/cache/app" \
     "${STATE_DIR}/write-gate" \
     "${STATE_DIR}/mail-queue" \
     "${STATE_DIR}/logs" \
@@ -215,6 +216,17 @@ promote_release() {
 
     if [[ -n "$previous_target" && "$previous_target" != "$target_release" && -d "$previous_target" ]]; then
         atomic_symlink "$previous_target" "$PREVIOUS_LINK"
+    fi
+
+    # Best-effort post-promotion origin + Cloudflare edge cache purge (no-op if Cloudflare token is unset).
+    local helper="${target_release}/scripts/cloudflare-cache.php"
+    if [[ ! -f "$helper" && -n "$previous_target" ]]; then
+        helper="${previous_target}/scripts/cloudflare-cache.php"
+    fi
+    if [[ -f "$helper" ]]; then
+        AMEA_CONFIG_FILE="$CONFIG_FILE" AMEA_STATE_DIR="$STATE_DIR" \
+            "$PHP_CLI" "$helper" purge --all >/dev/null 2>&1 || \
+            echo "Warning: post-promotion cache purge returned non-zero (non-fatal)." >&2
     fi
 }
 

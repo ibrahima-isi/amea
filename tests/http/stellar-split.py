@@ -168,8 +168,14 @@ with tempfile.TemporaryDirectory(prefix='amea-stellar-e2e-') as tmp:
     check(res_paused.returncode != 0 and 'paused' in res_paused.stderr.lower(), 'deploy.sh refuses deployment during cutover pause')
     (gate_dir / 'paused.json').unlink()
 
+    (base_dir / 'previous/scripts/cloudflare-cache.php').unlink()
+    helper = base_dir / 'current/scripts/cloudflare-cache.php'
+    helper.write_text("<?php file_put_contents(getenv('AMEA_STATE_DIR').'/rollback-purge', getenv('AMEA_CONFIG_FILE').' '.implode(' ', array_slice($argv, 1)));")
     res_rb = run_deploy('--rollback')
     check(res_rb.returncode == 0 and (base_dir / 'current').resolve().name == 'rel-001', 'deploy.sh --rollback restores rel-001')
+
+    check((gate_dir.parent / 'rollback-purge').read_text() == f'{live_cfg} purge --all',
+          'rollback uses outgoing helper with current private configuration and state')
 
     # 6. CLI jobs wrapper loads private config, uses shared lock & mail queue, and rejects web identity
     job_env = {**SAFE_ENV, 'APP_ENV': 'test'}
@@ -257,7 +263,16 @@ require '{docroot}/index.php';
         wait_server(staff_base, '/login.php')
 
         code, headers, body = request(pub_base, '/legal-notice.php')
-        check(code == 200 and 'AMEA_PUBLIC=' in (headers.get('Set-Cookie') or ''), 'public packaged entry serves /legal-notice.php with AMEA_PUBLIC cookie')
+        check(
+            code == 200
+            and 'Set-Cookie' not in headers
+            and 'public' in (headers.get('Cache-Control') or '')
+            and 'CDN-Cache-Control' in headers,
+            'public packaged entry serves /legal-notice.php session-free with Cloudflare cache headers',
+        )
+
+        code, headers, _ = request(pub_base, '/register.php')
+        check(code == 200 and 'AMEA_PUBLIC=' in (headers.get('Set-Cookie') or ''), 'public packaged entry serves /register.php with AMEA_PUBLIC cookie')
 
         code, _, _ = request(pub_base, '/assets/js/theme.js')
         check(code == 200, 'public docroot serves allowlisted static asset')

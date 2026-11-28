@@ -1,11 +1,18 @@
 <?php
 namespace Amea\Repository;
 
+use Amea\Cache\AppCache;
+use Amea\Core\Container;
 use Amea\Model\Student;
 
 class StudentRepository
 {
-    public function __construct(private \PDO $pdo) {}
+    private const LOOKUP_CACHE_TTL = 300;
+
+    public function __construct(
+        private \PDO $pdo,
+        private ?AppCache $cache = null
+    ) {}
 
     /** Active dossiers awaiting staff review, oldest first. @return Student[] */
     public function findReviewQueue(int $limit = 6): array
@@ -232,29 +239,58 @@ class StudentRepository
     /** @return string[] */
     public function getDistinctInstitutions(): array
     {
-        return $this->pdo
-            ->query("SELECT name FROM institutions ORDER BY name ASC")
-            ->fetchAll(\PDO::FETCH_COLUMN);
+        return $this->resolveCache()->remember(AppCache::NS_LOOKUPS, 'institutions', self::LOOKUP_CACHE_TTL, function (): array {
+            return $this->pdo
+                ->query("SELECT name FROM institutions ORDER BY name ASC")
+                ->fetchAll(\PDO::FETCH_COLUMN);
+        });
     }
 
     /** @return string[] */
     public function getDistinctStudyFields(): array
     {
-        return $this->pdo
-            ->query("SELECT name FROM study_fields ORDER BY name ASC")
-            ->fetchAll(\PDO::FETCH_COLUMN);
+        return $this->resolveCache()->remember(AppCache::NS_LOOKUPS, 'study_fields', self::LOOKUP_CACHE_TTL, function (): array {
+            return $this->pdo
+                ->query("SELECT name FROM study_fields ORDER BY name ASC")
+                ->fetchAll(\PDO::FETCH_COLUMN);
+        });
     }
 
     /** @return string[] */
     public function getDistinctStudyLevels(): array
     {
-        return $this->pdo
-            ->query("SELECT name FROM study_levels ORDER BY name ASC")
-            ->fetchAll(\PDO::FETCH_COLUMN);
+        return $this->resolveCache()->remember(AppCache::NS_LOOKUPS, 'study_levels', self::LOOKUP_CACHE_TTL, function (): array {
+            return $this->pdo
+                ->query("SELECT name FROM study_levels ORDER BY name ASC")
+                ->fetchAll(\PDO::FETCH_COLUMN);
+        });
     }
 
     public function getStats(): array
     {
+        return $this->getDashboardSummary()['stats'];
+    }
+
+    /**
+     * Consolidated covering-index aggregation for the staff dashboard (replaces 6 separate scans).
+     *
+     * Uses the database engine's own clock to match `registration_date = CURRENT_TIMESTAMP`
+     * without PHP/DB timezone drift across MariaDB and SQLite.
+     *
+     * @return array{
+     *     stats: array{total: int, men: int, women: int, pupils: int, students: int, interns: int, graduates: int},
+     *     recent_week: int,
+     *     recent_month: int,
+     *     review_count: int,
+     *     clarification_count: int
+     * }
+     */
+    public function getDashboardSummary(): array
+    {
+        $isSqlite = $this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'sqlite';
+        $weekExpr = $isSqlite ? "datetime('now', '-7 days')" : 'DATE_SUB(NOW(), INTERVAL 7 DAY)';
+        $monthExpr = $isSqlite ? "datetime('now', '-30 days')" : 'DATE_SUB(NOW(), INTERVAL 30 DAY)';
+
         $row = $this->pdo->query(
             "SELECT
                 COUNT(*) AS total,
@@ -263,26 +299,70 @@ class StudentRepository
                 SUM(CASE WHEN status = 'ELEVE'       THEN 1 ELSE 0 END) AS pupils,
                 SUM(CASE WHEN status = 'ETUDIANT'    THEN 1 ELSE 0 END) AS students,
                 SUM(CASE WHEN status = 'STAGIAIRE'   THEN 1 ELSE 0 END) AS interns,
-                SUM(CASE WHEN status = 'Diplômé(e)'  THEN 1 ELSE 0 END) AS graduates
+                SUM(CASE WHEN status = 'Diplômé(e)'  THEN 1 ELSE 0 END) AS graduates,
+                SUM(CASE WHEN registration_date >= {$weekExpr}  THEN 1 ELSE 0 END) AS recent_week,
+                SUM(CASE WHEN registration_date >= {$monthExpr} THEN 1 ELSE 0 END) AS recent_month,
+                SUM(CASE WHEN kyc_status = 'UNDER_REVIEW'        THEN 1 ELSE 0 END) AS review_count,
+                SUM(CASE WHEN kyc_status = 'NEEDS_CLARIFICATION' THEN 1 ELSE 0 END) AS clarification_count
              FROM students WHERE deleted_at IS NULL"
-        )->fetch();
-        return $row ?: [
-            'total'      => 0,
-            'men'        => 0,
-            'women'      => 0,
-            'pupils'     => 0,
-            'students'   => 0,
-            'interns'    => 0,
-            'graduates'  => 0,
+        )->fetch() ?: [];
+
+        return [
+            'stats' => [
+                'total'     => (int) ($row['total'] ?? 0),
+                'men'       => (int) ($row['men'] ?? 0),
+                'women'     => (int) ($row['women'] ?? 0),
+                'pupils'    => (int) ($row['pupils'] ?? 0),
+                'students'  => (int) ($row['students'] ?? 0),
+                'interns'   => (int) ($row['interns'] ?? 0),
+                'graduates' => (int) ($row['graduates'] ?? 0),
+            ],
+            'recent_week'         => (int) ($row['recent_week'] ?? 0),
+            'recent_month'        => (int) ($row['recent_month'] ?? 0),
+            'review_count'        => (int) ($row['review_count'] ?? 0),
+            'clarification_count' => (int) ($row['clarification_count'] ?? 0),
+        ];
+    }
+
+    /**
+     * Covering-index aggregation for consent summary on communications.php.
+     *
+     * @return array{total: int, consented: int, not_consented: int}
+     */
+    public function getConsentStats(): array
+    {
+        $row = $this->pdo->query(
+            "SELECT
+                COUNT(*) AS total,
+                SUM(CASE WHEN consent_privacy = 1 THEN 1 ELSE 0 END) AS consented
+             FROM students WHERE deleted_at IS NULL"
+        )->fetch() ?: [];
+
+        $total     = (int) ($row['total'] ?? 0);
+        $consented = (int) ($row['consented'] ?? 0);
+
+        return [
+            'total'         => $total,
+            'consented'     => $consented,
+            'not_consented' => max(0, $total - $consented),
         ];
     }
 
     public function getRecentCount(int $days = 30): int
     {
-        $stmt = $this->pdo->prepare(
-            "SELECT COUNT(*) FROM students WHERE deleted_at IS NULL AND registration_date >= DATE_SUB(NOW(), INTERVAL ? DAY)"
-        );
-        $stmt->execute([$days]);
+        $days = max(0, $days);
+        if ($this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $stmt = $this->pdo->prepare(
+                "SELECT COUNT(*) FROM students WHERE deleted_at IS NULL AND registration_date >= datetime('now', ?)"
+            );
+            $stmt->execute(["-{$days} days"]);
+        } else {
+            $stmt = $this->pdo->prepare(
+                "SELECT COUNT(*) FROM students WHERE deleted_at IS NULL AND registration_date >= DATE_SUB(NOW(), INTERVAL ? DAY)"
+            );
+            $stmt->bindValue(1, $days, \PDO::PARAM_INT);
+            $stmt->execute();
+        }
         return (int)$stmt->fetchColumn();
     }
 
@@ -328,6 +408,9 @@ class StudentRepository
         $stmt->execute([$name]);
         if (!$stmt->fetchColumn()) {
             $this->pdo->prepare("INSERT INTO institutions (name) VALUES (?)")->execute([$name]);
+            if (!$this->pdo->inTransaction()) {
+                $this->resolveCache()->invalidateNamespace(AppCache::NS_LOOKUPS);
+            }
         }
     }
 
@@ -337,6 +420,9 @@ class StudentRepository
         $stmt->execute([$name]);
         if (!$stmt->fetchColumn()) {
             $this->pdo->prepare("INSERT INTO study_fields (name) VALUES (?)")->execute([$name]);
+            if (!$this->pdo->inTransaction()) {
+                $this->resolveCache()->invalidateNamespace(AppCache::NS_LOOKUPS);
+            }
         }
     }
 
@@ -346,6 +432,9 @@ class StudentRepository
         $stmt->execute([$name]);
         if (!$stmt->fetchColumn()) {
             $this->pdo->prepare("INSERT INTO study_levels (name) VALUES (?)")->execute([$name]);
+            if (!$this->pdo->inTransaction()) {
+                $this->resolveCache()->invalidateNamespace(AppCache::NS_LOOKUPS);
+            }
         }
     }
 
@@ -384,8 +473,15 @@ class StudentRepository
 
     public function getLocations(): array
     {
-        $stmt = $this->pdo->query("SELECT region, name FROM locations ORDER BY CASE WHEN region LIKE 'Dakar%' THEN 0 ELSE 1 END, region ASC, name ASC");
-        return $stmt->fetchAll(\PDO::FETCH_GROUP | \PDO::FETCH_COLUMN);
+        return $this->resolveCache()->remember(AppCache::NS_LOOKUPS, 'locations', self::LOOKUP_CACHE_TTL, function (): array {
+            $stmt = $this->pdo->query("SELECT region, name FROM locations ORDER BY CASE WHEN region LIKE 'Dakar%' THEN 0 ELSE 1 END, region ASC, name ASC");
+            return $stmt->fetchAll(\PDO::FETCH_GROUP | \PDO::FETCH_COLUMN);
+        });
+    }
+
+    private function resolveCache(): AppCache
+    {
+        return $this->cache ?? Container::cacheForConnection($this->pdo);
     }
 
     /** @return array<array{id: int, field: string, db_path: string|null}> */

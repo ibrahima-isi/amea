@@ -15,6 +15,7 @@ python3 tests/http/tokens.py
 python3 tests/http/internals.py
 python3 tests/http/permissions.py
 python3 tests/http/write-gate.py
+python3 tests/http/caching.py
 python3 tests/http/stellar-split.py
 ```
 
@@ -34,6 +35,18 @@ AMEA_REHEARSAL_PROJECT=amea-ui-test-example AMEA_PUBLIC_PORT=28443 AMEA_STAFF_PO
 ```
 
 Check source ports 28443/29443 and restore ports 18448/19448 are free first. The rehearsal uses synthetic accounts, storage and mail; it does not qualify production, DNS or real SMTP. The [rollout guide](../operations/public-staff-rollout.md) describes deployment and rollback separately. Screenshots are generated artifacts and ignored.
+
+## Cache changes
+
+Before requesting review of cache changes, run these checks from the repository root. Use free source and restore ports as described above.
+
+```sh
+./vendor/bin/phpunit --colors=never tests/Unit/Cache tests/Integration/Storage/WriteGateTest.php
+python3 tests/http/caching.py
+AMEA_SKIP_BROWSER=1 AMEA_PUBLIC_PORT=28443 AMEA_STAFF_PORT=29443 bash tests/apps/run.sh
+```
+
+PHPUnit checks cache invalidation and write-gate contention. The HTTP suite checks session boundaries, media validators, and purge requests against a simulated Cloudflare API. The Compose rehearsal checks the served Apache responses, including conditional `304` responses for both gzip and identity HTML and compression of static assets.
 
 ## Local Docker stack
 

@@ -1,6 +1,8 @@
 <?php
 namespace Amea\Service;
 
+use Amea\Cache\CacheInvalidator;
+use Amea\Core\Container;
 use Amea\Repository\JournalRepository;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -21,8 +23,11 @@ final class JournalService
         'activity_end_date', 'activity_end_time', 'remove_cover',
     ];
 
-    public function __construct(private JournalRepository $posts, ?callable $clock = null)
-    {
+    public function __construct(
+        private JournalRepository $posts,
+        ?callable $clock = null,
+        private ?CacheInvalidator $invalidator = null
+    ) {
         $this->clock = $clock === null
             ? static fn(): DateTimeImmutable => new DateTimeImmutable('now', new DateTimeZone('Africa/Dakar'))
             : \Closure::fromCallable($clock);
@@ -32,6 +37,8 @@ final class JournalService
     {
         $this->assertActor($actorId);
         $existing = $id === null ? null : $this->requirePost($id);
+        $wasPublished = ($existing['status'] ?? '') === 'PUBLISHED';
+        $oldCoverToken = CacheInvalidator::coverVersionToken($existing['cover_path'] ?? null);
         $values = $this->prepare($existing, $input, $actorId, $publish, $trustedCover);
         if ($existing === null) {
             $values['slug'] = $this->slug($values['title']);
@@ -41,7 +48,9 @@ final class JournalService
         } elseif (!$this->posts->update($id, $values, (int)$existing['revision'])) {
             throw new JournalConflictException();
         }
-        return $this->requirePost($id);
+        $saved = $this->requirePost($id);
+        $this->invalidateIfPublicTransition($wasPublished, $saved, $oldCoverToken);
+        return $saved;
     }
 
     public function validate(?int $id, array $input, int $actorId, bool $publish = false): void
@@ -148,6 +157,8 @@ final class JournalService
     {
         $this->assertActor($actorId);
         $existing = $this->requirePost($id);
+        $wasPublished = ($existing['status'] ?? '') === 'PUBLISHED';
+        $oldCoverToken = CacheInvalidator::coverVersionToken($existing['cover_path'] ?? null);
         if ($expectedRevision !== null && $expectedRevision !== (int)$existing['revision']) {
             throw new JournalConflictException();
         }
@@ -157,7 +168,26 @@ final class JournalService
         if (!$changed) {
             throw new JournalConflictException();
         }
-        return $this->requirePost($id);
+        $saved = $this->requirePost($id);
+        $this->invalidateIfPublicTransition($wasPublished, $saved, $oldCoverToken);
+        return $saved;
+    }
+
+    private function invalidateIfPublicTransition(bool $wasPublished, array $saved, ?string $oldCoverToken): void
+    {
+        $isPublished = ($saved['status'] ?? '') === 'PUBLISHED';
+        if (!$wasPublished && !$isPublished) {
+            return;
+        }
+        $newCoverToken = CacheInvalidator::coverVersionToken($saved['cover_path'] ?? null);
+        $coverTokens = array_values(array_unique(array_filter(
+            [$oldCoverToken, $newCoverToken],
+            static fn (?string $token): bool => $token !== null && $token !== ''
+        )));
+        ($this->invalidator ?? Container::cacheInvalidator())->onJournalChanged(
+            $saved['slug'] ?? null,
+            $coverTokens
+        );
     }
 
     private function formValues(?array $post): array
