@@ -130,6 +130,12 @@ with tempfile.TemporaryDirectory(prefix='amea-stellar-e2e-') as tmp:
               f'{docroot_name} docroot preserves the Stellar PHP 8.5 handler')
         check(f'AuthUserFile {auth_file}' in htaccess and 'Require valid-user' in htaccess,
               f'{docroot_name} docroot retains private staging authentication')
+        if docroot_name == 'public':
+            check('SetEnvIf Request_URI "^/legal-notice[.]php$" AMEA_LEGAL_NO_TRANSFORM=1' in htaccess
+                  and 'Header always merge Cache-Control "no-transform" env=AMEA_LEGAL_NO_TRANSFORM' in htaccess,
+                  'public Stellar config adds no-transform only on the exact legal notice path')
+        else:
+            check('AMEA_LEGAL_NO_TRANSFORM' not in htaccess, 'staff config omits the public legal notice rule')
         for forbidden in ('.env', 'runtime.env', 'src', 'vendor', 'config', 'scripts', 'storage', 'uploads', 'logs'):
             check(not (docroot / forbidden).exists(), f'{docroot_name} docroot excludes {forbidden}')
 
