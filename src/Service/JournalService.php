@@ -184,7 +184,7 @@ final class JournalService
             [$oldCoverToken, $newCoverToken],
             static fn (?string $token): bool => $token !== null && $token !== ''
         )));
-        ($this->invalidator ?? Container::cacheInvalidator())->onJournalChanged(
+        ($this->invalidator ?? Container::cacheInvalidator(cache: $this->posts->cache()))->onJournalChanged(
             $saved['slug'] ?? null,
             $coverTokens
         );

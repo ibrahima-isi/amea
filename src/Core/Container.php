@@ -85,9 +85,9 @@ class Container
         self::$cloudflare = $cloudflare;
     }
 
-    public static function cacheInvalidator(?string $projectRoot = null): CacheInvalidator
+    public static function cacheInvalidator(?string $projectRoot = null, ?AppCache $cache = null): CacheInvalidator
     {
-        return CacheInvalidator::fromEnvironment(self::cache($projectRoot), self::cloudflare());
+        return CacheInvalidator::fromEnvironment($cache ?? self::cache($projectRoot), self::cloudflare());
     }
 
     public static function fileLifecycle(): \Amea\Service\FileLifecycleService
