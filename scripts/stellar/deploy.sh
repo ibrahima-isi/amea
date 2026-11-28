@@ -124,6 +124,7 @@ atomic_symlink() {
 sync_docroot_assets() {
     local release_dir="$1"
     local docroot="$2"
+    local role="$3"
     local staging_assets="${docroot}/assets.new.$$"
     local old_assets="${docroot}/assets.old.$$"
 
@@ -148,6 +149,16 @@ sync_docroot_assets() {
                 "AuthUserFile $STAGING_AUTH_FILE" 'Require valid-user'
         fi
         cat "${release_dir}/scripts/stellar/htaccess.template"
+        if [[ "$role" == public ]]; then
+            cat <<'HTACCESS'
+
+# Preserve origin validators for the public legal notice.
+<IfModule mod_headers.c>
+    SetEnvIf Request_URI "^/legal-notice[.]php$" AMEA_LEGAL_NO_TRANSFORM=1
+    Header always merge Cache-Control "no-transform" env=AMEA_LEGAL_NO_TRANSFORM
+</IfModule>
+HTACCESS
+        fi
     } > "$htaccess_tmp"
     chmod 644 "$htaccess_tmp"
     mv -f "$htaccess_tmp" "${docroot}/.htaccess"
@@ -197,8 +208,8 @@ install_job_wrapper() {
 promote_release() {
     local target_release="$1"
 
-    sync_docroot_assets "$target_release" "$PUBLIC_DOCROOT"
-    sync_docroot_assets "$target_release" "$STAFF_DOCROOT"
+    sync_docroot_assets "$target_release" "$PUBLIC_DOCROOT" public
+    sync_docroot_assets "$target_release" "$STAFF_DOCROOT" staff
 
     local public_entry staff_entry
     public_entry="$(stage_docroot_entry public "$target_release" "$PUBLIC_DOCROOT")"
