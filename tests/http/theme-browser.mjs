@@ -128,6 +128,15 @@ try {
         await check("location.pathname === '/export-preview.php'",'authorized one-use export preview');
         previewColors[theme]=await rendered(theme,'preview '+theme);
         await screenshot('preview-'+theme);
+        await cdp('Emulation.setEmulatedMedia',{media:'print'});
+        await check(`(() => {
+            const paper = document.querySelector('.export-paper');
+            return getComputedStyle(document.querySelector('.export-actions')).display === 'none'
+                && getComputedStyle(paper).backgroundColor === 'rgb(255, 255, 255)'
+                && getComputedStyle(paper).color === 'rgb(0, 0, 0)'
+                && getComputedStyle(paper).fontFamily.startsWith('system-ui');
+        })()`, 'export keeps the printable colors and type in '+theme);
+        await cdp('Emulation.setEmulatedMedia',{media:'',features:[{name:'prefers-color-scheme',value:'dark'}]});
     }
     assert.notEqual(previewColors.light.body,previewColors.dark.body,'preview actual background changes');
     await navigate('/');

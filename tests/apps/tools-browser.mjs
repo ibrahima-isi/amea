@@ -43,6 +43,10 @@ try {
         await navigate(staff+'/'+route);
         await check("document.querySelector('main') !== null && !document.body.innerText.includes('Fatal error')", 'authorized existing staff tool '+route);
     }
+    await navigate(staff+'/users.php');
+    const editUser = await evaluate("document.querySelector('a[href^=\"edit-user.php?id=\"]').href");
+    await navigate(editUser);
+    await check("!!document.querySelector('.staff-main form')", 'staff account edit renders its form in the shared staff layout');
     const pressEnter = async () => {
         const key = {key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13};
         await cdp('Input.dispatchKeyEvent', {...key, type: 'keyDown', text: '\r'});
@@ -153,6 +157,13 @@ try {
     const preview = await evaluate("document.querySelector('a[href*=\"journal-preview.php\"]').href");
     const publicArticle = await evaluate("document.querySelector('a[href*=\"journal-article.php\"]').href");
     await navigate(publicArticle);
+    const articleTypography = `(() => {
+        const heading = getComputedStyle(document.querySelector('.journal-article h1'));
+        const summary = getComputedStyle(document.querySelector('.journal-summary'));
+        return [heading.fontFamily, heading.fontSize, heading.fontWeight, heading.lineHeight, summary.fontSize, summary.lineHeight];
+    })()`;
+    const publicTypography = await evaluate(articleTypography);
+    assert(publicTypography[0].startsWith('Inter') && publicTypography[2] === '800', 'public article applies the approved heading hierarchy');
     await check("[...document.images].some(image=>image.src.includes('journal-cover.php') && image.complete && image.naturalWidth>0)", 'published private-storage cover loads in actual browser');
     const coverUrl = await evaluate("[...document.images].find(image=>image.src.includes('journal-cover.php')).src");
     shot=await cdp('Page.captureScreenshot',{format:'png'});await writeFile(path.join(out,'journal-published-cover.png'),Buffer.from(shot.data,'base64'));
@@ -162,6 +173,7 @@ try {
     await navigate(base+'/journal.php');
     assert.equal(await evaluate("fetch("+JSON.stringify(coverUrl)+").then(response=>response.status)"),404,'withdrawn cover denied after successful browser image read');
     await navigate(preview);
+    assert.deepEqual(await evaluate(articleTypography), publicTypography, 'staff preview matches the public article typography');
     await check("[...document.images].some(image=>image.src.includes('journal-preview-cover.php') && image.complete && image.naturalWidth>0)", 'withdrawn draft cover loads only through authorized staff preview');
     shot=await cdp('Page.captureScreenshot',{format:'png'});await writeFile(path.join(out,'journal-withdrawn-staff-preview.png'),Buffer.from(shot.data,'base64'));
     await navigate(editor);

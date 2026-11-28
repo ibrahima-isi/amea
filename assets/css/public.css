@@ -47,7 +47,7 @@ body.public-site {
     margin:0;
     background:var(--public-bg);
     color:var(--public-text);
-    font:1rem/1.65 Manrope,'Segoe UI',system-ui,sans-serif;
+    font:1rem/1.65 var(--amea-font-sans);
 }
 a {
     color:inherit;
@@ -75,23 +75,47 @@ img {
 p {
     margin:0 0 1.25rem;
 }
-h1,h2,h3 {
-    line-height:1.12;
-    letter-spacing:-.045em;
+h1,h2,h3,h4,h5,h6 {
+    letter-spacing:-.025em;
+}
+h2,h3,h4,h5,h6 {
+    font-weight:600;
 }
 h1 {
-    font-size:clamp(2.2rem,4vw,3.7rem);
+    font-size:var(--amea-title-size);
+    line-height:var(--amea-title-leading);
     font-weight:800;
     margin:1.25rem 0 1.5rem;
 }
+h2,.public-form-page h1.h2 {
+    font-size:1.875rem;
+    line-height:1.2;
+}
 h2 {
-    font-size:clamp(1.6rem,2.6vw,2.1rem);
     margin:0 0 1.75rem;
 }
+h3,.public-form-page h1.h3 {
+    font-size:1.5rem;
+    line-height:calc(4 / 3);
+}
 h3 {
-    font-size:1.4rem;
-    letter-spacing:-.025em;
     margin:1.25rem 0 1rem;
+}
+h4,h5 {
+    font-size:1.25rem;
+    line-height:1.4;
+}
+h6 {
+    font-size:1rem;
+    line-height:1.5;
+}
+.lead,.hero-intro .hero-lead {
+    font-size:1.25rem;
+    line-height:1.4;
+    font-weight:400;
+}
+small,.small {
+    font-size:.875rem;
 }
 .public-container {
     width:min(1240px,calc(100% - 96px));
@@ -142,7 +166,7 @@ h3 {
 }
 .public-brand small {
     display:block;
-    font-size:.72rem;
+    font-size:.75rem;
     letter-spacing:0;
     font-weight:500;
     margin-top:.4rem;
@@ -162,7 +186,8 @@ h3 {
     padding:6px clamp(8px,1vw,16px);
     border-radius:13px;
     text-decoration:none;
-    font-weight:750;
+    font-size:.875rem;
+    font-weight:600;
 }
 .public-nav nav a:hover {
     background:var(--landing-wash);
@@ -175,7 +200,7 @@ h3 {
     border-radius:var(--landing-action-radius);
     background:var(--landing-action-bg);
     color:white;
-    font-weight:800;
+    font-weight:600;
 }
 .public-nav nav .public-nav-registration:hover {
     background:var(--landing-action-hover);
@@ -196,8 +221,8 @@ h3 {
     display:flex;
     align-items:center;
     gap:.75rem;
-    font-size:.9rem;
-    font-weight:650;
+    font-size:.875rem;
+    font-weight:600;
     color:var(--public-muted);
     margin:0;
 }
@@ -223,8 +248,6 @@ h3 {
     color:var(--public-muted);
 }
 .hero-intro .hero-lead {
-    font-size:1.2rem;
-    line-height:1.5;
     color:var(--public-text);
 }
 .public-button {
@@ -238,7 +261,7 @@ h3 {
     border:1px solid transparent;
     border-radius:8px;
     text-decoration:none;
-    font-weight:700;
+    font-weight:600;
     min-height:52px;
 }
 .public-button:hover {
@@ -279,12 +302,13 @@ h3 {
     color:#fffcf7;
 }
 .community-slide figcaption>span {
-    font-size:.85rem;
+    font-size:.875rem;
 }
 .community-slide figcaption p {
-    font-size:1.4rem;
-    line-height:1.35;
-    font-weight:700;
+    font-size:1.5rem;
+    line-height:calc(4 / 3);
+    font-weight:600;
+    letter-spacing:-.025em;
     margin:.5rem 0 0;
     overflow-wrap:anywhere;
 }
@@ -308,10 +332,10 @@ h3 {
     margin-left:auto;
     border-radius:999px;
     padding:.5rem .9rem;
-    font-size:.85rem;
+    font-size:.875rem;
 }
 .gallery-controls [data-carousel-count] {
-    font-size:.85rem;
+    font-size:.875rem;
     min-width:3.5rem;
     text-align:center;
 }
@@ -333,9 +357,10 @@ h3 {
     background:#fffcf7;
 }
 .community-empty p {
-    font-size:1.7rem;
-    font-weight:750;
+    font-size:1.875rem;
+    font-weight:600;
     line-height:1.2;
+    letter-spacing:-.025em;
 }
 .community-empty span {
     color:var(--public-muted);
@@ -401,7 +426,7 @@ h3 {
     padding:48px 0 24px;
     border-top:1px solid var(--public-line);
     background:var(--public-surface);
-    font-size:.9rem;
+    font-size:.875rem;
     color:var(--public-muted);
 }
 .footer-grid {
@@ -429,7 +454,6 @@ h3 {
     border-top:1px solid var(--public-line);
     padding-top:24px;
     margin-top:32px;
-    font-size:.8rem;
 }
 .public-flash {
     padding:1rem 2rem;
@@ -490,7 +514,6 @@ h3 {
     }
     .public-nav nav a {
         padding-inline:6px;
-        font-size:.875rem;
     }
     .public-nav nav .public-nav-registration {
         min-height:44px;
@@ -520,9 +543,6 @@ h3 {
         grid-template-columns:1fr;
         padding-block:32px 48px;
         gap:32px;
-    }
-    h1 {
-        font-size:2.35rem;
     }
     .community-slide,.community-empty {
         min-height:320px;
@@ -583,7 +603,7 @@ h3 {
     margin-bottom:2rem;
 }
 
-.hero-note { display:block; margin-top:.75rem; color:var(--public-muted); font-size:.85rem; }
+.hero-note { display:block; margin-top:.75rem; color:var(--public-muted); }
 .public-nav>* { min-width:0; }
 .footer-grid a { overflow-wrap:anywhere; }
 @media(max-width:360px) {
@@ -598,6 +618,7 @@ h3 {
         width:48px;
     }
     .community-slide figcaption p {
-        font-size:1.15rem;
+        font-size:1.25rem;
+        line-height:1.4;
     }
 }

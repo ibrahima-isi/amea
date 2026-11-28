@@ -17,10 +17,10 @@ body.admin-export-preview .table th { background:var(--brand-subtle); }
         --admin-ink:#000!important;
         --admin-muted:#000!important;
         --admin-line:#000!important;
-        --admin-navy:#000!important;
         --brand-subtle:#fff!important;
         background:#fff!important;
         color:#000!important;
+        font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
         font-size:10pt;
     }
     body.admin-export-preview .no-print { display:none!important; }
