@@ -80,7 +80,7 @@ with tempfile.TemporaryDirectory(prefix='amea-stellar-e2e-') as tmp:
     render_env = {
         **SAFE_ENV,
         'DB_HOST': '127.0.0.1',
-        'DB_PORT': '3306',
+        'DB_PORT': str(free_port()),
         'DB_NAME': 'amea_synthetic',
         'DB_USER': 'amea_user',
         'DB_PASS': 'synthetic-pass',
@@ -144,7 +144,7 @@ with tempfile.TemporaryDirectory(prefix='amea-stellar-e2e-') as tmp:
 
     # A failed migration must leave the active release and config intact.
     migration_cfg = work / 'unreachable-db.env'
-    migration_cfg.write_text(runtime_cfg.read_text().replace('DB_PORT=3306', f'DB_PORT={free_port()}'))
+    migration_cfg.write_text(runtime_cfg.read_text().replace(f"DB_PORT={render_env['DB_PORT']}", f'DB_PORT={free_port()}'))
     os.chmod(migration_cfg, 0o600)
     res_migrate = run_deploy(f'--archive={archive_path}', f'--config-source={migration_cfg}', '--release-id=rel-migration-failed')
     check(res_migrate.returncode != 0 and 'Migration command failed' in res_migrate.stderr,
@@ -180,7 +180,8 @@ with tempfile.TemporaryDirectory(prefix='amea-stellar-e2e-') as tmp:
     # 6. CLI jobs wrapper loads private config, uses shared lock & mail queue, and rejects web identity
     job_env = {**SAFE_ENV, 'APP_ENV': 'test'}
     job_res = subprocess.run(['php', str(base_dir / 'bin/run-job.php'), 'mail'], env=job_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    check(job_res.returncode == 0, f'bin/run-job.php executes shared mail job ({job_res.stderr.strip()})')
+    check(job_res.returncode == 1 and 'cannot access configured mail database' in job_res.stdout,
+          'bin/run-job.php uses private config and defers mail when the shared quota database is unavailable')
     check((base_dir / 'shared/state/.shared-jobs.lock').is_file(), 'shared jobs lock created inside persistent private state')
     web_job_res = subprocess.run(
         ['php', str(base_dir / 'current/scripts/run-shared-jobs.php'), 'mail'],

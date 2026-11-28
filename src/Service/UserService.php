@@ -7,7 +7,7 @@ class UserService
 {
     public const MODULES = [
         'students', 'export', 'users', 'slider', 'journal',
-        'upgrade', 'documents', 'communications', 'settings',
+        'upgrade', 'documents', 'communications', 'consent', 'settings',
     ];
 
     public function __construct(private UserRepository $repo) {}

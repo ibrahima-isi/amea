@@ -136,6 +136,59 @@ final class CliCommandsTest extends TestCase
         self::assertGreaterThanOrEqual($startedAt, $failed['failed_at']);
     }
 
+    public function testMailQueueSubprocessEnforcesDailyLimitAcrossRuns(): void
+    {
+        $queue = $this->fixture . '/storage/mail-queue';
+        mkdir($queue, 0700, true);
+        file_put_contents($this->fixture . '/.env', "MAIL_DAILY_LIMIT=2\nMAIL_SEND_PAUSE_MS=0\n");
+
+        foreach (['01-first.json', '02-second.json', '03-third.json'] as $idx => $filename) {
+            file_put_contents($queue . '/' . $filename, json_encode([
+                'to' => 'member' . ($idx + 1) . '@example.invalid',
+                'subject' => 'Test ' . ($idx + 1),
+                'body' => '<p>Corps</p>',
+                'attempts' => 0,
+                'next_attempt_at' => 0,
+            ], JSON_THROW_ON_ERROR));
+        }
+
+        [$status1, $stdout1] = $this->runCommand(['process-mail-queue.php'], ['APP_ENV' => 'test']);
+        self::assertSame(0, $status1);
+        self::assertStringContainsString('Daily limit reached mid-run; stopping.', $stdout1);
+        self::assertStringContainsString('delivered=2 (file=2, db=0)', $stdout1);
+        self::assertStringContainsString('(sent today: 2/2)', $stdout1);
+        self::assertFileDoesNotExist($queue . '/01-first.json');
+        self::assertFileDoesNotExist($queue . '/02-second.json');
+        self::assertFileExists($queue . '/03-third.json');
+
+        $counterFile = $queue . '/.sent-' . gmdate('Ymd');
+        self::assertFileExists($counterFile);
+        self::assertSame('2', trim((string) file_get_contents($counterFile)));
+
+        // Second invocation on same day defers immediately without sending 03-third.json
+        [$status2, $stdout2] = $this->runCommand(['process-mail-queue.php'], ['APP_ENV' => 'test']);
+        self::assertSame(0, $status2);
+        self::assertStringContainsString('Daily limit reached (2/2); deferring remaining queue.', $stdout2);
+        self::assertFileExists($queue . '/03-third.json');
+    }
+
+    public function testMailQueuePreservesMessagesWhenLegacyCounterIsInvalid(): void
+    {
+        $queue = $this->fixture . '/storage/mail-queue';
+        mkdir($queue, 0700, true);
+        $counter = $queue . '/.sent-' . gmdate('Ymd');
+        file_put_contents($counter, 'unreadable count');
+        file_put_contents($queue . '/mail.json', '{"to":"member@example.invalid"}');
+
+        [$status, $stdout, $stderr] = $this->runCommand(['process-mail-queue.php'], ['APP_ENV' => 'test']);
+
+        self::assertNotSame(0, $status);
+        self::assertStringContainsString('Cannot read legacy daily mail usage.', $stderr);
+        self::assertStringNotContainsString('Delivered to', $stdout);
+        self::assertFileExists($queue . '/mail.json');
+        self::assertSame('unreadable count', file_get_contents($counter));
+    }
+
     /** @param list<string> $arguments */
     private function runCommand(array $arguments, array $environment = []): array
     {

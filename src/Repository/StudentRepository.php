@@ -42,6 +42,17 @@ class StudentRepository
         return $row ? Student::fromRow($row) : null;
     }
 
+    public function findByCguToken(string $token): ?Student
+    {
+        if ($token === '') {
+            return null;
+        }
+        $stmt = $this->pdo->prepare("SELECT * FROM students WHERE cgu_token = ? AND deleted_at IS NULL");
+        $stmt->execute([$token]);
+        $row = $stmt->fetch();
+        return $row ? Student::fromRow($row) : null;
+    }
+
     /** Active rows only — trashed students are fetched via findTrashed* methods. */
     public function findTrashedById(int $id): ?Student
     {
@@ -168,7 +179,8 @@ class StudentRepository
         'last_name', 'first_name', 'gender', 'birth_date', 'residence', 'institution', 'status',
         'study_field', 'study_level', 'phone', 'email', 'arrival_year', 'housing_type',
         'housing_details', 'post_training_project', 'identity_document', 'nationalities', 'cv_path',
-        'graduation_date', 'is_locked', 'consent_privacy', 'kyc_status', 'kyc_notes', 'review_token',
+        'graduation_date', 'is_locked', 'consent_privacy', 'cgu_token', 'cgu_reminder_sent_at',
+        'consent_refused_at', 'deletion_requested_at', 'kyc_status', 'kyc_notes', 'review_token',
     ];
 
     public function update(int $id, array $data): bool
@@ -209,10 +221,11 @@ class StudentRepository
     }
 
     /** Move an active student to the trash (soft delete). */
-    public function softDelete(int $id, ?int $deletedBy = null): bool
+    public function softDelete(int $id, ?int $deletedBy = null, bool $requireDeletionRequest = false): bool
     {
         $stmt = $this->pdo->prepare(
             "UPDATE students SET deleted_at = ?, deleted_by = ? WHERE id = ? AND deleted_at IS NULL"
+            . ($requireDeletionRequest ? " AND deletion_requested_at IS NOT NULL" : "")
         );
         $stmt->execute([date('Y-m-d H:i:s'), $deletedBy, $id]);
         return $stmt->rowCount() > 0;

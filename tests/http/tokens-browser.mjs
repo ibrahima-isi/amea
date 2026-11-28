@@ -36,7 +36,7 @@ try {
     await mkdir(out,{recursive:true});
     const screenshot=async name=>{const {data}=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await writeFile(path.join(out,name),Buffer.from(data,'base64'));};
     const correction='/kyc-correction.php?token='+'a'.repeat(64);
-    const consent='/accept-cgu.php?token='+'a'.repeat(64);
+    const consent='/accept-cgu.php?token='+'i'.repeat(64);
     await navigate(correction);
     for(const [width,mobile] of [[1440,false],[390,true],[320,true]]) {
         await cdp('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile});

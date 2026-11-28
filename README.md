@@ -217,7 +217,8 @@ Staff authentication (`login.php`, `logout.php`, `forgot-password.php`, `reset-p
 | `manage-journal.php` / `edit-journal.php` **(admin)** | Association journal editorial management and draft preview |
 | `export.php` **(admin)** | CSV/JSON/PDF export with field selection and filters |
 | `upgrade-levels.php` **(admin)** | Annual study-level progression tool |
-| `communications.php` **(admin)** | Terms campaigns and group emails |
+| `consent.php` **(admin)** | Consentement & RGPD: CGU consent reminders and GDPR deletion requests |
+| `communications.php` **(admin)** | Hybrid bulk member communications with live progress, self-test, and history |
 | `users.php` **(admin)** | Staff user and permission management |
 | `settings.php` **(admin)** | System settings |
 | `profile.php` | Edit the current staff profile |

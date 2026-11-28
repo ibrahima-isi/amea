@@ -7,6 +7,7 @@ use Amea\Config\Environment;
 use Amea\Controller\AcceptTermsController;
 use Amea\Controller\AuthController;
 use Amea\Controller\CommunicationController;
+use Amea\Controller\ConsentController;
 use Amea\Controller\CorrectionController;
 use Amea\Controller\DashboardController;
 use Amea\Controller\DownloadController;
@@ -67,6 +68,10 @@ class Router
         '/journal-preview-cover.php' => ['controller' => JournalAdminController::class, 'methods' => ['GET' => 'cover']],
         '/communications.php' => ['controller' => CommunicationController::class, 'methods' => ['GET' => 'index', 'POST' => 'send']],
         '/communications-count.php' => ['controller' => CommunicationController::class, 'methods' => ['GET' => 'count']],
+        '/communications-dispatch.php' => ['controller' => CommunicationController::class, 'methods' => ['POST' => 'dispatch']],
+        '/consent.php' => ['controller' => ConsentController::class, 'methods' => ['GET' => 'index', 'POST' => 'handlePost']],
+        '/consent-members.php' => ['controller' => ConsentController::class, 'methods' => ['GET' => 'members']],
+        '/consent-dispatch.php' => ['controller' => ConsentController::class, 'methods' => ['POST' => 'dispatch']],
         '/export.php' => ['controller' => ExportController::class, 'methods' => ['GET' => 'index', 'POST' => 'download']],
         '/export-preview.php' => ['controller' => ExportController::class, 'methods' => ['GET' => 'preview']],
         '/settings.php' => ['controller' => SettingsController::class, 'methods' => ['GET' => 'index', 'POST' => 'update']],

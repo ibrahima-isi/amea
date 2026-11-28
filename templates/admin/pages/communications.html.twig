@@ -2,62 +2,118 @@
 
 {% block title %}Communications — AEESGS{% endblock %}
 
+{% macro failure_list(failures) %}
+    <ul class="list-unstyled mb-0 small">
+        {% for failure in failures %}
+        <li class="py-1 border-bottom">
+            <strong>{{ failure.first_name }} {{ failure.last_name }}</strong>
+            (<code>{{ failure.email }}</code>) — {{ failure.attempts }} tentative(s) :
+            <span class="text-danger-emphasis">{{ failure.last_error ?: 'Erreur SMTP' }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+{% endmacro %}
+
 {% block body %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+{% set member_status_labels = {
+    'ELEVE': 'Élève',
+    'ETUDIANT': 'Étudiant',
+    'STAGIAIRE': 'Stagiaire',
+    'Diplômé(e)': 'Diplômé(e)'
+} %}
+{% set kyc_status_labels = {
+    'APPROVED': 'Approuvés',
+    'UNDER_REVIEW': 'En cours de validation',
+    'NEEDS_CLARIFICATION': 'Compléments demandés',
+    'PENDING_CONFIRMATION': 'En attente de confirmation',
+    'REJECTED': 'Rejetés',
+    'all': 'Tous les statuts KYC'
+} %}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
     <div>
         <h1 class="h3 mb-0">Communications</h1>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
-                <li class="breadcrumb-item active">Communications</li>
+                <li class="breadcrumb-item active" aria-current="page">Communications</li>
             </ol>
         </nav>
     </div>
+    <div class="text-muted small">
+        <i class="fas fa-reply me-1" aria-hidden="true"></i>
+        Expéditeur : <code>noreply@aeesgs.org</code> · Réponses : <code>{{ reply_to_email }}</code>
+    </div>
 </div>
 
-{# ─── Stats ────────────────────────────────────────────────────────────────── #}
+{# ─── Communication overview stats ─────────────────────────────────────────── #}
 <div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="card text-center p-3">
-            <div class="h2 fw-bold text-primary">{{ stats.total }}</div>
-            <div class="text-muted small">Membres inscrits</div>
+    <div class="col-6 col-lg-3">
+        <div class="card text-center p-3 h-100">
+            <div class="h2 fw-bold text-primary mb-1">{{ stats.active_total }}</div>
+            <div class="text-muted small">Adhérents actifs</div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-center p-3">
-            <div class="h2 fw-bold text-success">{{ stats.consented }}</div>
-            <div class="text-muted small">CGU acceptées</div>
+    <div class="col-6 col-lg-3">
+        <div class="card text-center p-3 h-100">
+            <div class="h2 fw-bold text-success-emphasis mb-1">{{ stats.reachable_with_email }}</div>
+            <div class="text-muted small">Joignables par email</div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-center p-3">
-            <div class="h2 fw-bold text-warning">{{ stats.not_consented }}</div>
-            <div class="text-muted small">En attente de consentement</div>
+    <div class="col-6 col-lg-3">
+        <div class="card text-center p-3 h-100">
+            <div class="h2 fw-bold text-warning-emphasis mb-1">{{ stats.missing_email }}</div>
+            <div class="text-muted small">Sans email valide</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card text-center p-3 h-100">
+            <div class="h2 fw-bold mb-1" id="dailyQuotaValue">{{ stats.daily_sent }} / {{ stats.daily_limit }}</div>
+            <div class="text-muted small">Quota d’envoi du jour</div>
         </div>
     </div>
 </div>
 
-{# ─── Compose form ─────────────────────────────────────────────────────────── #}
-<div class="card shadow-sm">
+{# ─── Live dispatch progress panel ─────────────────────────────────────────── #}
+{% if active_communication %}
+{% include 'partials/live-dispatch-panel.html.twig' with {
+    active_communication: active_communication,
+    quota_sent: stats.daily_sent,
+    quota_limit: stats.daily_limit,
+    dispatch_url: 'communications-dispatch.php',
+    cancel_action_url: 'communications.php',
+    panel_heading: 'Envoi #' ~ active_communication.id,
+    panel_subject: active_communication.subject,
+    progress_aria_label: 'Progression de l’envoi',
+    running_message: 'Envoi par lots en cours… Vous pouvez garder cette page ouverte pour suivre la progression en temps réel ; si vous la fermez, la tâche planifiée poursuivra le reste.',
+    completed_message: 'Tous les destinataires ont été traités avec succès.'
+} %}
+{% endif %}
+
+{# ─── Compose bulk communication form ──────────────────────────────────────── #}
+<div class="card mb-4">
     <div class="card-header">
-        <i class="fas fa-paper-plane me-1"></i> Envoyer un email en masse
+        <i class="fas fa-paper-plane me-1" aria-hidden="true"></i> Envoyer une communication aux adhérents
     </div>
     <div class="card-body">
-        <form method="POST" action="communications.php">
+        <form method="POST" action="communications.php" id="bulkCommunicationForm" data-count-url="communications-count.php">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="action" value="send" id="bulkFormAction">
+            <input type="hidden" name="confirmed_recipient_count" value="">
 
             <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label for="status" class="form-label">Filtrer par statut</label>
+                <div class="col-md-6 col-lg-3">
+                    <label for="status" class="form-label">Statut</label>
                     <select class="form-select" id="status" name="status">
                         <option value="">Tous les statuts</option>
                         <option value="ELEVE">Élève</option>
                         <option value="ETUDIANT">Étudiant</option>
                         <option value="STAGIAIRE">Stagiaire</option>
+                        <option value="Diplômé(e)">Diplômé(e)</option>
                     </select>
                 </div>
-                <div class="col-md-6">
-                    <label for="institution" class="form-label">Filtrer par établissement</label>
+                <div class="col-md-6 col-lg-3">
+                    <label for="institution" class="form-label">Établissement</label>
                     <select class="form-select" id="institution" name="institution">
                         <option value="">Tous les établissements</option>
                         {% for inst in institutions %}
@@ -65,51 +121,241 @@
                         {% endfor %}
                     </select>
                 </div>
+                <div class="col-md-6 col-lg-3">
+                    <label for="consent" class="form-label">Consentement CGU</label>
+                    <select class="form-select" id="consent" name="consent">
+                        <option value="">Tous</option>
+                        <option value="consented">CGU acceptées</option>
+                        <option value="not_consented">En attente de consentement</option>
+                    </select>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <label for="kyc_status" class="form-label">Statut dossier (KYC)</label>
+                    <select class="form-select" id="kyc_status" name="kyc_status">
+                        <option value="exclude_rejected" selected>Tous sauf rejetés (par défaut)</option>
+                        <option value="APPROVED">Approuvés uniquement</option>
+                        <option value="UNDER_REVIEW">En cours de validation</option>
+                        <option value="NEEDS_CLARIFICATION">Compléments demandés</option>
+                        <option value="PENDING_CONFIRMATION">En attente de confirmation</option>
+                        <option value="REJECTED">Rejetés uniquement</option>
+                        <option value="all">Tous les statuts KYC</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="mb-3 d-flex align-items-center gap-2">
+            <div class="mb-3 d-flex align-items-center flex-wrap gap-2">
                 <button type="button" id="previewCount" class="btn btn-outline-secondary btn-sm">
-                    <i class="fas fa-eye me-1"></i> Aperçu destinataires
+                    <i class="fas fa-users me-1" aria-hidden="true"></i> Actualiser le nombre de destinataires
                 </button>
-                <span id="recipientCount" class="text-muted small"></span>
+                <span id="recipientCount" class="text-muted small" data-count="{{ default_recipient_count }}" aria-live="polite">
+                    <strong>{{ default_recipient_count }}</strong> destinataire(s) joignable(s) avec ces filtres.
+                </span>
             </div>
 
             <div class="mb-3">
                 <label for="subject" class="form-label">Sujet <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="subject" name="subject" required>
+                <input type="text" class="form-control" id="subject" name="subject" maxlength="255" required placeholder="Objet de la communication">
             </div>
 
-            <div class="mb-3">
+            <div class="mb-2">
                 <label for="body" class="form-label">Corps du message <span class="text-danger">*</span></label>
                 <textarea class="form-control" id="body" name="body" rows="8" required placeholder="Rédigez votre message ici…"></textarea>
             </div>
+            <div class="mb-3">
+                <small class="text-muted">
+                    <i class="fas fa-magic me-1" aria-hidden="true"></i>
+                    Personnalisation disponible : <code>{{ '{{prenom}}' }}</code> et <code>{{ '{{nom}}' }}</code>. Les retours à la ligne sont conservés dans le modèle AEESGS.
+                </small>
+            </div>
 
-            <div class="d-flex justify-content-end">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-paper-plane me-1"></i> Envoyer
+            <div id="selfTestFeedback" class="small mb-3 d-none" aria-live="polite"></div>
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        id="btnSelfTest"
+                        data-staff-email="{{ staff_email }}"
+                        title="{{ staff_email ? 'Envoyer un aperçu à ' ~ staff_email : 'Votre compte ne possède pas d’adresse email' }}">
+                    <i class="fas fa-vial me-1" aria-hidden="true"></i> Envoyer un test à moi-même
+                    {% if staff_email %}<span class="text-muted small ms-1">({{ staff_email }})</span>{% endif %}
+                </button>
+                <button type="submit" class="btn btn-primary" id="btnSubmitBulk">
+                    <i class="fas fa-paper-plane me-1" aria-hidden="true"></i> Envoyer
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+{# ─── Communication history & lifecycle controls ───────────────────────────── #}
+{% if failure_campaign %}
+<section class="card mb-4" id="failure-details" aria-labelledby="failure-details-title">
+    <div class="card-header">
+        <h2 class="h6 mb-0" id="failure-details-title">Erreurs d’envoi — {{ failure_campaign.subject }}</h2>
+    </div>
+    <div class="card-body">
+        {% if failure_details is empty %}
+        <p class="mb-0">Aucun destinataire en échec.</p>
+        {% else %}
+        {{ _self.failure_list(failure_details) }}
+        {% endif %}
+        {% if failure_pages > 1 %}
+        <nav class="d-flex align-items-center gap-3 mt-3" aria-label="Pagination des erreurs d’envoi">
+            {% if failure_page > 1 %}
+            <a class="btn btn-outline-secondary btn-sm" href="communications.php?failures={{ failure_campaign.id }}&amp;failure_page={{ failure_page - 1 }}&amp;page={{ history_page }}#failure-details">Précédent</a>
+            {% endif %}
+            <span>Page {{ failure_page }} / {{ failure_pages }}</span>
+            {% if failure_page < failure_pages %}
+            <a class="btn btn-outline-secondary btn-sm" href="communications.php?failures={{ failure_campaign.id }}&amp;failure_page={{ failure_page + 1 }}&amp;page={{ history_page }}#failure-details">Suivant</a>
+            {% endif %}
+        </nav>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-history me-1" aria-hidden="true"></i> Historique des communications</span>
+        {% if history_total_pages > 1 %}
+        <span class="text-muted small">Page {{ history_page }} / {{ history_total_pages }}</span>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        {% if history is empty %}
+        <p class="text-muted fst-italic text-center py-4 mb-0">Aucune communication envoyée pour le moment.</p>
+        {% else %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Sujet &amp; audience</th>
+                        <th>Statut</th>
+                        <th>Progression</th>
+                        <th>Date</th>
+                        <th>Auteur</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in history %}
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">{{ item.subject }}</div>
+                            <div class="small text-muted">
+                                {% if item.filters.status is defined and item.filters.status %}
+                                    <span class="badge bg-secondary-subtle text-body me-1">{{ member_status_labels[item.filters.status] ?? item.filters.status }}</span>
+                                {% endif %}
+                                {% if item.filters.institution is defined and item.filters.institution %}
+                                    <span class="badge bg-secondary-subtle text-body me-1">{{ item.filters.institution }}</span>
+                                {% endif %}
+                                {% if item.filters.consent is defined and item.filters.consent == 'consented' %}
+                                    <span class="badge bg-secondary-subtle text-body me-1">CGU acceptées</span>
+                                {% elseif item.filters.consent is defined and item.filters.consent == 'not_consented' %}
+                                    <span class="badge bg-secondary-subtle text-body me-1">Sans CGU</span>
+                                {% endif %}
+                                {% if item.filters.kyc_status is defined and item.filters.kyc_status == 'all' %}
+                                    <span class="badge bg-secondary-subtle text-body me-1">Tous les statuts KYC</span>
+                                {% elseif item.filters.kyc_status is defined and item.filters.kyc_status and item.filters.kyc_status != 'exclude_rejected' %}
+                                    <span class="badge bg-secondary-subtle text-body me-1">KYC : {{ kyc_status_labels[item.filters.kyc_status] ?? item.filters.kyc_status }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge {{ status_badges[item.status] ?? 'bg-secondary' }}">
+                                {{ status_labels[item.status] ?? item.status }}
+                            </span>
+                        </td>
+                        <td class="small">
+                            <div><strong>{{ item.sent_count }}</strong> / {{ item.total_recipients }} envoyé(s)</div>
+                            {% if item.pending_count > 0 %}
+                                <div class="text-muted">{{ item.pending_count }} en attente</div>
+                            {% endif %}
+                            {% if item.failed_count > 0 %}
+                                <div class="text-danger">{{ item.failed_count }} échec(s)</div>
+                            {% endif %}
+                            {% if item.cancelled_count > 0 %}
+                                <div class="text-muted">{{ item.cancelled_count }} annulé(s)</div>
+                            {% endif %}
+                        </td>
+                        <td class="small text-nowrap">
+                            <div>{{ item.created_at }}</div>
+                            {% if item.completed_at %}
+                                <div class="text-muted">Fin : {{ item.completed_at }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="small">{{ item.author_name }}</td>
+                        <td class="text-end text-nowrap">
+                            <div class="d-inline-flex flex-wrap justify-content-end gap-1">
+                                {% if item.status in ['QUEUED', 'SENDING', 'PAUSED_LIMIT'] and (item.pending_count > 0 or item.sending_count > 0) %}
+                                <form method="POST" action="communications.php" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <input type="hidden" name="action" value="resume">
+                                    <input type="hidden" name="communication_id" value="{{ item.id }}">
+                                    <button type="submit" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-play me-1" aria-hidden="true"></i>Reprendre
+                                    </button>
+                                </form>
+                                <form method="POST" action="communications.php" class="d-inline" data-cancel-form="1">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <input type="hidden" name="action" value="cancel">
+                                    <input type="hidden" name="communication_id" value="{{ item.id }}">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="fas fa-stop me-1" aria-hidden="true"></i>Annuler
+                                    </button>
+                                </form>
+                                {% endif %}
+                                {% if item.failed_count > 0 %}
+                                <form method="POST" action="communications.php" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <input type="hidden" name="action" value="retry_failed">
+                                    <input type="hidden" name="communication_id" value="{{ item.id }}">
+                                    <button type="submit" class="btn btn-outline-warning btn-sm">
+                                        <i class="fas fa-rotate-right me-1" aria-hidden="true"></i>Réessayer les échecs
+                                    </button>
+                                </form>
+                                <button type="button"
+                                        class="btn btn-outline-secondary btn-sm"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#failures-{{ item.id }}"
+                                        aria-expanded="false"
+                                        aria-controls="failures-{{ item.id }}">
+                                    <i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>Erreurs
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% if item.failures is not empty %}
+                    <tr class="collapse" id="failures-{{ item.id }}">
+                        <td colspan="6" class="p-3">
+                            <div class="small fw-semibold mb-2">Destinataires en échec (envoi #{{ item.id }}) :</div>
+                            {{ _self.failure_list(item.failures) }}
+                            {% if item.failed_count > item.failures|length %}
+                            <a class="btn btn-outline-secondary btn-sm mt-2" href="communications.php?failures={{ item.id }}&amp;page={{ history_page }}#failure-details">Voir toutes les erreurs ({{ item.failed_count }})</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if history_total_pages > 1 %}
+        <nav aria-label="Pagination de l’historique" class="p-3">
+            <ul class="pagination pagination-sm mb-0 justify-content-end">
+                {% for p in 1..history_total_pages %}
+                <li class="page-item {{ p == history_page ? 'active' : '' }}">
+                    <a class="page-link" href="communications.php?page={{ p }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </nav>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
 
 {% block javascripts %}
-<script>
-document.getElementById('previewCount')?.addEventListener('click', function () {
-    const status      = document.getElementById('status').value;
-    const institution = document.getElementById('institution').value;
-    const params      = new URLSearchParams({ status, institution });
-
-    fetch('communications-count.php?' + params.toString())
-        .then(r => r.json())
-        .then(data => {
-            document.getElementById('recipientCount').textContent =
-                data.count + ' destinataire(s) correspond' + (data.count > 1 ? 'ent' : '') + ' aux filtres.';
-        })
-        .catch(() => {
-            document.getElementById('recipientCount').textContent = 'Impossible de charger le compte.';
-        });
-});
-</script>
+<script src="{{ asset('assets/js/communications.js') }}" defer></script>
 {% endblock %}

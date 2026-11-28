@@ -2,11 +2,42 @@
 // Real CLI worker competition, solely inside the disposable jobs image/storage.
 if (PHP_SAPI !== 'cli' || getenv('APP_ENV') !== 'test' || getenv('DB_NAME') !== 'amea_rehearsal'
     || getenv('DB_HOST') !== 'mysql') exit(1);
+require '/opt/amea/vendor/autoload.php';
+$database = \Amea\Core\Container::db();
+$quota = new \Amea\Repository\MailDailyUsageRepository($database);
+// Simultaneous web/CLI reservations import the same legacy floor exactly once.
+$workers = [];
+for ($i = 0; $i < 12; $i++) {
+    $process = proc_open([PHP_BINARY, '-r', <<<'PHP'
+        require '/opt/amea/vendor/autoload.php';
+        $quota = new Amea\Repository\MailDailyUsageRepository(Amea\Core\Container::db());
+        echo (int) $quota->reserveSingleSlot('2000-01-01', 10, '2000-01-01 00:00:00', 7);
+        PHP
+    ], [1 => ['pipe', 'w']], $pipes);
+    $workers[] = [$process, $pipes[1]];
+}
+$reserved = 0;
+foreach ($workers as [$process, $output]) {
+    $reserved += (int) stream_get_contents($output);
+    fclose($output);
+    if (proc_close($process) !== 0) throw new RuntimeException('Concurrent quota reservation failed');
+}
+if ($reserved !== 3 || $quota->getUsage('2000-01-01') !== 10) {
+    throw new RuntimeException('Concurrent reservations miscounted the legacy quota');
+}
+echo "PASS jobs: concurrent reservations preserve legacy usage and the daily cap\n";
+$usageDate = gmdate('Y-m-d');
+$before = $quota->getUsage($usageDate);
+$campaignRecipients = $database->prepare(
+    "SELECT COUNT(*) FROM communication_recipients r JOIN communications c ON c.id = r.communication_id
+    WHERE c.subject = 'Synthetic notice' AND r.status = ?"
+);
+$campaignRecipients->execute(['PENDING']);
+$pending = (int) $campaignRecipients->fetchColumn();
+if ($pending < 1) throw new RuntimeException('Expected recipients from the synthetic HTTP campaign');
 $queue='/opt/amea/storage/mail-queue';
 if (glob($queue.'/*.json')) throw new RuntimeException('Expected an empty synthetic queue');
 foreach ([1,2,3] as $id) file_put_contents($queue.'/synthetic-'.$id.'.json',json_encode(['to'=>'synthetic'.$id.'@example.invalid','subject'=>'Synthetic','body'=>'Safe substitute']));
-$counter=$queue.'/.sent-'.date('Ymd');
-$before=is_file($counter)?(int)file_get_contents($counter):0;
 putenv('MAIL_SEND_PAUSE_MS=700');
 $start=function($name) {
     $out='/tmp/amea-job-'.$name.'.log';
@@ -19,12 +50,17 @@ for($i=0;$i<100 && !str_contains((string)@file_get_contents($firstLog),'Delivere
 if(!str_contains((string)file_get_contents($firstLog),'Delivered to')) throw new RuntimeException('First worker did not begin');
 [$second,$secondLog]=$start('second');
 if(proc_close($second)!==0 || proc_close($first)!==0) throw new RuntimeException('Worker failure');
-$logs=file_get_contents($firstLog).file_get_contents($secondLog);
-if(substr_count($logs,'Delivered to')!==3 || glob($queue.'/*.json') || (int)file_get_contents($counter)!==$before+3 || file_get_contents($secondLog)!=='') throw new RuntimeException('Competing worker duplicated or lost work');
-echo "PASS jobs: overlapping owners process three synthetic messages once; safe EmailService substitute, no SMTP\n";
+$logs = file_get_contents($firstLog);
+$campaignRecipients->execute(['SENT']);
+$expectedUsage = $before + 3 + $pending;
+if (substr_count($logs, 'Delivered to') !== 3 || glob($queue . '/*.json')
+    || (int) $campaignRecipients->fetchColumn() !== $pending
+    || $quota->getUsage($usageDate) !== $expectedUsage
+    || file_get_contents($secondLog) !== '') {
+    throw new RuntimeException("Competing workers duplicated or lost mail.\n{$logs}" . file_get_contents($secondLog));
+}
+echo "PASS jobs: overlapping workers drain the file queue and HTTP campaign once against the shared quota\n";
 
-require '/opt/amea/vendor/autoload.php';
-$database = \Amea\Core\Container::db();
 $uploadDir = 'uploads/students/job-trash-fixture';
 mkdir('/opt/amea/' . $uploadDir, 0700, true);
 $insert = $database->prepare(<<<'SQL'

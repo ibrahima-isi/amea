@@ -49,7 +49,7 @@ $db->exec("INSERT INTO users (id, role, permissions) VALUES (4, 'admin', '')");
 // Non-admin user
 $db->exec("INSERT INTO users (id, role, permissions) VALUES (5, 'user', '[\"students\",\"export\"]')");
 // Admin with all permissions
-$allPerms = json_encode(['students','export','users','journal','slider','upgrade','documents','communications','settings']);
+$allPerms = json_encode(['students','export','users','journal','slider','upgrade','documents','communications','consent','settings']);
 $stmt = $db->prepare("INSERT INTO users (id, role, permissions) VALUES (6, 'admin', ?)");
 $stmt->execute([$allPerms]);
 // Admin with malformed JSON
@@ -129,6 +129,7 @@ expect('returns true for "slider"',         $auth->hasPermission('slider'));
 expect('returns true for "upgrade"',        $auth->hasPermission('upgrade'));
 expect('returns true for "documents"',      $auth->hasPermission('documents'));
 expect('returns true for "communications"', $auth->hasPermission('communications'));
+expect('returns true for "consent"',        $auth->hasPermission('consent'));
 expect('returns true for "settings"',       $auth->hasPermission('settings'));
 
 // ─── 8. Admin with malformed JSON ─────────────────────────────────────────────
@@ -161,7 +162,7 @@ expect('cached result matches first call (false)', $firstNo === false && $second
 // ─── 11. UserService::MODULES constant ─────────────────────────────────────────
 echo "\nUserService::MODULES constant\n";
 
-expect('contains exactly 9 modules',            count(UserService::MODULES) === 9);
+expect('contains exactly 10 modules',           count(UserService::MODULES) === 10);
 expect('contains "students"',                   in_array('students',       UserService::MODULES));
 expect('contains "export"',                     in_array('export',         UserService::MODULES));
 expect('contains "users"',                      in_array('users',          UserService::MODULES));
@@ -170,6 +171,7 @@ expect('contains "slider"',                     in_array('slider',         UserS
 expect('contains "upgrade"',                    in_array('upgrade',        UserService::MODULES));
 expect('contains "documents"',                  in_array('documents',      UserService::MODULES));
 expect('contains "communications"',             in_array('communications', UserService::MODULES));
+expect('contains "consent"',                    in_array('consent',        UserService::MODULES));
 expect('contains "settings"',                   in_array('settings',       UserService::MODULES));
 
 // ─── 12. DB is authoritative — $_SESSION['permissions'] is NOT used ───────────

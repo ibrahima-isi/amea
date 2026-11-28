@@ -44,6 +44,7 @@ final class BaselineEnrollment
             '  KEY `idx_users_created_at` (`created_at`)',
         ],
     ];
+    private const COMMUNICATIONS_CONSENT_SQL_BASELINE_SHA256 = '0b4dea717d5377fcd9df92bdfeb3e4d14389c5867db7730ad829d1ee313a4d8f';
 
     private array $versions = MigrationRuntime::BASELINE_VERSIONS;
 
@@ -130,6 +131,7 @@ final class BaselineEnrollment
                 self::MEMBER_SQL_BASELINE_SHA256,
                 self::LEGACY_MEMBER_SQL_BASELINE_SHA256,
                 self::PERFORMANCE_INDEXES_SQL_BASELINE_SHA256,
+                self::COMMUNICATIONS_CONSENT_SQL_BASELINE_SHA256,
             ], true)) {
             return;
         }
@@ -152,6 +154,10 @@ final class BaselineEnrollment
         if ($hasMemberFileSchema) {
             $snapshot .= file_get_contents(__DIR__ . '/member-file-enrollment-schema.sql');
             $this->versions = [...MigrationRuntime::BASELINE_VERSIONS, ...MigrationRuntime::MEMBER_FILE_VERSIONS];
+        }
+        $hasCommunicationsSchema = array_intersect(['communications', 'communication_recipients', 'mail_daily_usage'], $tablesPresent) !== [];
+        if ($hasCommunicationsSchema) {
+            $snapshot .= "\n" . file_get_contents(__DIR__ . '/communications-enrollment-schema.sql');
         }
         preg_match_all('/CREATE TABLE `([^`]+)` \(.*?\) ENGINE=.*?;/s', $snapshot, $matches, PREG_SET_ORDER);
         $definitions = [];
@@ -183,6 +189,7 @@ final class BaselineEnrollment
         }
 
         $hasLegacyMemberCompat = false;
+        $hasConsentColumns = false;
         $indexedTables = [];
         $unindexedTables = [];
 
@@ -198,7 +205,13 @@ final class BaselineEnrollment
                 $compatibleDefinition = preg_replace('/(^  `gender` enum\([^\n]+\)) NOT NULL,$/m', '$1 DEFAULT NULL,', $expectedDefinition);
                 $compatibleDefinition = str_replace('`housing_details` varchar(100)', '`housing_details` varchar(255)', $compatibleDefinition);
                 $indexedDefinition = $this->withPerformanceIndexes($table, $compatibleDefinition);
-                if ($hasMemberFileSchema && $normalized === $indexedDefinition) {
+                $consentDefinition = $this->withConsentColumns($indexedDefinition);
+                if ($hasMemberFileSchema && $hasCommunicationsSchema && $normalized === $consentDefinition) {
+                    $expectedDefinition = $consentDefinition;
+                    $hasLegacyMemberCompat = true;
+                    $hasConsentColumns = true;
+                    $indexedTables[] = $table;
+                } elseif ($hasMemberFileSchema && $normalized === $indexedDefinition) {
                     $expectedDefinition = $indexedDefinition;
                     $hasLegacyMemberCompat = true;
                     $indexedTables[] = $table;
@@ -245,6 +258,39 @@ final class BaselineEnrollment
             }
             $this->versions[] = MigrationRuntime::PERFORMANCE_INDEXES_VERSION;
         }
+        if ($hasCommunicationsSchema) {
+            if ($indexedTables === []) {
+                throw new RuntimeException('Communications schema requires the performance index migration before enrollment.');
+            }
+            $this->versions[] = MigrationRuntime::COMMUNICATIONS_VERSION;
+            if ($hasConsentColumns) {
+                $this->versions[] = MigrationRuntime::CONSENT_COLUMNS_VERSION;
+            }
+        }
+    }
+
+    private function withConsentColumns(string $definition): string
+    {
+        $definition = str_replace(
+            "  `consent_privacy` tinyint(1) NOT NULL DEFAULT 0,\n",
+            "  `consent_privacy` tinyint(1) NOT NULL DEFAULT 0,\n"
+            . "  `cgu_token` varchar(64) DEFAULT NULL,\n"
+            . "  `cgu_reminder_sent_at` datetime DEFAULT NULL,\n"
+            . "  `consent_refused_at` datetime DEFAULT NULL,\n"
+            . "  `deletion_requested_at` datetime DEFAULT NULL,\n",
+            $definition
+        );
+        return str_replace(
+            [
+                "  UNIQUE KEY `review_token` (`review_token`),\n",
+                "  KEY `idx_students_cv_path` (`cv_path`)\n",
+            ],
+            [
+                "  UNIQUE KEY `review_token` (`review_token`),\n  UNIQUE KEY `cgu_token` (`cgu_token`),\n",
+                "  KEY `idx_students_cv_path` (`cv_path`),\n  KEY `idx_students_deletion_requested` (`deletion_requested_at`)\n",
+            ],
+            $definition
+        );
     }
 
     private function withPerformanceIndexes(string $table, string $definition): string

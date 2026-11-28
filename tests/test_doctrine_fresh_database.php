@@ -88,7 +88,7 @@ foreach ([
 }
 
 [$exit, $output] = runMigrationCommand('migrate');
-check($exit === 0 && str_contains($output, '6 migrations executed'), "Fresh migration applies all six versions\n{$output}");
+check($exit === 0 && str_contains($output, '8 migrations executed'), "Fresh migration applies all eight versions\n{$output}");
 check(
     $fresh->query('SELECT setting_key, setting_value, setting_group FROM settings ORDER BY setting_key')
         ->fetchAll(PDO::FETCH_NUM) === [
@@ -122,6 +122,8 @@ $versions = [
     ...MigrationRuntime::MEMBER_FILE_VERSIONS,
     MigrationRuntime::LEGACY_MEMBER_COMPATIBILITY_VERSION,
     MigrationRuntime::PERFORMANCE_INDEXES_VERSION,
+    MigrationRuntime::COMMUNICATIONS_VERSION,
+    MigrationRuntime::CONSENT_COLUMNS_VERSION,
 ];
 check(array_column($ledger, 'version') === $versions, 'Record the schema and data versions separately');
 

@@ -58,6 +58,7 @@ python3 tests/apps/registration.py --legacy-enums
 "${compose[@]}" exec -T web php migrations/06_expand_member_enum_compatibility.php
 "${compose[@]}" exec -T web php /dev/stdin after < tests/apps/migration-proof.php
 "${compose[@]}" exec -T web php migrations/07_create_association_journal.php
+"${compose[@]}" exec -T web php < tests/apps/communications-schema.php
 "${compose[@]}" exec -u www-data -T backoffice php < tests/apps/fixture.php
 python3 tests/apps/routes.py
 python3 tests/apps/links.py

@@ -35,6 +35,8 @@ final class MigrationRuntime
 
     public const LEGACY_MEMBER_COMPATIBILITY_VERSION = \Amea\Migration\Version\Version20261127000000::class;
     public const PERFORMANCE_INDEXES_VERSION = \Amea\Migration\Version\Version20261127000001::class;
+    public const COMMUNICATIONS_VERSION = \Amea\Migration\Version\Version20261127000002::class;
+    public const CONSENT_COLUMNS_VERSION = \Amea\Migration\Version\Version20261127000003::class;
 
     private function __construct(
         private readonly Connection $connection,

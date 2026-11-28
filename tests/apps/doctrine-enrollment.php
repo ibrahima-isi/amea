@@ -110,14 +110,14 @@ try {
         $output = stream_get_contents($pipe);
         fclose($pipe);
         $exit = proc_close($process);
-        if (($index === 0 && ($exit !== 0 || !str_contains($output, 'Recorded 6 baseline versions')))
+        if (($index === 0 && ($exit !== 0 || !str_contains($output, 'Recorded 8 baseline versions')))
             || ($index === 1 && !(($exit === 0 && str_contains($output, 'Already at the latest version'))
                 || ($exit === 1 && str_contains($output, 'without a recorded baseline'))))) {
             throw new RuntimeException('Mixed enrollment/migration attempt failed: ' . $output);
         }
     }
     checkCommand(['scripts/migrate.php', 'migrate'], 0, 'Already at the latest version');
-    if ($snapshot() !== $before || (int) $connection->fetchOne('SELECT COUNT(*) FROM doctrine_migration_versions') !== 6) {
+    if ($snapshot() !== $before || (int) $connection->fetchOne('SELECT COUNT(*) FROM doctrine_migration_versions') !== 8) {
         throw new RuntimeException('Mixed attempts must preserve application rows and record each baseline once.');
     }
     $connection->executeStatement('DROP TABLE doctrine_migration_versions');
@@ -133,7 +133,7 @@ try {
     $connection->executeStatement('ALTER TABLE amea_migration_recovery ADD COLUMN unexpected INT');
     checkCommand($enroll, 1, 'canonical empty migration recovery table');
     $connection->executeStatement('ALTER TABLE amea_migration_recovery DROP COLUMN unexpected');
-    checkCommand($enroll, 0, 'Recorded 6 baseline versions');
+    checkCommand($enroll, 0, 'Recorded 8 baseline versions');
     $ledgerSql = 'SELECT * FROM doctrine_migration_versions ORDER BY version';
     $ledger = $connection->fetchAllAssociative($ledgerSql);
     if (array_column($ledger, 'version') !== [
@@ -143,6 +143,8 @@ try {
         'Amea\\Migration\\Version\\Version20261113000001',
         MigrationRuntime::LEGACY_MEMBER_COMPATIBILITY_VERSION,
         MigrationRuntime::PERFORMANCE_INDEXES_VERSION,
+        MigrationRuntime::COMMUNICATIONS_VERSION,
+        MigrationRuntime::CONSENT_COLUMNS_VERSION,
     ] || $snapshot() !== $before) {
         throw new RuntimeException('Enrollment must record all snapshot versions and preserve all existing data.');
     }
@@ -163,6 +165,8 @@ try {
     $connection->executeStatement("ALTER TABLE slider_images DROP KEY idx_slider_images_image_path, DROP KEY idx_slider_images_display_order");
     $connection->executeStatement("ALTER TABLE countries DROP KEY idx_countries_name_fr");
     $connection->executeStatement("ALTER TABLE journal_posts DROP KEY idx_journal_type_publication, DROP KEY idx_journal_admin_updated, DROP KEY idx_journal_cover_path");
+    $connection->executeStatement("ALTER TABLE students DROP INDEX cgu_token, DROP INDEX idx_students_deletion_requested, DROP COLUMN cgu_token, DROP COLUMN cgu_reminder_sent_at, DROP COLUMN consent_refused_at, DROP COLUMN deletion_requested_at");
+    $connection->executeStatement('DROP TABLE communication_recipients, communications, mail_daily_usage');
     $legacyBefore = $connection->fetchAllAssociative('SELECT * FROM settings ORDER BY setting_key');
     $memberBefore = $connection->fetchAllAssociative('SELECT * FROM students ORDER BY id');
     checkCommand($enroll, 0, 'Recorded 4 baseline versions');
@@ -227,7 +231,7 @@ try {
     $acknowledgement = getenv('AMEA_SCHEMA_BACKUP_CONFIRMED');
     putenv('AMEA_SCHEMA_BACKUP_CONFIRMED=1');
     try {
-        checkCommand(['scripts/migrate.php', 'migrate'], 0, MigrationRuntime::PERFORMANCE_INDEXES_VERSION);
+        checkCommand(['scripts/migrate.php', 'migrate'], 0, MigrationRuntime::CONSENT_COLUMNS_VERSION);
     } finally {
         putenv($acknowledgement === false ? 'AMEA_SCHEMA_BACKUP_CONFIRMED'
             : 'AMEA_SCHEMA_BACKUP_CONFIRMED=' . $acknowledgement);
@@ -237,8 +241,10 @@ try {
         ...MigrationRuntime::MEMBER_FILE_VERSIONS,
         MigrationRuntime::LEGACY_MEMBER_COMPATIBILITY_VERSION,
         MigrationRuntime::PERFORMANCE_INDEXES_VERSION,
-    ] || $connection->fetchAllAssociative('SELECT * FROM students ORDER BY id') !== $memberBefore) {
-        throw new RuntimeException('The compatibility and index upgrade must preserve legacy records and record only its new versions.');
+        MigrationRuntime::COMMUNICATIONS_VERSION,
+        MigrationRuntime::CONSENT_COLUMNS_VERSION,
+    ] || $connection->fetchAllAssociative('SELECT id, last_name, first_name, gender, status, housing_details FROM students ORDER BY id') !== array_map(static fn (array $r): array => array_intersect_key($r, array_flip(['id', 'last_name', 'first_name', 'gender', 'status', 'housing_details'])), $memberBefore)) {
+        throw new RuntimeException('The upgrade must preserve legacy records and record each pending version.');
     }
     checkCommand(['scripts/migrate.php', 'migrate'], 0, 'Already at the latest version');
     echo "PASS: a verified legacy baseline upgrades once while preserving existing member data.\n";
