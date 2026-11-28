@@ -236,6 +236,8 @@ $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 """)
 
     # Thin PHP dev-server router emulating LiteSpeed .htaccess (assets directly, all else -> packaged index.php).
+    identity_etag_fixture = work / 'identity-etag-fixture'
+
     def make_router(docroot):
         router = work / f'router-{docroot.name}.php'
         router.write_text(f"""<?php
@@ -245,6 +247,21 @@ if (is_string($path) && preg_match('#^/assets/.+\\.(css|js|json|png|jpg|jpeg|gif
     if ($asset && str_starts_with($asset, '{docroot}/assets/') && is_file($asset)) {{
         return false;
     }}
+}}
+if ($path === '/legal-notice.php' && ($_SERVER['HTTP_ACCEPT_ENCODING'] ?? '') === 'identity'
+    && is_file('{identity_etag_fixture}')) {{
+    header_register_callback(static function (): void {{
+        foreach (headers_list() as $header) {{
+            if (stripos($header, 'ETag:') !== 0) {{
+                continue;
+            }}
+            header_remove('ETag');
+            if (file_get_contents('{identity_etag_fixture}') === 'weak') {{
+                header('ETag: W/' . trim(substr($header, 5)));
+            }}
+            break;
+        }}
+    }});
 }}
 require '{docroot}/index.php';
 """)
@@ -300,11 +317,29 @@ require '{docroot}/index.php';
             check(code == 404, f'staff packaged entry denies public-only {pub_only}')
 
         # verify-http.php validates the packaged split HTTP boundaries and fails closed if Basic Auth is expected but absent.
-        verify_http = subprocess.run(
-            ['php', str(ROOT / 'scripts/stellar/verify-http.php'), f'--public-url={pub_base}', f'--staff-url={staff_base}'],
-            cwd=ROOT, env=SAFE_ENV, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-        )
+        verify_command = [
+            'php', str(ROOT / 'scripts/stellar/verify-http.php'), f'--public-url={pub_base}',
+            f'--staff-url={staff_base}', '--check-legal-etags',
+        ]
+
+        def verify_legal_etags():
+            return subprocess.run(verify_command, cwd=ROOT, env=SAFE_ENV, capture_output=True, text=True)
+
+        verify_http = verify_legal_etags()
         check(verify_http.returncode == 0, f'verify-http.php passed on packaged split servers ({verify_http.stdout.strip()} {verify_http.stderr.strip()})')
+        check('gzip returns 304' in verify_http.stdout and 'identity returns 304' in verify_http.stdout,
+              'verify-http.php revalidates both legal notice encodings')
+
+        identity_etag_fixture.write_text('weak')
+        weak = verify_legal_etags()
+        check(weak.returncode == 0 and 'ETag weak' in weak.stdout and 'identity returns 304' in weak.stdout,
+              'verify-http.php accepts a weak identity ETag that revalidates')
+
+        identity_etag_fixture.write_text('missing')
+        missing = verify_legal_etags()
+        check(missing.returncode == 1 and 'ETag missing or invalid' in missing.stdout,
+              'verify-http.php rejects a missing identity ETag')
+        identity_etag_fixture.unlink()
 
         verify_http_auth_fail = subprocess.run(
             [

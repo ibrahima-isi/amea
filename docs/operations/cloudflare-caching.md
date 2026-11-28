@@ -109,3 +109,41 @@ AMEA PHP routes accept `GET` (and return `405` on `HEAD`), while static `/assets
 
 - Disable rule `amea_cache_public_pages_and_media` in Cloudflare Cache Rules (or enable Cloudflare Development Mode) to immediately bypass HTML/media edge caching.
 - Set `CLOUDFLARE_CACHE_ENABLED=0` in `runtime.env` to stop outbound Cloudflare Purge API calls while keeping local `AppCache` and HTTP `ETag`/`304` revalidation active.
+
+## Diagnose missing or weak HTML validators
+
+Run the same anonymous GET against Cloudflare and the Stellar virtual host. Use
+the origin address from the approved Stellar inventory and a CA bundle that
+trusts its certificate. `--resolve` preserves the public hostname in both TLS
+SNI and the HTTP request. A loopback address may select a different virtual host.
+
+```bash
+url='https://aeesgs.org/legal-notice.php'
+for encoding in gzip identity; do
+    curl -fsS -D - -o /dev/null -H "Accept-Encoding: $encoding" "$url"
+    curl -fsS -D - -o /dev/null -H "Accept-Encoding: $encoding" \
+        --resolve "aeesgs.org:443:${STELLAR_ORIGIN_IP}" \
+        --cacert "$STELLAR_ORIGIN_CA_BUNDLE" "$url"
+done
+```
+
+Repeat each request with its own `ETag` value in `If-None-Match`, including any
+`W/` prefix. Record the HTTP status, `ETag`, `Content-Encoding`, `Vary` and
+`CF-Cache-Status`. The production Stellar verifier runs this revalidation through
+Cloudflare with `--check-legal-etags`. It expects a strong gzip ETag and accepts
+a weak identity ETag when both requests revalidate with `304`.
+
+When the origin supplies an ETag and the edge omits it, compare the decoded HTML
+for Cloudflare transformations. `data-cfemail` and `email-decode.min.js` indicate
+Email Address Obfuscation. A script pointing to `/cdn-cgi/challenge-platform/`
+indicates Cloudflare challenge code. Use the zone's Rule Simulator and Security
+Settings in an existing read-only Cloudflare session to inspect active settings.
+The application's purge credential is reserved for purge operations.
+
+On this page, the scoped Cloudflare configuration rule disables Email Address
+Obfuscation and Stellar adds `no-transform` to the origin response to prevent
+JavaScript Detections injection. Preserve the Stellar directive across releases
+before enabling the deployment probe. If the edge's identity ETag is the gzip
+ETag with a `W/` prefix, compare the origin's two encodings and inspect
+**Respect Strong ETags** in the matching Cache Rule. Cloudflare can request gzip
+from the origin and decompress it for identity clients.

@@ -16,6 +16,7 @@ RELEASE_ID=""
 PUBLIC_URL=""
 STAFF_URL=""
 BASIC_AUTH_ENV=""
+LEGAL_ETAG_FLAG=""
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEPLOY_SCRIPT="${SCRIPT_DIR}/deploy.sh"
 
@@ -24,7 +25,7 @@ usage() {
 Usage:
   publish.sh --mode=deploy --archive=FILE --config-source=FILE --release-id=ID
   publish.sh --mode=rollback
-  publish.sh --mode=verify-http --public-url=URL --staff-url=URL [--basic-auth-env=VAR]
+  publish.sh --mode=verify-http --public-url=URL --staff-url=URL [--basic-auth-env=VAR] [--check-legal-etags]
 EOF
     exit 2
 }
@@ -37,12 +38,14 @@ for arg in "$@"; do
         --release-id=*) RELEASE_ID="${arg#*=}" ;;
         --public-url=*) PUBLIC_URL="${arg#*=}" ;;
         --staff-url=*) STAFF_URL="${arg#*=}" ;;
+        --check-legal-etags) LEGAL_ETAG_FLAG=" --check-legal-etags" ;;
         --basic-auth-env=*) BASIC_AUTH_ENV="${arg#*=}" ;;
         *) usage ;;
     esac
 done
 
 [[ "$MODE" == "deploy" || "$MODE" == "rollback" || "$MODE" == "verify-http" ]] || usage
+[[ -z "$LEGAL_ETAG_FLAG" || "$MODE" == "verify-http" ]] || usage
 
 for required_var in STELLAR_SSH_HOST STELLAR_SSH_USER STELLAR_BASE_DIR STELLAR_PUBLIC_DOCROOT STELLAR_STAFF_DOCROOT; do
     if [[ -z "${!required_var:-}" ]]; then
@@ -142,10 +145,10 @@ if [[ "$MODE" == "verify-http" ]]; then
         REMOTE_PREFIX="${REMOTE_PREFIX} export PHP_INI_SCAN_DIR=$(q "${PHP_INI_SCAN}");"
     fi
     if [[ -n "${BASIC_AUTH_ENV}" ]]; then
-        REMOTE_VERIFY="${REMOTE_PREFIX} IFS= read -r STELLAR_VERIFY_BASIC_AUTH; export STELLAR_VERIFY_BASIC_AUTH; $(q "${PHP_BIN}") $(q "${VERIFY_SCRIPT}") --public-url=$(q "${PUBLIC_URL}") --staff-url=$(q "${STAFF_URL}") --basic-auth-env=STELLAR_VERIFY_BASIC_AUTH"
+        REMOTE_VERIFY="${REMOTE_PREFIX} IFS= read -r STELLAR_VERIFY_BASIC_AUTH; export STELLAR_VERIFY_BASIC_AUTH; $(q "${PHP_BIN}") $(q "${VERIFY_SCRIPT}") --public-url=$(q "${PUBLIC_URL}") --staff-url=$(q "${STAFF_URL}") --basic-auth-env=STELLAR_VERIFY_BASIC_AUTH${LEGAL_ETAG_FLAG}"
         printf '%s\n' "${!BASIC_AUTH_ENV}" | ssh "${SSH_OPTS[@]}" "${REMOTE}" "${REMOTE_VERIFY}"
     else
-        REMOTE_VERIFY="${REMOTE_PREFIX} $(q "${PHP_BIN}") $(q "${VERIFY_SCRIPT}") --public-url=$(q "${PUBLIC_URL}") --staff-url=$(q "${STAFF_URL}")"
+        REMOTE_VERIFY="${REMOTE_PREFIX} $(q "${PHP_BIN}") $(q "${VERIFY_SCRIPT}") --public-url=$(q "${PUBLIC_URL}") --staff-url=$(q "${STAFF_URL}")${LEGAL_ETAG_FLAG}"
         ssh "${SSH_OPTS[@]}" "${REMOTE}" "${REMOTE_VERIFY}" </dev/null
     fi
     exit 0

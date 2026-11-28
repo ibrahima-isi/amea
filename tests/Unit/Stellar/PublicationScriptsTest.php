@@ -385,6 +385,7 @@ final class PublicationScriptsTest extends TestCase
                 'bash',
                 $this->repoRoot . '/scripts/stellar/publish.sh',
                 '--mode=verify-http',
+                '--check-legal-etags',
                 '--public-url=https://app.aeesgs.org',
                 '--staff-url=https://admin.aeesgs.org',
             ],
@@ -393,6 +394,7 @@ final class PublicationScriptsTest extends TestCase
         $this->assertSame(0, $prod['code'], $prod['stderr']);
         $prodCalls = (string) file_get_contents($stubs['logFile']);
         $this->assertStringContainsString('verify-http.php', $prodCalls);
+        $this->assertStringContainsString('--check-legal-etags', $prodCalls);
         $this->assertStringNotContainsString('--basic-auth-env=', $prodCalls);
     }
 

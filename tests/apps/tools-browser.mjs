@@ -1,9 +1,10 @@
 /** Real Chrome journey against the disposable HTTP runner. No npm packages. */
 import {spawn} from 'node:child_process';
-import {mkdtemp, rm, mkdir, writeFile} from 'node:fs/promises';
+import {mkdtemp, mkdir, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import {closeChrome} from './chrome-cleanup.mjs';
 const out = process.argv[2] || '/private/tmp/amea-app-browser';
 const base = 'https://public.amea.test:' + (process.env.AMEA_PUBLIC_PORT || '18443');
 const staff = 'https://staff.amea.test:' + (process.env.AMEA_STAFF_PORT || '19443');
@@ -171,19 +172,5 @@ try {
     await check("[...document.images].some(image=>image.src.includes('journal-cover.php') && image.complete && image.naturalWidth>0)", 'republished cover becomes readable again');
 
 } finally {
-    if (browser.exitCode === null && browser.signalCode === null && browser.pid) {
-        const exited = new Promise(resolve => browser.once('exit', resolve));
-        if (shutdown) {
-            void shutdown().catch(() => {});
-            await Promise.race([exited, new Promise(resolve => setTimeout(resolve, 1500))]);
-        }
-        if (browser.exitCode === null && browser.signalCode === null) {
-            browser.kill('SIGKILL');
-            await exited;
-        }
-    }
-    ws?.close();
-    browser.stderr.destroy();
-    // Chrome helpers can finish writing profile files just after the main process exits.
-    await rm(directory, {recursive: true, force: true, maxRetries: 5, retryDelay: 200});
+    await closeChrome(browser, directory, ws, shutdown);
 }
