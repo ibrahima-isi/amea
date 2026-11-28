@@ -186,8 +186,11 @@ try:
                 len(cf_state.calls) == 1
                 and cf_state.calls[0]['path'] == f'/client/v4/zones/{ZONE_ID}/purge_cache'
                 and cf_state.calls[0]['auth'] == f'Bearer {TOKEN}'
-                and f'https://aeesgs.example{slide_path}' in cf_state.calls[0]['body']['files']
-                and 'https://aeesgs.example/' in cf_state.calls[0]['body']['files'],
+                and cf_state.calls[0]['body']['files'] == [
+                    'https://aeesgs.example/',
+                    'https://aeesgs.example/index.php',
+                    f'https://aeesgs.example{slide_path}',
+                ],
                 'slider upload fires authenticated Cloudflare purge for homepage and slide URL',
             )
 
@@ -234,7 +237,11 @@ try:
         with cf_state.lock:
             check(
                 len(cf_state.calls) == 2
-                and f'https://aeesgs.example{slide_path}' in cf_state.calls[1]['body']['files'],
+                and cf_state.calls[1]['body']['files'] == [
+                    'https://aeesgs.example/',
+                    'https://aeesgs.example/index.php',
+                    f'https://aeesgs.example{slide_path}',
+                ],
                 'slider delete purges deleted slide URL from Cloudflare edge',
             )
 
@@ -280,10 +287,12 @@ try:
         with cf_state.lock:
             check(
                 len(cf_state.calls) == 3
-                and f'https://aeesgs.example/journal-article.php?slug={slug}' in cf_state.calls[2]['body']['files']
-                and f'https://aeesgs.example/journal-cover.php?slug={slug}' in cf_state.calls[2]['body']['files']
-                and 'https://aeesgs.example/journal.php?view=all&page=2' in cf_state.calls[2]['body']['files']
-                and 'https://aeesgs.example/journal.php?view=all&page=3' in cf_state.calls[2]['body']['files'],
+                and {
+                    f'https://aeesgs.example/journal-article.php?slug={slug}',
+                    f'https://aeesgs.example/journal-cover.php?slug={slug}',
+                    'https://aeesgs.example/journal.php?view=all&page=2',
+                    'https://aeesgs.example/journal.php?view=all&page=3',
+                }.issubset(cf_state.calls[2]['body']['files']),
                 'journal publish purges article, cover, listings (pages 1-3), and homepage on Cloudflare',
             )
 
@@ -361,7 +370,9 @@ try:
         with cf_state.lock:
             check(
                 len(cf_state.calls) == 4
-                and f'https://aeesgs.example/journal-cover.php?slug={slug}&v={cover_v}' in cf_state.calls[3]['body']['files'],
+                and {f'https://aeesgs.example/journal-cover.php?slug={slug}&v={cover_v}'}.issubset(
+                    cf_state.calls[3]['body']['files']
+                ),
                 'journal withdrawal purges versioned cover URL on Cloudflare',
             )
 
