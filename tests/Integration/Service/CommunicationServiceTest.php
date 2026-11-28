@@ -425,6 +425,13 @@ final class CommunicationServiceTest extends TestCase
         self::assertSame(0, $updated['pending_count']);
     }
 
+    public function testEmailEligibilityMatchesMailerInSummaryPreviewAndQueue(): void
+    {
+        $verify = require dirname(__DIR__, 2) . '/fixtures/communication-email-parity.php';
+        $verify($this->db);
+        $this->addToAssertionCount(1);
+    }
+
     public function testCountParityWithEdgeCaseEmailsAndZeroRecipientCreatesNoGhostHistory(): void
     {
         $stmt = $this->db->prepare(

@@ -174,3 +174,7 @@ check(
     $baseline->query('SHOW FULL TABLES')->rowCount() === count(readTableDefinitions($fresh)),
     'Refusal leaves the imported database without a ledger'
 );
+
+$verifyEmailParity = require __DIR__ . '/fixtures/communication-email-parity.php';
+$verifyEmailParity($fresh);
+echo "PASS: MariaDB summary, preview and queued addresses match PHPMailer\n";

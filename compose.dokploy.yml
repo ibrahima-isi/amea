@@ -109,6 +109,10 @@ services:
       context: .
       dockerfile: docker/Dockerfile.apps
       target: migrate
+    # Docker seeds fresh storage from the shared image when it creates this dependency,
+    # before web, backoffice and jobs can race to populate the same volume.
+    volumes:
+      - amea_storage:/opt/amea/storage:ro
     restart: "no"
     depends_on:
       db:
