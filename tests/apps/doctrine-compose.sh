@@ -98,6 +98,12 @@ YAML
     }
     "${compose[@]}" --profile jobs build web backoffice jobs migrate
     "${compose[@]}" --profile jobs up -d web backoffice jobs
+    migration_id=$("${compose[@]}" ps -aq migrate)
+    storage_mount=$(docker inspect --format '{{range .Mounts}}{{if eq .Destination "/opt/amea/storage"}}{{.Name}} {{.RW}}{{end}}{{end}}' "$migration_id")
+    web_id=$("${compose[@]}" ps -q web)
+    web_storage=$(docker inspect --format '{{range .Mounts}}{{if eq .Destination "/opt/amea/storage"}}{{.Name}}{{end}}{{end}}' "$web_id")
+    [[ -n "$web_storage" && "$storage_mount" == "$web_storage false" ]]
+    echo "PASS: $stack migration dependency mounts shared storage read-only before application startup"
     probe web http://localhost/legal-notice.php
     probe backoffice http://localhost/login.php
     "${compose[@]}" exec -T web test ! -e /opt/amea/scripts
@@ -134,10 +140,10 @@ JSON
     # The full command regressions use separate, named disposable databases.
     if [[ "$stack" == local ]]; then
         sql 'CREATE DATABASE amea_doctrine_fresh CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci; CREATE DATABASE amea_doctrine_baseline CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci'
-        "${compose[@]}" run --rm -T -v "$root:/opt/amea:ro" -e APP_ENV=test -e DB_USER=root -e DB_PASS=synthetic-root-only -e DB_NAME=amea_doctrine_fresh migrate php tests/test_doctrine_fresh_database.php
+        "${compose[@]}" run --rm -T -v "$root:/workspace:ro" -w /workspace -e APP_ENV=test -e DB_USER=root -e DB_PASS=synthetic-root-only -e DB_NAME=amea_doctrine_fresh migrate php tests/test_doctrine_fresh_database.php
         for fixture in enrollment recovery; do
             sql "CREATE DATABASE amea_doctrine_${fixture} CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci"
-            "${compose[@]}" run --rm -T -v "$root:/opt/amea:ro" -e APP_ENV=test -e DB_USER=root -e DB_PASS=synthetic-root-only -e DB_NAME="amea_doctrine_${fixture}" migrate php "tests/apps/doctrine-${fixture}.php"
+            "${compose[@]}" run --rm -T -v "$root:/workspace:ro" -w /workspace -e APP_ENV=test -e DB_USER=root -e DB_PASS=synthetic-root-only -e DB_NAME="amea_doctrine_${fixture}" migrate php "tests/apps/doctrine-${fixture}.php"
         done
     fi
 

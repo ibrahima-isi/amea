@@ -171,13 +171,19 @@ try {
     await check("[...document.images].some(image=>image.src.includes('journal-cover.php') && image.complete && image.naturalWidth>0)", 'republished cover becomes readable again');
 
 } finally {
-    if (shutdown) await Promise.race([shutdown().catch(() => {}), new Promise(resolve => setTimeout(resolve, 1500))]);
+    if (browser.exitCode === null && browser.signalCode === null && browser.pid) {
+        const exited = new Promise(resolve => browser.once('exit', resolve));
+        if (shutdown) {
+            void shutdown().catch(() => {});
+            await Promise.race([exited, new Promise(resolve => setTimeout(resolve, 1500))]);
+        }
+        if (browser.exitCode === null && browser.signalCode === null) {
+            browser.kill('SIGKILL');
+            await exited;
+        }
+    }
     ws?.close();
     browser.stderr.destroy();
-    if (browser.exitCode === null) {
-        const exited = new Promise(resolve => browser.once('exit', resolve));
-        browser.kill('SIGKILL');
-        await exited;
-    }
-    await rm(directory,{recursive:true,force:true});
+    // Chrome helpers can finish writing profile files just after the main process exits.
+    await rm(directory, {recursive: true, force: true, maxRetries: 5, retryDelay: 200});
 }
