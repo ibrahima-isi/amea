@@ -37,6 +37,8 @@ Web platform for managing members of the **Amicale des Élèves, Étudiants et S
 | Dependencies | Composer (`phpmailer/phpmailer`, `twig/twig`, `doctrine/migrations`, `aws/aws-sdk-php`) |
 | Server | Apache in split Docker Compose targets or native split LiteSpeed/Apache hosting |
 
+The staff interface adapts [Pietro Schirano’s shadcn/ui design system](https://www.figma.com/community/file/1203061493325953101) under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Both apps self-host [Inter](https://rsms.me/inter/) under the [SIL Open Font License](assets/fonts/Inter-OFL.txt).
+
 ---
 
 ## Prerequisites

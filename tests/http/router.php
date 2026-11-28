@@ -10,7 +10,7 @@ $path = rawurldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '');
 $root = realpath(__DIR__ . '/../..');
 $file = realpath($root . $path);
 if (str_starts_with($path, '/assets/') && $file && str_starts_with($file, $root . '/assets/') && is_file($file)) {
-    $types = ['json' => 'application/json', 'css' => 'text/css', 'js' => 'application/javascript', 'png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'webp' => 'image/webp'];
+    $types = ['json' => 'application/json', 'css' => 'text/css', 'js' => 'application/javascript', 'png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'webp' => 'image/webp', 'woff2' => 'font/woff2'];
     $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
     if (isset($types[$ext])) {
         header('Content-Type: ' . $types[$ext]);

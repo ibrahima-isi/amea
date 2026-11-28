@@ -32,7 +32,7 @@
     --chart-green:#087a53;
     --chart-red:#ce343f;
     display:grid;
-    gap:24px;
+    gap:1.25rem;
     min-width:0
 }
 
@@ -49,11 +49,8 @@
     justify-content:space-between;
     flex-wrap:wrap;
     gap:16px;
-    min-height:128px;
-    padding:24px;
-    border-radius:10px;
-    background:linear-gradient(115deg,#17459a,#403967 54%,#9a390f);
-    color:#fff;
+    padding:0 0 1.125rem;
+    border-bottom:1px solid var(--admin-line);
     overflow-wrap:anywhere
 }
 
@@ -64,30 +61,21 @@
 
 .dashboard-welcome h2 {
     margin:0 0 4px;
-    font-size:clamp(1.375rem,2.5vw,1.875rem);
-    font-weight:700;
-    color:inherit
+    font-size:clamp(1.5rem,2.5vw,2rem);
+    font-weight:750;
+    letter-spacing:-.04em;
+    color:var(--admin-ink)
 }
 
 .dashboard-welcome p {
-    margin:0
+    margin:0;
+    color:var(--admin-muted)
 }
 
 .dashboard-actions {
     display:flex;
     flex-wrap:wrap;
     gap:8px
-}
-
-.dashboard-actions .btn-light {
-    background:#fff;
-    border-color:#fff;
-    color:#17263c
-}
-
-.dashboard-actions .btn-light:hover {
-    background:#e2e8f0;
-    border-color:#e2e8f0
 }
 
 .dashboard-actions .btn,
@@ -105,7 +93,7 @@
 }
 
 .dashboard-charts {
-    gap:24px
+    gap:1.25rem
 }
 
 .dashboard-card {
@@ -113,13 +101,15 @@
     padding:20px;
     background:var(--admin-surface);
     border:1px solid var(--admin-line);
-    border-radius:14px
+    border-radius:var(--admin-radius);
+    box-shadow:var(--admin-shadow)
 }
 
 .dashboard-card h2 {
     margin:0;
     font-size:1rem;
-    font-weight:650;
+    font-weight:600;
+    letter-spacing:-.025em;
     color:var(--admin-ink)
 }
 
@@ -140,7 +130,7 @@
 
 .dashboard-metric-heading h2 {
     font-size:.875rem;
-    color:var(--admin-muted)
+    color:var(--admin-ink)
 }
 
 .dashboard-metric-icon,
@@ -152,10 +142,10 @@
 }
 
 .dashboard-metric-icon {
-    width:32px;
-    height:32px;
-    border-radius:8px;
-    background:color-mix(in srgb,var(--dashboard-color) 13%,var(--admin-surface))
+    width:24px;
+    height:24px;
+    font-size:.875rem;
+    color:var(--admin-muted)
 }
 
 .dashboard-dot {
@@ -171,8 +161,9 @@
 .dashboard-color-red { --dashboard-color:var(--chart-red) }
 
 .dashboard-metric > strong {
-    font-size:clamp(1.25rem,2.5vw,1.625rem);
+    font-size:clamp(1.375rem,2.5vw,1.875rem);
     line-height:1.2;
+    letter-spacing:-.035em;
     font-variant-numeric:tabular-nums
 }
 

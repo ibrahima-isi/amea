@@ -1,100 +1,44 @@
 {% extends 'layouts/staff-auth.html.twig' %}
 
 {% block title %}Connexion Administration · AEESGS{% endblock %}
-{% block body_class %} staff-landing{% endblock %}
+{% block body_class %} staff-login{% endblock %}
 
-{% block stylesheets %}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=optional" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('assets/css/landing-chrome.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/staff-login.css') }}">
+{% block header_action %}
+    <a href="#username" class="btn btn-outline-secondary landing-header-login">Se connecter</a>
 {% endblock %}
 
-{% block auth_layout %}
-    <header class="landing-header landing-container">
-        <div class="landing-brand">
-            {% if public_logo_available %}<img src="{{ asset('assets/img/logo.png') }}" width="64" height="64" alt="">{% endif %}
-            <strong>AEESGS</strong>
-            <span>Association des élèves, étudiants<br> et stagiaires guinéens au Sénégal</span>
-        </div>
-        <nav aria-label="Navigation principale"><a href="{{ public_home_url }}">Accueil AEESGS</a></nav>
-        {% include 'partials/landing-theme-switcher.html.twig' %}
-        <a href="#username" class="landing-button landing-header-login"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Se connecter</a>
-    </header>
+{% block body %}
+    <div class="staff-auth-intro">
+        <h1>Espace de gestion de notre communauté</h1>
+        <p>Administration, adhésions, activités et communication des élèves, étudiants et stagiaires guinéens au Sénégal.</p>
+        <a href="{{ public_home_url }}">Découvrir l’association <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </div>
 
-    <main class="landing-hero landing-container">
-        <div class="landing-intro">
-            <span class="landing-tag"><i class="fa-solid fa-desktop" aria-hidden="true"></i> Back-office</span>
-            <h1><span>Espace de gestion</span> <span>de notre communauté</span></h1>
-            <p>Administration, adhésions, activités et communication des élèves, étudiants et stagiaires guinéens au Sénégal.</p>
-            <div class="landing-actions">
-                <a href="#username" class="landing-button"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> Se connecter</a>
-                <a href="{{ public_home_url }}" class="landing-button landing-secondary">Découvrir l’association <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    <section class="card staff-auth-panel" aria-labelledby="login-heading">
+        <h2 id="login-heading" class="staff-auth-title">Se connecter à votre espace</h2>
+        <form method="POST" action="login.php" class="staff-auth-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+            <div>
+                <label for="username" class="form-label">Nom d’utilisateur</label>
+                <input type="text" id="username" name="username" class="form-control" autocomplete="username" required>
             </div>
-        </div>
-
-        <div class="landing-visual">
-            <div class="landing-laptop" aria-hidden="true">
-                <div class="landing-laptop-frame">
-                    <div class="landing-preview">
-                        <div class="landing-preview-sidebar">
-                            <div class="landing-preview-brand">
-                                {% if public_logo_available %}<img src="{{ asset('assets/img/logo.png') }}" width="28" height="28" alt="">{% endif %}
-                                <div><strong>AEESGS</strong><small>Administration</small></div>
-                            </div>
-                            <span><i class="fa-solid fa-table-cells-large"></i> Tableau de bord</span>
-                            <span><i class="fa-solid fa-user-graduate"></i> Adhérents</span>
-                            <span><i class="fa-solid fa-user-check"></i> Validation KYC</span>
-                            <span><i class="fa-solid fa-user-circle"></i> Mon profil</span>
-                        </div>
-                        <div class="landing-preview-content">
-                            <strong>Tableau de bord</strong>
-                            <div class="landing-preview-metrics">
-                                <span><i class="fa-solid fa-users"></i> Total inscrits</span>
-                                <span><i class="fa-solid fa-clock"></i> Nouveaux</span>
-                                <span><i class="fa-solid fa-venus-mars"></i> Hommes / Femmes</span>
-                                <span><i class="fa-solid fa-graduation-cap"></i> Étudiants</span>
-                            </div>
-                            <div class="landing-preview-chart">Répartition par statut</div>
-                            <div class="landing-preview-list">Dossiers à traiter</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="landing-laptop-base"></div>
+            <div>
+                <label for="password" class="form-label">Mot de passe</label>
+                <input type="password" id="password" name="password" class="form-control" autocomplete="current-password" required>
             </div>
 
-            <section class="landing-sign-in" aria-labelledby="login-heading">
-                <div class="landing-sign-in-brand">
-                    {% if public_logo_available %}<img src="{{ asset('assets/img/logo.png') }}" width="48" height="48" alt="">{% endif %}
-                    <strong>AEESGS</strong>
-                </div>
-                <h2 id="login-heading">Se connecter à votre espace</h2>
-                <form method="POST" action="login.php">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <a href="forgot-password.php" class="staff-auth-forgot">Mot de passe oublié ?</a>
+            <button type="submit" class="btn btn-primary">Se connecter</button>
+        </form>
+    </section>
+{% endblock %}
 
-                    <label class="landing-field" for="username">
-                        <span class="visually-hidden">Nom d’utilisateur</span>
-                        <i class="fa-regular fa-user" aria-hidden="true"></i>
-                        <input type="text" id="username" name="username" autocomplete="username" placeholder="Nom d’utilisateur" required>
-                    </label>
-                    <label class="landing-field" for="password">
-                        <span class="visually-hidden">Mot de passe</span>
-                        <i class="fa-solid fa-lock" aria-hidden="true"></i>
-                        <input type="password" id="password" name="password" autocomplete="current-password" placeholder="Mot de passe" required>
-                    </label>
-
-                    <a href="forgot-password.php" class="landing-forgot">Mot de passe oublié ?</a>
-                    <button type="submit" class="landing-button">
-                        <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> Se connecter
-                    </button>
-                </form>
-            </section>
+{% block footer %}
+    <footer class="staff-auth-footer landing-links" aria-label="Liens utiles">
+        <div class="staff-auth-container">
+            <a href="{{ public_register_url }}"><i class="fa-solid fa-user-plus" aria-hidden="true"></i> S’enregistrer comme adhérent</a>
+            <a href="{{ public_home_url }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour à l’accueil</a>
         </div>
-    </main>
-
-    <footer class="landing-links landing-container" aria-label="Liens utiles">
-        <a href="{{ public_register_url }}"><i class="fa-solid fa-user-plus" aria-hidden="true"></i> S’enregistrer comme adhérent</a>
-        <a href="{{ public_home_url }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour à l’accueil</a>
     </footer>
 {% endblock %}

@@ -2,19 +2,20 @@
 .public-form-page { --bs-body-color:var(--public-text); --bs-body-bg:var(--public-surface); --bs-secondary-color:var(--public-muted); --bs-tertiary-bg:var(--public-soft); --bs-border-color:var(--public-line); color:var(--public-text); }
 .public-form-page .card { background:var(--public-surface); color:var(--public-text); border:1px solid var(--public-line); border-radius:12px; box-shadow:none!important; }
 .public-form-page .card-header { background:var(--public-soft); padding:2rem; border-bottom:1px solid var(--public-line); }
-.public-form-page h1 { max-width:30ch; color:var(--public-text); font-family:inherit; line-height:1.2; }
+.public-form-page h1 { max-width:30ch; color:var(--public-text); }
 .public-form-page .card-body { padding:2rem; }
 .public-form-page .text-muted,.public-form-page .form-text { color:var(--public-muted)!important; }
 .public-form-page .form-control,.public-form-page .form-select { background-color:var(--public-surface); color:var(--public-text); border-color:var(--public-line); min-height:44px; }
-.public-form-page .form-label { font-weight:600; }
-.public-form-page .btn { min-height:44px; padding:.65rem 1rem; white-space:normal; }
+.public-form-page .form-label { font-size:.875rem; line-height:1.4; font-weight:500; }
+.public-form-page .btn { --bs-btn-font-size:.875rem; --bs-btn-font-weight:500; min-height:44px; padding:.65rem 1rem; white-space:normal; }
+.public-form-page .btn-lg { --bs-btn-font-size:1rem; }
 .public-form-page .btn-primary,.public-form-page .btn-success { background:var(--public-primary); color:var(--public-on-primary); border-color:var(--public-primary); }
 .public-form-page a:not(.btn) { color:var(--public-primary); }
 .public-form-page .btn { text-decoration:none; }
 .public-form-page :focus-visible { outline:3px solid var(--public-focus); outline-offset:3px; }
 .public-form-page .registration-section-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; width:100%; padding:1rem 0; margin:1.5rem 0 1rem; background:none; border:0; border-bottom:2px solid var(--public-line); color:var(--public-text); text-align:left; }
-.public-form-page .registration-section-title { font-size:1.15rem; font-weight:700; }
-.public-form-page .registration-section-badge,.public-form-page .registration-toggle-meta { font-size:.85rem; color:var(--public-muted); font-weight:400; }
+.public-form-page .registration-section-title { font-size:1.25rem; line-height:1.4; font-weight:600; letter-spacing:-.025em; }
+.public-form-page .registration-section-badge,.public-form-page .registration-toggle-meta { font-size:.875rem; color:var(--public-muted); font-weight:400; letter-spacing:normal; }
 .public-form-page .registration-toggle-meta { display:inline-flex; gap:.5rem; align-items:center; }
 .public-form-page .registration-section-panel { overflow:hidden; height:0; opacity:0; transition:height .2s,opacity .2s; }
 .public-form-page .registration-section-panel.is-open { opacity:1; }

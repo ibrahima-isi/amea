@@ -6,9 +6,7 @@
     <title>{% block title %}AEESGS{% endblock %}</title>
     <script src="{{ asset('assets/js/theme.js') }}"></script>
     {% block base_stylesheets %}{% endblock %}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=optional" rel="stylesheet">
+    {% include 'partials/inter.html.twig' %}
     <link rel="stylesheet" href="{{ asset('assets/css/landing-chrome.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/public.css') }}">
     {% block stylesheets %}{% endblock %}

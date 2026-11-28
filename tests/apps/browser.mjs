@@ -57,15 +57,31 @@ try {
             await viewport(width);
             for (const theme of ['light', 'dark']) {
                 await evaluate(`if (document.documentElement.dataset.bsTheme !== '${theme}') document.querySelector('.theme-switcher').click();`);
-                await wait(75);
-                await check(`document.documentElement.dataset.bsTheme === '${theme}'
-                    && document.documentElement.scrollWidth <= innerWidth
-                    && [...document.querySelectorAll('#page-content-wrapper, .staff-auth-main')].every(element => element.scrollWidth <= element.clientWidth)`, name + ' fits ' + width + ' in ' + theme);
+                const layout = `({
+                    theme: document.documentElement.dataset.bsTheme,
+                    viewport: [document.documentElement.scrollWidth, innerWidth],
+                    body: [...document.querySelectorAll('#page-content-wrapper, .staff-auth-main')].map(element => [element.scrollWidth, element.clientWidth]),
+                })`;
+                const fits = size => size.theme === theme && size.viewport[1] === width
+                    && [size.viewport, ...size.body].every(([scrollWidth, clientWidth]) => scrollWidth <= clientWidth);
+                let size = await evaluate(layout);
+                // Chart.js resizes its canvases asynchronously after the viewport or theme changes.
+                for (let attempt = 0; attempt < 30 && !fits(size); attempt++) {
+                    await wait(100);
+                    size = await evaluate(layout);
+                }
+                const label = name + ' fits ' + width + ' in ' + theme;
+                assert(fits(size), label + ' ' + JSON.stringify(size));
+                console.log('PASS browser:', label);
                 if (expectedColumns) {
                     await check(`getComputedStyle(document.querySelector('.dashboard-metrics')).gridTemplateColumns.split(' ').length === ${expectedColumns[index]}
                         && getComputedStyle(document.querySelector('.dashboard-charts')).gridTemplateColumns.split(' ').length === ${width >= 1024 ? 2 : 1}`, 'dashboard grid at ' + width);
-                    await check(`document.querySelector('#sidebar-wrapper').getBoundingClientRect().width === ${width < 768 ? 288 : 256}
-                        && document.querySelector('.staff-topbar').getBoundingClientRect().height === 73`, 'staff navigation dimensions at ' + width);
+                    await check(`(() => {
+                        const header = document.querySelector('.staff-topbar');
+                        const minimum = parseFloat(getComputedStyle(header).minHeight);
+                        return document.querySelector('#sidebar-wrapper').getBoundingClientRect().width === ${width < 768 ? 288 : 256}
+                            && header.getBoundingClientRect().height >= minimum && minimum >= 44;
+                    })()`, 'staff navigation dimensions at ' + width);
                 }
                 if (width === 390 || width === 1440) await screenshot(name + '-' + width + '-' + theme, name === 'staff-login');
             }
@@ -79,9 +95,22 @@ try {
     await cdp('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
     await navigate(base+'/register.php');
     await check("!!document.querySelector('#registrationForm')", 'public HTTPS registration renders');
+    const usesInter = `(async () => {
+        const faces = await document.fonts.load('400 16px Inter', 'Élèves');
+        return faces.length > 0 && faces.every(face => face.status === 'loaded')
+            && getComputedStyle(document.body).fontFamily.startsWith('Inter');
+    })()`;
+    await check(usesInter, 'public registration loads and uses self-hosted Inter');
     await navigate(staff+'/login.php');
     await check("!!document.querySelector('[name=username]')", 'staff HTTPS login renders');
+    await check(usesInter, 'staff sign-in loads and uses self-hosted Inter');
     await qualifyLayout('staff-login');
+    await viewport(390);
+    await check(`['username', 'password'].every(id => {
+        const input = document.getElementById(id);
+        return input.getBoundingClientRect().height >= 44 && parseFloat(getComputedStyle(input).fontSize) >= 16;
+    })`, 'mobile staff login fields have comfortable touch targets and readable text');
+    await viewport(1440);
     await check(`(() => {
         const menu = [...document.querySelectorAll('.landing-header nav a')].map(a => a.href);
         const footer = [...document.querySelectorAll('.landing-links a')].map(a => a.href);
@@ -132,7 +161,14 @@ try {
         title.textContent = initial;
         return fits;
     })()`, 'long staff name wraps at 390');
+    const queueLink = await evaluate("document.querySelector('a[href^=\"kyc-detail.php?id=\"]').href");
+    for (const route of [staff+'/trash.php', staff+'/kyc-list.php', queueLink]) {
+        await navigate(route);
+        await check("document.querySelector('.staff-main h1') && document.querySelector('.staff-main').scrollWidth <= document.querySelector('.staff-main').clientWidth", 'staff view fits mobile: '+new URL(route).pathname);
+    }
+    await screenshot('staff-kyc-detail-390-light');
     await viewport(1440);
+    await navigate(staff+'/dashboard.php');
     await mkdir(out,{recursive:true});
     let shot=await cdp('Page.captureScreenshot',{format:'png'});await writeFile(path.join(out,'staff-dashboard.png'),Buffer.from(shot.data,'base64'));
     await navigate(staff+'/students.php?search=SharedMember');
@@ -141,6 +177,9 @@ try {
     await navigate(staff+'/'+memberLink);
     await check("document.body?.innerText.includes('StaffEdited')", 'browser opens corrected and edited member detail');
     shot=await cdp('Page.captureScreenshot',{format:'png'});await writeFile(path.join(out,'staff-member-detail.png'),Buffer.from(shot.data,'base64'));
+    const editLink = await evaluate("document.querySelector('a[href^=\"edit-student.php?id=\"]').href");
+    await navigate(editLink);
+    await check("!!document.querySelector('.staff-main form')", 'member edit renders its form in the shared staff layout');
     await navigate(base+'/register.php');
     await check("!!document.querySelector('#registrationForm')", 'authenticated staff browser retains independent public journey');
     await check("!document.body?.innerText.includes('Tableau de bord')", 'staff state does not replace public registration');
