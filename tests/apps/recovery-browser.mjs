@@ -1,9 +1,10 @@
 /** Real Chrome journey against the disposable HTTP runner. No npm packages. */
 import {spawn} from 'node:child_process';
-import {mkdtemp, rm, mkdir, writeFile} from 'node:fs/promises';
+import {mkdtemp, mkdir, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import {closeChrome} from './chrome-cleanup.mjs';
 const out = process.argv[2] || '/private/tmp/amea-app-browser';
 const base = 'https://public.amea.test:' + (process.env.AMEA_PUBLIC_PORT || '18443');
 const staff = 'https://staff.amea.test:' + (process.env.AMEA_STAFF_PORT || '19443');
@@ -53,13 +54,5 @@ try {
     }
 
 } finally {
-    if (shutdown) await Promise.race([shutdown().catch(() => {}), new Promise(resolve => setTimeout(resolve, 1500))]);
-    ws?.close();
-    browser.stderr.destroy();
-    if (browser.exitCode === null) {
-        const exited = new Promise(resolve => browser.once('exit', resolve));
-        browser.kill('SIGKILL');
-        await exited;
-    }
-    await rm(directory,{recursive:true,force:true});
+    await closeChrome(browser, directory, ws, shutdown);
 }
