@@ -1,0 +1,278 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Consentement &amp; RGPD — AEESGS{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <div>
+        <h1 class="h3 mb-0">Consentement &amp; RGPD</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="dashboard.php">Tableau de bord</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Consentement &amp; RGPD</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="text-muted small">
+        Quota d’envoi du jour : <strong id="dailyQuotaValue">{{ quota.daily_sent }} / {{ quota.daily_limit }}</strong>
+    </div>
+</div>
+
+{% if not public_origin_configured %}
+<div class="alert alert-warning" role="alert">
+    <i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>
+    La variable <code>PUBLIC_APP_URL</code> (HTTPS) n’est pas configurée : l’envoi de nouveaux rappels CGU est bloqué jusqu’à sa configuration.
+</div>
+{% endif %}
+
+{# ─── Overview stats ───────────────────────────────────────────────────────── #}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card text-center p-3 h-100">
+            <div class="h2 fw-bold text-success-emphasis mb-1">{{ stats.consented }}</div>
+            <div class="text-muted small">CGU acceptées</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card text-center p-3 h-100">
+            <div class="h2 fw-bold text-warning-emphasis mb-1">{{ stats.not_consented }}</div>
+            <div class="text-muted small">En attente de consentement</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card text-center p-3 h-100">
+            <div class="h2 fw-bold text-primary mb-1">{{ stats.reminders_sent }}</div>
+            <div class="text-muted small">Rappels CGU envoyés</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card text-center p-3 h-100">
+            <div class="h2 fw-bold text-danger-emphasis mb-1">{{ stats.deletion_requests }}</div>
+            <div class="text-muted small">Demandes de suppression</div>
+        </div>
+    </div>
+</div>
+
+{# ─── Live dispatch progress panel (shared hybrid engine) ─────────────────── #}
+{% if active_communication %}
+{% include 'partials/live-dispatch-panel.html.twig' with {
+    active_communication: active_communication,
+    quota_sent: quota.daily_sent,
+    quota_limit: quota.daily_limit,
+    dispatch_url: 'consent-dispatch.php',
+    cancel_action_url: 'consent.php',
+    panel_heading: 'Rappel de consentement CGU #' ~ active_communication.id,
+    progress_aria_label: 'Progression du rappel de consentement CGU',
+    running_message: 'Envoi des liens personnels de consentement en cours…',
+    completed_message: 'Tous les rappels de consentement CGU ont été envoyés avec succès.'
+} %}
+{% endif %}
+
+{# ─── Navigation tabs ──────────────────────────────────────────────────────── #}
+<ul class="nav nav-tabs mb-4" id="consentTabs">
+    <li class="nav-item">
+        <a class="nav-link {{ active_tab == 'cgu' ? 'active' : 'text-body' }}" href="consent.php?tab=cgu"{% if active_tab == 'cgu' %} aria-current="page"{% endif %}>
+            <i class="fas fa-file-signature me-1" aria-hidden="true"></i> Rappels CGU
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {{ active_tab == 'deletion' ? 'active' : 'text-body' }}" href="consent.php?tab=deletion"{% if active_tab == 'deletion' %} aria-current="page"{% endif %}>
+            <i class="fas fa-trash-alt me-1" aria-hidden="true"></i> Demandes de suppression
+            {% if stats.deletion_requests > 0 %}
+                <span class="badge bg-danger ms-1">{{ stats.deletion_requests }}</span>
+            {% endif %}
+        </a>
+    </li>
+</ul>
+
+{% if active_tab == 'cgu' %}
+{# ─── Send CGU reminder form ───────────────────────────────────────────────── #}
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-paper-plane me-1" aria-hidden="true"></i> Envoyer un rappel de consentement CGU
+    </div>
+    <div class="card-body">
+        <form method="POST" action="consent.php" id="cguReminderForm" data-members-url="consent-members.php">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="action" value="send_cgu">
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Destinataires</label>
+                <div class="d-flex flex-column gap-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="cgu_scope" id="scope_pending" value="not_consented" checked>
+                        <label class="form-check-label" for="scope_pending">
+                            Uniquement les adhérents <strong>en attente de consentement</strong> ({{ stats.not_consented }})
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="cgu_scope" id="scope_all" value="all">
+                        <label class="form-check-label" for="scope_all">
+                            <strong>Tous les adhérents actifs</strong> — mise à jour des CGU ({{ stats.total_active }})
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="cgu_scope" id="scope_selected" value="selected">
+                        <label class="form-check-label" for="scope_selected">
+                            <strong>Sélectionner des adhérents spécifiques</strong> (recherche serveur)
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div id="manualSelectionPanel" class="border rounded p-3 mb-3 d-none">
+                <div class="row g-2 align-items-center mb-2">
+                    <div class="col-md-8">
+                        <label for="manualMemberSearch" class="visually-hidden">Rechercher un adhérent</label>
+                        <input type="search" class="form-control form-control-sm" id="manualMemberSearch" placeholder="Rechercher par nom, prénom ou email…">
+                    </div>
+                    <div class="col-md-4 text-md-end small text-muted">
+                        <strong id="selectedMembersCount">0</strong> adhérent(s) sélectionné(s)
+                    </div>
+                </div>
+                <div id="manualSelectedInputs"></div>
+                <div id="manualMemberResults" class="list-group list-group-flush border rounded" style="max-height: 280px; overflow-y: auto;">
+                    <div class="p-3 text-muted small">Saisissez un nom ou cliquez pour charger les adhérents joignables…</div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2 small">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="manualPrevPage" disabled>Précédent</button>
+                    <span id="manualPageInfo" class="text-muted">Page 1 / 1</span>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="manualNextPage" disabled>Suivant</button>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary" {{ not public_origin_configured ? 'disabled' : '' }}>
+                    <i class="fas fa-paper-plane me-1" aria-hidden="true"></i> Lancer le rappel CGU
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# ─── Paginated & AJAX-searchable list of pending-consent members ─────────── #}
+<div class="card" id="pendingConsentCard" data-members-url="consent-members.php" data-page="{{ pending_page }}" data-total-pages="{{ pending_total_pages }}">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="fas fa-clock me-1" aria-hidden="true"></i> Adhérents en attente de consentement (<span id="pendingConsentTotal">{{ pending_total }}</span>)</span>
+        <form method="GET" action="consent.php" class="d-flex gap-2" id="pendingSearchForm">
+            <input type="hidden" name="tab" value="cgu">
+            <label for="pendingSearch" class="visually-hidden">Filtrer les adhérents</label>
+            <input type="search" class="form-control form-control-sm" id="pendingSearch" name="q" value="{{ pending_query }}" placeholder="Rechercher…">
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Filtrer</button>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Adhérent</th>
+                        <th>Email</th>
+                        <th>Inscription</th>
+                        <th>Statut rappel</th>
+                    </tr>
+                </thead>
+                <tbody id="pendingConsentTbody">
+                    {% if pending_members is empty %}
+                    <tr>
+                        <td colspan="4" class="text-muted fst-italic text-center py-4">Aucun adhérent en attente de consentement pour ce filtre.</td>
+                    </tr>
+                    {% else %}
+                    {% for m in pending_members %}
+                    <tr>
+                        <td>
+                            <a href="student-details.php?id={{ m.id }}" class="fw-semibold text-decoration-none">
+                                {{ m.first_name }} {{ m.last_name }}
+                            </a>
+                        </td>
+                        <td class="small">{{ m.email ?: '—' }}</td>
+                        <td class="small text-nowrap">{{ m.registration_date }}</td>
+                        <td>
+                            {% if m.consent_refused_at %}
+                                <span class="badge bg-danger">Refusé ({{ m.consent_refused_at }})</span>
+                            {% elseif m.cgu_reminder_sent_at %}
+                                <span class="badge bg-warning text-dark">Rappel envoyé ({{ m.cgu_reminder_sent_at }})</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Pas encore contacté</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        <nav aria-label="Pagination des adhérents en attente" class="p-3 {{ pending_total_pages <= 1 ? 'd-none' : '' }}" id="pendingConsentPaginationNav">
+            <ul class="pagination pagination-sm mb-0 justify-content-end" id="pendingConsentPagination">
+                {% if pending_total_pages > 1 %}
+                {% for p in 1..pending_total_pages %}
+                <li class="page-item {{ p == pending_page ? 'active' : '' }}">
+                    <a class="page-link" data-page="{{ p }}" href="consent.php?tab=cgu&amp;page={{ p }}{% if pending_query %}&amp;q={{ pending_query|url_encode }}{% endif %}">{{ p }}</a>
+                </li>
+                {% endfor %}
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+
+{% else %}
+{# ─── GDPR deletion requests tab ──────────────────────────────────────────── #}
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-trash-alt me-1" aria-hidden="true"></i> Demandes de suppression de données ({{ stats.deletion_requests }})
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning small mb-3" role="note">
+            <i class="fas fa-circle-info me-1" aria-hidden="true"></i>
+            Ces adhérents ont refusé les CGU et demandé la suppression de leurs données personnelles. Inspectez le dossier puis déplacez-le vers la corbeille pour lancer la procédure de suppression standard.
+        </div>
+        {% if deletion_requests is empty %}
+        <p class="text-muted fst-italic text-center py-3 mb-0">Aucune demande de suppression en attente.</p>
+        {% else %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Adhérent</th>
+                        <th>Email</th>
+                        <th>Demande enregistrée le</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in deletion_requests %}
+                    <tr>
+                        <td class="fw-semibold">{{ d.first_name }} {{ d.last_name }}</td>
+                        <td class="small">{{ d.email ?: '—' }}</td>
+                        <td class="small text-nowrap">{{ d.deletion_requested_at }}</td>
+                        <td class="text-end text-nowrap">
+                            <a href="student-details.php?id={{ d.id }}" class="btn btn-outline-primary btn-sm me-1">
+                                <i class="fas fa-eye me-1" aria-hidden="true"></i>Dossier
+                            </a>
+                            {% if can_trash_students %}
+                            <form method="POST" action="consent.php" class="d-inline" data-trash-form="1" data-member-name="{{ d.first_name }} {{ d.last_name }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <input type="hidden" name="action" value="trash_student">
+                                <input type="hidden" name="student_id" value="{{ d.id }}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash-can me-1" aria-hidden="true"></i>Déplacer vers la corbeille
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block javascripts %}
+<script src="{{ asset('assets/js/communications.js') }}" defer></script>
+<script src="{{ asset('assets/js/consent.js') }}" defer></script>
+{% endblock %}

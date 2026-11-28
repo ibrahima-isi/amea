@@ -31,7 +31,11 @@ class Student
         private ?string $kycNotes = null,
         private ?string $kycUpdatedAt = null,
         private ?string $reviewToken = null,
-        private ?string $deletedAt = null
+        private ?string $deletedAt = null,
+        private ?string $cguToken = null,
+        private ?string $cguReminderSentAt = null,
+        private ?string $consentRefusedAt = null,
+        private ?string $deletionRequestedAt = null
     ) {}
 
     public function getId(): int                          { return $this->id; }
@@ -62,6 +66,10 @@ class Student
     public function getKycUpdatedAt(): ?string            { return $this->kycUpdatedAt; }
     public function getReviewToken(): ?string             { return $this->reviewToken; }
     public function getDeletedAt(): ?string               { return $this->deletedAt; }
+    public function getCguToken(): ?string                { return $this->cguToken; }
+    public function getCguReminderSentAt(): ?string       { return $this->cguReminderSentAt; }
+    public function getConsentRefusedAt(): ?string        { return $this->consentRefusedAt; }
+    public function getDeletionRequestedAt(): ?string     { return $this->deletionRequestedAt; }
 
     public function getNationalities(): array
     {
@@ -117,7 +125,11 @@ class Student
             kycNotes:             $row['kyc_notes'] ?? null,
             kycUpdatedAt:         $row['kyc_updated_at'] ?? null,
             reviewToken:          $row['review_token'] ?? null,
-            deletedAt:            $row['deleted_at'] ?? null
+            deletedAt:            $row['deleted_at'] ?? null,
+            cguToken:             $row['cgu_token'] ?? null,
+            cguReminderSentAt:    $row['cgu_reminder_sent_at'] ?? null,
+            consentRefusedAt:     $row['consent_refused_at'] ?? null,
+            deletionRequestedAt:  $row['deletion_requested_at'] ?? null
         );
     }
 }

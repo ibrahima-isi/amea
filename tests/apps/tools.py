@@ -21,28 +21,50 @@ class Client:
 admin=Client('toolsadmin')
 restricted=Client('toolsrestricted')
 user=Client('toolsuser')
-paths=['/manage-slider.php','/communications.php','/communications-count.php','/export.php','/export-preview.php','/settings.php','/users.php','/add-user.php','/edit-user.php?id=999999','/upgrade-levels.php']
+paths=['/manage-slider.php','/communications.php','/communications-count.php','/consent.php','/consent-members.php','/export.php','/export-preview.php','/settings.php','/users.php','/add-user.php','/edit-user.php?id=999999','/upgrade-levels.php']
 for path in paths:
     status, headers, _ = request('public',path)
     check(status == 404 and 'Location' not in headers, 'public rejects staff tool without a redirect '+path)
     check(request('staff',path)[0]==302,'anonymous denied '+path)
     check(restricted.go(path)[0]==302,'restricted admin denied '+path)
     check(user.go(path)[0]==302,'ordinary user denied '+path)
-for path in ['/manage-slider.php','/communications.php','/communications-count.php','/export.php','/settings.php','/users.php','/add-user.php','/upgrade-levels.php','/profile.php']:
+for path in ['/manage-slider.php','/communications.php','/communications-count.php','/consent.php','/consent-members.php','/export.php','/settings.php','/users.php','/add-user.php','/upgrade-levels.php','/profile.php']:
     check(admin.go(path)[0]==200,'authorized tools admin sees '+path)
 check(user.go('/profile.php')[0]==200,'ordinary user retains own profile')
-for path in ['/manage-slider.php','/communications.php','/export.php','/settings.php','/users.php','/add-user.php','/profile.php','/confirm-upgrade.php']:
+for path in ['/manage-slider.php','/communications.php','/consent.php','/export.php','/settings.php','/users.php','/add-user.php','/profile.php','/confirm-upgrade.php']:
     status,headers,_=admin.go(path,{'csrf_token':'invalid'})
     check(status==302 and 'Content-Disposition' not in headers,'CSRF blocks action '+path)
+for path in ['/communications-dispatch.php','/consent-dispatch.php']:
+    status,headers,_=request('public',path,{'csrf_token':'invalid'})
+    check(status==404 and 'Location' not in headers,'public rejects dispatch endpoint without redirect '+path)
+    check(request('staff',path,{'csrf_token':'invalid'})[0]==302,'anonymous denied dispatch '+path)
+    check(restricted.go(path,{'csrf_token':'invalid'})[0]==302,'restricted admin denied dispatch '+path)
+    check(user.go(path,{'csrf_token':'invalid'})[0]==302,'ordinary user denied dispatch '+path)
+    check(admin.go(path,{'csrf_token':'invalid'})[0]==403,'CSRF blocks JSON dispatch '+path)
 # Valid export returns real synthetic member bytes; unauthorized POST never exports.
 token=admin.csrf('/export.php')
 status,headers,body=admin.go('/export.php',{'csrf_token':token,'fields[]':'last_name','export_format':'csv'})
 check(status==200 and 'attachment' in headers.get('Content-Disposition','') and b'Legacy' in body,'authorized CSV contains shared synthetic member')
 check(user.go('/export.php',{'csrf_token':token,'fields[]':'email'})[0]==302,'ordinary user cannot POST export')
-# Actual communications call uses APP_ENV=test EmailService substitute, including direct send.
+# Decline changed audiences without creating a communication, then verify the no-JS route.
 token=admin.csrf('/communications.php')
-status,_,_=admin.go('/communications.php',{'csrf_token':token,'subject':'Synthetic notice','body':'Synthetic safe message'})
-check(status==302 and b'email(s)' in admin.go('/communications.php')[2],'safe communications submission reports result')
+status,headers,_=admin.go('/communications.php',{'csrf_token':token,'subject':'Stale audience fixture','body':'Synthetic safe message','confirmed_recipient_count':'0'})
+_,_,page=admin.go('/communications.php')
+check(status==302 and 'campaign=' not in headers.get('Location','')
+      and b'Le nombre de destinataires a chang' in page and b'Stale audience fixture' not in page,
+      'a stale confirmation is rejected without creating a campaign')
+token=admin.csrf('/communications.php')
+status,headers,_=admin.go('/communications.php',{'csrf_token':token,'subject':'Synthetic notice','body':'Synthetic safe message'})
+location=headers.get('Location','')
+check(status==302 and re.fullmatch(r'communications\.php\?campaign=[1-9]\d*', location)
+      and b'email(s)' in admin.go('/'+location)[2], 'safe communications submission redirects to the campaign and reports result')
+_,_,history=admin.go('/communications.php')
+diagnostics=re.search(rb'communications\.php\?failures=(\d+)[^"]+">Voir toutes les erreurs \(26\)', history)
+assert diagnostics, 'history links to every failed recipient'
+status,_,second=admin.go('/communications.php?failures='+diagnostics[1].decode()+'&failure_page=2')
+details=second.split(b'id="failure-details"', 1)[-1].split(b'</section>', 1)[0]
+check(status==200 and b'Page 2 / 2' in details and b'Synthetic SMTP diagnostic 26' in details
+      and b'Synthetic SMTP diagnostic 25' not in details, 'failure diagnostics paginate past the first 25 recipients')
 # Profile and settings preserve existing forms and persistence.
 token=admin.csrf('/settings.php')
 admin.go('/settings.php',{'csrf_token':token,'association_name':'Synthetic AEESGS','contact_email':'synthetic@example.invalid','contact_phone':'000'})

@@ -1,69 +1,60 @@
-# Email Queue — Operations Runbook
+# Email Queue & Hybrid Communications — Operations Runbook
 
-How outbound email works and how to plan a worker on Docker/Dokploy. Production changes require explicit approval; no worker or SMTP delivery is enabled by this document.
+How outbound email, bulk Member communications, and Consent reminders work across Namecheap Stellar and Docker/Dokploy. Production changes require explicit approval; no worker or SMTP delivery is enabled by this document.
 
 ## How it works
 
-There are two delivery paths, chosen per message type:
+There are three delivery paths, chosen per message type:
 
-| Path | Methods | Used by | Behaviour |
-|------|---------|---------|-----------|
-| **Synchronous** (always) | `EmailService::send()` | Password reset, "forgot password", CGU deletion request, bulk communications | Sent immediately, in-request. The user is waiting, so we never defer these. |
-| **Queue-able** | `sendAsync()`, `sendFromTemplate()` | Registration received, KYC approved / clarification / rejected, admin update notification | Either sent in-request (default) **or** enqueued for the cron worker, depending on `MAIL_ASYNC`. |
+| Path | Mechanism | Used by | Behaviour |
+|------|-----------|---------|-----------|
+| **Synchronous** (always) | `EmailService::send()` / `sendWithResult()` | Password reset, "forgot password", CGU deletion notification, communication self-test preview | Sent immediately in-request over Brevo SMTP (`noreply@aeesgs.org`). |
+| **Queue-able transactional** | `sendAsync()`, `sendFromTemplate()` | Registration received, KYC approved / clarification / rejected, admin update notification | Sent synchronously by default (`MAIL_ASYNC` unset/`0`), or written to `storage/mail-queue/*.json` when `MAIL_ASYNC=1`. |
+| **Hybrid DB-backed communications** | `CommunicationService` + `communications` / `communication_recipients` | Bulk Member communications (`/communications.php`) and Consent reminders (`/consent.php`) | Persisted immediately in MariaDB, dispatched in fast 25-recipient chunks over a single reused SMTP session (`SMTPKeepAlive = true`) while the staff page is open, and automatically drained/retried by `scripts/process-mail-queue.php` if the browser closes or a daily cap / transient error occurs. See [ADR 0005](adr/0005-hybrid-bulk-communication-delivery.md). |
 
-The queue-able path is governed by one flag:
+All bulk communications and Consent reminders send from `noreply@aeesgs.org` with `Reply-To` set to `settings.contact_email` (falling back to `contact@aeesgs.org`).
 
-- **`MAIL_ASYNC` unset / `0`** → queue-able emails are sent **synchronously**, exactly
-  as they are today. This is the safe default. **Production behaviour is unchanged
-  until you opt in.**
-- **`MAIL_ASYNC=1`** → queue-able emails are written to `storage/mail-queue/*.json`
-  and delivered later by `scripts/process-mail-queue.php` (run from cron).
+If `MAIL_ASYNC=1` is enabled and the file queue directory cannot be written, `EmailService` falls back to a synchronous send so transactional mail is never silently dropped.
 
-If the queue directory cannot be written, `EmailService` automatically falls back
-to a synchronous send — a broken or unwritable queue never silently drops mail.
+## Unified daily quota (`mail_daily_usage`)
 
-> The old fire-and-forget `exec()` worker (`scripts/send-email.php`) was removed.
-> On shared hosting `PHP_BINARY` is often a non-CLI binary (e.g. `lsphp`), so the
-> backgrounded process died before sending while the shell still returned exit 0 —
-> the failure was invisible. The cron worker is verifiable and durable instead.
+Live web chunks and `scripts/process-mail-queue.php` share one atomic daily counter in the `mail_daily_usage` table (keyed by UTC date) capped at `MAIL_DAILY_LIMIT` (default `300`/day for Brevo's free tier).
+
+- Slots are reserved atomically before opening SMTP and released for any failed attempts so transient failures do not burn quota.
+- When `MAIL_DAILY_LIMIT` is reached, remaining unsent communication recipients stay `PENDING` and their parent communication transitions to `PAUSED_LIMIT` until the next UTC day (or a raised `MAIL_DAILY_LIMIT`).
+- Both workers honor the legacy UTC counter in `storage/mail-queue/.sent-YYYYMMDD` as a floor when reserving a slot. The file-only worker maintains that counter when no database is configured. A configured database outage stops the worker.
 
 ## The worker: `scripts/process-mail-queue.php`
 
-Run from cron. Properties:
+Run from cron (`run-shared-jobs.php mail` on Docker/Dokploy or `bin/run-job.php mail` on Namecheap Stellar). Properties:
 
-- **Single-instance** — holds an exclusive `flock`; overlapping cron runs no-op.
-- **Rate-limited** — per-run batch cap and per-day cap, so the **Brevo free tier
-  (300 emails/day)** is never exceeded.
-- **Durable** — a message is deleted only after a confirmed send. Failures retry
-  with exponential backoff (2 → 4 → 8 → 16 min, capped at 1 h); after
-  `MAIL_MAX_ATTEMPTS` the message moves to `storage/mail-queue/failed/`
-  (dead-letter) for manual inspection.
+- **Single-instance** — holds an exclusive `flock` (`storage/mail-queue/.lock`); overlapping cron runs no-op.
+- **Transactional priority + DB fallback** — drains file-queued transactional emails first, then uses the remaining batch capacity (`MAIL_BATCH_SIZE`) to drain due DB `communication_recipients` (bulk and Consent reminders) over a reused `SMTPKeepAlive` connection.
+- **Stale-claim recovery** — The web and CLI dispatchers hold an exclusive lock in the shared queue directory throughout each SMTP batch. Process death releases the lock. A later dispatcher can reclaim a five-minute-old claim. Cancellation stops recipients that have yet to be admitted to SMTP. If the worker dies after reserving a slot, the original reservation remains counted because delivery cannot always be determined. If SMTP accepted the message before the worker died and the database still shows `SENDING`, recovery can deliver it again.
+- **Durable retries** — failed deliveries retry with exponential backoff (2 → 4 → 8 → 16 min, capped at 1 h). After `MAIL_MAX_ATTEMPTS`, file-queue entries move to `storage/mail-queue/failed/` and DB recipients transition to `FAILED` (recoverable via **Réessayer les échecs** in the Administration UI).
+- **Consent reminders** — confirmed delivery updates `students.cgu_reminder_sent_at` and activates the new link if the member's email and previous token still match. A failed send preserves the last delivered link.
 
-### Tunables (`.env`)
+### Tunables (`.env` / Stellar `runtime.env`)
 
 | Variable | Default | Meaning |
 |----------|---------|---------|
-| `MAIL_ASYNC` | _(unset)_ | `1` enables the durable queue for queue-able emails |
-| `MAIL_BATCH_SIZE` | `50` | Max messages delivered per cron run |
-| `MAIL_DAILY_LIMIT` | `300` | Max successful sends per calendar day (= Brevo free tier) |
-| `MAIL_MAX_ATTEMPTS` | `5` | Attempts before a message is dead-lettered |
-| `MAIL_SEND_PAUSE_MS` | `250` | Pause between sends (politeness throttle), in ms |
+| `MAIL_ASYNC` | _(unset)_ | `1` enables the durable file queue for queue-able transactional emails |
+| `MAIL_BATCH_SIZE` | `50` | Max combined messages delivered per CLI worker run |
+| `MAIL_DAILY_LIMIT` | `300` | Unified daily cap across web chunks + CLI worker (= Brevo free tier) |
+| `MAIL_MAX_ATTEMPTS` | `5` | Attempts before dead-lettering (file) or marking `FAILED` (DB) |
+| `MAIL_SEND_PAUSE_MS` | `250` (CLI) / `50` (web chunk) | Pause between messages inside a persistent SMTP session, in ms |
+
+Empty values use the listed defaults. Both Compose stacks pass these settings to the applications and jobs. All four tunables (`MAIL_DAILY_LIMIT`, `MAIL_BATCH_SIZE`, `MAIL_MAX_ATTEMPTS`, `MAIL_SEND_PAUSE_MS`) are allowlisted in `scripts/stellar/render-runtime-env.php`.
 
 ## Worker deployment and rollback
 
-The Docker/Dokploy jobs profile and its shared storage are described in the [rollout guide](operations/public-staff-rollout.md). Before enabling a worker, verify the selected environment, writable persistent queue storage and scheduling, and ensure any previous worker is stopped. Test delivery separately only with explicit authorization. `MAIL_ASYNC` is off by default.
+The Docker/Dokploy jobs profile and Stellar native layout are described in [public-staff-rollout.md](operations/public-staff-rollout.md) and [stellar-production-transition.md](operations/stellar-production-transition.md). `MAIL_ASYNC` remains off by default so 5-minute password-reset emails do not wait on a 5-minute cPanel cron interval.
 
-To roll back, set `MAIL_ASYNC=0` or unset it. Existing queued messages remain in persistent storage; plan their handling before stopping the worker.
+To roll back `MAIL_ASYNC`, unset it or set `MAIL_ASYNC=0`. Existing queued file entries and DB `communication_recipients` remain durable until processed or cancelled.
 
 ## Monitoring & troubleshooting
 
-- **Backlog**: `ls storage/mail-queue/*.json | wc -l` — should stay near zero. A
-  growing backlog means the cron isn't running or you've hit the daily cap.
-- **Dead-letters**: inspect `storage/mail-queue/failed/`. Each file keeps the full
-  payload plus `attempts` and `failed_at`. To retry one, move it back up:
-  `mv storage/mail-queue/failed/NAME.json storage/mail-queue/` (reset
-  `next_attempt_at` to `0` if you want it sent on the next run).
-- **Daily cap reached**: the log prints `Daily limit reached`. The counter file is
-  `storage/mail-queue/.sent-YYYYMMDD`; it resets naturally at midnight (new date).
-  If you upgrade the Brevo plan, raise `MAIL_DAILY_LIMIT` accordingly.
-- **Nothing sends after `MAIL_ASYNC=1`**: check the selected jobs profile, worker schedule and logs as described in [worker deployment](#worker-deployment-and-rollback) and the [rollout guide](operations/public-staff-rollout.md).
+- **File backlog**: `ls storage/mail-queue/*.json | wc -l` — should stay near zero.
+- **File dead-letters**: inspect `storage/mail-queue/failed/`. To retry one, move it back to `storage/mail-queue/` and reset `next_attempt_at` to `0`.
+- **DB communication status**: inspect `/communications.php` (history + expandable failure reasons + Resume / Retry failed / Cancel) or query `communications` / `communication_recipients`.
+- **Daily cap reached**: check `mail_daily_usage`. Raise `MAIL_DAILY_LIMIT` after upgrading your Brevo plan.

@@ -32,6 +32,12 @@ final class Runtime
         return $default;
     }
 
+    public static function mailSetting(string $key, string $default = ''): string
+    {
+        $value = self::env($key);
+        return $value === '' ? $default : $value;
+    }
+
     public static function appIdentity(): ?string
     {
         if (defined('AMEA_APP')) {

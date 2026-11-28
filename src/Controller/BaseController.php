@@ -101,6 +101,7 @@ abstract class BaseController
             'journal' => $admin && $this->auth->hasPermission('journal'),
             'slider' => $admin && $this->auth->hasPermission('slider'),
             'upgrade' => $admin && $this->auth->hasPermission('upgrade'),
+            'consent' => $admin && $this->auth->hasPermission('consent'),
             'communications' => $admin && $this->auth->hasPermission('communications'),
             'settings' => $admin && $this->auth->hasPermission('settings'),
         ]);

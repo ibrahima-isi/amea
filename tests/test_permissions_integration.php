@@ -108,8 +108,9 @@ function login(string $username, string $password, string $cookieFile): bool {
 // ─── Test DB fixtures ─────────────────────────────────────────────────────────
 $testPassword     = 'TestPass#2026!';
 $testHash         = password_hash($testPassword, PASSWORD_DEFAULT);
-$allPermsJson     = json_encode(['students','export','users','slider','upgrade','documents','communications','settings']);
-$limitedPermsJson = json_encode(['documents']); // only documents, NOT users
+$allPermsJson     = json_encode(['students','export','users','slider','upgrade','documents','communications','consent','settings']);
+$limitedPermsJson = json_encode(['documents','communications']); // has communications, NOT users or consent
+$consentOnlyJson  = json_encode(['consent']); // has consent, NOT students
 
 $conn->prepare("INSERT INTO users (username, email, last_name, first_name, password, role, permissions, is_active, created_at)
                 VALUES ('_test_fulladmin', '_test_fulladmin@test.local', 'Test', 'FullAdmin', ?, 'admin', ?, 1, CURRENT_TIMESTAMP)")
@@ -120,6 +121,11 @@ $conn->prepare("INSERT INTO users (username, email, last_name, first_name, passw
                 VALUES ('_test_restricted', '_test_restricted@test.local', 'Test', 'Restricted', ?, 'admin', ?, 1, CURRENT_TIMESTAMP)")
      ->execute([$testHash, $limitedPermsJson]);
 $restrictedId = (int)$conn->lastInsertId();
+
+$conn->prepare("INSERT INTO users (username, email, last_name, first_name, password, role, permissions, is_active, created_at)
+                VALUES ('_test_consent_only', '_test_consent_only@test.local', 'Test', 'ConsentOnly', ?, 'admin', ?, 1, CURRENT_TIMESTAMP)")
+     ->execute([$testHash, $consentOnlyJson]);
+$consentOnlyId = (int)$conn->lastInsertId();
 
 $conn->prepare("INSERT INTO students (
                     last_name, first_name, gender, birth_date, residence, institution,
@@ -134,14 +140,29 @@ $conn->prepare("INSERT INTO students (
                 )")->execute();
 $studentDetailsId = (int)$conn->lastInsertId();
 
+$conn->prepare("INSERT INTO students (
+                    last_name, first_name, gender, birth_date, residence, institution,
+                    status, study_field, study_level, phone, email,
+                    arrival_year, housing_type, post_training_project,
+                    consent_privacy, deletion_requested_at, is_locked
+                ) VALUES (
+                    'DeletionTarget', 'Fixture', 'Féminin', '2001-03-04', 'Dakar', 'UGB',
+                    'ETUDIANT', 'Droit', 'Master', '_test_770000002',
+                    '_test_deletion_target@test.local', 2023, 'Location',
+                    'Projet RGPD', 0, '2026-11-26 12:00:00', 0
+                )")->execute();
+$deletionStudentId = (int)$conn->lastInsertId();
+
 // ─── Cookie jar files (one per test session) ──────────────────────────────────
 // Each user gets a temp file that curl uses as a persistent cookie store.
 // This correctly handles multiple Set-Cookie headers (session + extras).
-$fullAdminJar  = tempnam(sys_get_temp_dir(), 'cjar_full_');
-$restrictedJar = tempnam(sys_get_temp_dir(), 'cjar_rest_');
+$fullAdminJar   = tempnam(sys_get_temp_dir(), 'cjar_full_');
+$restrictedJar  = tempnam(sys_get_temp_dir(), 'cjar_rest_');
+$consentOnlyJar = tempnam(sys_get_temp_dir(), 'cjar_cons_');
 
-$sessionsOk = login('_test_fulladmin',  $testPassword, $fullAdminJar)
-           && login('_test_restricted', $testPassword, $restrictedJar);
+$sessionsOk = login('_test_fulladmin',    $testPassword, $fullAdminJar)
+           && login('_test_restricted',   $testPassword, $restrictedJar)
+           && login('_test_consent_only', $testPassword, $consentOnlyJar);
 
 if (!$sessionsOk) {
     echo "\033[31m  [fatal] Could not create test sessions — aborting authenticated tests\033[0m\n";
@@ -161,6 +182,7 @@ foreach ([
     '/manage-slider.php',
     '/upgrade-levels.php',
     '/communications.php',
+    '/consent.php',
 ] as $path) {
     [$code] = http('GET', $path);
     expect("GET $path → 302 redirect", $code === 302);
@@ -219,7 +241,7 @@ if ($sessionsOk) {
     $permsInDb = json_decode($check->fetchColumn(), true);
     $check->closeCursor();
     expect('DB permissions unchanged after blocked POST',
-        $permsInDb === ['documents']
+        $permsInDb === ['documents', 'communications']
     );
     } // end $getCode === 200 guard
 }
@@ -301,13 +323,63 @@ if ($sessionsOk) {
     expect('student-details.php resolves student id placeholder', !str_contains($body, '{{student_id}}'));
 }
 
-// 8. settings.php: restricted admin (no 'settings') must be blocked
-echo "\nRestricted admin access to settings.php\n";
+// 8. settings.php & consent.php: restricted admin (no 'settings'/'consent') must be blocked
+echo "\nRestricted admin access to settings.php and consent.php\n";
 
 if ($sessionsOk) {
     [$code, $location] = http('GET', '/settings.php', [], $restrictedJar);
     expect('GET settings.php → 302 (no settings permission)',  $code === 302);
     expect('Redirected to dashboard.php',                      str_contains($location, 'dashboard.php'));
+
+    [$code, $location] = http('GET', '/consent.php', [], $restrictedJar);
+    expect('GET consent.php → 302 (communications does not grant consent)', $code === 302);
+    expect('consent.php denial redirects to dashboard.php',                 str_contains($location, 'dashboard.php'));
+
+    [$code, , $consentBody] = http('GET', '/consent.php', [], $fullAdminJar);
+    expect('Full-admin GET consent.php → 200',                              $code === 200);
+    expect('consent.php renders Consentement & RGPD heading',               str_contains($consentBody, 'Consentement &amp; RGPD'));
+
+    // 8b. GDPR Trash soft-delete on consent.php is strictly gated by 'students' permission
+    echo "\nGDPR deletion soft-delete gating on consent.php\n";
+
+    [$code, , $consentOnlyDelBody] = http('GET', '/consent.php?tab=deletion', [], $consentOnlyJar);
+    expect('Consent-only admin GET consent.php?tab=deletion → 200',         $code === 200);
+    expect('Consent-only admin sees deletion request row',                  str_contains($consentOnlyDelBody, 'Fixture DeletionTarget'));
+    expect('Consent-only admin does NOT see Trash button',                  !str_contains($consentOnlyDelBody, 'Déplacer vers la corbeille'));
+
+    [$code, , $consentOnlyReminderBody] = http('GET', '/consent.php?tab=cgu', [], $consentOnlyJar);
+    if ($code === 200 && preg_match('/name="csrf_token"\s+value="([^"]+)"/', $consentOnlyReminderBody, $m)) {
+        [$postCode, $postLoc] = http('POST', '/consent.php', [
+            'csrf_token' => $m[1],
+            'action'     => 'trash_student',
+            'student_id' => $deletionStudentId,
+        ], $consentOnlyJar);
+        expect('Consent-only admin POST trash_student → 302 back to deletion tab', $postCode === 302 && str_contains($postLoc, 'consent.php?tab=deletion'));
+        $delAt = $conn->query("SELECT deleted_at FROM students WHERE id = {$deletionStudentId}")->fetchColumn();
+        expect('Consent-only admin cannot soft-delete student (deleted_at remains NULL)', $delAt === null || $delAt === false);
+    } else {
+        expect('Consent reminder form exposes a CSRF token for the consent-only admin', false);
+    }
+
+    [$code, , $fullAdminDelBody] = http('GET', '/consent.php?tab=deletion', [], $fullAdminJar);
+    expect('Full-admin sees Trash button on deletion tab',                  str_contains($fullAdminDelBody, 'Déplacer vers la corbeille'));
+
+    $fullAdminCsrf = '';
+    if (preg_match('/name="csrf_token"\s+value="([^"]+)"/', $fullAdminDelBody, $m)) {
+        $fullAdminCsrf = $m[1];
+    }
+    if ($fullAdminCsrf !== '') {
+        [$postCode, $postLoc] = http('POST', '/consent.php', [
+            'csrf_token' => $fullAdminCsrf,
+            'action'     => 'trash_student',
+            'student_id' => $deletionStudentId,
+        ], $fullAdminJar);
+        expect('Full-admin POST trash_student → 302 back to deletion tab',  $postCode === 302 && str_contains($postLoc, 'consent.php?tab=deletion'));
+        $row = $conn->query("SELECT deleted_at, deleted_by FROM students WHERE id = {$deletionStudentId}")->fetch(PDO::FETCH_ASSOC);
+        expect('Full-admin moves deletion-requested student to Trash',      !empty($row['deleted_at']) && (int)$row['deleted_by'] === $fullAdminId);
+    } else {
+        expect('SKIP: could not extract CSRF for full-admin trash test', false);
+    }
 }
 
 // 9. CSRF enforcement on POST to edit-user.php (full admin, missing token)
@@ -512,6 +584,7 @@ if ($sessionsOk) {
 // ─── Teardown ─────────────────────────────────────────────────────────────────
 @unlink($fullAdminJar);
 @unlink($restrictedJar);
+@unlink($consentOnlyJar);
 
 // ─── Summary ─────────────────────────────────────────────────────────────────
 echo "\n";

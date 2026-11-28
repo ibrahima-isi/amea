@@ -43,3 +43,20 @@ _French interface label_: Brouillon du journal
 **Archived activity**:
 An ended activity whose page remains available in the journal without appearing among upcoming activities. Archiving does not turn it into an activity report.
 _French interface label_: Activité archivée
+
+**Member communication**:
+A staff-authored message sent from the **Administration** to a filtered audience of **Members**, distinct from automated transactional notifications.
+_French interface label_: Communication
+_Avoid_: Blast, newsletter
+
+**Communication recipient**:
+An individual **Member** tracked for delivery within a **Member communication**.
+_French interface label_: Destinataire
+
+**Consent reminder**:
+A **Member communication** inviting **Members** to accept or reconfirm the association’s terms and privacy policy via a personal link on the **Public website**.
+_French interface label_: Rappel de consentement CGU
+
+**Deletion request**:
+A request submitted by a **Member** after refusing the terms and privacy policy, asking the **Administration** to remove their personal record.
+_French interface label_: Demande de suppression

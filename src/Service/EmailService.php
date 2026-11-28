@@ -3,8 +3,6 @@ namespace Amea\Service;
 
 use Amea\Core\Runtime;
 use Amea\Core\View;
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception as MailException;
 
 class EmailService
 {
@@ -16,43 +14,107 @@ class EmailService
         private string $fromAddress,
         private string $fromName,
         private ?View  $view = null,
-        ?string $projectRoot = null
+        ?string $projectRoot = null,
+        private ?MailBatchTransportInterface $batchTransport = null
     ) {
         $this->projectRoot = $projectRoot ?? dirname(__DIR__, 2);
     }
 
     public function send(string $to, string $subject, string $body, ?string $replyTo = null): bool
     {
-        if ($this->shouldSkipDelivery()) {
-            return true;
-        }
-        $mail = new PHPMailer(true);
-        try {
-            $mail->isSMTP();
-            $mail->Host       = 'smtp-relay.brevo.com';
-            $mail->SMTPAuth   = true;
-            $mail->Username   = $this->smtpUser;
-            $mail->Password   = $this->smtpPass;
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = 587;
-            $mail->CharSet    = 'UTF-8';
+        return $this->sendWithResult($to, $subject, $body, $replyTo)['ok'];
+    }
 
-            $mail->setFrom($this->fromAddress, $this->fromName);
-            if ($replyTo !== null && $replyTo !== '') {
-                $mail->addReplyTo($replyTo);
+    /**
+     * Sends a single email and returns a structured result with error details.
+     *
+     * @return array{ok: bool, error: ?string}
+     */
+    public function sendWithResult(string $to, string $subject, string $body, ?string $replyTo = null): array
+    {
+        $result = ['ok' => false, 'error' => 'Erreur d’envoi inconnue.'];
+        $this->runInBatchSession(function (callable $sendOne) use ($to, $subject, $body, $replyTo, &$result): void {
+            $result = $sendOne($to, $subject, $body, $replyTo);
+        });
+        return $result;
+    }
+
+    /**
+     * Opens one persistent SMTP session (or test/suppression double), invokes
+     * $callback($sendOne) so callers can reserve quota and persist outcomes per
+     * message immediately, and always closes the session in finally.
+     *
+     * @param callable(callable(string, string, string, ?string): array{ok: bool, error: ?string}): void $callback
+     */
+    public function runInBatchSession(callable $callback): void
+    {
+        if ($this->batchTransport === null) {
+            if ($this->shouldSkipDelivery()) {
+                $callback(static fn (string $to, string $subject, string $body, ?string $replyTo = null): array => [
+                    'ok' => true,
+                    'error' => null,
+                ]);
+                return;
             }
-            $mail->addAddress($to);
-            $mail->isHTML(true);
-            $mail->Subject = $subject;
-            $mail->Body    = $body;
-            $mail->AltBody = strip_tags($body);
-
-            $mail->send();
-            return true;
-        } catch (MailException $e) {
-            error_log('[EmailService] Send failed to ' . $to . ': ' . $e->getMessage());
-            return false;
+            if ($this->isExplicitProductionEnvironment() && !$this->hasSmtpCredentials()) {
+                $this->handleMissingCredentials('batch email', '');
+                $callback(static fn (string $to, string $subject, string $body, ?string $replyTo = null): array => [
+                    'ok' => false,
+                    'error' => 'Identifiants SMTP manquants.',
+                ]);
+                return;
+            }
         }
+
+        $transport = $this->batchTransport ?? new SmtpMailBatchTransport($this->smtpUser, $this->smtpPass);
+        $transport->open();
+        try {
+            $sendOne = function (string $to, string $subject, string $body, ?string $replyTo = null) use ($transport): array {
+                try {
+                    return $transport->send($to, $subject, $body, $this->fromAddress, $this->fromName, $replyTo);
+                } catch (\Throwable $e) {
+                    error_log('[EmailService] Batch send failed to ' . $to . ': ' . $e->getMessage());
+                    return ['ok' => false, 'error' => $e->getMessage()];
+                }
+            };
+            $callback($sendOne);
+        } finally {
+            $transport->close();
+        }
+    }
+
+    /**
+     * Sends a batch of emails over a single persistent SMTP transport session.
+     *
+     * @param list<array{id: int|string, to: string, subject: string, body: string, replyTo?: ?string}> $messages
+     * @return array<int|string, array{ok: bool, error: ?string}>
+     */
+    public function sendBatch(array $messages, int $pauseMs = 0): array
+    {
+        if ($messages === []) {
+            return [];
+        }
+
+        $results = [];
+        $count = count($messages);
+        $index = 0;
+
+        $this->runInBatchSession(function (callable $sendOne) use ($messages, $pauseMs, $count, &$index, &$results): void {
+            foreach ($messages as $message) {
+                $index++;
+                $results[$message['id']] = $sendOne(
+                    (string) $message['to'],
+                    (string) $message['subject'],
+                    (string) $message['body'],
+                    isset($message['replyTo']) ? (string) $message['replyTo'] : null
+                );
+                if ($pauseMs > 0 && $index < $count) {
+                    usleep($pauseMs * 1000);
+                }
+            }
+        });
+
+        return $results;
     }
 
     public function sendAsync(string $to, string $subject, string $body): bool

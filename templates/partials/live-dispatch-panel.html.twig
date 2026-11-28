@@ -1,0 +1,61 @@
+{% set isAutoDispatch = active_communication.status in ['QUEUED', 'SENDING', 'PAUSED_LIMIT'] and (active_communication.pending_count > 0 or active_communication.sending_count > 0) and (quota_sent < quota_limit) %}
+{% set pct = active_communication.total_recipients > 0 ? (((active_communication.sent_count + active_communication.failed_count + active_communication.cancelled_count) * 100) / active_communication.total_recipients)|round : 100 %}
+<div class="card mb-4"
+     id="liveDispatchPanel"
+     data-communication-id="{{ active_communication.id }}"
+     data-dispatch-url="{{ dispatch_url }}"
+     data-csrf-token="{{ csrf_token }}"
+     data-auto-start="{{ isAutoDispatch ? '1' : '0' }}"
+     data-status="{{ active_communication.status }}"
+     data-status-labels="{{ status_labels|json_encode }}"
+     data-status-badges="{{ status_badges|json_encode }}">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <i class="fas fa-bolt me-1" aria-hidden="true"></i>
+            <strong>{{ panel_heading }}</strong>{% if panel_subject is defined and panel_subject %} — {{ panel_subject }}{% endif %}
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge {{ status_badges[active_communication.status] ?? 'bg-secondary' }}" id="dispatchStatusBadge">
+                {{ status_labels[active_communication.status] ?? active_communication.status }}
+            </span>
+            {% if active_communication.status in ['QUEUED', 'SENDING', 'PAUSED_LIMIT'] and (active_communication.pending_count > 0 or active_communication.sending_count > 0) %}
+            <form method="POST" action="{{ cancel_action_url }}" class="d-inline" data-cancel-form="1">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="action" value="cancel">
+                <input type="hidden" name="communication_id" value="{{ active_communication.id }}">
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-stop me-1" aria-hidden="true"></i> Annuler le reste
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="progress mb-2" role="progressbar" aria-label="{{ progress_aria_label }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ pct }}">
+            <div class="progress-bar progress-bar-striped {{ isAutoDispatch ? 'progress-bar-animated' : '' }}"
+                 id="dispatchProgressBar"
+                 style="width: {{ pct }}%">{{ pct }}%</div>
+        </div>
+        <div class="d-flex flex-wrap gap-3 small text-muted" id="dispatchCounters">
+            <span>Envoyés : <strong id="dispatchSentCount">{{ active_communication.sent_count }}</strong> / <strong id="dispatchTotalCount">{{ active_communication.total_recipients }}</strong></span>
+            <span>En attente : <strong id="dispatchPendingCount">{{ active_communication.pending_count }}</strong></span>
+            <span>Échecs : <strong id="dispatchFailedCount">{{ active_communication.failed_count }}</strong></span>
+            {% if active_communication.cancelled_count > 0 %}
+            <span>Annulés : <strong>{{ active_communication.cancelled_count }}</strong></span>
+            {% endif %}
+        </div>
+        <div class="small mt-2" id="dispatchMessage" aria-live="polite">
+            {% if isAutoDispatch %}
+                {{ running_message }}
+            {% elseif active_communication.status == 'PAUSED_LIMIT' %}
+                Quota quotidien atteint ({{ quota_sent }} / {{ quota_limit }}). Les destinataires restants reprendront dès la réouverture du quota.
+            {% elseif active_communication.status == 'COMPLETED' %}
+                {{ completed_message }}
+            {% elseif active_communication.status == 'COMPLETED_WITH_ERRORS' %}
+                Envoi terminé avec {{ active_communication.failed_count }} échec(s).
+            {% elseif active_communication.status == 'CANCELLED' %}
+                Envoi arrêté : {{ active_communication.cancelled_count }} destinataire(s) restant(s) annulé(s).
+            {% endif %}
+        </div>
+    </div>
+</div>

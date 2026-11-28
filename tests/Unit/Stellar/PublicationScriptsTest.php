@@ -78,6 +78,10 @@ final class PublicationScriptsTest extends TestCase
             'STAFF_APP_URL' => 'https://bo.aeesgs.org',
             'MAIL_USER' => 'smtp@example.invalid',
             'MAIL_PASS' => 's3cr3t-smtp-key-value',
+            'MAIL_DAILY_LIMIT' => '500',
+            'MAIL_BATCH_SIZE' => '40',
+            'MAIL_MAX_ATTEMPTS' => '4',
+            'MAIL_SEND_PAUSE_MS' => '100',
             'STORAGE_DRIVER' => 's3',
             'S3_PATH_STYLE' => 'false',
             'R2_ENDPOINT' => 'https://example.r2.cloudflarestorage.com',
@@ -105,6 +109,10 @@ final class PublicationScriptsTest extends TestCase
 
         $content = (string) file_get_contents($out);
         $this->assertStringContainsString("APP_ENV=test\n", $content);
+        $this->assertStringContainsString("MAIL_DAILY_LIMIT=500\n", $content);
+        $this->assertStringContainsString("MAIL_BATCH_SIZE=40\n", $content);
+        $this->assertStringContainsString("MAIL_MAX_ATTEMPTS=4\n", $content);
+        $this->assertStringContainsString("MAIL_SEND_PAUSE_MS=100\n", $content);
         $this->assertStringContainsString("R2_BUCKET_NAME=amea-sandbox\n", $content);
         $this->assertStringContainsString("CLOUDFLARE_ZONE_ID=0123456789abcdef0123456789abcdef\n", $content);
         $this->assertStringContainsString("CLOUDFLARE_CACHE_ENABLED=1\n", $content);

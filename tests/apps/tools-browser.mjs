@@ -43,6 +43,94 @@ try {
         await navigate(staff+'/'+route);
         await check("document.querySelector('main') !== null && !document.body.innerText.includes('Fatal error')", 'authorized existing staff tool '+route);
     }
+    const pressEnter = async () => {
+        const key = {key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13};
+        await cdp('Input.dispatchKeyEvent', {...key, type: 'keyDown', text: '\r'});
+        await cdp('Input.dispatchKeyEvent', {...key, type: 'keyUp'});
+    };
+    for (const [page, form] of [['communications', 'bulkCommunicationForm'], ['consent', 'cguReminderForm']]) {
+        await cdp('Emulation.setEmulatedMedia', {features: [{name: 'prefers-color-scheme', value: 'dark'}]});
+        await navigate(staff+'/'+page+'.php');
+        await evaluate("localStorage.removeItem('theme'); document.documentElement.dataset.beforeReload = 'true'");
+        await cdp('Page.reload');
+        await check(`document.readyState === 'complete' && !document.documentElement.dataset.beforeReload && document.querySelector('#${form}') && document.documentElement.dataset.bsTheme === 'light'`,
+            page+' loads in light mode on a dark system');
+        if (page === 'communications') {
+            const guarded = await evaluate(`(async () => {
+                const form = document.getElementById('bulkCommunicationForm');
+                const originalFetch = window.fetch;
+                const originalSwal = window.Swal;
+                const subject = document.getElementById('subject');
+                const body = document.getElementById('body');
+                let posts = 0;
+                let confirmations = 0;
+                form.submit = () => posts++;
+                subject.value = 'Test';
+                body.value = 'Corps';
+                const submit = async () => {
+                    form.dispatchEvent(new Event('submit', {cancelable: true}));
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                };
+                try {
+                    window.Swal = {fire: async () => {
+                        confirmations++;
+                        body.value += ' modifié';
+                        return {isConfirmed: true};
+                    }};
+                    window.fetch = async () => ({ok: false, status: 503});
+                    await submit();
+                    if (posts || confirmations) return false;
+                    window.fetch = async () => ({ok: true, json: async () => ({count: 2})});
+                    await submit();
+                    return posts === 0 && confirmations === 1;
+                } finally {
+                    window.fetch = originalFetch;
+                    window.Swal = originalSwal;
+                    delete form.submit;
+                    subject.value = body.value = '';
+                }
+            })()`);
+            assert(guarded, 'A failed audience refresh or changed message must block submission');
+        }
+        const palette = "getComputedStyle(document.body).color + ' ' + getComputedStyle(document.body).backgroundColor";
+        const lightPalette = await evaluate(palette);
+        for (const theme of ['light', 'dark']) {
+            if (theme === 'dark') {
+                await evaluate("document.querySelector('.theme-switcher').focus()");
+                await pressEnter();
+                await check(`document.documentElement.dataset.bsTheme === 'dark' && ${palette} !== ${JSON.stringify(lightPalette)}`,
+                    page+' switches text and background palette from the keyboard');
+            }
+            await check(`(() => {
+                const luminance = (color) => {
+                    const channels = color.match(/[0-9]+/g).slice(0, 3).map(value => Number(value) / 255);
+                    const [red, green, blue] = channels.map(value =>
+                        value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+                    return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+                };
+                const hasContrast = (element, surface, minimum) => {
+                    const text = luminance(getComputedStyle(element).color);
+                    const background = luminance(getComputedStyle(surface).backgroundColor);
+                    return (Math.max(text, background) + 0.05) / (Math.min(text, background) + 0.05) >= minimum;
+                };
+                const metrics = [...document.querySelectorAll('.h2.fw-bold[class*="-emphasis"]')];
+                const links = [...document.querySelectorAll('#consentTabs .nav-link:not(.active)')];
+                return metrics.length >= 2 && metrics.every(metric => hasContrast(metric, metric.closest('.card'), 3))
+                    && links.every(link => hasContrast(link, document.body, 4.5));
+            })()`, page+' metrics and navigation meet text contrast in '+theme);
+            for (const width of [390, 1440]) {
+                await cdp('Emulation.setDeviceMetricsOverride', {width,height:1000,deviceScaleFactor:1,mobile:false});
+                await check("document.documentElement.scrollWidth <= innerWidth && document.querySelector('main').scrollWidth <= document.querySelector('main').clientWidth",
+                    page+' fits '+width+' in '+theme);
+                const {data} = await cdp('Page.captureScreenshot', {format:'png'});
+                await writeFile(path.join(out, `staff-${page}-${width}-${theme}.png`), Buffer.from(data, 'base64'));
+            }
+        }
+    }
+    await evaluate("document.querySelector('#consentTabs a[href*=deletion]').focus()");
+    await pressEnter();
+    await check("location.search === '?tab=deletion' && document.querySelector('#consentTabs a[aria-current=page]')?.href.endsWith('?tab=deletion')",
+        'consent deletion requests are reachable by keyboard');
     await navigate(staff+'/manage-slider.php');
     let shot=await cdp('Page.captureScreenshot',{format:'png'});await writeFile(path.join(out,'staff-carousel.png'),Buffer.from(shot.data,'base64'));
     await navigate(base+'/');

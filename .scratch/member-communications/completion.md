@@ -1,0 +1,5 @@
+- [x] [01 — Fast bulk communications tracer bullet (hybrid engine & live chunked sending)](issues/01-fast-bulk-communications-tracer-bullet.md)
+- [x] [02 — Communication history, self-test preview & Resume / Retry / Cancel controls](issues/02-history-self-test-and-controls.md)
+- [x] [03 — CLI mail worker fallback & unified daily quota](issues/03-cli-mail-worker-hybrid-fallback.md)
+- [x] [04 — Dedicated Consent & RGPD module (/consent.php) & isolated cgu_token lifecycle](issues/04-consent-and-rgpd-module.md)
+- [x] [05 — Integrated qualification, split-host checks & tracker sync](issues/05-integrated-qualification-and-sync.md)

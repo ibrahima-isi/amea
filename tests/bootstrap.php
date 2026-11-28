@@ -13,7 +13,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 function makeTestDb(): PDO
 {
-    $db = new PDO('sqlite::memory:');
+    $db = class_exists(\Pdo\Sqlite::class) ? \Pdo\Sqlite::connect('sqlite::memory:') : new PDO('sqlite::memory:');
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
@@ -57,6 +57,10 @@ function makeTestDb(): PDO
             graduation_date TEXT DEFAULT NULL,
             is_locked INTEGER NOT NULL DEFAULT 0,
             consent_privacy INTEGER NOT NULL DEFAULT 0,
+            cgu_token TEXT DEFAULT NULL UNIQUE,
+            cgu_reminder_sent_at DATETIME DEFAULT NULL,
+            consent_refused_at DATETIME DEFAULT NULL,
+            deletion_requested_at DATETIME DEFAULT NULL,
             kyc_status TEXT NOT NULL DEFAULT 'PENDING_CONFIRMATION',
             kyc_notes TEXT DEFAULT NULL,
             review_token TEXT DEFAULT NULL,
@@ -131,6 +135,41 @@ function makeTestDb(): PDO
             expected_identity TEXT NULL, expected_cv TEXT NULL, expected_deleted_at DATETIME NULL,
             started INTEGER NOT NULL DEFAULT 0, attempts INTEGER NOT NULL DEFAULT 0,
             last_error TEXT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE communications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            type TEXT NOT NULL DEFAULT 'BULK',
+            subject TEXT NOT NULL,
+            body TEXT NOT NULL,
+            filters_json TEXT DEFAULT NULL,
+            status TEXT NOT NULL DEFAULT 'QUEUED',
+            total_recipients INTEGER NOT NULL DEFAULT 0,
+            sent_count INTEGER NOT NULL DEFAULT 0,
+            failed_count INTEGER NOT NULL DEFAULT 0,
+            cancelled_count INTEGER NOT NULL DEFAULT 0,
+            created_by INTEGER DEFAULT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            started_at DATETIME DEFAULT NULL,
+            completed_at DATETIME DEFAULT NULL
+        );
+        CREATE TABLE communication_recipients (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            communication_id INTEGER NOT NULL,
+            student_id INTEGER DEFAULT NULL,
+            email TEXT NOT NULL,
+            first_name TEXT NOT NULL DEFAULT '',
+            last_name TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'PENDING',
+            attempts INTEGER NOT NULL DEFAULT 0,
+            next_attempt_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            claimed_at DATETIME DEFAULT NULL,
+            sent_at DATETIME DEFAULT NULL,
+            last_error TEXT DEFAULT NULL
+        );
+        CREATE TABLE mail_daily_usage (
+            usage_date TEXT PRIMARY KEY,
+            sent_count INTEGER NOT NULL DEFAULT 0,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
         );");
 
     return $db;
