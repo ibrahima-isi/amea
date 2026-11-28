@@ -7,6 +7,7 @@ namespace Amea\Repository;
 use Amea\Model\CommunicationStatus;
 use Amea\Model\CommunicationType;
 use PDO;
+use PHPMailer\PHPMailer\PHPMailer;
 use Throwable;
 
 /**
@@ -23,22 +24,44 @@ class CommunicationRepository
 
     public static function validEmailPredicate(PDO $pdo): string
     {
-        // ASCII dot-atom mailbox and DNS labels. Both engines evaluate the same PCRE.
-        $atom = "[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+";
-        $label = '[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?';
-        $topLabel = '[A-Za-z](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?';
-        $pattern = "(?-i)^{$atom}(?:[.]{$atom})*@(?:{$label}[.])+{$topLabel}\\z";
         if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
-            $regexp = static fn (string $regex, ?string $value): int =>
-                preg_match(chr(1) . $regex . chr(1), $value ?? '');
+            $validate = static fn (?string $address): int =>
+                (int) PHPMailer::validateAddress($address ?? '', 'php');
             if ($pdo instanceof \Pdo\Sqlite) {
-                $pdo->createFunction('regexp', $regexp, 2);
+                $pdo->createFunction('amea_valid_email', $validate, 1);
             } else {
-                $pdo->sqliteCreateFunction('regexp', $regexp, 2);
+                $pdo->sqliteCreateFunction('amea_valid_email', $validate, 1);
             }
+            return 'amea_valid_email(TRIM(email)) = 1';
         }
-        return "LENGTH(TRIM(email)) <= 254 AND INSTR(TRIM(email), '@') BETWEEN 2 AND 65 AND TRIM(email) REGEXP "
-            . $pdo->quote($pattern);
+
+        // PHPMailer's default "php" validator delegates to FILTER_VALIDATE_EMAIL.
+        // Adapted from PHP 8.5 ext/filter/logical_filters.c (regexp1), based on
+        // Copyright © Michael Rushton 2009-10, http://squiloople.com/.
+        // Use explicit ASCII classes so the database collation cannot fold Unicode.
+        $unit = '(?:"?\x5C[\x00-\x7E]"?|"?[^\x5C\x22]"?)';
+        $lengthLimits = "(?!(?:{$unit}){255,})(?!(?:{$unit}){65,}@)";
+        $atom = '[\x21\x23-\x27\x2A\x2B\x2D\x2F-\x39\x3D\x3FA-Z\x5E-\x7E]+';
+        $quoted = '"(?:[\x01-\x08\x0B\x0C\x0E-\x1F\x21\x23-\x5B\x5D-\x7F]|\x5C[\x00-\x7F])*"';
+        $word = "(?:{$atom}|{$quoted})";
+        $local = "{$word}(?:[.]{$word})*";
+
+        $label = '[A-Za-z0-9]+(?:-+[A-Za-z0-9]+)*';
+        $topLabel = '[A-Za-z][A-Za-z0-9]*(?:-+[A-Za-z0-9]+)*';
+        $dns = "(?!.*[^.]{64,})(?:{$label}[.])+{$topLabel}";
+
+        $octet = '(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])';
+        $ipv4 = "{$octet}(?:[.]{$octet}){3}";
+        $hex = '[A-Fa-f0-9]{1,4}';
+        $ipv6 = "(?:{$hex}(?::{$hex}){7}|(?!(?:.*[A-Fa-f0-9][:\\]]){7,})(?:{$hex}(?::{$hex}){0,5})?::(?:{$hex}(?::{$hex}){0,5})?)";
+        $mappedPrefix = "(?:{$hex}(?::{$hex}){5}:|(?!(?:.*[A-Fa-f0-9]:){5,})(?:{$hex}(?::{$hex}){0,3})?::(?:{$hex}(?::{$hex}){0,3}:)?)";
+        $tag = '[Ii][Pp][Vv]6:';
+        $literal = "\\[(?:{$tag}{$ipv6}|(?:{$tag}{$mappedPrefix})?{$ipv4})\\]";
+
+        $pattern = "(?-i)^{$lengthLimits}{$local}@(?:{$dns}|{$literal})\\z";
+        // PHPMailer rejects CR/LF even inside a quoted pair. PHP caps input at 320 bytes.
+        return 'LENGTH(TRIM(email)) <= 320 AND INSTR(email, CHAR(10)) = 0 AND INSTR(email, CHAR(13)) = 0'
+            . ' AND TRIM(email) REGEXP ' . $pdo->quote($pattern);
     }
 
     public function assertDeliverySchemaAvailable(): void
