@@ -398,7 +398,8 @@ jobs:
           bash scripts/stellar/publish.sh \
             --mode=verify-http \
             --public-url="${PUBLIC_APP_URL}" \
-            --staff-url="${STAFF_APP_URL}"
+            --staff-url="${STAFF_APP_URL}" \
+            --check-legal-etags
 
       - name: Clean temporary release artifacts
         if: always()

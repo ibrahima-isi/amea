@@ -14,9 +14,14 @@ if (PHP_SAPI !== 'cli') {
 }
 
 $options = [];
+$checkLegalEtags = false;
 foreach (array_slice($argv, 1) as $argument) {
+    if ($argument === '--check-legal-etags' && !$checkLegalEtags) {
+        $checkLegalEtags = true;
+        continue;
+    }
     if (!preg_match('/^--(public-url|staff-url|basic-auth-env|timeout)=(.+)$/s', $argument, $match) || isset($options[$match[1]])) {
-        fwrite(STDERR, "Usage: php scripts/stellar/verify-http.php --public-url=URL --staff-url=URL [--basic-auth-env=VAR] [--timeout=SECONDS]\n");
+        fwrite(STDERR, "Usage: php scripts/stellar/verify-http.php --public-url=URL --staff-url=URL [--basic-auth-env=VAR] [--timeout=SECONDS] [--check-legal-etags]\n");
         exit(2);
     }
     $options[$match[1]] = $match[2];
@@ -75,7 +80,7 @@ if (!function_exists('curl_init')) {
 /**
  * @return array{status: int, headers: array<string, list<string>>, error: string}
  */
-$probe = static function (string $url, string $method, ?string $auth) use ($timeout): array {
+$probe = static function (string $url, string $method, ?string $auth, array $requestHeaders = []) use ($timeout): array {
     $headers = [];
     $ch = curl_init($url);
     if ($ch === false) {
@@ -83,6 +88,7 @@ $probe = static function (string $url, string $method, ?string $auth) use ($time
     }
     curl_setopt_array($ch, [
         CURLOPT_CUSTOMREQUEST => $method,
+        CURLOPT_HTTPHEADER => $requestHeaders,
         CURLOPT_USERAGENT => 'AMEA-Deploy-Verifier/1.0',
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_FOLLOWLOCATION => false,
@@ -92,6 +98,9 @@ $probe = static function (string $url, string $method, ?string $auth) use ($time
         CURLOPT_SSL_VERIFYHOST => 2,
         CURLOPT_HEADERFUNCTION => static function ($curl, string $line) use (&$headers): int {
             $len = strlen($line);
+            if (str_starts_with($line, 'HTTP/')) {
+                $headers = [];
+            }
             $colon = strpos($line, ':');
             if ($colon !== false) {
                 $name = strtolower(trim(substr($line, 0, $colon)));
@@ -132,6 +141,40 @@ if ($basicAuth !== null) {
 
 $pubLegal = $probe($publicUrl . '/legal-notice.php', 'GET', $basicAuth);
 $check($pubLegal['status'] === 200, "public GET /legal-notice.php returns 200 (got {$pubLegal['status']})", $pubLegal['error']);
+
+if ($checkLegalEtags) {
+    $legalUrl = $publicUrl . '/legal-notice.php';
+    $tags = [];
+    foreach (['gzip', 'identity'] as $encoding) {
+        $requestHeaders = ["Accept-Encoding: {$encoding}"];
+        $response = $probe($legalUrl, 'GET', $basicAuth, $requestHeaders);
+        $etag = $response['headers']['etag'][0] ?? '';
+        $weak = str_starts_with($etag, 'W/');
+        $validTag = count($response['headers']['etag'] ?? []) === 1
+            && preg_match('/^(?:W\/)?"[!\x23-\x7e\x80-\xff]*"$/D', $etag) === 1
+            && ($encoding === 'identity' || !$weak);
+        $contentEncoding = strtolower($response['headers']['content-encoding'][0] ?? 'identity');
+        $check(
+            $response['status'] === 200 && $contentEncoding === $encoding && $validTag,
+            "public /legal-notice.php {$encoding} returns 200 with the requested encoding and a usable ETag"
+                . " (got {$response['status']}, {$contentEncoding}, ETag " . ($validTag ? ($weak ? 'weak' : 'strong') : 'missing or invalid') . ')',
+            $response['error']
+        );
+        if ($response['status'] !== 200 || !$validTag) {
+            continue;
+        }
+        $tags[$encoding] = $etag;
+        $conditional = $probe($legalUrl, 'GET', $basicAuth, [...$requestHeaders, "If-None-Match: {$etag}"]);
+        $check(
+            $conditional['status'] === 304,
+            "public /legal-notice.php {$encoding} returns 304 for its ETag (got {$conditional['status']})",
+            $conditional['error']
+        );
+    }
+    if (isset($tags['identity'], $tags['gzip']) && !str_starts_with($tags['identity'], 'W/')) {
+        $check($tags['identity'] !== $tags['gzip'], 'public /legal-notice.php gzip and identity strong ETags differ');
+    }
+}
 
 $pubAsset = $probe($publicUrl . '/assets/js/theme.js', 'GET', $basicAuth);
 $check($pubAsset['status'] === 200, "public GET /assets/js/theme.js returns 200 (got {$pubAsset['status']})", $pubAsset['error']);

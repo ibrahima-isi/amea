@@ -79,7 +79,7 @@ class JournalRepository
     public function findRecentPublished(int $limit = 3): array
     {
         $limit = max(1, min(50, $limit));
-        return $this->resolveCache()->remember(AppCache::NS_JOURNAL, 'recent_published_' . $limit, self::CACHE_TTL, function () use ($limit): array {
+        return $this->cache()->remember(AppCache::NS_JOURNAL, 'recent_published_' . $limit, self::CACHE_TTL, function () use ($limit): array {
             $statement = $this->pdo->prepare(
                 'SELECT * FROM journal_posts WHERE status = ? ORDER BY published_at DESC, id DESC LIMIT ?'
             );
@@ -98,7 +98,7 @@ class JournalRepository
         $statement->execute(array_values($values));
         $id = (int) $this->pdo->lastInsertId();
         if (!$this->pdo->inTransaction()) {
-            $this->resolveCache()->invalidateNamespace(AppCache::NS_JOURNAL);
+            $this->cache()->invalidateNamespace(AppCache::NS_JOURNAL);
         }
         return $id;
     }
@@ -112,12 +112,12 @@ class JournalRepository
         $statement->execute([...array_values($values), $id, $expectedRevision]);
         $updated = $statement->rowCount() === 1;
         if ($updated && !$this->pdo->inTransaction()) {
-            $this->resolveCache()->invalidateNamespace(AppCache::NS_JOURNAL);
+            $this->cache()->invalidateNamespace(AppCache::NS_JOURNAL);
         }
         return $updated;
     }
 
-    private function resolveCache(): AppCache
+    public function cache(): AppCache
     {
         return $this->cache ?? Container::cacheForConnection($this->pdo);
     }
