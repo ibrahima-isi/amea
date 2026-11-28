@@ -50,15 +50,23 @@ jobs:
 
   system-tests:
     name: "System tests: Docker & recovery"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
       - name: Rehearse isolated web and backoffice targets
         env:
-          AMEA_SKIP_BROWSER: '1'
-        run: bash tests/apps/run.sh
+          AMEA_BROWSER_SCOPE: tools
+        run: |
+          export CHROME_BIN="$(command -v google-chrome)"
+          test -x "$CHROME_BIN"
+          google-chrome --version
+          export AMEA_SCREENSHOT_DIR="$RUNNER_TEMP/amea-browser"
+          bash tests/apps/run.sh
 
   doctrine-compose:
     name: "Doctrine: MariaDB & Compose startup gates"
@@ -122,6 +130,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Check Doctrine migration versions against the PR base
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 tests/check-migration-versions.py "$BASE_SHA" "$HEAD_SHA"
       - name: Setup PHP
         uses: shivammathur/setup-php@8358ee0e2e8afe63c2fb8253d1d52085811ab1e5 # v2
         with:

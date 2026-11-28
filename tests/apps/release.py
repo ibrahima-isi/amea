@@ -149,7 +149,8 @@ with tempfile.TemporaryDirectory(prefix='amea-release-') as temporary:
     pending_cookie = 'AMEA_PUBLIC=recoverypending'
     status, _, pending_bytes = http.request('public', '/registration-preview.php?type=identite', cookie=pending_cookie)
     http.check(status == 200 and b'Synthetic registration opened before recovery pause' in pending_bytes, 'pre-pause registration has an actual authorized preview')
-    browser_enabled = source_env.get('AMEA_SKIP_BROWSER', '0') != '1'
+    browser_enabled = (source_env.get('AMEA_SKIP_BROWSER', '0') != '1'
+                       and source_env.get('AMEA_BROWSER_SCOPE') != 'tools')
     if browser_enabled:
         subprocess.run(['node', 'tests/apps/recovery-browser.mjs', source_env.get('AMEA_SCREENSHOT_DIR', '/private/tmp/amea-app-browser')], cwd=ROOT, env={**source_env, 'AMEA_RECOVERY_BROWSER_PHASE':'before'}, check=True)
     proof = json.loads(recovery(project, 'capture').decode().strip())

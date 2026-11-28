@@ -67,7 +67,7 @@ python3 tests/apps/registration.py
 "${compose[@]}" exec -u www-data -T backoffice php < tests/apps/member-fixture.php
 python3 tests/apps/visual-refresh.py --populated
 python3 tests/apps/members.py
-if [[ "${AMEA_SKIP_BROWSER:-0}" != "1" && "${AMEA_BROWSER_SCOPE:-all}" != "storage" ]]; then
+if [[ "${AMEA_SKIP_BROWSER:-0}" != "1" && "${AMEA_BROWSER_SCOPE:-all}" == "all" ]]; then
     node tests/apps/browser.mjs "${AMEA_SCREENSHOT_DIR:-/private/tmp/amea-app-browser}"
 fi
 
